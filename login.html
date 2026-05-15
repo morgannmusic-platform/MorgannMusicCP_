@@ -329,17 +329,7 @@
         alert(roleErr?.message || "Code rôle invalide.");
       }
 
-      const ok2FA = await enforceTotpIfEnabled(cred.user);
-      if (!ok2FA) {
-        await signOut(auth);
-        return;
-      }
-
-      const okEmail2FA = await enforceEmail2faIfEnabled(cred.user);
-      if (!okEmail2FA) {
-        await signOut(auth);
-        return;
-      }
+      // Suppression de la vérification 2FA (désactivée)
 
       try {
         const okProfile = await enforceProfileUpdateAfterLogin(cred.user);
@@ -497,11 +487,7 @@
       }
       // ----------------------------------------------------
 
-      try {
-        await prompt2FASetupAfterSignup();
-      } catch (e) {
-        console.warn("2FA setup skipped/error", e);
-      }
+      // Suppression de la proposition d'activation 2FA après inscription (désactivée)
 
       redirectAfterSuccess();
     } catch (err) {
@@ -551,7 +537,7 @@
           return;
         }
         if (ensured?.created) {
-          await prompt2FASetupAfterSignup();
+          // Suppression de la proposition d'activation 2FA après inscription Google (désactivée)
         }
       } catch (fsErr) {
         alert("Erreur Firestore : " + (fsErr?.message || fsErr));
@@ -559,17 +545,7 @@
         return;
       }
 
-      const ok2FA = await enforceTotpIfEnabled(result.user);
-      if (!ok2FA) {
-        await signOut(auth);
-        return;
-      }
-
-      const okEmail2FA = await enforceEmail2faIfEnabled(result.user);
-      if (!okEmail2FA) {
-        await signOut(auth);
-        return;
-      }
+      // Suppression de la vérification 2FA (désactivée)
 
       try {
         const okProfile = await enforceProfileUpdateAfterLogin(result.user);
