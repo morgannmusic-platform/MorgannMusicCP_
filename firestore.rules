@@ -1,0 +1,228 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Documents utilisateur
+    match /documents/{docId} {
+      allow read: if isAdmin() || (signedIn() && (
+        resource.data.accountId == authUid() ||
+        resource.data.userUid == authUid() ||
+        resource.data.uid == authUid()
+      ));
+      allow write: if isAdmin();
+    }
+    // Lecteur avant-première : accès admin uniquement
+    match /lecteurAP/{docId} {
+      allow read: if true; // lecture publique
+      allow write: if isAdmin(); // écriture/admin privée
+    }
+    // ...existing code...
+
+    // Listes d'albums utilisateur
+    match /albumLists/{docId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow create: if isAdmin() || (signedIn() && request.resource.data.ownerUid == authUid());
+      allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+    }
+
+    // ...existing code...
+
+    function signedIn() { return request.auth != null; }
+    function authUid() { return request.auth.uid; }
+    function isAdmin() {
+      let role = signedIn() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role : null;
+      return signedIn() && (
+        request.auth.token.admin == true ||
+        request.auth.token.staff == true ||
+        role == "admin" ||
+        role == "Admin" ||
+        role == "ADMIN"
+      );
+    }
+
+    // Artistes — lecture publique, écriture admin ou propriétaire
+    match /artists/{artistId} {
+      allow read: if true;
+      allow create: if isAdmin() || (signedIn() && request.resource.data.ownerUid == authUid());
+      allow update: if isAdmin() || (
+        signedIn() && (
+          // Propriétaire actuel
+          resource.data.ownerUid == authUid() ||
+          // Cas legacy: ownerUid absent -> premier enregistrement autorisé par l'utilisateur connecté
+          (
+            (
+              !("ownerUid" in resource.data) ||
+              resource.data.ownerUid == null ||
+              resource.data.ownerUid == ""
+            ) &&
+            request.resource.data.ownerUid == authUid()
+          )
+        )
+      );
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+    }
+
+    // Sorties — lecture publique, écriture admin ou propriétaire
+    match /releases/{releaseId} {
+      allow read: if true;
+      allow write: if isAdmin();
+      allow create: if isAdmin() || signedIn();
+    }
+
+    // Utilisateurs — lecture/écriture de son propre document, admin voit tout
+    match /users/{userId} {
+      allow read: if isAdmin() || (signedIn() && authUid() == userId);
+      allow write: if isAdmin() || (signedIn() && authUid() == userId);
+    }
+
+    // Notifications
+    match /notifications/{notifId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.userUid == authUid());
+      allow write: if isAdmin();
+    }
+
+    // Support
+    match /support/{ticketId} {
+      allow read, write: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow create: if signedIn();
+    }
+
+    // Support (collection actuelle)
+    match /supportTickets/{ticketId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow create: if signedIn();
+      allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow delete: if isAdmin();
+    }
+
+    // Contrats
+    match /contracts/{contractId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow write: if isAdmin();
+    }
+
+    // Stripe customer portal data
+    match /customers/{userId} {
+      allow read: if isAdmin() || (signedIn() && authUid() == userId);
+      allow write: if isAdmin();
+
+      match /subscriptions/{subscriptionId} {
+        allow read: if isAdmin() || (signedIn() && authUid() == userId);
+        allow write: if false;
+      }
+
+      match /checkout_sessions/{sessionId} {
+        allow read: if isAdmin() || (signedIn() && authUid() == userId);
+        allow create: if signedIn() && authUid() == userId
+          && request.resource.data.price is string
+          && request.resource.data.price.size() >= 3
+          && request.resource.data.price.size() <= 120
+          && request.resource.data.success_url is string
+          && request.resource.data.success_url.size() >= 8
+          && request.resource.data.success_url.size() <= 500
+          && request.resource.data.cancel_url is string
+          && request.resource.data.cancel_url.size() >= 8
+          && request.resource.data.cancel_url.size() <= 500
+          && request.resource.data.mode is string
+          && (request.resource.data.mode == "subscription" || request.resource.data.mode == "payment");
+        allow update, delete: if false;
+      }
+    }
+
+    // Feat requests / pitch
+    match /featRequests/{id} {
+      allow read: if isAdmin() || signedIn();
+      allow write: if isAdmin() || signedIn();
+    }
+    match /pitchRequests/{id} {
+      allow read: if isAdmin() || signedIn();
+      allow write: if isAdmin() || signedIn();
+    }
+
+    // Accompagnement
+    match /accompagnementPlans/{docId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow create: if isAdmin() || (signedIn() && request.resource.data.ownerUid == authUid());
+      allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+    }
+
+    match /accompagnementGoals/{docId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow create: if isAdmin() || (signedIn() && request.resource.data.ownerUid == authUid());
+      allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+    }
+
+    match /accompagnementDrafts/{docId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow create: if isAdmin() || (signedIn() && request.resource.data.ownerUid == authUid());
+      allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+    }
+
+    match /accompagnementNotes/{docId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Avis publics d'artistes
+    match /artistReviews/{reviewId} {
+      allow read: if true;
+      allow create: if signedIn() &&
+        request.resource.data.userUid == authUid() &&
+        request.resource.data.rating is int &&
+        request.resource.data.rating >= 1 &&
+        request.resource.data.rating <= 5 &&
+        request.resource.data.comment is string &&
+        request.resource.data.comment.size() >= 10 &&
+        request.resource.data.comment.size() <= 1200;
+      allow update, delete: if isAdmin() || (signedIn() && resource.data.userUid == authUid());
+    }
+
+    // Logs d'actions artiste (soft-delete, etc.)
+    match /artistAdminLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.byUid == authUid()
+        && request.resource.data.artistId is string
+        && request.resource.data.artistId.size() > 0
+        && request.resource.data.action is string
+        && (
+          isAdmin() ||
+          get(/databases/$(database)/documents/artists/$(request.resource.data.artistId)).data.ownerUid == authUid()
+        );
+      allow update, delete: if isAdmin();
+    }
+
+    // Messages de contact publics
+    match /contactMessages/{messageId} {
+      allow create: if
+        request.resource.data.email is string &&
+        request.resource.data.email.size() >= 5 &&
+        request.resource.data.email.size() <= 160 &&
+        request.resource.data.subject is string &&
+        request.resource.data.subject.size() >= 3 &&
+        request.resource.data.subject.size() <= 140 &&
+        request.resource.data.body is string &&
+        request.resource.data.body.size() >= 20 &&
+        request.resource.data.body.size() <= 5000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Listes d'albums utilisateur
+    match /albumLists/{docId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow create: if isAdmin() || (signedIn() && request.resource.data.ownerUid == authUid());
+      allow update: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == authUid());
+    }
+
+    // Par défaut : tout interdit
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

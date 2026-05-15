@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact par Email | Morgann Music CP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+  <style>
+    body {
+      padding: 0;
+      margin-bottom: 20px;
+    }
+    .contact-container { max-width: 480px; margin-bottom: 20px;  background:
+    radial-gradient(170% 100% at 0% 0%, #ff8fb1, transparent 55%),
+    radial-gradient(70% 90% at 100% 100%, #ff8fb1, transparent 60%),
+    color-mix(in srgb, var(--bg), #fbffdf 25%);
+margin: 0 auto; border-radius: 18px; box-shadow: 0 4px 32px #0001; padding: 32px 24px; color: #000;}
+    h1 { text-align: center; margin-bottom: 24px; }
+    .contact-btn { display: block; width: 100%; margin: 12px 0; padding: 14px 0; border-radius: 12px; border: none; background: #6c47ff; color: #fff; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background 0.18s; }
+    .contact-btn:hover { background: #4b2fd6; }
+    .contact-btn[disabled] { background: #ccc; color: #888; cursor: not-allowed; }
+    .urgent { background: #ef4444; }
+    .urgent:hover { background: #b91c1c; }
+    .contact-label { font-size: 0.98rem; color: #666; margin-bottom: 2px; }
+    .artist-select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px; }
+  </style>
+</head>
+  <body >
+  <div id="navbar-container"></div>
+  <main class="contact-container">
+    <div class="contact-support-block">
+      <h2>Confidentialité</h2>
+      <span class="support-email">politique-confidentialité@mm-cp.uk</span>
+      <button class="contact-btn" onclick="window.location='mailto:politique-confidentialité@mm-cp.uk'">Contacter</button>
+    </div>
+    <div class="contact-support-block">
+      <h2>Légal</h2>
+      <span class="support-email">legal@mm-cp.uk</span>
+      <button class="contact-btn" onclick="window.location='mailto:legal@mm-cp.uk'">Contacter</button>
+    </div>
+    <div class="contact-support-block" id="artistReqBlock">
+      <h2>Demande artiste</h2>
+      <span class="support-email">artiste-uniquement@mm-cp.uk</span>
+      <select id="artistSelect" class="artist-select" style="display:none;"></select>
+      <button class="contact-btn" id="artistReqBtn" disabled>Contacter</button>
+    </div>
+    <div class="contact-support-block">
+      <h2>Tarifs</h2>
+      <span class="support-email">tarifs@mm-cp.uk</span>
+      <button class="contact-btn" onclick="window.location='mailto:tarifs@mm-cp.uk'">Contacter</button>
+    </div>
+    <div class="contact-support-block">
+      <h2>Distribution</h2>
+      <span class="support-email">distribution@mm-cp.uk</span>
+      <button class="contact-btn" onclick="window.location='mailto:distribution@mm-cp.uk'">Contacter</button>
+    </div>
+    <div class="contact-support-block">
+      <h2>Soutien élevé</h2>
+      <span class="support-email">soutien-eleve@mm-cp.uk</span>
+      <button class="contact-btn" onclick="window.location='mailto:soutien-eleve@mm-cp.uk'">Contacter</button>
+    </div>
+    <div class="contact-support-block">
+      <h2>Réponse urgente</h2>
+      <span class="support-email">urgence@mm-cp.uk</span>
+      <button class="contact-btn urgent" onclick="window.location='mailto:urgence@mm-cp.uk?subject=URGENT'">Contacter (Urgent)</button>
+    </div>
+  </main>
+  <script type="module">
+
+
+    // Initialisation Firebase
+    import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js';
+    import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Gestion du bouton artiste
+    const artistReqBtn = document.getElementById('artistReqBtn');
+    const artistSelect = document.getElementById('artistSelect');
+    let isUserConnected = false;
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        isUserConnected = false;
+        artistReqBtn.disabled = false;
+        artistReqBtn.textContent = 'Contacter';
+        artistReqBtn.onclick = () => {
+          alert("L'adresse artiste-requiert@mm-cp.uk est réservée aux personnes connectées et ayant un artiste actif sur leur compte.");
+        };
+        artistSelect.style.display = 'none';
+        return;
+      }
+      isUserConnected = true;
+      // Cherche les artistes liés à ce compte
+      const q = query(collection(db, 'artists'), where('ownerUid', '==', user.uid));
+      const snap = await getDocs(q);
+      const artists = [];
+      snap.forEach(doc => {
+        const data = doc.data();
+        if (data && data.name) artists.push(data.name);
+      });
+      if (artists.length > 0) {
+        artistReqBtn.disabled = false;
+        artistReqBtn.textContent = 'Contacter';
+        artistReqBtn.onclick = null;
+        artistReqBtn.addEventListener('click', () => {
+          artistSelect.style.display = 'block';
+          artistSelect.innerHTML = '<option value="">Choisir un artiste…</option>' + artists.map(a => `<option value="${a}">${a}</option>`).join('');
+          artistSelect.focus();
+        });
+        artistSelect.addEventListener('change', () => {
+          const artist = artistSelect.value;
+          if (artist) {
+            window.location = `mailto:artiste-uniquement@mm-cp.uk?subject=${encodeURIComponent('- ' + artist + ' requette')}`;
+            artistSelect.style.display = 'none';
+          }
+        });
+      } else {
+        artistReqBtn.disabled = true;
+        artistReqBtn.textContent = 'Aucun artiste lié à ce compte';
+        artistReqBtn.onclick = null;
+      }
+    });
+  </script>
+  <script type="module" src="/assets/js/navbar.js"></script>
+</body>
+</html>

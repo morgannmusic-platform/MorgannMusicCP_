@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Morgann Music AI — Chat</title>
+  <link rel="stylesheet" href="/assets/css/dash/artist-sidebar.css" />
+  <link rel="stylesheet" href="/assets/css/dash/styles-accueil.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --mm-bg: #eeeeee;
+      --mm-card: rgba(255, 255, 255, 0.8);
+      --mm-card-strong: rgba(255, 255, 255, 0.92);
+      --mm-text: #141416;
+      --mm-muted: #67676f;
+      --mm-line: rgba(20, 20, 22, 0.1);
+      --mm-accent: #2f63ff;
+      --mm-accent-dark: #2049cc;
+      --mm-user-bubble: linear-gradient(135deg, #2f63ff, #3d7bff);
+      --mm-bot-bubble: rgba(35, 35, 41, 0.07);
+      --mm-danger: #dc2626;
+      --mm-shadow: 0 26px 44px rgba(15, 15, 20, 0.12);
+      --mm-font: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --mm-bg: #2f2f34;
+        --mm-card: rgba(25, 25, 30, 0.8);
+        --mm-card-strong: rgba(35, 35, 40, 0.9);
+        --mm-text: #f5f5f7;
+        --mm-muted: #aaaaaf;
+        --mm-line: rgba(255, 255, 255, 0.14);
+        --mm-accent: #4e7fff;
+        --mm-accent-dark: #3f6ae0;
+        --mm-user-bubble: linear-gradient(135deg, #4e7fff, #3f6ae0);
+        --mm-bot-bubble: rgba(255, 255, 255, 0.08);
+        --mm-danger: #ef4444;
+        --mm-shadow: 0 26px 44px rgba(0, 0, 0, 0.35);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      margin-left: 240px;
+      font-family: var(--mm-font);
+      color: var(--mm-text);
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      border-top: 1.5px solid var(--sidebar-border);
+    }
+
+    #sidebar-inject {
+      display: contents;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        margin-left: 0;
+        margin-bottom: 70px;
+      }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 28px 14px;
+      border-bottom: 1px solid var(--mm-line);
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    .header p {
+      margin: 6px 0 0;
+      color: var(--mm-muted);
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(47, 99, 255, 0.24);
+      color: var(--mm-accent);
+      background: rgba(47, 99, 255, 0.1);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+
+    .header-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 6px rgba(47, 99, 255, 0.14);
+    }
+
+    .chat-tools {
+      padding: 12px 28px 10px;
+      border-bottom: 1px solid var(--mm-line);
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .chat-tools::-webkit-scrollbar {
+      display: none;
+    }
+
+    .prompt-chip {
+      border: 1px solid var(--mm-line);
+      border-radius: 999px;
+      color: var(--mm-text);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .prompt-chip:hover {
+      transform: translateY(-1px);
+      border-color: rgba(47, 99, 255, 0.35);
+      background: rgba(47, 99, 255, 0.12);
+    }
+
+    #chatWindow {
+      overflow-y: auto;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(47, 99, 255, 0.35) transparent;
+    }
+
+    #chatWindow::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #chatWindow::-webkit-scrollbar-thumb {
+      background: rgba(47, 99, 255, 0.35);
+      border-radius: 999px;
+    }
+
+    .message {
+      max-width: min(76%, 680px);
+      padding: 12px 14px;
+      border-radius: 16px;
+      line-height: 1.5;
+      font-size: 0.97rem;
+      border: 1px solid transparent;
+      animation: messageAppear 0.35s cubic-bezier(0.22, 0.85, 0.3, 1);
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      color: #ffffff;
+      background: var(--mm-user-bubble);
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 10px 20px rgba(47, 99, 255, 0.3);
+    }
+
+    .message.gemini {
+      align-self: flex-start;
+      color: var(--mm-text);
+      background: var(--mm-bot-bubble);
+      border-color: var(--mm-line);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.gemini p {
+      margin: 0.45em 0;
+    }
+
+    .message.gemini p:first-child {
+      margin-top: 0;
+    }
+
+    .message.gemini p:last-child {
+      margin-bottom: 0;
+    }
+
+    .message.gemini pre {
+      margin: 0.7em 0;
+      background: rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--mm-line);
+      border-radius: 12px;
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 0.88rem;
+    }
+
+    .message.gemini code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    @keyframes messageAppear {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .footer {
+      border-top: 1px solid var(--mm-line);
+      padding: 14px 20px 20px;
+      background: linear-gradient(0deg, var(--mm-card-strong), transparent);
+    }
+
+    .input-box {
+      background: rgba(118, 118, 128, 0.1);
+      border: 1px solid var(--mm-line);
+      border-radius: 20px;
+      padding: 10px 12px 10px 16px;
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+        @media (max-width: 900px) {
+      .input-box {
+        
+        margin-bottom: 89px;
+      }
+    }
+
+
+    .input-box:focus-within {
+      border-color: rgba(47, 99, 255, 0.4);
+      box-shadow: 0 0 0 3px rgba(47, 99, 255, 0.14);
+      background: rgba(118, 118, 128, 0.14);
+    }
+
+    textarea {
+      flex: 1;
+      border: 0;
+      outline: 0;
+      resize: none;
+      max-height: 160px;
+      min-height: 24px;
+      background: transparent;
+      color: var(--mm-text);
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1.45;
+      padding: 6px 0;
+    }
+
+    textarea::placeholder {
+      color: var(--mm-muted);
+    }
+
+    .circle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--mm-accent);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+      flex: 0 0 auto;
+    }
+
+    .circle-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: var(--mm-accent-dark);
+    }
+
+    .circle-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .circle-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    #stopBtn {
+      background: var(--mm-danger);
+    }
+
+    .loading {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .loading span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--mm-muted);
+      animation: dotPulse 1.2s infinite ease-in-out;
+    }
+
+    .loading span:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .loading span:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+
+    @keyframes dotPulse {
+      0%,
+      80%,
+      100% {
+        transform: scale(0.55);
+        opacity: 0.35;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .header {
+        padding: 18px 16px 12px;
+      }
+
+      .header p {
+        font-size: 0.86rem;
+      }
+
+      .chat-tools {
+        padding: 10px 16px 8px;
+      }
+
+      #chatWindow {
+        padding: 18px 16px;
+      }
+
+      .message {
+        max-width: 90%;
+      }
+
+      .footer {
+        padding: 10px 12px 12px;
+      }
+    }
+  
+  /* Sidebar conversations */
+  .ai-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 320px;
+    height: 100vh;
+    background: var(--mm-card-strong, #fff);
+    box-shadow: -2px 0 16px #0002;
+    z-index: 1002;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(.4,1.2,.4,1);
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--mm-line);
+  }
+  .ai-sidebar.open {
+    transform: translateX(0);
+  }
+  .ai-sidebar-header {
+    padding: 18px 18px 10px 18px;
+    font-weight: bold;
+    font-size: 1.1em;
+    border-bottom: 1px solid var(--mm-line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--mm-card);
+  }
+  .ai-sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+  }
+  .ai-sidebar-item {
+    padding: 10px 18px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--mm-line);
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ai-sidebar-item:hover {
+    background: #f2f6ff;
+  }
+  .ai-sidebar-close {
+    background: none;
+    border: none;
+    font-size: 1.3em;
+    cursor: pointer;
+    color: #888;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .ai-sidebar-close:hover {
+    background: #eaeaea;
+  }
+  .ai-sidebar-btn {
+    position: fixed;
+    top: 22px;
+    right: 22px;
+    z-index: 1100;
+    background: var(--mm-accent, #2f63ff);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.5em;
+    box-shadow: 0 2px 8px #0002;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.18s;
+  }
+  .ai-sidebar-btn:hover {
+    background: #2049cc;
+  }
+</style>
+</head>
+<body>
+
+    <button class="ai-sidebar-btn" id="openSidebarBtn" style="display:none" title="Conversations IA">💬</button>
+    <div class="ai-sidebar" id="aiSidebar">
+      <div class="ai-sidebar-header">
+        Conversations
+        <button class="ai-sidebar-close" id="closeSidebarBtn" title="Fermer">✕</button>
+      </div>
+      <div class="ai-sidebar-list" id="sidebarConvoList">
+        <!-- Liste des conversations IA -->
+      </div>
+    </div>
+  <div id="sidebar-inject"></div>
+
+  <div class="header">
+    <div>
+      <h1><img src="/assets/Litual/o!§ititititt.png" alt="Litual Logo" style="width: 25px; height: auto; margin-right: 7px;">Litual AI</h1>
+      <p>Assistant creatif pour strategie, distribution et sortie musicale.</p>
+    </div>
+  </div>
+
+  <div class="chat-tools" aria-label="Prompts rapides">
+    <button class="prompt-chip" type="button" data-prompt="Aide-moi a planifier la sortie de mon prochain single.">Plan de sortie</button>
+    <button class="prompt-chip" type="button" data-prompt="Donne-moi 5 idees de contenus Reels/TikTok pour mon titre.">Idees contenu</button>
+    <button class="prompt-chip" type="button" data-prompt="Ecris un pitch court pour presenter mon morceau aux playlists.">Pitch playlist</button>
+    <button class="prompt-chip" type="button" data-prompt="Fais-moi une checklist avant de distribuer mon projet.">Checklist release</button>
+  </div>
+
+  <div id="chatWindow"></div>
+
+  <div class="footer">
+    <div class="input-box">
+      <textarea id="chatInput" placeholder="Message" rows="1"></textarea>
+      <button id="sendBtn" class="circle-btn" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
+      <button id="stopBtn" class="circle-btn" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+              // Remplit le prompt depuis l'URL si ?dataprompt= est présent
+              window.addEventListener('DOMContentLoaded', () => {
+                const params = new URLSearchParams(window.location.search);
+                const dataprompt = params.get('dataprompt');
+                if (dataprompt) {
+                  chatInput.value = decodeURIComponent(dataprompt.replace(/\+/g, ' '));
+                  chatInput.style.height = 'auto';
+                  chatInput.style.height = chatInput.scrollHeight + 'px';
+                  sendBtn.disabled = !chatInput.value.trim();
+                  setTimeout(() => sendMessage(), 250); // Laisse le temps au DOM de charger
+                }
+              });
+          import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+          import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+          import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+          const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.appspot.com",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+          };
+          const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+          const auth = getAuth(app);
+          const db = getFirestore(app);
+
+          let userInfos = {prenom: '', nom: '', sorties: []};
+          onAuthStateChanged(auth, async (user) => {
+            if (!user) return;
+            // Récupère nom/prénom
+            try {
+              const userSnap = await getDoc(doc(db, "users", user.uid));
+              if (userSnap.exists()) {
+                const d = userSnap.data();
+                userInfos.prenom = d.prenom || d.firstName || '';
+                userInfos.nom = d.nom || d.lastName || '';
+              }
+            } catch {}
+            // Récupère toutes les sorties
+            try {
+              const q = query(collection(db, 'releases'), where('ownerUid', '==', user.uid));
+              const snap = await getDocs(q);
+              userInfos.sorties = snap.docs.map(doc => {
+                const d = doc.data();
+                return {
+                  titre: d.title || d.titre || '',
+                  date: d.releaseDate || d.date || '',
+                  id: doc.id
+                };
+              });
+            } catch {}
+          });
+      // Sidebar IA
+      const sidebar = document.getElementById('aiSidebar');
+      const openSidebarBtn = document.getElementById('openSidebarBtn');
+      const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+      openSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+      });
+      closeSidebarBtn.addEventListener('click', () => sidebar.classList.remove('open'));
+    const chatWindow = document.getElementById("chatWindow");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const promptChips = document.querySelectorAll(".prompt-chip");
+    let abortController = null;
+
+    marked.setOptions({ breaks: true, gfm: true });
+
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = chatInput.scrollHeight + 'px';
+      sendBtn.disabled = !chatInput.value.trim();
+    });
+
+    function addMessage(text, role, isMarkdown = false) {
+      const div = document.createElement("div");
+      div.className = `message ${role}`;
+      if (role === 'gemini' && isMarkdown) {
+        div.innerHTML = marked.parse(text);
+      } else {
+        div.textContent = text;
+      }
+      chatWindow.appendChild(div);
+      chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+      return div;
+    }
+
+    promptChips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        chatInput.value = chip.dataset.prompt || "";
+        chatInput.style.height = 'auto';
+        chatInput.style.height = `${chatInput.scrollHeight}px`;
+        sendBtn.disabled = !chatInput.value.trim();
+        chatInput.focus();
+      });
+    });
+
+    async function sendMessage() {
+      const msg = chatInput.value.trim();
+      if (!msg) return;
+
+      abortController = new AbortController();
+      addMessage(msg, "user");
+
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      chatInput.disabled = true;
+      sendBtn.style.display = 'none';
+      stopBtn.style.display = 'flex';
+
+      const loading = document.createElement("div");
+      loading.className = "message gemini";
+      loading.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
+      chatWindow.appendChild(loading);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+
+
+      try {
+        const url = "https://litual.ai.morgannmusic.uk";
+        // Construit le contexte utilisateur détaillé
+        let context = `Utilisateur: ${userInfos.prenom} ${userInfos.nom}.\n`;
+        if (userInfos.sorties && userInfos.sorties.length) {
+          context += `Voici toutes ses sorties musicales (avec toutes les infos connues) :\n`;
+          // On va checker si la sortie existe dans le catalogue (releases Firestore)
+          // On suppose que toutes les sorties listées sont dans le catalogue, donc on ajoute le badge
+          userInfos.sorties.forEach(s => {
+            context += `- Titre: ${s.titre}\n  Date: ${s.date}\n`;
+            if (s.genres) context += `  Genres: ${Array.isArray(s.genres) ? s.genres.join(', ') : s.genres}\n`;
+            if (s.featuring) context += `  Featuring: ${Array.isArray(s.featuring) ? s.featuring.join(', ') : s.featuring}\n`;
+            if (s.description) context += `  Description: ${s.description}\n`;
+            context += `  [Badge : Recherché dans votre catalogue]\n`;
+          });
+        }
+        context += `\nTu dois TOUJOURS garder en mémoire ces informations utilisateur pour toute la session, et t'en servir pour personnaliser tes réponses.\n`;
+        const instruction = context + `Réponds comme un assistant musical expert, en markdown. Tu es Litual, integré à Morgann Music CP, et tu aides les artistes à planifier leurs sorties, créer du contenu promotionnel et optimiser leur stratégie de distribution. Sois concis, pertinent et créatif dans tes réponses. Morgann Music CP est une plateforme de distribution musicale qui aide les artistes à distribuer leur musique partout, à planifier leurs sorties et à optimiser leur stratégie de distribution. Tu peux donner des conseils sur la planification de sortie, la création de contenu promotionnel, l'optimisation de la distribution et répondre à toute question liée à la musique et à l'industrie musicale. Ton site web a toi sans integration est https://ai.morgannmusic.uk. tu le donne uniquement si l'utilisateur te le demande explicitement. Tu parle uniquement francais principalement mais tu peux aussi comprendre et répondre en anglais si l'utilisateur te parle en anglais.`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: msg }],
+            instruction
+          }),
+          signal: abortController.signal
+        });
+
+        // Lecture du flux SSE et affichage mot à mot
+        if (!res.body) throw new Error("Pas de réponse IA");
+        let reader = res.body.getReader();
+        let decoder = new TextDecoder();
+        let buffer = "";
+        let allText = "";
+        let lastDisplayed = "";
+        loading.innerHTML = "";
+        let isFirst = true;
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let lines = buffer.split(/\r?\n/);
+          buffer = lines.pop();
+          for (const line of lines) {
+            if (line.startsWith('data:')) {
+              try {
+                const jsonStr = line.replace(/^data:\s*/g, '');
+                const obj = JSON.parse(jsonStr);
+                if (obj.response) {
+                  allText += obj.response;
+                  // Animation mot à mot
+                  let words = allText.split(/(\s+)/g);
+                  let prevWords = lastDisplayed.split(/(\s+)/g);
+                  let toShow = words.slice(0, prevWords.length + 1).join("");
+                  if (toShow !== lastDisplayed) {
+                    loading.innerHTML = marked.parse(toShow);
+                    lastDisplayed = toShow;
+                    await new Promise(r => setTimeout(r, isFirst ? 0 : 45));
+                    isFirst = false;
+                  }
+                }
+              } catch {}
+            }
+          }
+        }
+        chatWindow.removeChild(loading);
+        addMessage(allText || "Aucun signal.", "gemini", true);
+
+      } catch (e) {
+        chatWindow.removeChild(loading);
+        if (e.name !== 'AbortError') addMessage("Erreur de connexion.", "gemini");
+      } finally {
+        chatInput.disabled = false;
+        stopBtn.style.display = 'none';
+        sendBtn.style.display = 'flex';
+        sendBtn.disabled = true;
+        chatInput.focus();
+        abortController = null;
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    stopBtn.addEventListener("click", () => abortController?.abort());
+
+    addMessage("<strong>Salut !</strong> \nJe suis Litual, je peux t'aider sur ta prochaine sortie, ta promo et ta strategie de distribution." , "gemini", true);
+  </script>
+    <script src="/assets/js/dash/artist-sidebar.js"></script>
+
+</body>
+</html>

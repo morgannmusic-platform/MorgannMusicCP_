@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <style>
+      body.with-artist-sidebar {
+        margin-left: 300px;
+      }
+      @media (max-width: 900px) {
+    body.with-artist-sidebar {
+      margin-left: 0;
+    }
+}
+
+
+    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ma sortie — Morgann Music CP</title>
+  <link rel="stylesheet" href="/assets/css/dash/artist-sidebar.css" />
+
+
+  <style>
+    :root { --bg:#e2e2e2; --txt:#000; --bg2:#fff; --cover:#bfbfbf; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#414141; --txt:#fff; --bg2:#1e1e1e; --cover:#575757; }
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--txt); font-family:Helvetica, sans-serif; }
+    .titre-page { color:var(--txt); padding:30px; margin-top:6px; text-align:center; font-size:28pt; }
+    @media (max-width:768px){ .titre-page{font-size:17pt;} }
+    .container{ max-width:1100px; margin:0 auto; padding:0 18px 30px; }
+    .card{ background:rgba(255,255,255,0.55); border-radius:26px; padding:18px; border:1px solid rgba(0,0,0,0.08); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); margin-bottom:16px; }
+    @media (prefers-color-scheme: dark){ .card{background:rgba(30,30,30,0.55); border:1px solid rgba(255,255,255,0.10);} }
+    .card h2{ font-size:16pt; margin-bottom:12px; opacity:.9; }
+    .card h3{ font-size:13pt; margin:16px 0 10px; opacity:.85; }
+    .row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    .label{ font-weight:600; opacity:.7; font-size:11pt; }
+    .value{ font-weight:500; font-size:12pt; word-break:break-word; }
+    .tag{ font-size:10pt; padding:6px 12px; border-radius:999px; background:rgba(0,0,0,0.06); white-space:nowrap; font-weight:600; }
+    @media (prefers-color-scheme: dark){ .tag{ background:rgba(255,255,255,0.08);} }
+    .tag.status-1 { background:#fbbf24; color:#78350f; }
+    .tag.status-2 { background:#60a5fa; color:#1e3a8a; }
+    .tag.status-3 { background:#a78bfa; color:#4c1d95; }
+    .tag.status-4 { background:#34d399; color:#065f46; }
+    .tag.status-5 { background:#f87171; color:#7f1d1d; }
+    .btn{ display:inline-block; margin-top:12px; padding:12px 18px; border-radius:999px; border:none; cursor:pointer; background:var(--cover); color:var(--txt); font-weight:700; text-decoration:none; font-size:11pt; }
+    .btn-primary{ background:#3b82f6; color:white; }
+    .info-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:14px; }
+    @media (max-width:768px){ .info-grid{grid-template-columns:1fr;} }
+    .info-item{ padding:10px; background:rgba(0,0,0,0.03); border-radius:12px; }
+    @media (prefers-color-scheme: dark){ .info-item{ background:rgba(255,255,255,0.04);} }
+    .loading{ text-align:center; padding:40px; font-size:14pt; opacity:.7; }
+    .list{ margin-top:8px; display:grid; gap:8px; }
+    .pill{ display:inline-block; font-size:10pt; padding:4px 8px; border-radius:999px; background:rgba(0,0,0,0.06); }
+    .track{ border:1px solid rgba(0,0,0,0.12); border-radius:14px; padding:12px; margin-top:10px; }
+    @media (prefers-color-scheme: dark){ .track{ border:1px solid rgba(255,255,255,0.12); } }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .countdown{ font-size:13pt; font-weight:700; }
+    .pied-de-page{ width:100%; height:60px; text-align:center; font-size:10pt; color:var(--txt); padding:20px; background:var(--bg2); margin-top:50px; }
+  </style>
+</head>
+
+<body>
+  <div id="sidebar-inject"></div>
+
+  <h1 class="titre-page">Ma sortie</h1>
+
+  <div class="container">
+    <div id="loadingState" class="loading">Chargement de votre sortie...</div>
+
+    <div id="contentArea" style="display:none;">
+      <div class="card">
+        <div class="row">
+          <h2 id="releaseTitle">—</h2>
+          <span class="tag" id="currentStatusBadge">—</span>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item"><div class="label">Artiste</div><div class="value" id="artistName">—</div></div>
+          <div class="info-item"><div class="label">Type</div><div class="value" id="releaseType">—</div></div>
+          <div class="info-item"><div class="label">Date de sortie</div><div class="value" id="releaseDate">—</div></div>
+          <div class="info-item"><div class="label">Décompte</div><div class="value countdown" id="releaseCountdown">—</div></div>
+        </div>
+
+        <h3>Informations de la sortie</h3>
+        <div class="info-grid" id="releaseMetaGrid"></div>
+      </div>
+
+      <div class="card">
+        <h2>Assets</h2>
+        <div class="list" id="assetsList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Collaborations release</h2>
+        <div class="list" id="releaseCollabsList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Pistes</h2>
+        <div id="tracksList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Actions</h2>
+        <div class="actions">
+          <a href="/dash/sorties.html" class="btn">Retour à mes sorties</a>
+          <a href="https://support.mm-cp.uk" class="btn btn-primary">Contacter le support</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="pied-de-page">Morgann Music CP — Dashboard</footer>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+    authDomain: "morgann-music-cp.firebaseapp.com",
+    projectId: "morgann-music-cp",
+    storageBucket: "morgann-music-cp.firebasestorage.app",
+    messagingSenderId: "666812685196",
+    appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+  };
+
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const $ = (id) => document.getElementById(id);
+
+  const STATUS_LABELS = {
+    "1": "📤 Envoyé à MMCP",
+    "2": "✅ Validée par MMCP",
+    "3": "🚀 Livrée aux plateformes (acceptée, pas encore publique)",
+    "4": "🎵 En ligne",
+    "5": "❌ Refusée"
+  };
+
+  function clean(s){ return String(s || "").trim(); }
+  function val(v){ return clean(v) || "—"; }
+
+  function normalizeStatus(data){
+    if (data.statusCode) return String(data.statusCode);
+    const raw = clean(data.status || data.statusUser).toLowerCase();
+    if (raw.includes("refus")) return "5";
+    if (raw.includes("en ligne")) return "4";
+    if (raw.includes("livr")) return "3";
+    if (raw.includes("valid")) return "2";
+    return "1";
+  }
+
+  function isAdminUserData(data){
+    if (!data || typeof data !== "object") return false;
+    const role = clean(data.role).toLowerCase();
+    const userRole = clean(data.userRole).toLowerCase();
+    return (
+      data.isAdmin === true ||
+      data.admin === true ||
+      role === "admin" ||
+      role === "administrator" ||
+      role === "staff" ||
+      userRole === "admin"
+    );
+  }
+
+  function isVipUserData(data){
+    if (!data || typeof data !== "object") return false;
+    const role = clean(data.role).toLowerCase();
+    const status = clean(data.status).toLowerCase();
+    const plan = clean(data.plan).toLowerCase();
+    const accountType = clean(data.accountType).toLowerCase();
+    const subscription = clean(data.subscription).toLowerCase();
+    return (
+      data.vip === true ||
+      data.isVip === true ||
+      role === "vip" ||
+      status === "vip" ||
+      plan === "vip" ||
+      accountType === "vip" ||
+      subscription === "vip"
+    );
+  }
+
+  async function getUserProfileData(userId, email){
+    try {
+      const byUid = await getDoc(doc(db, "users", userId));
+      if (byUid.exists()) return byUid.data();
+    } catch (e) {
+      console.warn("users/{uid} inaccessible:", e);
+    }
+
+    if (email) {
+      try {
+        const qy = query(collection(db, "users"), where("email", "==", email), limit(1));
+        const snap = await getDocs(qy);
+        if (!snap.empty) return snap.docs[0].data();
+      } catch (e) {
+        console.warn("users by email inaccessible:", e);
+      }
+    }
+    return null;
+  }
+
+  function parseReleaseDate(data){
+    const raw = clean(data?.schedule?.releaseDate || data.releaseDate);
+    if (!raw) return null;
+    const d = new Date(raw + "T00:00:00");
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatCountdown(dateObj){
+    if (!dateObj) return "Date non définie";
+    const now = new Date();
+    const diff = dateObj.getTime() - now.getTime();
+    if (diff <= 0) return "Sortie publiée ou en cours";
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${days}j ${hours}h ${mins}m`;
+  }
+
+  function renderInfoGrid(data, rid){
+    const node = $("releaseMetaGrid");
+    node.innerHTML = `
+      <div class="info-item"><div class="label">Version</div><div class="value">${val(data.versionLine)}</div></div>
+      <div class="info-item"><div class="label">Langue</div><div class="value">${val(data.language)}</div></div>
+      <div class="info-item"><div class="label">Instrumentale</div><div class="value">${data.instrumental ? "Oui" : "Non"}</div></div>
+      <div class="info-item"><div class="label">Fuseau</div><div class="value">${val(data?.schedule?.timeZone)}</div></div>
+      <div class="info-item"><div class="label">Date originale</div><div class="value">${val(data?.schedule?.originalDate)}</div></div>
+      <div class="info-item"><div class="label">Précommande</div><div class="value">${val(data?.schedule?.preorderDate)}</div></div>
+      <div class="info-item"><div class="label">ID release</div><div class="value" style="font-family:monospace;font-size:10pt">${rid}</div></div>
+      <div class="info-item"><div class="label">Créée le</div><div class="value">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString("fr-FR") : "—"}</div></div>
+    `;
+  }
+
+  function renderAssets(data){
+    const assetsList = $("assetsList");
+    const coverUrl = clean(data?.assets?.coverUrl);
+    const one = clean(data?.assets?.appleMotion?.oneOneUrl);
+    const three = clean(data?.assets?.appleMotion?.threeFourUrl);
+
+    assetsList.innerHTML = `
+      <div class="info-item"><div class="label">Pochette</div><div class="value">${coverUrl ? `<a class="btn" href="${coverUrl}" target="_blank" rel="noopener">Télécharger la pochette</a>` : "—"}</div></div>
+      <div class="info-item"><div class="label">Apple Motion 1:1</div><div class="value">${one ? `<a class="btn" href="${one}" target="_blank" rel="noopener">Télécharger motion 1:1</a>` : "—"}</div></div>
+      <div class="info-item"><div class="label">Apple Motion 3:4</div><div class="value">${three ? `<a class="btn" href="${three}" target="_blank" rel="noopener">Télécharger motion 3:4</a>` : "—"}</div></div>
+    `;
+  }
+
+  function renderReleaseCollabs(data){
+    const root = $("releaseCollabsList");
+    const arr = Array.isArray(data.collabsRelease) ? data.collabsRelease : [];
+    if (!arr.length){
+      root.innerHTML = `<div class="info-item"><div class="value">Aucune collaboration release.</div></div>`;
+      return;
+    }
+    root.innerHTML = arr.map((c,i)=>`
+      <div class="info-item">
+        <div class="label">Collab ${i+1}</div>
+        <div class="value">${val(c.name)}<br>Spotify: ${val(c.spotifyUrl)}<br>Apple: ${val(c.appleMusicUrl)}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderTracks(data){
+    const root = $("tracksList");
+    const tracks = Array.isArray(data.tracks) ? data.tracks : [];
+    if (!tracks.length){
+      root.innerHTML = `<div class="info-item"><div class="value">Aucune piste.</div></div>`;
+      return;
+    }
+
+    root.innerHTML = tracks.map((t, i)=>{
+      const file = t.files || {};
+      const collabs = (t.collabs || []).map(c=>c.name || "—").join(", ") || "—";
+      const writers = (t.writers || []).map(w=>`${w.name || "—"} (${w.role || "—"})`).join(", ") || "—";
+      const credits = (t.credits || []).map(c=>`${c.instrument || "—"}: ${c.name || "—"}`).join(", ") || "—";
+      return `
+        <div class="track">
+          <div class="row"><h3 style="margin:0">Piste ${i + 1} — ${val(t.title)}</h3><span class="pill">${t.explicit ? "Explicit" : "Standard"}</span></div>
+          <div class="info-grid">
+            <div class="info-item"><div class="label">Version</div><div class="value">${val(t.versionLine)}</div></div>
+            <div class="info-item"><div class="label">Langue</div><div class="value">${val(t.language)}</div></div>
+            <div class="info-item"><div class="label">ISRC</div><div class="value">${val(t.isrc)}</div></div>
+            <div class="info-item"><div class="label">ISWC</div><div class="value">${val(t.iswc)}</div></div>
+            <div class="info-item"><div class="label">Genre</div><div class="value">${val(t.genre)}</div></div>
+            <div class="info-item"><div class="label">Preview Start</div><div class="value">${val(t.previewStart)}</div></div>
+            <div class="info-item"><div class="label">Apple Mastering Email</div><div class="value">${val(t?.appleDigitalMaster?.masteringEmail || t.appleMasteringEmail)}</div></div>
+            <div class="info-item"><div class="label">Clean version</div><div class="value">${t.cleanVersion ? "Oui" : "Non"}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">Paroles</div><div class="value">${val(t.lyrics)}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">Collabs piste</div><div class="value">${val(collabs)}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">Writers</div><div class="value">${val(writers)}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">Crédits</div><div class="value">${val(credits)}</div></div>
+          </div>
+          <div class="actions">
+            ${file.audioUrl ? `<a class="btn" href="${file.audioUrl}" target="_blank" rel="noopener">Télécharger audio</a>` : ""}
+            ${file.instrumentalUrl ? `<a class="btn" href="${file.instrumentalUrl}" target="_blank" rel="noopener">Télécharger instrumental</a>` : ""}
+            ${file.atmosUrl ? `<a class="btn" href="${file.atmosUrl}" target="_blank" rel="noopener">Télécharger atmos</a>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function loadRelease(rid, userId, userEmail){
+    const snap = await getDoc(doc(db, "releases", rid));
+    if (!snap.exists()) throw new Error("Sortie introuvable");
+    const data = snap.data();
+
+    const userData = await getUserProfileData(userId, userEmail);
+    const isAdmin = isAdminUserData(userData);
+    const isVip = isVipUserData(userData);
+    if (!isAdmin && !isVip && data.ownerUid !== userId) throw new Error("Vous n'avez pas accès à cette sortie");
+
+    $("releaseTitle").textContent = val(data.title || data.name);
+    $("artistName").textContent = val(data.artistName || data.artist);
+    $("releaseType").textContent = val(data.type);
+    $("releaseDate").textContent = val(data?.schedule?.releaseDate || data.releaseDate);
+    $("releaseCountdown").textContent = formatCountdown(parseReleaseDate(data));
+
+    const status = normalizeStatus(data);
+    $("currentStatusBadge").textContent = STATUS_LABELS[status] || val(data.statusUser);
+    $("currentStatusBadge").className = `tag status-${status}`;
+
+    renderInfoGrid(data, rid);
+    renderAssets(data);
+    renderReleaseCollabs(data);
+    renderTracks(data);
+
+    $("loadingState").style.display = "none";
+    $("contentArea").style.display = "block";
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user){
+      window.location.href = "/login.html?redirect=" + encodeURIComponent(window.location.href);
+      return;
+    }
+
+    try{
+      const rid = new URLSearchParams(window.location.search).get("id");
+      if (!rid){ $("loadingState").textContent = "ID de sortie manquant dans l'URL"; return; }
+      await loadRelease(rid, user.uid, user.email || "");
+    }catch(e){
+      $("loadingState").textContent = "Erreur: " + (e?.message || String(e));
+    }
+  });
+
+
+</script>
+  <script src="/assets/js/dash/artist-sidebar.js"></script>
+
+</body>
+</html>

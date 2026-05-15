@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <style>
+      body.with-artist-sidebar {
+        margin-left: 300px;
+      }
+    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Convertisseur Pro — Morgann Music CP</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/coi-serviceworker/0.1.7/coi-serviceworker.min.js"></script>
+  <link rel="stylesheet" href="/assets/css/dash/artist-sidebar.css" />
+
+  <style>
+    :root{ --bg:#e2e2e2; --txt:#000; --accent:#575757; --bg2:#fff }
+    @media (prefers-color-scheme: dark){ :root{ --bg:#414141; --txt:#fff; --bg2:#1e1e1e }}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{background:var(--bg);color:var(--txt);font-family:Helvetica,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:20px}
+    .titre-page{padding:18px 0;font-size:22pt;font-weight:900}
+    .card{background:var(--bg2);padding:25px;border-radius:12px;border:1px solid rgba(0,0,0,0.08);margin-bottom:12px}
+    
+    .drop-zone { border: 2px dashed var(--accent); padding: 40px; text-align: center; border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.02); margin-bottom: 20px; transition: all 0.2s; }
+    .drop-zone.active { border-color: var(--txt); background: rgba(0,0,0,0.08) }
+    
+    .controls { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap }
+    select, .btn-action { padding: 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background: var(--bg); color: var(--txt); cursor: pointer}
+    .btn-main { background: var(--txt); color: var(--bg); font-weight: bold; border: none }
+    .btn-main:disabled { opacity: 0.3; cursor: not-allowed }
+    
+    #progress-container { margin-top: 20px; display: none; width: 100%; background: rgba(0,0,0,0.1); height: 10px; border-radius: 5px; overflow: hidden }
+    #progress-bar { width: 0%; height: 100%; background: var(--txt); transition: width 0.3s }
+    #status { margin-top: 10px; text-align: center; font-size: 0.9rem; opacity: 0.8; min-height: 1.2em; }
+    @media (max-width: 900px) {
+    body.with-artist-sidebar {
+      margin-left: 0;
+    }
+}
+
+
+  </style>
+</head>
+<body>
+  <div id="sidebar-inject"></div>
+
+  <div class="wrap">
+    <h1 class="titre-page">Convertisseur Haute Performance 🚧 Fonctionnalité en cours de développement 🚧</h1>
+
+    <div class="card">
+      <div class="drop-zone" id="dropZone">
+        <p id="fileDisplay">Déposez votre fichier (tout type accepté)</p>
+        <input type="file" id="fileInput" hidden>
+      </div>
+
+      <div class="controls">
+        <span>Format cible :</span>
+        <select id="targetFormat">
+          <optgroup label="Universel">
+            <option value="copy">Conserver le format d'origine</option>
+          </optgroup>
+          <optgroup label="Audio / Extraction audio">
+            <option value="mp3">MP3 (320kbps)</option>
+            <option value="wav">WAV (Lossless)</option>
+            <option value="m4a">M4A (Apple)</option>
+            <option value="flac">FLAC</option>
+            <option value="ogg">OGG</option>
+            <option value="aac">AAC</option>
+          </optgroup>
+          <optgroup label="Vidéo">
+            <option value="mp4">MP4 (H.264)</option>
+            <option value="mov">MOV</option>
+            <option value="webm">WEBM</option>
+            <option value="mkv">MKV</option>
+          </optgroup>
+          <optgroup label="Image">
+            <option value="png">PNG</option>
+            <option value="jpg">JPG</option>
+            <option value="webp">WebP</option>
+            <option value="gif">GIF</option>
+            <option value="bmp">BMP</option>
+            <option value="tiff">TIFF</option>
+          </optgroup>
+        </select>
+        <button id="convertBtn" class="btn-action btn-main" disabled>Démarrer la conversion</button>
+      </div>
+
+      <div id="progress-container"><div id="progress-bar"></div></div>
+      <div id="status">En attente de fichier...</div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+  <script>
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    
+    // Configuration robuste pour éviter les erreurs de chargement core
+    const ffmpeg = createFFmpeg({ 
+      log: true, 
+      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js' 
+    });
+
+    const $ = id => document.getElementById(id);
+    const fileInput = $('fileInput');
+    const dropZone = $('dropZone');
+    const convertBtn = $('convertBtn');
+    const status = $('status');
+    const progressBar = $('progress-bar');
+    const targetFormat = $('targetFormat');
+    let selectedFile = null;
+
+    const AUDIO_TARGETS = new Set(['mp3', 'wav', 'm4a']);
+    const VIDEO_TARGETS = new Set(['mp4']);
+    const IMAGE_TARGETS = new Set(['png', 'jpg', 'webp']);
+
+    function getExt(name) {
+      const parts = String(name || '').split('.');
+      return parts.length > 1 ? parts.pop().toLowerCase() : '';
+    }
+
+    function baseName(name) {
+      const n = String(name || 'fichier');
+      const idx = n.lastIndexOf('.');
+      return idx > 0 ? n.slice(0, idx) : n;
+    }
+
+    function getFileKind(file) {
+      const type = String(file?.type || '').toLowerCase();
+      const ext = getExt(file?.name || '');
+      if (type.startsWith('audio/') || ['mp3','wav','m4a','aac','flac','ogg','opus'].includes(ext)) return 'audio';
+      if (type.startsWith('video/') || ['mp4','mov','m4v','mkv','webm','avi'].includes(ext)) return 'video';
+      if (type.startsWith('image/') || ['png','jpg','jpeg','webp','gif','bmp','tiff','tif'].includes(ext)) return 'image';
+      return 'other';
+    }
+
+    function isTargetCompatible(kind, target) {
+      return getAllowedTargets(kind).includes(target);
+    }
+
+    function getAllowedTargets(kind) {
+      if (kind === 'audio') return ['copy', 'mp3', 'wav', 'm4a'];
+      if (kind === 'image') return ['copy', 'png', 'jpg', 'webp'];
+      if (kind === 'video') return ['copy', 'mp3', 'wav', 'm4a', 'mp4'];
+      return ['copy'];
+    }
+
+    function refreshTargetOptionsForKind(kind) {
+      const allowed = new Set(getAllowedTargets(kind));
+      const options = Array.from(targetFormat.options || []);
+      options.forEach((opt) => {
+        const enabled = allowed.has(opt.value);
+        opt.disabled = !enabled;
+        opt.hidden = !enabled;
+      });
+
+      if (!allowed.has(targetFormat.value)) {
+        targetFormat.value = getAllowedTargets(kind)[0];
+      }
+    }
+
+    function makeDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function outputMime(target, inputFile) {
+      const image = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
+      const audio = { mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/mp4' };
+      const video = { mp4: 'video/mp4' };
+      if (target === 'copy') return inputFile?.type || 'application/octet-stream';
+      return image[target] || audio[target] || video[target] || 'application/octet-stream';
+    }
+
+    function buildFfmpegArgs(kind, target, inputName, outputName) {
+      const args = ['-i', inputName];
+
+      if (AUDIO_TARGETS.has(target)) {
+        args.push('-vn');
+        if (target === 'mp3') args.push('-c:a', 'libmp3lame', '-b:a', '320k');
+        else if (target === 'wav') args.push('-c:a', 'pcm_s16le');
+        else if (target === 'm4a') args.push('-c:a', 'aac', '-b:a', '256k');
+        args.push(outputName);
+        return args;
+      }
+
+      if (VIDEO_TARGETS.has(target)) {
+        if (target === 'mp4') args.push('-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k');
+        args.push(outputName);
+        return args;
+      }
+
+      if (IMAGE_TARGETS.has(target)) {
+        if (kind === 'video') {
+          args.push('-frames:v', '1');
+        }
+        if (target === 'jpg') args.push('-q:v', '2');
+        if (target === 'webp') args.push('-q:v', '80');
+        args.push(outputName);
+        return args;
+      }
+
+      return null;
+    }
+
+    // Gestion Drag & Drop
+    dropZone.onclick = () => fileInput.click();
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('active'); };
+    dropZone.ondragleave = () => { dropZone.classList.remove('active'); };
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('active');
+        if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+    };
+
+    fileInput.onchange = (e) => {
+        if (e.target.files.length) handleFileSelect(e.target.files[0]);
+    };
+
+    function handleFileSelect(file) {
+        selectedFile = file;
+        $('fileDisplay').innerHTML = `Fichier prêt : <b>${file.name}</b>`;
+        convertBtn.disabled = false;
+        const kind = getFileKind(file);
+        refreshTargetOptionsForKind(kind);
+        status.innerText = kind === 'other'
+          ? "Type non-média détecté. Utilisez 'Conserver le format d'origine'."
+          : `Prêt à convertir (${kind}) avec formats stables.`;
+        progressBar.style.width = '0%';
+    }
+
+    convertBtn.onclick = async () => {
+        if (!selectedFile) return;
+        const target = targetFormat.value;
+        const kind = getFileKind(selectedFile);
+        const inputName = selectedFile.name;
+        const sourceExt = getExt(selectedFile.name) || 'bin';
+        const outputExt = target === 'copy' ? sourceExt : target;
+        const outputName = `MorgannMusic_output.${outputExt}`;
+
+        convertBtn.disabled = true;
+        $('progress-container').style.display = 'block';
+        status.innerText = "Initialisation du moteur...";
+
+        try {
+            if (!isTargetCompatible(kind, target)) {
+              throw new Error("Combinaison non supportée pour ce type de fichier. Sélectionnez un format compatible ou 'Conserver le format d'origine'.");
+            }
+
+            if (target === 'copy') {
+              progressBar.style.width = '100%';
+              makeDownload(selectedFile, `${baseName(selectedFile.name)}_copy.${outputExt}`);
+              status.innerText = "Copie exportée avec succès.";
+              return;
+            }
+
+            if (!ffmpeg.isLoaded()) await ffmpeg.load();
+            
+            status.innerText = "Traitement en cours...";
+            ffmpeg.FS('writeFile', inputName, await fetchFile(selectedFile));
+
+            const args = buildFfmpegArgs(kind, target, inputName, outputName);
+            if (!args) {
+              throw new Error("Aucun profil de conversion disponible pour cette combinaison.");
+            }
+
+            await ffmpeg.run(...args);
+
+            const data = ffmpeg.FS('readFile', outputName);
+            const blob = new Blob([data.buffer], { type: outputMime(target, selectedFile) });
+            makeDownload(blob, `MorgannMusic_${Date.now()}.${outputExt}`);
+
+            status.innerText = "Conversion réussie !";
+            progressBar.style.width = '100%';
+            
+            // Nettoyage mémoire virtuelle
+            ffmpeg.FS('unlink', inputName);
+            ffmpeg.FS('unlink', outputName);
+
+        } catch (e) {
+            console.error(e);
+            status.innerText = "Erreur : " + e.message;
+            if (!window.crossOriginIsolated) {
+                status.innerText += " (Vérifiez l'isolation Cross-Origin)";
+            }
+        } finally {
+            convertBtn.disabled = false;
+        }
+    };
+
+    // Suivi de la progression réelle
+    ffmpeg.setProgress(({ ratio }) => {
+        const percent = Math.round(ratio * 100);
+        progressBar.style.width = percent + '%';
+        if (percent > 0 && percent < 100) {
+            status.innerText = `Conversion : ${percent}%`;
+        }
+    });
+  </script>
+    <script src="/assets/js/dash/artist-sidebar.js"></script>
+
+</body>
+</html>

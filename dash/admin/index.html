@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Accueil</title>
+    <!-- Twitter Card meta -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Morgann_Music">
+    <meta name="twitter:title" content="Morgann Music CP">
+    <meta name="twitter:description" content="Distribuez votre musique partout avec Morgann Music CP.">
+    <meta name="twitter:image" content="https://mm-cp.uk/assets/img/1.png">
+  <link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+  <style>
+    :root {
+      --bg: #e2e2e2;
+      --txt: #000000;
+      --bg2: #ffffff;
+      --stroke: rgba(0,0,0,.12);
+      --card: rgba(255,255,255,.78);
+      --muted: rgba(0,0,0,.58);
+      --blue: #2f63ff;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #414141;
+        --txt: #ffffff;
+        --bg2: #1e1e1e;
+        --stroke: rgba(255,255,255,.14);
+        --card: rgba(30,30,30,.78);
+        --muted: rgba(255,255,255,.65);
+        --blue: #3b82f6;
+        --green: #22c55e;
+        --amber: #f59e0b;
+        --red: #ef4444;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: Helvetica, sans-serif;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      border-bottom: 1px solid var(--stroke);
+      background: rgba(255,255,255,.45);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      z-index: 9999;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .topbar { background: rgba(30,30,30,.55); }
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .pill {
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(0,0,0,.04);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .pill { background: rgba(255,255,255,.06); }
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 90px 18px 28px;
+    }
+
+    .title {
+      font-size: 30px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      border: 1px solid var(--stroke);
+      border-radius: 24px;
+      background: var(--card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      padding: 16px;
+    }
+
+    .card h2 {
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .metric {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .muted { color: var(--muted); font-size: 12px; }
+
+    .todo {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.04);
+      margin-bottom: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .todo { background: rgba(255,255,255,.05); }
+    }
+
+    .badge {
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .badge.green { background: rgba(22,163,74,.14); }
+    .badge.amber { background: rgba(217,119,6,.14); }
+    .badge.red { background: rgba(220,38,38,.14); }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .quick-links a {
+      text-decoration: none;
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      color: var(--txt);
+      padding: 11px 12px;
+      font-weight: 800;
+      font-size: 13px;
+      background: rgba(0,0,0,.04);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .quick-links a { background: rgba(255,255,255,.05); }
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+  <script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+
+  <header class="topbar">
+    <div class="brand">
+      <span>🛠️</span>
+      <span>Accueil Admin</span>
+      <span class="pill" id="whoami">Connexion...</span>
+    </div>
+    <div class="pill" id="todayLabel">—</div>
+  </header>
+
+  <main class="wrap">
+    <h1 class="title">Résumé de ce que tu as à faire</h1>
+    <p class="subtitle">Priorise les actions critiques, puis passe aux tâches de routine.</p>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Sorties à traiter</h2>
+        <div class="metric" id="metricReleases">—</div>
+        <p class="muted">Création, vérification et suivi des sorties.</p>
+      </article>
+
+      <article class="card">
+        <h2>Demandes support</h2>
+        <div class="metric" id="metricSupport">—</div>
+        <p class="muted">Messages en attente dans la page support.</p>
+      </article>
+
+      <article class="card">
+        <h2>Notif comptes désactivés</h2>
+        <div class="metric" id="metricDisabledSupport">—</div>
+        <p class="muted">Demandes de réactivation en attente.</p>
+      </article>
+
+      <article class="card">
+        <h2>Retraits à valider</h2>
+        <div class="metric" id="metricWithdrawals">—</div>
+        <p class="muted">Vérifie et traite les demandes de retrait.</p>
+      </article>
+
+      <article class="card wide">
+        <h2>Checklist du jour</h2>
+
+        <div class="todo">
+          <div>
+            <strong>Vérifier les sorties en attente</strong>
+            <div class="muted">Contrôle metadata et statut de livraison.</div>
+          </div>
+          <span class="badge amber">Priorité haute</span>
+        </div>
+
+        <div class="todo">
+          <div>
+            <strong>Répondre au support</strong>
+            <div class="muted">Traiter les demandes qui bloquent les artistes.</div>
+          </div>
+          <span class="badge red">À faire</span>
+        </div>
+
+        <div class="todo" style="margin-bottom:0;">
+          <div>
+            <strong>Contrôler les comptes/artistes</strong>
+            <div class="muted">Vérifie les accès, rôles et comptes sensibles.</div>
+          </div>
+          <span class="badge green">Routine</span>
+        </div>
+      </article>
+
+      <article class="card wide">
+        <h2>Accès rapide</h2>
+        <div class="quick-links">
+          <a href="/dash/admin/sorties.html">Gérer les sorties</a>
+          <a href="/dash/admin/prods.html">Gérer les prods</a>
+          <a href="/dash/admin/support.html">Ouvrir le support</a>
+          <a href="/dash/admin/users.html">Comptes</a>
+          <a href="/dash/admin/artistes.html">Artistes</a>
+          <a href="/dash/admin/notifier.html">Envoyeur de notif</a>
+          <a href="/dash/admin/retraits.html">Retraits</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const whoami = document.getElementById("whoami");
+    const todayLabel = document.getElementById("todayLabel");
+
+    const metricReleases = document.getElementById("metricReleases");
+    const metricSupport = document.getElementById("metricSupport");
+    const metricDisabledSupport = document.getElementById("metricDisabledSupport");
+    const metricWithdrawals = document.getElementById("metricWithdrawals");
+
+    const now = new Date();
+    todayLabel.textContent = now.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "long" });
+
+    async function ensureAdmin(user) {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const role = userSnap.exists() ? String(userSnap.data().role || "").toLowerCase() : "";
+      if (role !== "admin") {
+        window.location.href = "/dash/index.html";
+        return false;
+      }
+      whoami.textContent = user.email || "Admin";
+      return true;
+    }
+
+    async function loadSummaryCounts() {
+      try {
+        const releasesSnap = await getDocs(collection(db, "releases"));
+        const pending = releasesSnap.docs.filter((d) => d.data()?.adminProcessed !== true).length;
+        metricReleases.textContent = String(pending);
+      } catch {
+        metricReleases.textContent = "—";
+      }
+
+      try {
+        const supportSnap = await getDocs(collection(db, "supportTickets"));
+        const pending = supportSnap.docs.filter((d) => d.data()?.adminProcessed !== true).length;
+        const disabledPending = supportSnap.docs.filter((d) => {
+          const row = d.data() || {};
+          const category = String(row.category || "").trim().toLowerCase();
+          return row.adminProcessed !== true && category === "compte désactivé";
+        }).length;
+        metricSupport.textContent = String(pending);
+        metricDisabledSupport.textContent = String(disabledPending);
+      } catch {
+        metricSupport.textContent = "0";
+        metricDisabledSupport.textContent = "0";
+      }
+
+      try {
+        const withdrawalsSnap = await getDocs(collection(db, "withdrawalRequests"));
+        const pending = withdrawalsSnap.docs.filter((d) => d.data()?.adminProcessed !== true).length;
+        metricWithdrawals.textContent = String(pending);
+      } catch {
+        metricWithdrawals.textContent = "0";
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+      const ok = await ensureAdmin(user);
+      if (!ok) return;
+      await loadSummaryCounts();
+    });
+  </script>
+</body>
+</html>

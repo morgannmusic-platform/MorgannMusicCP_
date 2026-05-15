@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Artistes</title>
+  <link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+  <style>
+    :root {
+      --bg:#e2e2e2;
+      --txt:#000;
+      --stroke:rgba(0,0,0,.12);
+      --card:rgba(255,255,255,.78);
+      --muted:rgba(0,0,0,.58);
+      --blue:#2f63ff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#414141;
+        --txt:#fff;
+        --stroke:rgba(255,255,255,.14);
+        --card:rgba(30,30,30,.78);
+        --muted:rgba(255,255,255,.65);
+        --blue:#3b82f6;
+      }
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html, body { background:var(--bg); color:var(--txt); font-family:Helvetica,sans-serif; }
+
+    .wrap { max-width:1200px; margin:0 auto; padding:24px 18px 28px; }
+    .title { font-size:30px; font-weight:900; margin-bottom:8px; }
+    .sub { color:var(--muted); margin-bottom:14px; }
+
+    .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+    .btn {
+      text-decoration:none;
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      color:var(--txt);
+      font-size:12px;
+      font-weight:900;
+      padding:8px 11px;
+      background:transparent;
+      display:inline-block;
+    }
+    .input {
+      min-width:260px;
+      flex:1;
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      background:transparent;
+      color:var(--txt);
+      padding:10px 13px;
+      outline:none;
+    }
+
+    .meta { color:var(--muted); font-size:12px; margin-bottom:10px; }
+
+    .list {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:12px;
+    }
+
+    .card {
+      border:1px solid var(--stroke);
+      border-radius:20px;
+      background:var(--card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      padding:14px;
+    }
+
+    .name { font-weight:900; font-size:15px; margin-bottom:6px; }
+    .line { color:var(--muted); font-size:12px; word-break:break-word; }
+
+    .chips { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+    .chip {
+      font-size:11px;
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      padding:5px 10px;
+    }
+
+    .actions { margin-top:12px; }
+    .btn {
+      text-decoration:none;
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      color:var(--txt);
+      font-size:12px;
+      font-weight:900;
+      padding:8px 11px;
+      background:transparent;
+      display:inline-block;
+    }
+
+    .btn.primary { background:var(--blue); color:#fff; border-color:transparent; }
+
+    .create-card {
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:20px;
+      padding:20px;
+      margin-bottom:24px;
+    }
+
+    .create-card h2 {
+      font-size:18px;
+      margin-bottom:14px;
+    }
+
+    .form-group {
+      margin-bottom:12px;
+    }
+
+    .form-group label {
+      display:block;
+      font-size:12px;
+      font-weight:600;
+      margin-bottom:6px;
+      color:var(--muted);
+    }
+
+    .form-group input,
+    .form-group select {
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--stroke);
+      border-radius:10px;
+      background:transparent;
+      color:var(--txt);
+      font-family:inherit;
+      outline:none;
+    }
+
+    .form-group input::placeholder {
+      color:var(--muted);
+    }
+
+    .form-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    @media (max-width: 720px) {
+      .form-row {
+        grid-template-columns:1fr;
+      }
+    }
+
+    .form-actions {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    #createMsg {
+      margin-top:10px;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:8px;
+    }
+
+    #createMsg.success {
+      background:rgba(16,185,129,.15);
+      color:#059669;
+    }
+
+    #createMsg.error {
+      background:rgba(239,68,68,.15);
+      color:#991b1b;
+    }
+  </style>
+</head>
+<body>
+  <header class="catalog-topbar">
+    <a class="catalog-brand" href="/dash/admin/index.html">
+      <strong>Morgann Music Admin</strong>
+      <span>Artistes, sorties, gestion admin</span>
+    </a>
+    <div id="search-bar-container">
+      <input id="catalog-search" class="catalog-search" type="search" placeholder="Rechercher un artiste, une sortie, un titre" />
+    </div>
+    <style>
+      @media (max-width: 700px) {
+        #search-bar-container {
+          width: 100%;
+          margin: 0 auto 18px auto;
+          display: flex;
+          justify-content: center;
+        }
+        .catalog-search {
+          width: 95vw;
+          max-width: 420px;
+          margin: 0 auto;
+          display: block;
+        }
+        .catalog-topbar > #search-bar-container {
+          display: none;
+        }
+        #search-bar-container.mobile {
+          display: flex !important;
+        }
+      }
+    </style>
+    <nav class="catalog-nav">
+      <a class="pill-link" href="/dash/admin/index.html">Accueil admin</a>
+      <a class="pill-link is-active" href="/dash/admin/artistes.html">Artistes</a>
+      <a class="pill-link" href="/dash/admin/sorties.html">Sorties</a>
+      <a class="pill-link" href="/dash/admin/ajouter-sortie.html">Ajouter une sortie</a>
+      <a class="pill-link" href="/dash/admin/contacts.html">Contacts</a>
+      <a class="pill-link" href="/dash/admin/support.html">Support</a>
+    </nav>
+  </header>
+  <script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+
+  <main class="wrap">
+    <h1 class="title">Artistes actifs</h1>
+    <p class="sub">Liste des artistes visibles et gérables dans le dashboard admin.</p>
+
+    <article class="create-card">
+      <h2>➕ Créer un nouvel artiste</h2>
+      <p class="meta" style="margin-bottom:14px;">Créez un artiste pour un compte existant.</p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="createOwnerUid">Compte propriétaire *</label>
+          <select id="createOwnerUid">
+            <option value="">Choisir un compte…</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="createArtistName">Nom de l'artiste *</label>
+          <input type="text" id="createArtistName" placeholder="Nom de l'artiste" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="createDisplayName">Nom d'affichage (optionnel)</label>
+        <input type="text" id="createDisplayName" placeholder="Nom d'affichage" />
+      </div>
+
+      <div class="form-actions">
+        <button id="btnCreateArtist" class="btn primary">Créer l'artiste</button>
+        <span class="meta" id="createMsg" style="display:none;"></span>
+      </div>
+    </article>
+
+    <div class="toolbar">
+      <input id="search" class="input" placeholder="Rechercher nom artiste / owner uid / id" />
+    </div>
+
+    <p id="status" class="meta">Chargement…</p>
+    <section id="artistsList" class="list"></section>
+  </main>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, query, limit, orderBy, doc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const searchEl = document.getElementById("search");
+    const statusEl = document.getElementById("status");
+    const artistsList = document.getElementById("artistsList");
+
+    // Éléments du formulaire de création
+    const createOwnerUidSelect = document.getElementById("createOwnerUid");
+    const createArtistNameInput = document.getElementById("createArtistName");
+    const createDisplayNameInput = document.getElementById("createDisplayName");
+    const btnCreateArtist = document.getElementById("btnCreateArtist");
+    const createMsg = document.getElementById("createMsg");
+
+    let allArtists = [];
+    let allUsers = [];
+
+    function clean(v) { return String(v || "").trim(); }
+
+    function esc(v) {
+      return clean(v)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function fmtDate(ts) {
+      try {
+        const d = ts?.toDate ? ts.toDate() : null;
+        return d ? d.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "—";
+      } catch {
+        return "—";
+      }
+    }
+
+    function showMsg(el, text, type) {
+      if (!text) {
+        el.style.display = "none";
+        return;
+      }
+      el.textContent = text;
+      el.className = `msg ${type || ""}`;
+      el.style.display = "block";
+    }
+
+    async function ensureAdmin(user) {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const role = snap.exists() ? clean(snap.data()?.role).toLowerCase() : "";
+      return role === "admin";
+    }
+
+    function artistCard(artist) {
+      const id = clean(artist.id);
+      const name = esc(artist.name || "Artiste sans nom");
+      const ownerUid = esc(artist.ownerUid || "—");
+      const createdAt = fmtDate(artist.createdAt);
+
+      return `
+        <article class="card">
+          <div class="name">${name}</div>
+          <div class="line">ID: ${esc(id)}</div>
+          <div class="line">Owner: ${ownerUid}</div>
+
+          <div class="chips">
+            <span class="chip">Créé: ${esc(createdAt)}</span>
+            <span class="chip">Actif</span>
+          </div>
+
+          <div class="actions">
+            <a class="btn primary" href="/dash/admin/artist.html?id=${encodeURIComponent(id)}">Voir l'artiste</a>
+          </div>
+        </article>
+      `;
+    }
+
+    function render() {
+      const queryText = clean(searchEl.value).toLowerCase();
+
+      const filtered = allArtists.filter((artist) => {
+        const hay = [artist.id, artist.name, artist.ownerUid]
+          .map(clean)
+          .join(" ")
+          .toLowerCase();
+        return !queryText || hay.includes(queryText);
+      });
+
+      statusEl.textContent = `${filtered.length} artiste(s) affiché(s) sur ${allArtists.length}`;
+      artistsList.innerHTML = filtered.length
+        ? filtered.map(artistCard).join("")
+        : `<div class="meta">Aucun artiste actif trouvé.</div>`;
+    }
+
+    async function loadUsers() {
+      try {
+        const snap = await getDocs(collection(db, "users"));
+        allUsers = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+        allUsers.sort((a, b) => {
+          const nameA = clean(a.displayName || a.email || a.uid).toLowerCase();
+          const nameB = clean(b.displayName || b.email || b.uid).toLowerCase();
+          return nameA.localeCompare(nameB, "fr", { sensitivity: "base" });
+        });
+
+        // Remplir le select
+        createOwnerUidSelect.innerHTML = '<option value="">Choisir un compte…</option>';
+        allUsers.forEach((user) => {
+          const label = clean(user.displayName || user.email || user.uid);
+          const opt = document.createElement("option");
+          opt.value = user.uid;
+          opt.textContent = label;
+          createOwnerUidSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Erreur chargement utilisateurs:", err);
+      }
+    }
+
+    async function loadArtists() {
+      let snap;
+      try {
+        snap = await getDocs(query(collection(db, "artists"), orderBy("createdAt", "desc"), limit(1200)));
+      } catch {
+        snap = await getDocs(query(collection(db, "artists"), limit(1200)));
+      }
+
+      const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      allArtists = rows.filter((artist) => artist?.deleted !== true);
+      render();
+    }
+
+    async function createArtist() {
+      const ownerUid = clean(createOwnerUidSelect.value);
+      const name = clean(createArtistNameInput.value);
+      const displayName = clean(createDisplayNameInput.value);
+
+      if (!ownerUid) {
+        showMsg(createMsg, "Sélectionnez un compte propriétaire.", "error");
+        return;
+      }
+
+      if (!name) {
+        showMsg(createMsg, "Entrez un nom pour l'artiste.", "error");
+        return;
+      }
+
+      btnCreateArtist.disabled = true;
+      showMsg(createMsg, "Création en cours…", "");
+
+      try {
+        const payload = {
+          ownerUid,
+          name,
+          displayName: displayName || name,
+          spotify: "",
+          appleMusic: "",
+          playProfileImageUrl: "",
+          deleted: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+
+        const ref = await addDoc(collection(db, "artists"), payload);
+        showMsg(createMsg, `Artiste créé avec succès (ID: ${ref.id})`, "success");
+
+        // Réinitialiser le formulaire
+        createOwnerUidSelect.value = "";
+        createArtistNameInput.value = "";
+        createDisplayNameInput.value = "";
+
+        // Recharger la liste
+        await loadArtists();
+      } catch (err) {
+        console.error("Erreur création artiste:", err);
+        showMsg(createMsg, `Erreur: ${err?.message || String(err)}`, "error");
+      } finally {
+        btnCreateArtist.disabled = false;
+      }
+    }
+
+    searchEl.addEventListener("input", render);
+    btnCreateArtist.addEventListener("click", createArtist);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/login.html?redirect=" + encodeURIComponent(window.location.href);
+        return;
+      }
+
+      try {
+        const ok = await ensureAdmin(user);
+        if (!ok) {
+          window.location.href = "/dash/index.html";
+          return;
+        }
+
+        await Promise.all([loadUsers(), loadArtists()]);
+      } catch (error) {
+        statusEl.textContent = "Erreur de chargement.";
+        artistsList.innerHTML = `<div class="meta">${esc(error?.message || String(error))}</div>`;
+      }
+    });
+  </script>
+</body>
+</html>

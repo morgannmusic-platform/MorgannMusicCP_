@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecteur Avant-Première</title>
+  <link rel="stylesheet" href="/assets/css/lecteur-ap.css">
+
+</head>
+<body>
+    <style>
+        :root {
+    --bg: #f0ffd7;
+    --txt: #ff8fb1;
+    --txti: #d8ff97;
+    --cover: #868686;
+    --bg2: rgba(255, 240, 123, 0.885);
+    --cover: #bfbfbf;
+    
+
+}
+
+@media (prefers-color-scheme: dark) {
+     :root {
+        --bg: #70844d;
+        --txt: #e17999;
+        --cover: #2c2c2c;
+        --txti: #70844d;
+        --bg2: rgba(146, 137, 71, 0.885);
+        --cover: #575757;
+
+    }
+}
+
+        body {
+            background: var(--bg);
+            color: var(--txt);
+            font-family: Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+  <div id="ap-modal" class="ap-modal">
+    <div class="ap-modal-content">
+      <h2>Accès avant-première</h2>
+      <input type="text" id="ap-code" placeholder="Entrer le code" />
+      <div class="ap-modal-actions">
+        <button id="ap-submit">Valider</button>
+        <button id="ap-exit">Sortir</button>
+      </div>
+      <div id="ap-error" class="ap-error"></div>
+    </div>
+  </div>
+  <div id="ap-lecteur-container" class="ap-lecteur-container" style="display:none;">
+    <h2 id="ap-title"></h2>
+    <h3 id="ap-artist"></h3>
+    <audio id="ap-audio" controls style="width:100%"></audio>
+  </div>
+  <script type="module" src="/assets/js/lecteur-ap.js"></script>
+</body>
+</html>

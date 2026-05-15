@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ajouter une sortie | Admin</title>
+  <style>
+    body { font-family: sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 420px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; padding: 32px; }
+    h1 { font-size: 1.5rem; margin-bottom: 24px; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; }
+    input[type="text"] { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; margin-bottom: 18px; font-size: 1rem; }
+    button { background: #1d4ed8; color: #fff; border: none; border-radius: 6px; padding: 10px 24px; font-size: 1rem; cursor: pointer; }
+    .links { margin-top: 32px; }
+    .links a { display: block; margin-bottom: 8px; color: #1d4ed8; text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+    .success { color: #16a34a; margin-top: 18px; }
+    .error { color: #dc2626; margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ajouter une sortie</h1>
+    <form id="release-form">
+      <label for="title">Titre</label>
+      <input type="text" id="title" required />
+      <label for="apple-url">Lien Apple Music</label>
+      <input type="text" id="apple-url" required placeholder="https://music.apple.com/..." />
+      <button type="submit">Enregistrer</button>
+    </form>
+    <div class="success" id="success-msg" style="display:none;"></div>
+    <div class="error" id="error-msg" style="display:none;"></div>
+    <div class="links" id="platform-links" style="display:none;"></div>
+  </div>
+  <script>
+    document.getElementById('release-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      document.getElementById('success-msg').style.display = 'none';
+      document.getElementById('error-msg').style.display = 'none';
+      document.getElementById('platform-links').style.display = 'none';
+      const title = document.getElementById('title').value.trim();
+      const appleUrl = document.getElementById('apple-url').value.trim();
+      if (!title || !appleUrl) return;
+      try {
+        const res = await fetch(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(appleUrl)}`);
+        const data = await res.json();
+        const links = data.linksByPlatform;
+        // Affiche les liens
+        let html = `<h2>Liens plateformes</h2>`;
+        if (links.appleMusic) html += `<a href="${links.appleMusic.url}" target="_blank">Apple Music</a>`;
+        if (links.spotify) html += `<a href="${links.spotify.url}" target="_blank">Spotify</a>`;
+        if (links.deezer) html += `<a href="${links.deezer.url}" target="_blank">Deezer</a>`;
+        if (links.youtubeMusic) html += `<a href="${links.youtubeMusic.url}" target="_blank">YouTube Music</a>`;
+        document.getElementById('platform-links').innerHTML = html;
+        document.getElementById('platform-links').style.display = 'block';
+        document.getElementById('success-msg').textContent = 'Sortie ajoutée (liens générés ci-dessous)';
+        document.getElementById('success-msg').style.display = 'block';
+      } catch (err) {
+        document.getElementById('error-msg').textContent = 'Erreur lors de la récupération des liens.';
+        document.getElementById('error-msg').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

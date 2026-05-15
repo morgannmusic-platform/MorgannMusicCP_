@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ma sortie — Morgann Music CP</title>
+    <meta name="google-site-verification" content="code">
+    <meta name="facebook-domain-verification" content="code">
+    <meta name="msvalidate.01" content="code">
+    <link rel="canonical" href="https://mm-cp.uk/release.html">
+    <!-- Progressive Web App (PWA) -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Morgann Music CP">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/img/android-chrome-512x512.png">
+    <meta name="msapplication-TileColor" content="#7494ec">
+    <meta name="msapplication-TileImage" content="/assets/img/android-chrome-192x192.png">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>
+    <!-- Twitter Card meta -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Morgann_Music">
+    <meta name="twitter:title" content="Ma sortie — Morgann Music CP">
+    <meta name="twitter:description" content="Gérez et publiez vos sorties musicales avec Morgann Music CP.">
+    <meta name="twitter:image" content="https://mm-cp.uk/assets/img/1.png">
+
+    <!-- Open Graph / Facebook / LinkedIn / Instagram -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Ma sortie — Morgann Music CP">
+    <meta property="og:description" content="Gérez et publiez vos sorties musicales avec Morgann Music CP.">
+    <meta property="og:image" content="https://mm-cp.uk/assets/img/1.png">
+    <meta property="og:url" content="https://mm-cp.uk/release.html">
+
+  <style>
+    :root {
+      --bg: #e2e2e2;
+      --txt: #000000;
+      --cover: #868686;
+      --bg2: #ffffff;
+      --cover: #bfbfbf;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #414141;
+        --txt: #ffffff;
+        --cover: #2c2c2c;
+        --bg2: #1e1e1e;
+        --cover: #575757;
+      }
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      padding-top: 72px;
+      background-color: var(--bg);
+      color: var(--txt);
+      font-family: 'Helvetica', sans-serif;
+    }
+
+    .bloc { width: 100%; }
+    .titre-page {
+      color: var(--txt);
+      padding: 30px;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 28pt;
+    }
+    @media (max-width: 768px) {
+      .titre-page { font-size: 17pt; }
+    }
+
+    .container{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 18px 30px;
+    }
+
+    .card{
+      background: rgba(255,255,255,0.55);
+      border-radius: 26px;
+      padding: 18px;
+      border: 1px solid rgba(0,0,0,0.08);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      margin-bottom: 16px;
+    }
+    @media (prefers-color-scheme: dark){
+      .card{
+        background: rgba(30,30,30,0.55);
+        border: 1px solid rgba(255,255,255,0.10);
+      }
+    }
+
+    .card h2{
+      font-size: 16pt;
+      margin-bottom: 12px;
+      opacity: 0.9;
+    }
+
+    .card h3{
+      font-size: 13pt;
+      margin: 16px 0 10px;
+      opacity: 0.85;
+    }
+
+    .row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .label{
+      font-weight: 600;
+      opacity: 0.7;
+      font-size: 11pt;
+    }
+
+    .value{
+      font-weight: 500;
+      font-size: 12pt;
+    }
+
+    .tag{
+      font-size: 10pt;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.06);
+      opacity: 0.9;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    @media (prefers-color-scheme: dark){
+      .tag{ background: rgba(255,255,255,0.08); }
+    }
+
+    .tag.status-1 { background: #fbbf24; color: #78350f; opacity: 1; }
+    .tag.status-2 { background: #60a5fa; color: #1e3a8a; opacity: 1; }
+    .tag.status-3 { background: #a78bfa; color: #4c1d95; opacity: 1; }
+    .tag.status-4 { background: #34d399; color: #065f46; opacity: 1; }
+    .tag.status-5 { background: #f87171; color: #7f1d1d; opacity: 1; }
+
+    .btn{
+      display: inline-block;
+      margin-top: 12px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: var(--cover);
+      color: var(--txt);
+      font-weight: 700;
+      text-decoration: none;
+      text-align: center;
+      font-size: 11pt;
+    }
+
+    .btn-primary{
+      background: #3b82f6;
+      color: white;
+    }
+
+    .info-grid{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+    @media (max-width: 768px){
+      .info-grid{ grid-template-columns: 1fr; }
+    }
+
+    .info-item{
+      padding: 10px;
+      background: rgba(0,0,0,0.03);
+      border-radius: 12px;
+    }
+    @media (prefers-color-scheme: dark){
+      .info-item{ background: rgba(255,255,255,0.04); }
+    }
+
+    .loading{
+      text-align: center;
+      padding: 40px;
+      font-size: 14pt;
+      opacity: 0.7;
+    }
+
+    .alert{
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: #dbeafe;
+      color: #1e40af;
+      border-radius: 12px;
+      font-size: 11pt;
+    }
+    @media (prefers-color-scheme: dark){
+      .alert{
+        background: rgba(59, 130, 246, 0.15);
+        color: #93c5fd;
+      }
+    }
+
+    .pied-de-page{
+      width: 100%;
+      height: 60px;
+      text-align: center;
+      font-size: 10pt;
+      color: var(--txt);
+      padding: 20px;
+      background: var(--bg2);
+      margin-top: 50px;
+    }
+
+    .status-legend{
+      margin-top: 14px;
+      padding: 12px;
+      background: rgba(0,0,0,0.02);
+      border-radius: 12px;
+      font-size: 10pt;
+      opacity: 0.85;
+    }
+    @media (prefers-color-scheme: dark){
+      .status-legend{ background: rgba(255,255,255,0.03); }
+    }
+
+    .status-legend ul{
+      list-style: none;
+      margin-top: 8px;
+    }
+
+    .status-legend li{
+      margin: 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bloc">
+    <h1 class="titre-page">Ma sortie</h1>
+
+    <div class="container">
+      <div id="loadingState" class="loading">Chargement de votre sortie...</div>
+
+      <div id="contentArea" style="display:none;">
+        <!-- Infos principales -->
+        <div class="card">
+          <div class="row">
+            <h2 id="releaseTitle">—</h2>
+            <span class="tag" id="currentStatusBadge">—</span>
+          </div>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="label">Artiste</div>
+              <div class="value" id="artistName">—</div>
+            </div>
+            <div class="info-item">
+              <div class="label">Type</div>
+              <div class="value" id="releaseType">—</div>
+            </div>
+            <div class="info-item">
+              <div class="label">Date de sortie</div>
+              <div class="value" id="releaseDate">—</div>
+            </div>
+            <div class="info-item">
+              <div class="label">Label</div>
+              <div class="value" id="labelName">Morgann Music</div>
+            </div>
+          </div>
+
+          <h3>Informations complémentaires</h3>
+          <div class="info-item">
+            <div class="label">UPC/EAN</div>
+            <div class="value" id="upcEan">—</div>
+          </div>
+          <div class="info-item" style="margin-top:8px;">
+            <div class="label">ID de la sortie</div>
+            <div class="value" id="releaseId" style="font-family: monospace; font-size: 10pt;">—</div>
+          </div>
+        </div>
+
+        <!-- Statut et légende -->
+        <div class="card">
+          <h2>État de traitement</h2>
+          <p style="opacity:0.7; font-size:11pt; margin-bottom:12px;">
+            Voici où en est votre sortie dans le processus de distribution.
+          </p>
+
+          <div class="alert">
+            <strong id="statusDescription">—</strong>
+          </div>
+
+          <div class="status-legend">
+            <strong>Légende des statuts :</strong>
+            <ul>
+              <li><span class="tag status-1" style="font-size:9pt;">📤 Envoyé à MMCP</span> — En attente de validation</li>
+              <li><span class="tag status-2" style="font-size:9pt;">✅ Validée par MMCP</span> — En cours de validation par les plateformes</li>
+              <li><span class="tag status-3" style="font-size:9pt;">🚀 Livrée aux plateformes</span> — Acceptée par les plateformes, pas encore publique</li>
+              <li><span class="tag status-4" style="font-size:9pt;">🎵 En ligne</span> — Disponible sur toutes les plateformes</li>
+              <li><span class="tag status-5" style="font-size:9pt;">❌ Refusée</span> — Contactez le support pour plus d'infos</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card">
+          <h2>Actions</h2>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="/dash/index.html" class="btn">Retour au tableau de bord</a>
+            <a href="https://support.mm-cp.uk" class="btn btn-primary">Contacter le support</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="pied-de-page">Morgann Music CP — Dashboard</footer>
+  </div>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+    authDomain: "morgann-music-cp.firebaseapp.com",
+    projectId: "morgann-music-cp",
+    storageBucket: "morgann-music-cp.firebasestorage.app",
+    messagingSenderId: "666812685196",
+    appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+  };
+
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const $ = (id) => document.getElementById(id);
+
+  const loadingState = $("loadingState");
+  const contentArea = $("contentArea");
+  const releaseTitle = $("releaseTitle");
+  const currentStatusBadge = $("currentStatusBadge");
+  const artistName = $("artistName");
+  const releaseType = $("releaseType");
+  const releaseDate = $("releaseDate");
+  const labelName = $("labelName");
+  const upcEan = $("upcEan");
+  const releaseId = $("releaseId");
+  const statusDescription = $("statusDescription");
+
+  const STATUS_LABELS = {
+    "1": "📤 Envoyé à MMCP",
+    "2": "✅ Validée par MMCP",
+    "3": "🚀 Livrée aux plateformes (acceptée, pas encore publique)",
+    "4": "🎵 En ligne",
+    "5": "❌ Refusée"
+  };
+
+  const STATUS_DESCRIPTIONS = {
+    "1": "Votre sortie a été reçue et est en attente de validation par notre équipe.",
+    "2": "Votre sortie a été validée par MMCP et est en cours de validation par les plateformes de streaming.",
+    "3": "Votre sortie a été acceptée par les plateformes, mais elle n'est pas encore disponible au public.",
+    "4": "Félicitations ! Votre sortie est maintenant disponible sur toutes les plateformes de streaming.",
+    "5": "Votre sortie a été refusée. Veuillez contacter le support pour plus d'informations."
+  };
+
+  function clean(s){ return String(s || "").trim(); }
+
+  function updateStatusBadge(status){
+    const label = STATUS_LABELS[String(status)] || "—";
+    const description = STATUS_DESCRIPTIONS[String(status)] || "—";
+    currentStatusBadge.textContent = label;
+    currentStatusBadge.className = `tag status-${status}`;
+    statusDescription.textContent = description;
+  }
+
+  async function loadRelease(rid, userId){
+    try{
+      const docRef = doc(db, "releases", rid);
+      const snap = await getDoc(docRef);
+
+      if (!snap.exists()){
+        throw new Error("Sortie introuvable");
+      }
+
+      const data = snap.data();
+
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      const isAdmin = userSnap.exists() && (userSnap.data().role === "admin");
+
+      if (!isAdmin && data.ownerUid !== userId){
+        throw new Error("Vous n'avez pas accès à cette sortie");
+      }
+
+      releaseTitle.textContent = clean(data.title || data.name) || "Sans titre";
+      artistName.textContent = clean(data.artistName || data.artist) || "—";
+      releaseType.textContent = clean(data.type) || "—";
+      releaseDate.textContent = clean(data.releaseDate) || "—";
+      labelName.textContent = clean(data.label) || "—";
+      upcEan.textContent = clean(data.upc || data.ean) || "—";
+      releaseId.textContent = rid;
+
+      const currentStatus = String(data.statusCode || data.status || "1");
+      updateStatusBadge(currentStatus);
+
+      loadingState.style.display = "none";
+      contentArea.style.display = "block";
+
+      return data;
+    }catch(e){
+      loadingState.textContent = "Erreur: " + (e?.message || String(e));
+      throw e;
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user){
+      window.location.href = "/login.html?redirect=" + encodeURIComponent(window.location.href);
+      return;
+    }
+
+    try{
+      const params = new URLSearchParams(window.location.search);
+      const rid = params.get("id");
+
+      if (!rid){
+        loadingState.textContent = "ID de sortie manquant dans l'URL";
+        return;
+      }
+
+      await loadRelease(rid, user.uid);
+
+    }catch(e){
+      console.error("Boot error:", e);
+      loadingState.textContent = "Erreur: " + (e?.message || String(e));
+    }
+  });
+</script>
+</body>
+</html>

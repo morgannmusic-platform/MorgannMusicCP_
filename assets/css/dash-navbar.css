@@ -1,0 +1,136 @@
+/* Message central dynamique */
+.navbar-center {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.08em;
+  color: #2f63ff;
+  min-width: 120px;
+  pointer-events: none;
+  user-select: none;
+}
+/* dash-navbar.css */
+.dash-navbar {
+  position: fixed;
+  top: 0;
+  left: 240px;
+  right: 0;
+  width: auto;
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.412);
+  padding: 0 2.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  z-index: 100;
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid #71717167;
+  border-top: none;
+  border-left: none;
+}
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.navbar-icon {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+.navbar-logo {
+  height: 38px;
+  width: auto;
+  filter: invert(1);
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background: var(--bg2);
+  color: var(--txt);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  margin-top: 0.5rem;
+  min-width: 200px;
+  right: 0;
+  padding: 0.7rem 0;
+  z-index: 200;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.navbar-icon-menu, .navbar-icon-notif {
+  position: relative;
+}
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.85rem 1.4rem;
+  text-align: left;
+  font-size: 1.08rem;
+  cursor: pointer;
+  color: var(--txt);
+  font-family: inherit;
+  border-radius: 18px;
+  transition: background 0.15s, color 0.15s;
+}
+.dropdown-menu button:hover {
+  background: var(--card);
+  color: var(--txt);
+}
+#notif-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.5rem;
+  padding: 0.2rem 0.2rem 0.2rem 0.2rem;
+}
+
+.notif-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--card);
+  border-radius: 16px;
+  margin: 6px 8px;
+  padding: 10px 14px 8px 14px;
+  font-size: 1rem;
+  color: var(--txt);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: background 0.18s;
+}
+.notif-item span {
+  font-weight: 500;
+  font-size: 1.04em;
+  color: var(--txt);
+}
+.notif-item small {
+  color: var(--muted);
+  font-size: 0.93em;
+  margin-top: 2px;
+}
+.notif-item:hover {
+  background: var(--bg2);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+@media (max-width: 900px) {
+  .dash-navbar {
+    position: static;
+    left: 0;
+    right: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.5rem;
+    height: auto;
+  }
+  .navbar-right {
+    margin-top: 0.5rem;
+    text-align: right;
+  }
+}

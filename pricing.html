@@ -1,0 +1,763 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarifs — Morgann Music CP</title>
+    <meta property="og:image" content="/assets/img/Banières/tarifs.png">
+    <meta property="og:description" content="Choisissez l’abonnement Morgann Music CP adapté à votre projet musical.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/navbar.css">
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/css/comment-faire.css">
+    <link rel="stylesheet" href="/assets/css/pied-de-page.css">
+    <link rel="stylesheet" href="/assets/css/pricing.css">
+    <!-- heic2any pour conversion HEIC -> PNG -->
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+      <meta name="google-site-verification" content="code">
+      <meta name="facebook-domain-verification" content="code">
+      <meta name="msvalidate.01" content="code">
+
+      <link rel="canonical" href="https://mm-cp.uk/pricing.html">
+
+      <!-- Progressive Web App (PWA) -->
+      <link rel="manifest" href="/manifest.json">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-status-bar-style" content="default">
+      <meta name="apple-mobile-web-app-title" content="Morgann Music CP">
+      <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+      <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/android-chrome-192x192.png">
+      <link rel="icon" type="image/png" sizes="512x512" href="/assets/img/android-chrome-512x512.png">
+      <meta name="msapplication-TileColor" content="#7494ec">
+      <meta name="msapplication-TileImage" content="/assets/img/android-chrome-192x192.png">
+      <script>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/service-worker.js');
+          });
+        }
+      </script>
+    </head>
+      <!-- Twitter Card meta -->
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:site" content="@Morgann_Music">
+      <meta name="twitter:title" content="Tarifs — Morgann Music CP">
+      <meta name="twitter:description" content="Choisissez l’abonnement Morgann Music CP adapté à votre projet musical.">
+      <meta name="twitter:image" content="https://mm-cp.uk/assets/img/3.png">
+
+      <!-- Open Graph / Facebook / LinkedIn / Instagram -->
+      <meta property="og:type" content="website">
+      <meta property="og:title" content="Tarifs — Morgann Music CP">
+      <meta property="og:description" content="Choisissez l’abonnement Morgann Music CP adapté à votre projet musical.">
+      <meta property="og:image" content="https://mm-cp.uk/assets/img/3.png">
+      <meta property="og:url" content="https://mm-cp.uk/pricing.html">
+    </head>
+      <!-- Twitter Card meta -->
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:site" content="@Morgann_Music">
+      <meta name="twitter:title" content="Morgann Music CP">
+      <meta name="twitter:description" content="Distribuez votre musique partout avec Morgann Music CP.">
+      <meta name="twitter:image" content="https://mm-cp.uk/assets/img/1.png">
+      <!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-W99CNTFV');</script>
+<!-- End Google Tag Manager -->
+</head>
+
+<body>
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W99CNTFV"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<div id="navbar-container"></div>
+
+  <style>
+    h2 {
+        font-size: 24pt;
+    }
+
+    .titre-page h2 {
+      margin-bottom: 0;
+    }
+
+    .checkout-loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      -webkit-backdrop-filter: blur(3px);
+      backdrop-filter: blur(3px);
+      z-index: 9999;
+    }
+
+    .checkout-loading[hidden] {
+      display: none;
+    }
+
+    .checkout-loading-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px;
+      border-radius: 14px;
+      background: #fff;
+      color: #111;
+      min-width: 220px;
+    }
+
+    .checkout-spinner {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 3px solid rgba(0, 0, 0, 0.15);
+      border-top-color: currentColor;
+      animation: checkoutSpin .8s linear infinite;
+    }
+
+    @keyframes checkoutSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn-loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+  </style>
+
+
+
+<div class="titre-page">
+    <h2>Nos abonnements</h2>
+    <h2>Choisissez votre formule.</h2>
+</div>
+
+<section class="pricing-section">
+
+  <h3 class="pricing-group-title">Abonnements</h3>
+  <p class="pricing-group-subtitle">Comparez les formules et choisissez votre plan.</p>
+
+  <div class="billing-toggle" role="group" aria-label="Cycle de facturation">
+    <button type="button" class="billing-btn is-active" data-billing="monthly">Mensuel</button>
+    <button type="button" class="billing-btn" data-billing="annual">Annuel</button>
+  </div>
+
+  <div class="pricing-table-wrap">
+    <table class="pricing-table" aria-label="Tableau comparatif des abonnements">
+      <thead>
+        <tr>
+          <th scope="col">Fonctionnalités</th>
+          <th scope="col">
+            <div class="plan-head">
+              <h4>Starter</h4>
+              <p class="plan-price" data-monthly="2,99€ / mois" data-annual="32,29€ / an">2,99€ / mois</p>
+              <a href="#" class="btn plan-choose" data-plan="starter-monthly" data-plan-monthly="starter-monthly" data-plan-annual="starter-annual">Prendre Starter</a>
+            </div>
+          </th>
+          <th scope="col" class="head-popular">
+            <div class="plan-head">
+              <span class="badge">Recommandé</span>
+              <h4>Pro</h4>
+              <p class="plan-price" data-monthly="3,99€ / mois" data-annual="43,09€ / an">3,99€ / mois</p>
+              <a href="#" class="btn plan-choose" data-plan="pro-monthly" data-plan-monthly="pro-monthly" data-plan-annual="pro-annual">Prendre Pro</a>
+            </div>
+          </th>
+          <th scope="col">
+            <div class="plan-head">
+              <h4>Label</h4>
+              <p class="plan-price" data-monthly="5,99€ / mois" data-annual="64,69€ / an">5,99€ / mois</p>
+              <a href="#" class="btn plan-choose" data-plan="label-monthly" data-plan-monthly="label-monthly" data-plan-annual="label-annual">Prendre Label</a>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Distribution sur tous les stores</th>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Single / EP / Album</th>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Artistes inclus</th>
+          <td>1 artiste</td>
+          <td>2 artistes</td>
+          <td>Artistes illimités</td>
+        </tr>
+        <tr>
+          <th scope="row">Choix de la date de sortie</th>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">YouTube Content ID inclus</th>
+          <td>-</td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">ISRC automatique</th>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">UPC automatique</th>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Link de partage</th>
+          <td>-</td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Support intégré</th>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Sorties illimitées</th>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr>
+          <th scope="row">Litual AI</th>
+          <td>-</td>
+          <td><span class="table-check">✓</span></td>
+          <td><span class="table-check">✓</span></td>
+        </tr>
+        <tr class="row-commission">
+          <th scope="row">Commission</th>
+          <td><strong>15 %</strong></td>
+          <td><strong>5 %</strong></td>
+          <td><strong>0 %</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="pricing-group-title">Paiement par sortie</h3>
+  <p class="pricing-group-subtitle">Plan paiement par sortie.</p>
+
+  <div class="pricing-cards pricing-cards-compact">
+    <div class="pricing-card pay-release-card">
+      <h3>Paiement par sortie</h3>
+
+      <ul>
+        <li>Accès au Dashboard</li>
+        <li>Single (3 pistes) : 3,44€</li>
+        <li>EP / Album : 7,87€</li>
+        <li>Paiement demandé à la fin de l'envoi de la sortie</li>
+        <li>Commission de 6% sur les revenus</li>
+      </ul>
+
+      <a href="/dash/index.html?plan=paiement-par-sortie" class="btn" id="payPerReleaseBtn">Choisir</a>
+    </div>
+  </div>
+
+</section>
+<!-- Offre spéciale mineur (-18 ans) -->
+
+<section class="pricing-section pricing-minor">
+  <div class="latest-release-container minor-offer-box">
+    <h3 class="pricing-group-title">Offre solidaire — Future Légende</h3>
+    
+    <div class="minor-content-wrapper" style="color: #ff8fb1;">
+      <div class="minor-text">
+        <p class="price-tag">0,99 €<span>/mois</span></p>
+        <p class="minor-desc">
+          T'as moins de 18 ans ? On te soutient. Lance ta carrière avec la puissance de <strong>Morgann Music CP</strong> au prix d'un ticket de bus.
+        </p>
+        <ul class="why-morgann-list minor-list">
+          <li>✨ Distribution illimitée</li>
+          <li>🎯 Vérification Litual Identity</li>
+          <li>🛡️ Accord tuteur légal requis</li>
+        </ul>
+        <p class="rgpd-notice">
+          🔒 <b>Confidentialité totale :</b> Ton identité est vérifiée en mémoire vive par notre IA, puis supprimée direct. Rien n'est stocké, promis.
+        </p>
+      </div>
+      
+      <div class="minor-cta-zone">
+        <button class="btn home-dashboard-btn" id="minorOfferBtn">Vérifier mon âge & Profiter</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="minorIdentityModal" class="modal" style="display:none;">
+  <div class="modal-content glass-popup">
+    <span class="close" id="closeMinorModal">&times;</span>
+    <h4 class="modal-title">Litual Identity</h4>
+    <p class="modal-instruction">Poste le <b>verso</b> de ta pièce d'identité.</p>
+    
+    <div class="upload-zone">
+      <input type="file" accept="image/*" id="minorIdentityInput" hidden>
+      <label for="minorIdentityInput" class="custom-file-upload">
+        <span>📸 Choisir une photo</span>
+      </label>
+      <div id="minorIdentityStatus"></div>
+    </div>
+
+    <button class="btn send-btn" id="sendMinorIdentityBtn" disabled>Analyser ma carte</button>
+  </div>
+  <style>
+    /* Style de la box offre mineur */
+.minor-offer-box {
+  border: 2px solid var(--txt) !important;
+  margin-top: 40px !important;
+  text-align: left;
+  color: #ff8fb1 !important;
+    background:
+    radial-gradient(170% 100% at 0% 0%, #ff8fb1b7, transparent 55%),
+    radial-gradient(95% 90% at 100% 100%, #ff8fb1, transparent 60%),
+    color-mix(in srgb, var(--bg), #f1ff81 25%);
+
+}
+
+.minor-content-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  color: #ff8fb1 !important;
+}
+
+.price-tag {
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 10px 0;
+}
+
+.price-tag span {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.minor-desc {
+  color: #ff8fb1 !important;
+  font-size: 1.1rem;
+  max-width: 500px;
+  margin-bottom: 15px;
+}
+
+.minor-list li {
+  font-size: 1rem !important;
+  margin-left: 0 !important;
+}
+
+.minor-text {
+  color: #ff8fb1 !important;
+}
+
+.rgpd-notice {
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.29);
+  border: 1px solid #ff8fb1;
+  padding: 10px;
+  border-radius: 12px;
+  margin-top: 15px;
+}
+
+/* Modal Style Apple / Music CP */
+.glass-popup {
+  background: var(--bg) !important;
+  border: 3px solid var(--txt) !important;
+  box-shadow: 0 20px 50px rgba(255, 143, 177, 0.3) !important;
+  text-align: center;
+}
+
+.modal-title {
+  font-weight: 900;
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+.custom-file-upload {
+  display: inline-block;
+  padding: 15px 25px;
+  background: var(--txti);
+  color: var(--txt);
+  border-radius: 15px;
+  cursor: pointer;
+  border: 2px dashed var(--txt);
+  margin: 20px 0;
+  transition: all 0.3s;
+}
+
+.custom-file-upload:hover {
+  background: var(--txt);
+  color: var(--bg);
+}
+
+.send-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#minorIdentityStatus {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+  </style>
+</div><div id="checkoutLoading" class="checkout-loading" hidden aria-live="polite" aria-busy="true">
+  <div class="checkout-loading-box">
+    <div class="checkout-spinner" aria-hidden="true"></div>
+    <strong>Redirection vers Stripe…</strong>
+    <small>Chargement sécurisé en cours</small>
+  </div>
+</div>
+
+<div id="footer-container"></div>
+    <script src="/assets/js/pricing.js"></script>
+    <script type="module" src="/assets/js/navbar.js"></script>
+  <script src="/assets/js/footer.js"></script>
+
+
+<script type="module">
+
+// --- Fonction de redimensionnement et compression JPEG ---
+async function resizeAndCompressImage(blobOrFile) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = function() {
+      const maxWidth = 800;
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = Math.round(height * (maxWidth / width));
+        width = maxWidth;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error('Compression échouée'));
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            resolve(evt.target.result.split(',')[1] || evt.target.result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        },
+        'image/jpeg',
+        0.5
+      );
+    };
+    img.onerror = reject;
+    img.crossOrigin = 'Anonymous';
+    img.src = URL.createObjectURL(blobOrFile);
+  });
+}
+
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+  console.log("✅ pricing module loaded");
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+    authDomain: "morgann-music-cp.firebaseapp.com",
+    projectId: "morgann-music-cp",
+    storageBucket: "morgann-music-cp.firebasestorage.app",
+    messagingSenderId: "666812685196",
+    appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+  };
+
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const PLAN_CONFIG = {
+    "starter-annual": { price: "price_1T8fI4FhaOYWNNbbxeAEijSz", mode: "subscription" },
+    "pro-annual": { price: "price_1T8fJnFhaOYWNNbbgunqrDsI", mode: "subscription" },
+    "label-annual": { price: "price_1T8fLQFhaOYWNNbbdH6Bjcav", mode: "subscription" },
+    "starter-monthly": { price: "price_1T03eDFhaOYWNNbbddL6iz7y", mode: "subscription" },
+    "pro-monthly": { price: "price_1T03z6FhaOYWNNbbNyjacrEv", mode: "subscription" },
+    "label-monthly": { price: "price_1T042SFhaOYWNNbbs0OXpz8P", mode: "subscription" },
+    "single-release": { price: "price_1T8fTwFhaOYWNNbbSnPfQYe2", mode: "payment" },
+    "ep-album-release": { price: "price_1T8fTwFhaOYWNNbbdNpeLoeu", mode: "payment" },
+  };
+
+  let currentUser = null;
+  let planButtons = [];
+  let checkoutInProgress = false;
+  let selectedBilling = "monthly";
+
+  onAuthStateChanged(auth, (u) => {
+    currentUser = u || null;
+    console.log("👤 auth state:", currentUser?.email || "no user");
+  });
+
+  function setCheckoutLoadingState(active, targetPlan = null) {
+    const overlay = document.getElementById("checkoutLoading");
+    if (overlay) overlay.hidden = !active;
+
+    planButtons.forEach((btn) => {
+      const initialText = btn.dataset.initialText || btn.textContent.trim() || "Choisir";
+      if (!btn.dataset.initialText) btn.dataset.initialText = initialText;
+
+      btn.classList.toggle("btn-loading", active);
+      btn.setAttribute("aria-disabled", active ? "true" : "false");
+
+      if (active && btn.getAttribute("data-plan") === targetPlan) {
+        btn.textContent = "Chargement…";
+      } else {
+        btn.textContent = initialText;
+      }
+    });
+  }
+
+  async function startCheckout(planKey) {
+    if (checkoutInProgress) return;
+    const selectedPlan = PLAN_CONFIG[planKey];
+    if (!selectedPlan) {
+      alert("Plan indisponible.");
+      return;
+    }
+
+    checkoutInProgress = true;
+    setCheckoutLoadingState(true, planKey);
+
+    console.log("➡️ startCheckout:", planKey);
+
+    const here = window.location.href;
+
+    if (!currentUser) {
+      console.log("🔒 not logged -> redirect login");
+      window.location.href = "/login.html?redirect=" + encodeURIComponent(here);
+      return;
+    }
+
+    try {
+      const ref = await addDoc(
+        collection(db, "customers", currentUser.uid, "checkout_sessions"),
+        {
+          price: selectedPlan.price,
+          success_url: window.location.origin + "/dash/index.html",
+          cancel_url: here,
+          mode: selectedPlan.mode,
+        }
+      );
+
+      console.log("✅ checkout_sessions doc created:", ref.id);
+
+      const unsub = onSnapshot(ref, (snap) => {
+        const data = snap.data();
+        if (data?.error) {
+          console.error("❌ Stripe error:", data.error);
+          alert(data.error.message || "Erreur Stripe");
+          checkoutInProgress = false;
+          setCheckoutLoadingState(false);
+          unsub();
+        }
+        if (data?.url) {
+          console.log("✅ redirect to Stripe:", data.url);
+          window.location.href = data.url;
+          unsub();
+        }
+      });
+    } catch (e) {
+      console.error("❌ addDoc failed:", e);
+      alert(e?.message || e);
+      checkoutInProgress = false;
+      setCheckoutLoadingState(false);
+    }
+  }
+
+  function applyBillingMode(mode) {
+    selectedBilling = mode === "annual" ? "annual" : "monthly";
+
+    const toggle = document.querySelector(".billing-toggle");
+    if (toggle) toggle.setAttribute("data-billing-mode", selectedBilling);
+
+    const priceNodes = document.querySelectorAll(".plan-price");
+    priceNodes.forEach((node) => {
+      const nextValue = node.dataset[selectedBilling];
+      if (nextValue) node.textContent = nextValue;
+    });
+
+    const buttons = document.querySelectorAll(".plan-choose");
+    buttons.forEach((btn) => {
+      const nextPlan = btn.dataset[`plan${selectedBilling.charAt(0).toUpperCase() + selectedBilling.slice(1)}`];
+      if (nextPlan) btn.setAttribute("data-plan", nextPlan);
+    });
+
+    document.querySelectorAll(".billing-btn").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.billing === selectedBilling);
+    });
+  }
+
+  function initBillingToggle() {
+    const toggleButtons = Array.from(document.querySelectorAll(".billing-btn"));
+    if (!toggleButtons.length) return;
+
+    toggleButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.billing === "annual" ? "annual" : "monthly";
+        applyBillingMode(mode);
+      });
+    });
+
+    applyBillingMode(selectedBilling);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initBillingToggle();
+    planButtons = Array.from(document.querySelectorAll("[data-plan]"));
+    console.log("🔘 plan buttons found:", planButtons.length);
+
+    const payPerReleaseBtn = document.getElementById("payPerReleaseBtn");
+    if (payPerReleaseBtn) {
+      payPerReleaseBtn.addEventListener("click", () => {
+        localStorage.setItem("mmcpSelectedPlan", "pay-per-release");
+        localStorage.setItem("mmcpSelectedPlanLabel", "Paiement par sortie");
+      });
+    }
+
+    planButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (checkoutInProgress) return;
+        const plan = btn.getAttribute("data-plan");
+        console.log("🖱 click:", plan);
+        startCheckout(plan);
+      });
+    });
+  });
+
+  // --- Offre mineur (-18 ans) ---
+const minorOfferBtn = document.getElementById("minorOfferBtn");
+const minorModal = document.getElementById("minorIdentityModal");
+const closeMinorModal = document.getElementById("closeMinorModal");
+const minorIdentityInput = document.getElementById("minorIdentityInput");
+const sendMinorIdentityBtn = document.getElementById("sendMinorIdentityBtn");
+const minorIdentityStatus = document.getElementById("minorIdentityStatus");
+
+let minorIdentityBase64 = null;
+
+if (minorOfferBtn) {
+  minorOfferBtn.addEventListener("click", () => {
+    minorModal.style.display = "flex";
+    minorIdentityInput.value = "";
+    sendMinorIdentityBtn.disabled = true;
+    minorIdentityStatus.textContent = "";
+    minorIdentityBase64 = null;
+  });
+}
+if (closeMinorModal) {
+  closeMinorModal.onclick = () => { minorModal.style.display = "none"; };
+}
+if (minorIdentityInput) {
+  minorIdentityInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      sendMinorIdentityBtn.disabled = true;
+      return;
+    }
+    minorIdentityStatus.textContent = "Lecture de l’image…";
+    try {
+      let blobToCompress;
+      if (file.type === "image/heic" || file.name.toLowerCase().endsWith(".heic")) {
+        minorIdentityStatus.textContent = "Conversion HEIC en JPEG…";
+        blobToCompress = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.8
+        });
+      } else {
+        blobToCompress = file;
+      }
+      minorIdentityStatus.textContent = "Compression de l’image…";
+      minorIdentityBase64 = await resizeAndCompressImage(blobToCompress);
+      sendMinorIdentityBtn.disabled = false;
+      minorIdentityStatus.textContent = "Image compressée et prête à être envoyée.";
+    } catch (err) {
+      minorIdentityStatus.textContent = "Erreur de traitement de l’image : " + (err.message || err);
+      sendMinorIdentityBtn.disabled = true;
+    }
+  });
+}
+if (sendMinorIdentityBtn) {
+  sendMinorIdentityBtn.addEventListener("click", async () => {
+    if (!minorIdentityBase64) return;
+    sendMinorIdentityBtn.disabled = true;
+    minorIdentityStatus.textContent = "Vérification en cours…";
+    try {
+      // Récupère l’email utilisateur connecté (Firebase)
+      const user = currentUser;
+      if (!user?.email) {
+        minorIdentityStatus.textContent = "Connecte-toi d’abord à ton compte.";
+        sendMinorIdentityBtn.disabled = false;
+        return;
+      }
+      // Appel API Litual Identity
+      const res = await fetch("https://identity.litual.morgannmusic.uk/api", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image_base64: minorIdentityBase64,
+          price_id: "price_1TVfGoFhaOYWNNbbRuwVbtcO",
+          customer_email: user.email
+        }),
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.checkout_url) {
+        minorIdentityStatus.textContent = "Âge vérifié : redirection vers Stripe…";
+        // Ajoute le flag pour le dashboard
+        localStorage.setItem("mmcpSolidarityCheckout", "true");
+        setTimeout(() => { window.location.href = data.checkout_url; }, 1200);
+      } else if (res.status === 403) {
+        window.location.href = "/cancelidentity.html";
+      } else {
+        minorIdentityStatus.textContent = data.error || data.message || "Erreur inconnue.";
+        sendMinorIdentityBtn.disabled = false;
+      }
+    } catch (e) {
+      minorIdentityStatus.textContent = "Erreur serveur : " + (e.message || e);
+      sendMinorIdentityBtn.disabled = false;
+    }
+  });
+}
+window.addEventListener("click", (e) => {
+  if (e.target === minorModal) minorModal.style.display = "none";
+});
+</script>
+
+</body>
+</html>

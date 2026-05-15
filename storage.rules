@@ -1,0 +1,71 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Fichiers lecteur avant-première (lecture publique, écriture admin)
+    match /lecteur-ap/{uid}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() && 
+        (request.auth.token.admin == true || 
+         request.auth.token.staff == true ||
+         (firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) && 
+          (firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ["admin", "owner", "staff", "admin-mmcp", "administrator"] ||
+           firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.accountType == "admin"))
+        );
+    }
+    function isAdminOrHasRole() {
+      return isAdmin() || (
+        signedIn() && 
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ["admin", "owner", "staff"]
+      );
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    // Releases upload (lecture publique, écriture réservée admin)
+    match /releases/{uid}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // Uploads temporaires (compatibilité ancien client)
+    match /temp_uploads/{uid}/{allPaths=**} {
+      allow read, write: if isOwner(uid) || isAdmin();
+    }
+    // Avatars utilisateur
+    match /avatars/{uid}/{allPaths=**} {
+      allow read, write: if isOwner(uid) || isAdmin();
+    }
+    // Pièces jointes des réponses notifications (glisser-déposer artiste)
+    match /notificationsReplies/{uid}/{notificationId}/{allPaths=**} {
+      allow write: if isOwner(uid);
+      allow read: if isOwner(uid) || isAdmin();
+    }
+    // Covers playlists Play (admin)
+    match /playPlaylists/{uid}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // Shop prods (lecture publique, écriture réservée admin)
+    // Le dashboard admin upload vers: prods/<timestamp_uid>/...
+    match /prods/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // Contrats (PDF générés/signés + images de signature)
+    // Accès via URLs signées générées côté backend uniquement.
+    match /contracts/{allPaths=**} {
+      allow read, write: if false;
+    }
+    // Blocage par défaut (sauf admins avec token ou role)
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
+

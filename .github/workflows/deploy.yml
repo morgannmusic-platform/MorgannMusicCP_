@@ -1,0 +1,15 @@
+name: Security Injector
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  inject-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Injection de la clé Brevo
+        run: |
+          sed -i "s|REPLACE_WITH_BREVO_KEY|${{ secrets.BREVO_API_KEY }}|g" login.html

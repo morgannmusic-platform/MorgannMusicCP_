@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact - Morgann Music CP</title>
+  <meta property="og:image" content="/assets/img/Banières/contact.png">
+  <meta property="og:description" content="Contactez Morgann Music CP.">
+  <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+  <link rel="stylesheet" href="/assets/css/pied-de-page.css">
+  <style>
+    body { padding-top: 88px; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px 18px 40px; }
+    .card { border: 1px solid rgba(0,0,0,.12); border-radius: 20px; background: rgba(255,255,255,.75); padding: 18px; }
+    h1 { margin: 0 0 8px; font-size: clamp(1.9rem, 4vw, 2.4rem); }
+    p { margin: 0 0 14px; line-height: 1.65; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .field label { font-weight: 700; }
+    .field input, .field textarea {
+      border: 1px solid rgba(0,0,0,.18);
+      border-radius: 12px;
+      padding: 12px;
+      font: inherit;
+      background: rgba(255,255,255,.92);
+      color: #111;
+    }
+    .field textarea { min-height: 180px; resize: vertical; }
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #ff8fb1;
+      color: #fff;
+    }
+    .msg { margin-top: 10px; font-weight: 700; }
+    @media (prefers-color-scheme: dark) {
+      .card { border: 1px solid rgba(255,255,255,.14); background: rgba(25,25,25,.75); }
+      .field input, .field textarea { border: 1px solid rgba(255,255,255,.2); background: rgba(44,44,44,.95); color: #fff; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="wrap">
+    <section class="card">
+      <h1>Contact</h1>
+      <p>Vous n'avez pas besoin de compte pour nous ecrire. Votre message sera traite par l'equipe admin et vous recevrez une reponse par email.</p>
+
+      <form id="contact-form">
+        <div class="field">
+          <label for="contact-email">Votre adresse email</label>
+          <input id="contact-email" type="email" required placeholder="vous@exemple.com">
+        </div>
+        <div class="field">
+          <label for="contact-subject">Objet</label>
+          <input id="contact-subject" type="text" required maxlength="140" placeholder="Sujet de votre demande">
+        </div>
+        <div class="field">
+          <label for="contact-body">Message</label>
+          <textarea id="contact-body" required minlength="20" maxlength="5000" placeholder="Ecrivez votre demande..."></textarea>
+        </div>
+
+        <button class="btn" type="submit" id="contact-submit">Envoyer</button>
+        <p class="msg" id="contact-message" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <script type="module" src="/assets/js/navbar.js"></script>
+  <script src="/assets/js/footer.js"></script>
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("contact-form");
+    const submitBtn = document.getElementById("contact-submit");
+    const msg = document.getElementById("contact-message");
+
+    function clean(v) { return String(v || "").trim(); }
+    function escapeHtml(v) {
+      return String(v || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = clean(document.getElementById("contact-email").value).toLowerCase();
+      const subject = clean(document.getElementById("contact-subject").value);
+      const body = clean(document.getElementById("contact-body").value);
+
+      if (!email || !subject || body.length < 20) {
+        msg.textContent = "Merci de remplir tous les champs correctement.";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      msg.textContent = "Envoi en cours...";
+
+      try {
+        await addDoc(collection(db, "contactMessages"), {
+          email,
+          subject,
+          body,
+          status: "new",
+          source: "public-contact-page",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          responded: false
+        });
+
+        const safeSubject = escapeHtml(subject);
+        const safeBody = escapeHtml(body).replace(/\n/g, "<br>");
+
+        await fetch("/api/email/brevo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            toEmail: email,
+            subject: `Nous avons bien recu votre message - ${subject}`,
+            html: `<div style="font-family:Helvetica,Arial,sans-serif;line-height:1.6;color:#111"><p>Bonjour,</p><p>Nous avons bien recu votre message et vous recevrez une reponse par email sous 48h.</p><p><strong>Objet :</strong> ${safeSubject}</p><p><strong>Votre message :</strong></p><div style="padding:12px;border:1px solid #d0d0d0;border-radius:10px;background:#fafafa">${safeBody}</div><p style="margin-top:16px">Merci,<br>Morgann Music CP</p></div>`,
+            text: `Bonjour,\n\nNous avons bien recu votre message et vous recevrez une reponse par email sous 48h.\n\nObjet: ${subject}\n\nVotre message:\n${body}\n\nMerci,\nMorgann Music CP`,
+            mailCategory: "transactional",
+            transactionType: "contact-ack"
+          })
+        });
+
+        form.reset();
+        msg.textContent = "Votre message a bien ete envoye. Un email de confirmation vient d'etre envoye, avec reponse sous 48h.";
+      } catch (error) {
+        msg.textContent = "Erreur d'envoi. Merci de reessayer.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

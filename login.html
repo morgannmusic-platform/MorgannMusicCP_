@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Morgann Music CP</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/assets/css/style-login.css?v=2026-04-09a">
+      <!-- Twitter Card meta -->
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:site" content="@Morgann_Music">
+      <meta name="twitter:title" content="Morgann Music CP">
+      <meta name="twitter:description" content="Distribuez votre musique partout avec Morgann Music CP.">
+      <meta name="twitter:image" content="https://mm-cp.uk/assets/img/1.png">
+      <script>
+  // Ce placeholder sera remplacé par GitHub lors du déploiement
+  const CONFIG = {
+    BREVO_API_KEY: "REPLACE_WITH_BREVO_KEY"
+  };
+</script>
+
+    <style>
+      .totp-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      .totp-modal.is-open { display: flex; }
+      .totp-box {
+        width: min(92vw, 420px);
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        color: #111;
+      }
+      .totp-box h3 { margin: 0 0 10px; }
+      .totp-box p { margin: 0 0 12px; }
+      .totp-box input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        margin-bottom: 10px;
+      }
+      .totp-actions { display: flex; gap: 10px; }
+      .totp-actions button { flex: 1; }
+      .totp-error { color: #dc2626; min-height: 1.2em; font-size: 0.95rem; }
+      .totp-error.is-info { color: #2563eb; }
+      .totp-setup-key { font-family: monospace; font-size: 0.95rem; word-break: break-all; }
+      .totp-setup-qr { width: 170px; height: 170px; object-fit: contain; border-radius: 8px; margin: 6px auto 10px; display: block; }
+    </style>
+
+</head>
+
+<body>
+
+<div id="navbar-container"></div>
+
+<div class="container">
+    <!-- LOGIN FORM -->
+    <div class="form-box login">
+        <form id="login-form">
+            <h1>Connexion</h1>
+            <div class="input-box">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <i class='bx bxs-user'></i>
+            </div>
+            <div class="input-box">
+                <input type="password" id="login-password" placeholder="Mot de passe" required>
+                <button type="button" class="password-toggle-btn" data-password-target="login-password" aria-label="Afficher le mot de passe">
+                  <img src="/assets/icon/Invisible-1--Streamline-Flex.svg" alt="Afficher">
+                </button>
+            </div>
+            <div class="input-box" id="loginRoleCodeWrap" style="display:none;">
+              <input type="text" id="login-role-code" placeholder="Code rôle (optionnel)">
+              <i class='bx bxs-key'></i>
+            </div>
+            <div class="forgot-link" style="justify-content:flex-start;">
+              <a href="#" id="toggle-login-role-code">J'ai un code rôle</a>
+            </div>
+            <div class="forgot-link">
+              <a href="#" id="forgot-password-link">Mot de passe oublié ?</a>
+            </div>
+            <button type="submit" class="btn">Se connecter</button>
+            <p>Ou connectez-vous avec Google</p>
+            <div class="social-icons">
+                <a href="#" id="google-login"><i class='bx bxl-google'></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div class="form-box register">
+        <form id="register-form">
+            <h1>Inscription</h1>
+            <p class="register-step-indicator" id="register-step-indicator">Étape 1/3</p>
+
+        <div class="register-step is-active" data-step="1">
+          <div class="input-box">
+            <input type="text" id="register-first-name" placeholder="Prénom" required>
+            <i class='bx bxs-user'></i>
+          </div>
+          <div class="input-box">
+            <input type="text" id="register-last-name" placeholder="Nom" required>
+            <i class='bx bxs-user'></i>
+          </div>
+            <div class="input-box">
+                <input type="email" id="register-email" placeholder="Email" required>
+                <i class='bx bxs-envelope'></i>
+            </div>
+            <div class="input-box">
+                <input type="password" id="register-password" placeholder="Mot de passe" required>
+                <button type="button" class="password-toggle-btn" data-password-target="register-password" aria-label="Afficher le mot de passe">
+                  <img src="/assets/icon/Invisible-1--Streamline-Flex.svg" alt="Afficher">
+                </button>
+            </div>
+          <div class="register-actions">
+            <button type="button" class="btn" data-next-step>Suivant</button>
+          </div>
+        </div>
+
+        <div class="register-step" data-step="2">
+              <div class="input-box">
+            <input type="text" id="register-username" placeholder="Nom public / Nom d'artiste" required>
+            <i class='bx bx-id-card'></i>
+              </div>
+          <div class="input-box">
+            <input type="tel" id="register-phone" placeholder="Téléphone" required>
+            <i class='bx bxs-phone'></i>
+          </div>
+          <div class="input-box">
+            <input type="text" id="register-country" placeholder="Pays" required>
+            <i class='bx bx-world'></i>
+          </div>
+          <div class="input-box">
+            <input type="text" id="register-city" placeholder="Ville" required>
+            <i class='bx bx-map'></i>
+          </div>
+          <div class="register-actions register-actions-split">
+            <button type="button" class="btn btn-secondary" data-prev-step>Retour</button>
+            <button type="button" class="btn" data-next-step>Suivant</button>
+          </div>
+        </div>
+
+        <div class="register-step" data-step="3">
+              <div class="input-box" id="roleCodeWrap" style="display:none;">
+                <input type="text" id="register-role-code" placeholder="Code rôle (optionnel)">
+                <i class='bx bxs-key'></i>
+              </div>
+              <div class="forgot-link" style="justify-content:flex-start;">
+                <a href="#" id="toggle-role-code">J'ai un code rôle</a>
+              </div>
+              <div class="forgot-link" style="justify-content:flex-start; margin-top:10px;">
+                <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+                  <input type="checkbox" id="register-marketing-optin" style="margin-top:3px;">
+                  <span>Je souhaite recevoir les emails marketing de Morgann Music CP (nouvautes et nouvelles sorties).</span>
+                </label>
+              </div>
+            <div class="register-actions register-actions-split">
+              <button type="button" class="btn btn-secondary" data-prev-step>Retour</button>
+              <button type="submit" class="btn">S'inscrire</button>
+            </div>
+            <p>Ou inscivez-vous avec Google</p>
+            <div class="social-icons">
+                <a href="#" id="google-login"><i class='bx bxl-google'></i></a>
+            </div>
+        </div>
+        </form>
+    </div>
+
+    <!-- TOGGLE PANEL -->
+    <div class="toggle-box">
+        <div class="toggle-panel toggle-left">
+            <h1 class="rvdvr">Ravis de vous revoir !</h1>
+            <p  class="rvdvr">Vous n'avez pas de compte ?</p>
+            <button class="btn register-btn">Créez-en un !</button>
+        </div>
+        <div class="toggle-panel toggle-right">
+            <h1 class="rvdvr">Bienvenue !</h1>
+            <p class="rvdvr">Vous avez déjà un compte ?</p>
+            <button class="btn login-btn">Connectez-vous !</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- 2FA désactivée : les modals et le JS liés à la double authentification ont été retirés. -->
+    
+
+    <script src="/assets/js/script.js"></script>
+      <script type="module" src="/assets/js/navbar.js?v=2026-04-09a"></script>
+      <script src="config.js"></script>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup
+  } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-functions.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+  console.log("✅ Firebase modules loaded");
+
+
+<!-- 2FA désactivée : le code JS lié à la double authentification a été retiré. -->
+      const closeModal = () => {
+        disabledAccountModal?.classList.remove("is-open");
+      };
+
+      const onClose = () => {
+        cleanup();
+        closeModal();
+        resolve(false);
+      };
+
+      const onSupport = () => {
+        cleanup();
+        closeModal();
+        resolve(true);
+      };
+
+      disabledAccountClose?.addEventListener("click", onClose);
+      disabledAccountSupport?.addEventListener("click", onSupport);
+  
+
+  async function enforceAccountEnabledOrSupport(user) {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const profile = snap.exists() ? (snap.data() || {}) : {};
+    if (!isDisabledAccountProfile(profile)) return true;
+
+    const reason = String(profile.accountDisabledReason || "").trim();
+    const wantsSupport = await askDisabledSupport(reason);
+
+    if (wantsSupport) {
+      window.location.href = "/support/account-disabled.html";
+      return false;
+    }
+
+    await signOut(auth);
+    return false;
+  }
+
+  async function notifyAuthEmail(type, profile = {}) {
+    if (type === "login" && auth.currentUser?.uid) {
+      const securityPrefs = await getSecurityEmailPreferences(auth.currentUser.uid);
+      if (!securityPrefs.loginEmailEnabled) {
+        console.info("email de connexion désactivé dans les réglages du compte, envoi ignoré.");
+        return;
+      }
+    }
+
+    try {
+      await sendAuthEmailNotification({
+        type,
+        firstName: clean(profile.firstName)
+      });
+    } catch (mailErr) {
+      console.warn(`Email ${type} non envoye:`, mailErr);
+    }
+  }
+
+  loginForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitBtn = loginForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.dataset.orig = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      submitBtn.innerHTML = 'Connexion <span class="spinner"></span>';
+    }
+
+    let hadAuthenticated = false;
+    try {
+      console.log("Auth: signInWithEmailAndPassword...");
+      const cred = await signInWithEmailAndPassword(
+        auth,
+        loginEmail.value.trim(),
+        loginPassword.value
+      );
+      console.log("Auth: sign-in success", cred.user.uid);
+      hadAuthenticated = true;
+
+      try {
+        await ensureUserDoc(cred.user);
+      } catch (fsErr) {
+        alert("Erreur Firestore : " + (fsErr?.message || fsErr));
+        await signOut(auth);
+        return;
+      }
+
+      try {
+        const enabled = await enforceAccountEnabledOrSupport(cred.user);
+        if (!enabled) {
+          await signOut(auth);
+          return;
+        }
+      } catch (stateErr) {
+        alert("Erreur vérification compte : " + (stateErr?.message || stateErr));
+        await signOut(auth);
+        return;
+      }
+
+      try {
+        const roleLabel = await applyRoleCodeIfAny(cred.user, loginRoleCode?.value);
+        if (roleLabel) {
+          alert(`Code validé ✅ Rôle activé : ${roleLabel}`);
+        }
+      } catch (roleErr) {
+        alert(roleErr?.message || "Code rôle invalide.");
+      }
+
+      const ok2FA = await enforceTotpIfEnabled(cred.user);
+      if (!ok2FA) {
+        await signOut(auth);
+        return;
+      }
+
+      const okEmail2FA = await enforceEmail2faIfEnabled(cred.user);
+      if (!okEmail2FA) {
+        await signOut(auth);
+        return;
+      }
+
+      try {
+        const okProfile = await enforceProfileUpdateAfterLogin(cred.user);
+        if (!okProfile) {
+          await signOut(auth);
+          return;
+        }
+      } catch (profileErr) {
+        alert("Erreur vérification profil : " + (profileErr?.message || profileErr));
+        await signOut(auth);
+        return;
+      }
+
+      await notifyAuthEmail("login");
+
+      redirectAfterSuccess();
+    } catch (err) {
+      console.error("Auth sign-in error", err);
+      if (hadAuthenticated) {
+        try {
+          await signOut(auth);
+        } catch (signoutErr) {
+          console.error("Échec signOut après erreur", signoutErr);
+        }
+      }
+      alert("Erreur de connexion : " + (err?.message || err));
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+        submitBtn.innerHTML = submitBtn.dataset.orig || 'Se connecter';
+      }
+    }
+  });
+
+  registerForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    for (let idx = 0; idx < registerSteps.length; idx++) {
+      if (!validateRegisterStep(idx)) {
+        registerCurrentStep = idx;
+        updateRegisterStepUi();
+        return;
+      }
+    }
+
+    const submitBtn = registerForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.dataset.orig = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      submitBtn.innerHTML = 'Inscription <span class="spinner"></span>';
+    }
+    try {
+      console.log("Auth: createUserWithEmailAndPassword...");
+      const firstName = clean(registerFirstName?.value);
+      const lastName = clean(registerLastName?.value);
+      const displayName = clean(registerUsername?.value) || `${firstName} ${lastName}`.trim();
+      const phone = clean(registerPhone?.value);
+      const country = clean(registerCountry?.value);
+      const city = clean(registerCity?.value);
+      const userEmail = registerEmail.value.trim();
+      const wantsMarketing = !!registerMarketingOptin?.checked;
+
+      const emailPreferences = {
+        marketing: {
+          enabled: wantsMarketing,
+          topics: {
+            news: true,
+            releases: true
+          }
+        },
+        transactional: {
+          enabled: true
+        },
+        security: {
+          loginEmail: {
+            enabled: false
+          },
+          email2fa: {
+            enabled: false
+          }
+        }
+      };
+
+      if (!firstName || !lastName || !phone || !country || !city || !displayName) {
+        alert("Merci de remplir toutes les informations demandées.");
+        return;
+      }
+
+      const cred = await createUserWithEmailAndPassword(
+        auth,
+        userEmail,
+        registerPassword.value
+      );
+      console.log("Auth: user created uid=", cred.user.uid);
+
+      if (displayName) {
+        try {
+          await updateProfile(cred.user, { displayName });
+          console.log("Auth: displayName updated for", cred.user.uid);
+        } catch (upErr) {
+          console.warn("updateProfile failed:", upErr);
+        }
+      }
+
+      try {
+        await ensureUserDoc(cred.user, {
+          firstName,
+          lastName,
+          phone,
+          country,
+          city,
+          emailPreferences,
+          profileVersion: REQUIRED_PROFILE_VERSION,
+          profileUpdateRequired: false
+        });
+      } catch (fsErr) {
+        alert("Erreur Firestore : " + (fsErr?.message || fsErr));
+        return;
+      }
+
+      try {
+        const roleLabel = await applyRoleCodeIfAny(cred.user, registerRoleCode?.value);
+        if (roleLabel) {
+          alert(`Code validé ✅ Rôle activé : ${roleLabel}`);
+        }
+      } catch (roleErr) {
+        alert(roleErr?.message || "Impossible d'appliquer le code rôle.");
+        return;
+      }
+
+      // --- SYNCHRONISATION CONTACT + E-MAILS ---
+      try {
+        // 1. Envoi vers Make pour la base de donnees contacts
+        fetch("https://hook.eu1.make.com/ipq63kzsudkmk40qt9ynzd7au17e11la", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: userEmail,
+            nom: lastName,
+            prenom: firstName,
+            telephone: phone,
+            pays: country,
+            ville: city,
+            source: "Morgann Music CP"
+          })
+        }).catch(e => console.error("Make sync failed", e));
+
+        // 2. Email de bienvenue via Cloud Function securisee
+        await notifyAuthEmail("welcome", { firstName });
+        console.log("✅ Sync et e-mail bienvenue OK");
+      } catch (syncErr) {
+        console.error("Erreur post-inscription:", syncErr);
+      }
+      // ----------------------------------------------------
+
+      try {
+        await prompt2FASetupAfterSignup();
+      } catch (e) {
+        console.warn("2FA setup skipped/error", e);
+      }
+
+      redirectAfterSuccess();
+    } catch (err) {
+      console.error("Auth register error", err);
+      alert("Erreur d'inscription : " + (err?.message || err));
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+        submitBtn.innerHTML = submitBtn.dataset.orig || 'S\'inscrire';
+      }
+    }
+  });
+
+  const forgotLink = document.getElementById("forgot-password-link");
+  forgotLink?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const email = (loginEmail.value || "").trim();
+    if (!email) return alert("Entre ton email dans le champ Email puis reclique.");
+
+    try {
+      await passwordResetStart({ email });
+      alert("Si un compte existe avec cet email, un lien de réinitialisation a été envoyé ✅");
+    } catch (err) {
+      console.error("reset password error", err);
+      alert("Erreur reset password : " + getCallableErrorMessage(err, "service email indisponible. Réessaie plus tard."));
+    }
+  });
+
+  const googleBtn = document.getElementById("google-login");
+  googleBtn?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    console.log("➡️ click Google");
+    const provider = new GoogleAuthProvider();
+    const origHtml = googleBtn.innerHTML;
+    try {
+      googleBtn.innerHTML = origHtml + ' <span class="spinner"></span>';
+      googleBtn.style.pointerEvents = 'none';
+      const result = await signInWithPopup(auth, provider);
+      console.log("Auth: Google sign-in OK", result.user.uid);
+
+      try {
+        const ensured = await ensureUserDoc(result.user);
+        const enabled = await enforceAccountEnabledOrSupport(result.user);
+        if (!enabled) {
+          await signOut(auth);
+          return;
+        }
+        if (ensured?.created) {
+          await prompt2FASetupAfterSignup();
+        }
+      } catch (fsErr) {
+        alert("Erreur Firestore : " + (fsErr?.message || fsErr));
+        await signOut(auth);
+        return;
+      }
+
+      const ok2FA = await enforceTotpIfEnabled(result.user);
+      if (!ok2FA) {
+        await signOut(auth);
+        return;
+      }
+
+      const okEmail2FA = await enforceEmail2faIfEnabled(result.user);
+      if (!okEmail2FA) {
+        await signOut(auth);
+        return;
+      }
+
+      try {
+        const okProfile = await enforceProfileUpdateAfterLogin(result.user);
+        if (!okProfile) {
+          await signOut(auth);
+          return;
+        }
+      } catch (profileErr) {
+        alert("Erreur vérification profil : " + (profileErr?.message || profileErr));
+        await signOut(auth);
+        return;
+      }
+
+      await notifyAuthEmail("login");
+
+      redirectAfterSuccess();
+    } catch (err) {
+      console.error("Google sign-in error", err);
+      alert("Google login error : " + (err?.message || err));
+    } finally {
+      googleBtn.innerHTML = origHtml;
+      googleBtn.style.pointerEvents = '';
+    }
+  });
+</script>
+
+
+</body>
+
+</html>
+

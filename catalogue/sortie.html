@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Catalogue | Morgann Music</title>
+  <meta name="description" content="Catalogue artistes et sorties Morgann Music avec lecture continue sans coupure." />
+  <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+  <style>
+    .skeleton {
+      min-height: 120px;
+      border-radius: 18px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.3), rgba(255,255,255,0.12));
+      background-size: 200% 100%;
+      animation: shine 1.4s linear infinite;
+    }
+    @keyframes shine {
+      from { background-position: 200% 0; }
+      to { background-position: -200% 0; }
+    }
+    .release-layout {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(240px, 320px) 1fr;
+      align-items: start;
+    }
+    .release-cover {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 24px;
+      background: rgba(0, 0, 0, 0.08);
+    }
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+    .track-list {
+      display: grid;
+      gap: 10px;
+    }
+    .track-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 18px;
+      padding: 12px;
+      background: rgba(255,255,255,0.34);
+    }
+    .empty-state {
+      border: 1px dashed #bbb;
+      border-radius: 18px;
+      padding: 18px;
+      text-align: center;
+      color: #888;
+    }
+    .release-artist-link {
+      color: var(--accent, #1d4ed8);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .release-artist-link:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 980px) {
+      .release-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <style>
+    body {
+      padding: 0;
+    }
+  </style>
+  <div id="navbar-container"></div>
+  <main class="catalog-shell">
+    <header class="catalog-topbar">
+      <a class="catalog-brand"  data-nav="home">
+        <strong>Morgann Music Catalogue</strong>
+        <span>Artistes, sorties, lecture continue</span>
+      </a>
+      <input id="catalog-search" class="catalog-search" type="search" placeholder="Rechercher un artiste, une sortie, un titre" />
+      <nav class="catalog-nav">
+        <a class="pill-link" href="/catalogue/index.html" data-nav="home">Accueil</a>
+        <a class="pill-link" href="/catalogue/artistes.html" data-nav="artists">Artistes</a>
+        <a class="pill-link" href="/catalogue/sorties.html" data-nav="releases">Sorties</a>
+      </nav>
+    </header>
+
+    <section id="catalog-view" class="view-stack" aria-live="polite">
+      <div class="hero-card">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+    </section>
+  </main>
+
+
+  <!-- spa.js supprimé -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getFirestore, doc, getDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+      measurementId: "G-FKSSXYEZF0"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function getIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    async function loadReleaseAndArtist() {
+      const releaseId = getIdFromUrl();
+      if (!releaseId) return;
+      const releaseRef = doc(db, 'releases', releaseId);
+      const releaseSnap = await getDoc(releaseRef);
+      if (!releaseSnap.exists()) return;
+      const release = releaseSnap.data();
+      // Artiste
+      let artist = null;
+      if (release.artistId) {
+        const artistRef = doc(db, 'artists', release.artistId);
+        const artistSnap = await getDoc(artistRef);
+        if (artistSnap.exists()) artist = artistSnap.data();
+      }
+      // Affichage
+      const section = document.getElementById('catalog-view');
+      section.innerHTML = `
+        <div class="release-layout">
+          <div>
+            ${release.assets && release.assets.animatedCoverUrl ?
+              `<video class='release-cover' src='${release.assets.animatedCoverUrl}' autoplay loop muted playsinline style="display:block;object-fit:cover;width:100%;height:100%;border-radius:24px;"></video>` :
+              `<img class="release-cover" src="${(release.assets && release.assets.coverUrl) || '/assets/img/artists/default.jpg'}" alt="${release.title || ''}" />`
+            }
+          </div>
+          <div class="stack">
+            <h1 style="margin:0;font-size:2.2rem;">${release.title ? release.title + (release.versionLine ? ' (' + release.versionLine + ')' : '') : 'Sortie'}</h1>
+            <div style="font-size:1.1rem;color:var(--accent);font-weight:700;">
+              ${artist ? `<a href="/catalogue/artiste.html?id=${release.artistId}" class="release-artist-link">${artist.displayName || artist.name || 'Artiste'}</a>` : ''}
+            </div>
+            <div class="platform-row" style="margin:18px 0 0 0;display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
+              <div>
+                ${release.platformLinks && release.platformLinks.apple ? `<a href="${release.platformLinks.apple}" target="_blank" rel="noopener" title="Apple Music"><img src="/assets/logo plateofmres for link/Apple_Music_icon.png" alt="Apple Music" style="height:75px;width:192px;object-fit:contain;vertical-align:middle;"/></a>` : ''}
+              </div>
+              <div style="display:flex;gap:14px;align-items:center;">
+                ${release.platformLinks && release.platformLinks.spotify ? `<a href="${release.platformLinks.spotify}" target="_blank" rel="noopener" title="Spotify"><img src="/assets/logo plateofmres for link/Spotify_logo_without_text.svg" alt="Spotify" style="height:32px;width:32px;object-fit:contain;vertical-align:middle;"/></a>` : ''}
+                ${release.platformLinks && release.platformLinks.deezer ? `<a href="${release.platformLinks.deezer}" target="_blank" rel="noopener" title="Deezer"><img src="/assets/logo plateofmres for link/Deezer_New_Icon.svg" alt="Deezer" style="height:32px;width:32px;object-fit:contain;vertical-align:middle;"/></a>` : ''}
+                ${release.platformLinks && release.platformLinks.youtube ? `<a href="${release.platformLinks.youtube}" target="_blank" rel="noopener" title="YouTube Music"><img src="/assets/logo plateofmres for link/Youtube_Music_icon.svg" alt="YouTube Music" style="height:32px;width:32px;object-fit:contain;vertical-align:middle;"/></a>` : ''}
+              </div>
+            </div>
+            <div style="margin:18px 0 0 0;">
+              <h3 style="margin-bottom:8px;">Liste des pistes</h3>
+              <div class="track-list">
+                ${(release.tracks && release.tracks.length) ? release.tracks.map((track, i) => `<div class="track-item"><span>${i+1}</span><span>${track.title ? (track.versionLine ? `${track.title} (${track.versionLine})` : track.title) : 'Piste'}</span><span>${track.duration || ''}</span></div>`).join('') : '<div class="empty-state">Aucune piste trouvée</div>'}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    document.addEventListener('DOMContentLoaded', loadReleaseAndArtist);
+  </script>
+  <script type="module" src="/assets/js/navbar.js"></script>
+</body>
+</html>

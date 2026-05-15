@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon Compte - Morgann Music CP</title>
+
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/account.css?v=2026-04-09a">
+
+    <meta name="google-site-verification" content="code">
+    <meta name="facebook-domain-verification" content="code">
+    <meta name="msvalidate.01" content="code">
+
+    <link rel="canonical" href="https://mm-cp.uk/account.html">
+
+    <!-- Progressive Web App (PWA) -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Morgann Music CP">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/img/android-chrome-512x512.png">
+    <meta name="msapplication-TileColor" content="#7494ec">
+    <meta name="msapplication-TileImage" content="/assets/img/android-chrome-192x192.png">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>
+  </head>
+    <!-- Twitter Card meta -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Morgann_Music">
+    <meta name="twitter:title" content="Mon Compte - Morgann Music CP">
+    <meta name="twitter:description" content="Gérez votre profil, abonnement et sécurité sur Morgann Music CP.">
+    <meta name="twitter:image" content="https://mm-cp.uk/assets/img/1.png">
+
+    <!-- Open Graph / Facebook / LinkedIn / Instagram -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Mon Compte - Morgann Music CP">
+    <meta property="og:description" content="Gérez votre profil, abonnement et sécurité sur Morgann Music CP.">
+    <meta property="og:image" content="https://mm-cp.uk/assets/img/1.png">
+    <meta property="og:url" content="https://mm-cp.uk/account.html">
+  </head>
+    <!-- Twitter Card meta -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Morgann_Music">
+    <meta name="twitter:title" content="Morgann Music CP">
+    <meta name="twitter:description" content="Distribuez votre musique partout avec Morgann Music CP.">
+    <meta name="twitter:image" content="https://mm-cp.uk/assets/img/1.png">
+</head>
+
+<body>
+
+  <div id="navbar-container"></div>
+
+  <main class="account-layout">
+    <aside class="account-nav">
+      <button type="button" class="tab-link is-active" data-target="profil" aria-selected="true">Profil</button>
+      <button type="button" class="tab-link" data-target="abonnement" aria-selected="false">Abonnement</button>
+      <button type="button" class="tab-link" data-target="paiement" aria-selected="false">Paiement</button>
+      <button type="button" class="tab-link" data-target="emails" aria-selected="false">Emails</button>
+      <button type="button" class="tab-link" data-target="securite" aria-selected="false">Sécurité</button>
+      <button type="button" class="tab-link" data-target="actions" aria-selected="false">Actions</button>
+        <button type="button" class="tab-link" data-target="documents" aria-selected="false">Documents</button>
+    </aside>
+
+    <form id="account-form" class="account-wrap">
+      <header class="account-header">
+        <div>
+          <h1>Espace Compte</h1>
+          <p class="note" id="status-line">Prêt.</p>
+          <p class="note update-required" id="profile-update-banner" style="display:none;">
+            Une mise à jour du profil est requise. Merci de compléter les informations demandées.
+          </p>
+        </div>
+        <div class="badge-row">
+          <span id="adminBadge" class="badge badge-admin"><a href="/dash/admin/index.html">ADMIN</a></span>
+          <span id="vipBadge" class="badge badge-vip"><a href="/dash/sorties.html">VIP · Accès complet</a></span>
+          <span id="artistBadge" class="badge badge-artist">Artiste signé</span>
+          <span id="testBadge" class="badge badge-test">Utilisateur test</span>
+        </div>
+      </header>
+
+      <section id="profil" class="card-section tab-section is-loading is-active">
+        <div class="loading-overlay" aria-hidden="true">
+          <span class="bar w-40"></span>
+          <span class="bar w-65"></span>
+          <span class="bar w-90"></span>
+        </div>
+        <h2>Profil</h2>
+        <div class="avatar-area">
+          <img id="account-avatar" class="avatar-img" src="/assets/img/default-avatar.png" alt="Avatar">
+          <input id="avatar-file" type="file" accept="image/*" hidden />
+          <div class="mini-row">
+            <button type="button" class="mini-btn" id="btnChangeAvatar"><i class='bx bx-image-add'></i> Changer la photo</button>
+            <button type="button" class="mini-btn" id="btnRemoveAvatar"><i class='bx bx-trash'></i> Supprimer</button>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="input-box"><input type="text" id="first-name" placeholder="Prénom"><i class='bx bxs-user'></i></div>
+          <div class="input-box"><input type="text" id="last-name" placeholder="Nom"><i class='bx bxs-user'></i></div>
+          <div class="input-box"><input type="text" id="display-name" placeholder="Nom public / Nom d'artiste"><i class='bx bx-id-card'></i></div>
+          <div class="input-box"><input type="text" id="artist-name" placeholder="Nom de projet (optionnel)"><i class='bx bx-music'></i></div>
+          <div class="input-box"><input type="tel" id="phone" placeholder="Téléphone"><i class='bx bxs-phone'></i></div>
+          <div class="input-box"><input type="text" id="country" placeholder="Pays"><i class='bx bx-world'></i></div>
+          <div class="input-box"><input type="text" id="city" placeholder="Ville"><i class='bx bx-map'></i></div>
+          <div class="input-box"><input type="text" id="postal-code" placeholder="Code postal"><i class='bx bx-building-house'></i></div>
+          <div class="input-box full"><input type="text" id="address-line" placeholder="Adresse postale"><i class='bx bx-home'></i></div>
+        </div>
+        <button type="button" class="btn" id="btnSaveProfile">Enregistrer le profil</button>
+      </section>
+
+      <section id="abonnement" class="card-section tab-section is-loading">
+        <div class="loading-overlay" aria-hidden="true">
+          <span class="bar w-35"></span>
+          <span class="bar w-60"></span>
+          <span class="bar w-45"></span>
+        </div>
+        <h2>Abonnement</h2>
+        <p class="note">Plan : <strong id="sub-plan">—</strong> · Statut : <strong id="sub-status">—</strong></p>
+        <div class="mini-row">
+          <button type="button" class="btn" id="btnManageSub">Ouvrir Stripe (gérer / résilier)</button>
+          <button type="button" class="mini-btn danger" id="btnDisableTestRole" style="display:none;">Désactiver le mode test</button>
+        </div>
+      </section>
+
+      <section id="paiement" class="card-section tab-section is-loading">
+        <div class="loading-overlay" aria-hidden="true">
+          <span class="bar w-38"></span>
+          <span class="bar w-72"></span>
+          <span class="bar w-88"></span>
+        </div>
+        <h2>Paiement & retraits</h2>
+        <div class="grid-2">
+          <div class="input-box full"><input type="text" id="payout-iban" placeholder="IBAN"><i class='bx bx-credit-card'></i></div>
+          <div class="input-box"><input type="text" id="payout-holder" placeholder="Titulaire du compte"><i class='bx bx-user-circle'></i></div>
+          <div class="input-box"><input type="text" id="payout-bank" placeholder="Banque (optionnel)"><i class='bx bx-buildings'></i></div>
+        </div>
+        <button type="button" class="btn" id="btnSavePayout">Enregistrer les infos bancaires</button>
+        <p class="note">Ces informations servent aux versements et au suivi de paiement.</p>
+      </section>
+
+      <section id="emails" class="card-section tab-section is-loading">
+        <div class="loading-overlay" aria-hidden="true">
+          <span class="bar w-42"></span>
+          <span class="bar w-84"></span>
+          <span class="bar w-70"></span>
+        </div>
+        <h2>Préférences email</h2>
+        <div class="email-pref-block">
+          <label class="email-pref-row" for="pref-marketing-enabled">
+            <input type="checkbox" id="pref-marketing-enabled" />
+            <span>Recevoir des emails Marketing de Morgann Music CP</span>
+          </label>
+
+          <div id="marketing-subprefs" class="email-subprefs" aria-hidden="true">
+            <label class="email-pref-row" for="pref-marketing-news">
+              <input type="checkbox" id="pref-marketing-news" checked />
+              <span>Nouveautés Morgann Music CP</span>
+            </label>
+            <label class="email-pref-row" for="pref-marketing-releases">
+              <input type="checkbox" id="pref-marketing-releases" checked />
+              <span>Nouvelles sorties</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="email-pref-block" style="margin-top:10px;">
+          <label class="email-pref-row" for="pref-transactional-enabled">
+            <input type="checkbox" id="pref-transactional-enabled" checked />
+            <span>Recevoir des emails transactionnels</span>
+          </label>
+        </div>
+
+        <div class="email-pref-block" style="margin-top:10px;">
+          <label class="email-pref-row" for="pref-security-login-email-enabled">
+            <input type="checkbox" id="pref-security-login-email-enabled" checked />
+            <span>Recevoir un email à chaque connexion au compte</span>
+          </label>
+        </div>
+
+        <button type="button" class="btn" id="btnSaveEmailPrefs">Enregistrer les préférences email</button>
+        <p class="note">Les emails transactionnels couvrent les notifications importantes et les réponses support.</p>
+      </section>
+
+      <section id="securite" class="card-section tab-section is-loading">
+
+        <div class="loading-overlay" aria-hidden="true">
+          <span class="bar w-36"></span>
+          <span class="bar w-68"></span>
+          <span class="bar w-82"></span>
+        </div>
+        <h2>Sécurité & accès</h2>
+        <div class="grid-2">
+          <div class="input-box full"><input type="email" id="email" placeholder="Adresse email"><i class='bx bxs-envelope'></i></div>
+          <div class="input-box full" id="reauth-password-box" style="display:none;"><input type="password" id="current-password" placeholder="Mot de passe actuel (requis)"><i class='bx bxs-lock-alt'></i></div>
+        </div>
+        <button type="button" class="btn" id="btnSaveEmail">Modifier l’email</button>
+
+        <div class="grid-2">
+          <div class="input-box"><input type="password" id="new-password" placeholder="Nouveau mot de passe"><i class='bx bxs-lock-alt'></i></div>
+          <div class="input-box"><input type="password" id="new-password2" placeholder="Confirmer le nouveau mot de passe"><i class='bx bxs-lock-alt'></i></div>
+          <div class="input-box full" id="reauth-password-box2" style="display:none;"><input type="password" id="current-password2" placeholder="Mot de passe actuel (requis)"><i class='bx bxs-lock-alt'></i></div>
+        </div>
+        <button type="button" class="btn" id="btnSavePassword">Modifier le mot de passe</button>
+        <button type="button" class="btn" id="btnReauthGoogle" style="display:none; margin-top:12px;">Continuer avec Google (re-validation)</button>
+
+        <!-- Double authentification (2FA) désactivée sur ce compte. -->
+
+        <h3 class="sub-title">Notifications navigateur</h3>
+        <p class="note">Active l’autorisation du navigateur pour recevoir les messages envoyés depuis l’admin pendant que ton dashboard artiste est ouvert.</p>
+        <p class="note" id="browserNotifStatusAccount">Vérification de l’autorisation navigateur…</p>
+        <div class="mini-row">
+          <button type="button" class="btn" id="btnEnableBrowserNotifications">Activer les notifications navigateur</button>
+          <button type="button" class="mini-btn" id="btnTestBrowserNotifications">Envoyer un test</button>
+        </div>
+      </section>
+
+      <section id="actions" class="card-section tab-section">
+        <h2>Actions du compte</h2>
+        <button type="button" class="btn danger" id="btnLogout">Se déconnecter</button>
+      </section>
+      <section id="documents" class="card-section tab-section">
+        <h2>Documents</h2>
+        <div id="documents-list">
+          <!-- Les documents seront affichés ici dynamiquement, conteneur ajouté par JS -->
+        </div>
+        <style>
+          .documents-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-top: 12px;
+            margin-bottom: 32px;
+          }
+          .document-item {
+            background: var(--card, #fff2d2ab);
+            border: 1px solid var(--stroke, #ecca74);
+            border-radius: 12px;
+            padding: 18px 20px;
+            min-width: 220px;
+            max-width: 320px;
+            box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+          .document-title {
+            font-weight: bold;
+            font-size: 1.1em;
+          }
+          .document-item .btn {
+            margin-right: 8px;
+            margin-bottom: 2px;
+            width: fit-content;
+          }
+        </style>
+        <p id="no-documents-message" class="note" style="display:none;">Aucun document n'est disponible sur votre compte.</p>
+      </section>
+    </form>
+  </main>
+
+  <script type="module" src="/assets/js/navbar.js?v=2026-04-09a"></script>
+  <script type="module" src="/assets/js/account.js?v=2026-03-09-profil-v2"></script>
+  <script type="module" src="/assets/js/account-documents.js"></script>
+</body>
+</html>

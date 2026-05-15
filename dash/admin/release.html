@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gestion Sortie — Admin MMCP</title>
+  <link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+
+  <style>
+    :root { --bg:#e2e2e2; --txt:#000; --bg2:#fff; --cover:#bfbfbf; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#414141; --txt:#fff; --bg2:#1e1e1e; --cover:#575757; }
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { margin:0; padding:0; padding-top:72px; background:var(--bg); color:var(--txt); font-family:Helvetica, sans-serif; }
+    .titre-page { color:var(--txt); padding:30px; margin-top:20px; text-align:center; font-size:28pt; }
+    @media (max-width:768px){ .titre-page{font-size:17pt;} }
+    .container{ max-width:1100px; margin:0 auto; padding:0 18px 30px; }
+    .card{ background:rgba(255,255,255,0.55); border-radius:26px; padding:18px; border:1px solid rgba(0,0,0,0.08); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); margin-bottom:16px; }
+    @media (prefers-color-scheme: dark){ .card{ background:rgba(30,30,30,0.55); border:1px solid rgba(255,255,255,0.10);} }
+    .card h2{ font-size:16pt; margin-bottom:12px; opacity:.9; }
+    .card h3{ font-size:13pt; margin:16px 0 10px; opacity:.85; }
+    .row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    .label{ font-weight:600; opacity:.7; font-size:11pt; }
+    .value{ font-weight:500; font-size:12pt; word-break:break-word; }
+    .tag{ font-size:10pt; padding:6px 12px; border-radius:999px; background:rgba(0,0,0,0.06); white-space:nowrap; font-weight:600; }
+    @media (prefers-color-scheme: dark){ .tag{ background:rgba(255,255,255,0.08);} }
+    .tag.status-1 { background:#fbbf24; color:#78350f; }
+    .tag.status-2 { background:#60a5fa; color:#1e3a8a; }
+    .tag.status-3 { background:#a78bfa; color:#4c1d95; }
+    .tag.status-4 { background:#34d399; color:#065f46; }
+    .tag.status-5 { background:#f87171; color:#7f1d1d; }
+    .btn{ display:inline-block; margin-top:12px; padding:12px 18px; border-radius:999px; border:none; cursor:pointer; background:var(--cover); color:var(--txt); font-weight:700; text-decoration:none; text-align:center; font-size:11pt; }
+    .btn-primary{ background:#3b82f6; color:white; }
+    .btn-danger{ background:#ef4444; color:white; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+    .input{ width:100%; padding:12px 14px; border-radius:14px; border:1px solid rgba(0,0,0,0.12); background:rgba(255,255,255,0.75); color:var(--txt); }
+    @media (prefers-color-scheme: dark){ .input{ background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.14);} }
+    .info-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:14px; }
+    @media (max-width:768px){ .info-grid{grid-template-columns:1fr;} }
+    .info-item{ padding:10px; background:rgba(0,0,0,0.03); border-radius:12px; }
+    @media (prefers-color-scheme: dark){ .info-item{ background:rgba(255,255,255,0.04);} }
+    .error{ margin-top:10px; padding:12px; background:#fee2e2; color:#991b1b; border-radius:12px; font-weight:600; display:none; }
+    .success{ margin-top:10px; padding:12px; background:#d1fae5; color:#065f46; border-radius:12px; font-weight:600; display:none; }
+    .loading{ text-align:center; padding:40px; font-size:14pt; opacity:.7; }
+    .spinner-inline{ display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle; margin-left:8px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .track{ border:1px solid rgba(0,0,0,0.12); border-radius:14px; padding:12px; margin-top:10px; }
+    @media (prefers-color-scheme: dark){ .track{ border:1px solid rgba(255,255,255,0.12); } }
+    .collab-row{ display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:8px; margin-top:8px; }
+    .collab-row .btn{ margin-top:0; }
+    .collab-list{ margin-top:8px; }
+    @media (max-width:768px){ .collab-row{ grid-template-columns:1fr; } }
+    .countdown{ font-size:13pt; font-weight:700; }
+    .pied-de-page{ width:100%; height:60px; text-align:center; font-size:10pt; color:var(--txt); padding:20px; background:var(--bg2); margin-top:50px; }
+  </style>
+</head>
+
+<body>
+  <script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+  <script type="module" src="/assets/js/dash/admin/import-too-fm-init.js"></script>
+
+  <h1 class="titre-page">Gestion de la sortie</h1>
+
+  <div class="container">
+    <div id="loadingState" class="loading">Chargement de la sortie...</div>
+
+    <div id="contentArea" style="display:none;">
+      <div class="card">
+        <div class="row">
+          <h2 id="releaseTitle">—</h2>
+          <span class="tag" id="currentStatusBadge">—</span>
+        </div>
+
+        <div class="info-grid" id="mainInfoGrid"></div>
+      </div>
+
+      <div class="card">
+        <h2>Gestion du statut</h2>
+        <select class="input" id="statusSelect">
+          <option value="1">📤 Envoyé à MMCP</option>
+          <option value="2">✅ Validée par MMCP, en cours de validation par les plateformes</option>
+          <option value="3">🚀 Livrée aux plateformes (acceptée, pas encore publique)</option>
+          <option value="4">🎵 En ligne sur les plateformes</option>
+          <option value="5">❌ Refusée</option>
+        </select>
+        <div class="actions"><button class="btn btn-primary" id="btnUpdateStatus">Mettre à jour le statut</button></div>
+        <div class="success" id="successMsg"></div>
+        <div class="error" id="errorMsg"></div>
+      </div>
+
+      <div class="card" id="editSection">
+        <h2>Modifier la sortie (admin)</h2>
+        <div class="info-grid">
+          <div class="info-item"><div class="label">Titre</div><input class="input" id="editTitle" /></div>
+          <div class="info-item"><div class="label">Type</div><input class="input" id="editType" /></div>
+          <div class="info-item"><div class="label">Version</div><input class="input" id="editVersionLine" /></div>
+          <div class="info-item"><div class="label">Langue</div><input class="input" id="editLanguage" /></div>
+          <div class="info-item"><div class="label">Date sortie</div><input class="input" id="editReleaseDate" /></div>
+          <div class="info-item"><div class="label">Heure sortie</div><input class="input" id="editReleaseTime" /></div>
+          <div class="info-item"><div class="label">Fuseau</div><input class="input" id="editTimeZone" /></div>
+          <div class="info-item"><div class="label">Date originale</div><input class="input" id="editOriginalDate" placeholder="YYYY-MM-DD" /></div>
+          <div class="info-item"><div class="label">Précommande</div><input class="input" id="editPreorderDate" /></div>
+          <div class="info-item"><div class="label">Lien Spotify</div><input class="input" id="editPlatformSpotify" placeholder="https://open.spotify.com/..." /></div>
+          <div class="info-item"><div class="label">Lien Apple Music</div><input class="input" id="editPlatformApple" placeholder="https://music.apple.com/..." /></div>
+          <div class="info-item"><div class="label">Lien Deezer</div><input class="input" id="editPlatformDeezer" placeholder="https://www.deezer.com/..." /></div>
+          <div class="info-item"><div class="label">Lien YouTube Music</div><input class="input" id="editPlatformYoutube" placeholder="https://music.youtube.com/..." /></div>
+          <div class="info-item"><div class="label">Pochette (jpg/png)</div>
+            <input class="input" id="editCover" type="file" accept="image/jpeg,image/png" />
+            <div id="editCoverPreview" style="margin-top:8px"></div>
+          </div>
+          <div class="info-item"><div class="label">Pochette animée (mp4)</div>
+            <input class="input" id="editAnimatedCover" type="file" accept="video/mp4" />
+            <div id="editAnimatedCoverPreview" style="margin-top:8px"></div>
+          </div>
+        </div>
+            <!-- Aperçu vidéo animée déplacé dans le script, rien à afficher ici -->
+        <h3>Collaborations release</h3>
+        <div id="editReleaseCollabsRoot"></div>
+        <div class="actions">
+          <button class="btn" type="button" id="btnAddReleaseCollab">+ Ajouter collab release</button>
+        </div>
+        <h3>Pistes (métadonnées)</h3>
+        <div id="editTracksRoot"></div>
+        <div class="actions">
+          <button class="btn btn-primary" id="btnSaveEdit">Enregistrer les modifications</button>
+        </div>
+        <div class="success" id="editSuccess"></div>
+        <div class="error" id="editError"></div>
+      </div>
+
+      <div class="card">
+        <h2>Assets & téléchargements</h2>
+        <div id="assetsList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Collaborations release</h2>
+        <div id="releaseCollabsList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Pistes (toutes les infos)</h2>
+        <div id="tracksList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Zone de danger</h2>
+        <p style="opacity:.7;font-size:11pt;margin-bottom:12px;">La suppression est définitive et ne peut pas être annulée.</p>
+        <div class="actions">
+          <button class="btn btn-danger" id="btnDelete">Supprimer cette sortie</button>
+          <a href="/dash/admin/index.html" class="btn">Retour à l'admin</a>
+        </div>
+        <div class="error" id="deleteError"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="pied-de-page">Morgann Music CP — Admin</footer>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+  import { getFirestore, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, addDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+    authDomain: "morgann-music-cp.firebaseapp.com",
+    projectId: "morgann-music-cp",
+    storageBucket: "morgann-music-cp.firebasestorage.app",
+    messagingSenderId: "666812685196",
+    appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+  };
+
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  const $ = (id) => document.getElementById(id);
+  let currentReleaseData = null;
+
+  const STATUS_LABELS = {
+    "1": "📤 Envoyé à MMCP",
+    "2": "✅ Validée par MMCP",
+    "3": "🚀 Livrée aux plateformes (acceptée, pas encore publique)",
+    "4": "🎵 En ligne",
+    "5": "❌ Refusée"
+  };
+
+  function clean(s){ return String(s || "").trim(); }
+  function val(v){ return clean(v) || "—"; }
+
+  function firstUrl(...values){
+    for (const value of values){
+      if (typeof value !== "string") continue;
+      const url = clean(value);
+      if (url) return url;
+    }
+    return "";
+  }
+
+  function mediaUrlFromTrack(track, candidateKeys){
+    const t = (track && typeof track === "object") ? track : {};
+    const file = (t.files && typeof t.files === "object") ? t.files : {};
+    const sources = [];
+
+    for (const key of candidateKeys) {
+      sources.push(file?.[key]);
+      sources.push(t?.[key]);
+    }
+
+    sources.push(t?.file?.url);
+    sources.push(file?.url);
+
+    return firstUrl(...sources);
+  }
+
+  function sanitizeFileName(name){
+    return String(name || "file").replace(/[^a-zA-Z0-9._-]+/g, "_");
+  }
+
+  async function uploadTrackFile({ ownerUid, releaseId, rank, kind, file }){
+    if (!file) return "";
+    const safeOwner = clean(ownerUid) || auth.currentUser?.uid || "unknown";
+    const safeRid = clean(releaseId) || "release";
+    const safeKind = clean(kind) || "audio";
+    const safeName = `${Date.now()}_${sanitizeFileName(file.name)}`;
+    const path = `releases/${safeOwner}/${safeRid}/tracks/${rank}/${safeKind}_${safeName}`;
+    const r = ref(storage, path);
+    await uploadBytes(r, file, file?.type ? { contentType: file.type } : undefined);
+    return await getDownloadURL(r);
+  }
+
+  function showError(msg, el = $("errorMsg")){
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = "block";
+    setTimeout(() => { el.style.display = "none"; }, 5000);
+  }
+
+  function showSuccess(msg, el = $("successMsg")){
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = "block";
+    setTimeout(() => { el.style.display = "none"; }, 3000);
+  }
+
+  function getEmailApiUrl(){
+    const host = window.location.hostname;
+    const isLocal = host === "localhost" || host === "127.0.0.1";
+    if (isLocal && window.location.port !== "3000") {
+      return "http://localhost:3000/api/email/artist-notification";
+    }
+    return "/api/email/artist-notification";
+  }
+
+  async function sendArtistEmailNotification(toEmail, type = "notification"){
+    const email = clean(toEmail);
+    if (!email) {
+      console.warn("Email notification ignorée: email destinataire manquant");
+      return;
+    }
+    try {
+      const res = await fetch(getEmailApiUrl(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toEmail: email, type })
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        console.warn("Email notification échouée:", payload?.error || res.statusText || res.status);
+      }
+    } catch (e) {
+      console.warn("Email notification non envoyée:", e);
+    }
+  }
+
+  function parseReleaseDate(data){
+    const raw = clean(data?.schedule?.releaseDate || data.releaseDate);
+    if (!raw) return null;
+    const d = new Date(raw + "T00:00:00");
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatCountdown(dateObj){
+    if (!dateObj) return "Date non définie";
+    const now = new Date();
+    const diff = dateObj.getTime() - now.getTime();
+    if (diff <= 0) return "Sortie publiée ou en cours";
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${days}j ${hours}h ${mins}m`;
+  }
+
+  function normalizeStatus(data){
+    if (data.statusCode) return String(data.statusCode);
+    const raw = clean(data.status || data.statusUser).toLowerCase();
+    if (raw.includes("refus")) return "5";
+    if (raw.includes("en ligne")) return "4";
+    if (raw.includes("livr")) return "3";
+    if (raw.includes("valid")) return "2";
+    return "1";
+  }
+
+  function normalizeEmailPrefs(raw){
+    const src = raw && typeof raw === "object" ? raw : {};
+    const marketing = src.marketing && typeof src.marketing === "object" ? src.marketing : {};
+    const topics = marketing.topics && typeof marketing.topics === "object" ? marketing.topics : {};
+    return {
+      marketingEnabled: marketing.enabled === true,
+      releasesEnabled: topics.releases !== false
+    };
+  }
+
+  async function sendAutoReleaseNewsletter(rid, releaseData){
+    const alreadySent = !!clean(releaseData?.marketingNewsletters?.releasesSentAt);
+    if (alreadySent) return { sent: false, reason: "already_sent" };
+
+    const usersSnap = await getDocs(query(collection(db, "users"), orderBy("email", "asc"), limit(2500)));
+    const recipients = usersSnap.docs
+      .map((d) => ({ id: d.id, ...(d.data() || {}) }))
+      .map((u) => {
+        const email = clean(u.email).toLowerCase();
+        const prefs = normalizeEmailPrefs(u.emailPreferences);
+        return {
+          email,
+          enabled: prefs.marketingEnabled && prefs.releasesEnabled
+        };
+      })
+      .filter((x) => x.email && x.enabled);
+
+    const uniqueEmails = Array.from(new Set(recipients.map((r) => r.email))).slice(0, 500);
+    if (!uniqueEmails.length) return { sent: false, reason: "no_recipients" };
+
+    const title = clean(releaseData?.title || releaseData?.name) || "Nouvelle sortie";
+    const artist = clean(releaseData?.artistName || releaseData?.artist) || "Artiste";
+    const listenUrl = firstUrl(
+      releaseData?.platformLinks?.spotify,
+      releaseData?.platformLinks?.apple,
+      releaseData?.platformLinks?.deezer,
+      releaseData?.platformLinks?.youtube,
+      releaseData?.releaseUrl,
+      "https://mm-cp.uk/play/index.html"
+    );
+
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch("/api/email/brevo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        toEmail: uniqueEmails[0],
+        toEmails: uniqueEmails,
+        artistName: "Abonne MMCP",
+        subject: `Nouvelle sortie en ligne: ${title}`,
+        body: `${artist} a une nouvelle sortie en ligne: ${title}.`,
+        mailCategory: "marketing",
+        transactionType: "newsletter_releases_auto",
+        useButton: !!listenUrl,
+        buttonText: "Ecouter la sortie",
+        buttonUrl: listenUrl
+      })
+    });
+
+    const raw = await res.text();
+    let payload = {};
+    try { payload = raw ? JSON.parse(raw) : {}; } catch { payload = { error: raw || "reponse invalide" }; }
+    if (!res.ok || payload?.error) throw new Error(payload?.error || payload?.details || `HTTP ${res.status}`);
+
+    await updateDoc(doc(db, "releases", rid), {
+      "marketingNewsletters.releasesSentAt": serverTimestamp(),
+      "marketingNewsletters.releasesSentBy": auth.currentUser?.uid || null,
+      "marketingNewsletters.releasesRecipientCount": uniqueEmails.length,
+      "marketingNewsletters.releasesMessageId": clean(payload?.messageId) || null,
+      updatedAt: serverTimestamp()
+    });
+
+    return { sent: true, count: uniqueEmails.length };
+  }
+
+  function renderMainInfo(data, rid, ownerMail){
+    const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
+    const instrumentalCount = tracks.filter((t) => !!t?.instrumental).length;
+    const instrumentalSummary = tracks.length
+      ? `${instrumentalCount}/${tracks.length} piste${tracks.length > 1 ? "s" : ""}`
+      : (data.instrumental ? "Oui (legacy)" : "Non");
+
+    $("mainInfoGrid").innerHTML = `
+      <div class="info-item"><div class="label">Artiste</div><div class="value">${val(data.artistName || data.artist)}</div></div>
+      <div class="info-item"><div class="label">Type</div><div class="value">${val(data.type)}</div></div>
+      <div class="info-item"><div class="label">Date de sortie</div><div class="value">${val(data?.schedule?.releaseDate || data.releaseDate)}</div></div>
+      <div class="info-item"><div class="label">Décompte</div><div class="value countdown">${formatCountdown(parseReleaseDate(data))}</div></div>
+      <div class="info-item"><div class="label">Version</div><div class="value">${val(data.versionLine)}</div></div>
+      <div class="info-item"><div class="label">Langue</div><div class="value">${val(data.language)}</div></div>
+      <div class="info-item"><div class="label">Instrumentales (pistes)</div><div class="value">${instrumentalSummary}</div></div>
+      <div class="info-item"><div class="label">Propriétaire</div><div class="value">${val(ownerMail || data.ownerUid)}</div></div>
+      <div class="info-item"><div class="label">Fuseau</div><div class="value">${val(data?.schedule?.timeZone)}</div></div>
+      <div class="info-item"><div class="label">Date originale</div><div class="value">${val(data?.schedule?.originalDate)}</div></div>
+      <div class="info-item"><div class="label">Précommande</div><div class="value">${val(data?.schedule?.preorderDate)}</div></div>
+      <div class="info-item" style="grid-column:1/-1"><div class="label">Liens plateformes</div><div class="value">
+        Spotify: ${clean(data?.platformLinks?.spotify) ? `<a href="${data.platformLinks.spotify}" target="_blank" rel="noopener">ouvrir</a>` : "—"}<br>
+        Apple Music: ${clean(data?.platformLinks?.apple) ? `<a href="${data.platformLinks.apple}" target="_blank" rel="noopener">ouvrir</a>` : "—"}<br>
+        Deezer: ${clean(data?.platformLinks?.deezer) ? `<a href="${data.platformLinks.deezer}" target="_blank" rel="noopener">ouvrir</a>` : "—"}<br>
+        YouTube Music: ${clean(data?.platformLinks?.youtube) ? `<a href="${data.platformLinks.youtube}" target="_blank" rel="noopener">ouvrir</a>` : "—"}
+      </div></div>
+      <div class="info-item"><div class="label">ID release</div><div class="value" style="font-family:monospace;font-size:10pt">${rid}</div></div>
+    `;
+  }
+
+  function renderAssets(data){
+    const cover = clean(data?.assets?.coverUrl);
+    const one = clean(data?.assets?.appleMotion?.oneOneUrl);
+    const three = clean(data?.assets?.appleMotion?.threeFourUrl);
+
+    $("assetsList").innerHTML = `
+      <div class="info-grid">
+        <div class="info-item"><div class="label">Pochette</div><div class="value">${cover ? `<a class="btn" href="${cover}" target="_blank" rel="noopener">Télécharger la pochette</a>` : "—"}</div></div>
+        <div class="info-item"><div class="label">Apple Motion 1:1</div><div class="value">${one ? `<a class="btn" href="${one}" target="_blank" rel="noopener">Télécharger motion 1:1</a>` : "—"}</div></div>
+        <div class="info-item"><div class="label">Apple Motion 3:4</div><div class="value">${three ? `<a class="btn" href="${three}" target="_blank" rel="noopener">Télécharger motion 3:4</a>` : "—"}</div></div>
+      </div>
+    `;
+  }
+
+  function renderReleaseCollabs(data){
+    const arr = Array.isArray(data.collabsRelease) ? data.collabsRelease : [];
+    if (!arr.length){
+      $("releaseCollabsList").innerHTML = `<div class="info-item"><div class="value">Aucune collaboration release.</div></div>`;
+      return;
+    }
+
+    $("releaseCollabsList").innerHTML = arr.map((c,i)=>`
+      <div class="info-item"><div class="label">Collab ${i+1}</div><div class="value">${val(c.name)}<br>Spotify: ${val(c.spotifyUrl)}<br>Apple: ${val(c.appleMusicUrl)}</div></div>
+    `).join("");
+  }
+
+  function renderTracks(data){
+    const tracks = Array.isArray(data.tracks) ? data.tracks : [];
+    if (!tracks.length){
+      $("tracksList").innerHTML = `<div class="info-item"><div class="value">Aucune piste.</div></div>`;
+      return;
+    }
+
+    $("tracksList").innerHTML = tracks.map((t, i)=>{
+      const audioUrl = mediaUrlFromTrack(t, [
+        "audioUrl",
+        "fileUrl",
+        "url"
+      ]);
+      const instrumentalUrl = firstUrl(
+        mediaUrlFromTrack(t, [
+          "instrumentalUrl",
+          "instrumentalAudioUrl",
+          "instruUrl",
+          "instrumental"
+        ]),
+        t?.instrumentalFile?.url
+      );
+      const dolbyUrl = firstUrl(
+        mediaUrlFromTrack(t, [
+          "atmosUrl",
+          "dolbyUrl",
+          "dolbyAtmosUrl",
+          "audioDolbyUrl",
+          "atmos",
+          "dolby",
+          "dolbyAtmos"
+        ]),
+        t?.atmosFile?.url,
+        t?.dolbyFile?.url
+      );
+      const collabs = (t.collabs || []).map(c=>c.name || "—").join(", ") || "—";
+      const writers = (t.writers || []).map(w=>`${w.name || "—"} (${w.role || "—"})`).join(", ") || "—";
+      const credits = (t.credits || []).map(c=>`${c.instrument || "—"}: ${c.name || "—"}`).join(", ") || "—";
+      const lrcUrl = clean(t?.lyricsLrcUrl);
+
+      return `
+        <div class="track">
+          <div class="row"><h3 style="margin:0">Piste ${i + 1} — ${val(t.title)}</h3><span class="tag">${t.explicit ? "Explicit" : "Standard"}</span></div>
+          <div class="info-grid">
+            <div class="info-item"><div class="label">Version</div><div class="value">${val(t.versionLine)}</div></div>
+            <div class="info-item"><div class="label">Langue</div><div class="value">${val(t.language)}</div></div>
+            <div class="info-item"><div class="label">ISRC</div><div class="value">${val(t.isrc)}</div></div>
+            <div class="info-item"><div class="label">ISWC</div><div class="value">${val(t.iswc)}</div></div>
+            <div class="info-item"><div class="label">Genre</div><div class="value">${val(t.genre)}</div></div>
+            <div class="info-item"><div class="label">Preview Start</div><div class="value">${val(t.previewStart)}</div></div>
+            <div class="info-item"><div class="label">Apple Mastering Email</div><div class="value">${val(t?.appleDigitalMaster?.masteringEmail || t.appleMasteringEmail)}</div></div>
+            <div class="info-item"><div class="label">Clean version</div><div class="value">${t.cleanVersion ? "Oui" : "Non"}</div></div>
+            <div class="info-item"><div class="label">Instrumentale (piste)</div><div class="value">${t.instrumental ? "Oui" : "Non"}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">Paroles</div><div class="value">${val(t.lyrics)}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">LRC synchronisé</div><div class="value">${lrcUrl ? `<a class="btn" href="${lrcUrl}" target="_blank" rel="noopener">Télécharger LRC</a>` : "—"}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">Collabs piste</div><div class="value">${val(collabs)}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">Writers</div><div class="value">${val(writers)}</div></div>
+            <div class="info-item" style="grid-column:1/-1"><div class="label">Crédits</div><div class="value">${val(credits)}</div></div>
+          </div>
+          <div class="actions">
+            ${audioUrl ? `<a class="btn" href="${audioUrl}" target="_blank" rel="noopener">Audio normal</a>` : ""}
+            ${dolbyUrl ? `<a class="btn" href="${dolbyUrl}" target="_blank" rel="noopener">Atmos</a>` : ""}
+            ${instrumentalUrl ? `<a class="btn" href="${instrumentalUrl}" target="_blank" rel="noopener">Instru</a>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function setBadge(status){
+    $("currentStatusBadge").textContent = STATUS_LABELS[String(status)] || "—";
+    $("currentStatusBadge").className = `tag status-${status}`;
+  }
+
+  function escAttr(value){
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function collabRowHtml(collab = {}){
+    return `
+      <div class="collab-row editCollabRow">
+        <input class="input editCollabName" placeholder="Nom" value="${escAttr(clean(collab?.name))}" />
+        <input class="input editCollabSpotify" placeholder="Spotify URL" value="${escAttr(clean(collab?.spotifyUrl))}" />
+        <input class="input editCollabApple" placeholder="Apple Music URL" value="${escAttr(clean(collab?.appleMusicUrl))}" />
+        <button class="btn btn-danger removeCollabBtn" type="button">Supprimer</button>
+      </div>
+    `;
+  }
+
+  function bindRemoveCollabButtons(scope = document){
+    scope.querySelectorAll(".removeCollabBtn").forEach((btn) => {
+      btn.onclick = () => btn.closest(".editCollabRow")?.remove();
+    });
+  }
+
+  function readCollabsFrom(root){
+    if (!root) return [];
+    return Array.from(root.querySelectorAll(".editCollabRow")).map((row) => {
+      const name = clean(row.querySelector(".editCollabName")?.value);
+      const spotifyUrl = clean(row.querySelector(".editCollabSpotify")?.value);
+      const appleMusicUrl = clean(row.querySelector(".editCollabApple")?.value);
+      return { name, spotifyUrl: spotifyUrl || null, appleMusicUrl: appleMusicUrl || null };
+    }).filter((c) => !!c.name);
+  }
+
+  function renderEditReleaseCollabs(data){
+    const root = $("editReleaseCollabsRoot");
+    if (!root) return;
+    const collabs = Array.isArray(data?.collabsRelease) ? data.collabsRelease : [];
+    root.innerHTML = `<div class="collab-list">${collabs.map((c) => collabRowHtml(c)).join("")}</div>`;
+    bindRemoveCollabButtons(root);
+  }
+
+  function renderEditTracks(data){
+    const root = $("editTracksRoot");
+    const tracks = Array.isArray(data?.tracks) ? data.tracks : [];
+    if (!root) return;
+    if (!tracks.length){
+      root.innerHTML = `<div class="info-item"><div class="value">Aucune piste.</div></div>`;
+      return;
+    }
+
+    root.innerHTML = tracks.map((t, i) => {
+      const audioUrl = mediaUrlFromTrack(t, ["audioUrl", "fileUrl", "url"]);
+      const instrumentalUrl = firstUrl(
+        mediaUrlFromTrack(t, ["instrumentalUrl", "instrumentalAudioUrl", "instruUrl", "instrumental"]),
+        t?.instrumentalFile?.url
+      );
+      const atmosUrl = firstUrl(
+        mediaUrlFromTrack(t, ["atmosUrl", "dolbyUrl", "dolbyAtmosUrl", "audioDolbyUrl", "atmos", "dolby", "dolbyAtmos"]),
+        t?.atmosFile?.url,
+        t?.dolbyFile?.url
+      );
+
+      return `
+      <div class="track" data-track-idx="${i}">
+        <div class="row"><h3 style="margin:0">Piste ${i + 1}</h3></div>
+        <div class="info-grid">
+          <div class="info-item"><div class="label">Titre</div><input class="input editTrackTitle" value="${val(t.title)}" /></div>
+          <div class="info-item"><div class="label">Version</div><input class="input editTrackVersion" value="${val(t.versionLine === "—" ? "" : t.versionLine)}" /></div>
+          <div class="info-item"><div class="label">Langue</div><input class="input editTrackLanguage" value="${val(t.language === "—" ? "" : t.language)}" /></div>
+          <div class="info-item"><div class="label">Genre</div><input class="input editTrackGenre" value="${val(t.genre === "—" ? "" : t.genre)}" /></div>
+          <div class="info-item"><div class="label">ISRC</div><input class="input editTrackIsrc" value="${val(t.isrc === "—" ? "" : t.isrc)}" /></div>
+          <div class="info-item"><div class="label">ISWC</div><input class="input editTrackIswc" value="${val(t.iswc === "—" ? "" : t.iswc)}" /></div>
+          <div class="info-item"><div class="label">Instrumentale (piste)</div><label><input type="checkbox" class="editTrackInstrumental" ${t.instrumental ? "checked" : ""} /> Oui</label></div>
+          <div class="info-item" style="grid-column:1/-1"><div class="label">Paroles</div><textarea class="input editTrackLyrics">${val(t.lyrics === "—" ? "" : t.lyrics)}</textarea></div>
+          <div class="info-item" style="grid-column:1/-1">
+            <div class="label">Fichier LRC synchronisé (.lrc)</div>
+            <input class="input editTrackLrcFile" type="file" accept=".lrc,text/plain" />
+            ${clean(t?.lyricsLrcUrl) ? `<div class="value" style="margin-top:8px;"><a class="btn" href="${t.lyricsLrcUrl}" target="_blank" rel="noopener">Fichier LRC actuel</a></div>` : `<div class="value" style="margin-top:8px;">—</div>`}
+          </div>
+          <div class="info-item" style="grid-column:1/-1">
+            <div class="label">Collabs piste</div>
+            <div class="collab-list editTrackCollabsRoot">
+              ${(Array.isArray(t.collabs) ? t.collabs : []).map((c) => collabRowHtml(c)).join("")}
+            </div>
+            <div class="actions"><button class="btn addTrackCollabBtn" type="button">+ Ajouter collab piste</button></div>
+          </div>
+          <div class="info-item"><div class="label">Audio normal</div><input class="input editTrackAudioFile" type="file" accept="audio/*" />${audioUrl ? `<div class="value" style="margin-top:8px;"><a class="btn" href="${audioUrl}" target="_blank" rel="noopener">Fichier actuel</a></div>` : `<div class="value" style="margin-top:8px;">—</div>`}</div>
+          <div class="info-item"><div class="label">Atmos</div><input class="input editTrackAtmosFile" type="file" accept="audio/*" />${atmosUrl ? `<div class="value" style="margin-top:8px;"><a class="btn" href="${atmosUrl}" target="_blank" rel="noopener">Fichier actuel</a></div>` : `<div class="value" style="margin-top:8px;">—</div>`}</div>
+          <div class="info-item"><div class="label">Instru</div><input class="input editTrackInstruFile" type="file" accept="audio/*" />${instrumentalUrl ? `<div class="value" style="margin-top:8px;"><a class="btn" href="${instrumentalUrl}" target="_blank" rel="noopener">Fichier actuel</a></div>` : `<div class="value" style="margin-top:8px;">—</div>`}</div>
+        </div>
+      </div>
+    `;
+    }).join("");
+
+    root.querySelectorAll(".addTrackCollabBtn").forEach((btn) => {
+      btn.onclick = () => {
+        const list = btn.closest(".info-item")?.querySelector(".editTrackCollabsRoot");
+        if (!list) return;
+        list.insertAdjacentHTML("beforeend", collabRowHtml({}));
+        bindRemoveCollabButtons(list);
+      };
+    });
+    bindRemoveCollabButtons(root);
+  }
+
+  function fillEditForm(data){
+    $("editTitle").value = clean(data?.title);
+    $("editType").value = clean(data?.type);
+    $("editVersionLine").value = clean(data?.versionLine);
+    $("editLanguage").value = clean(data?.language);
+    $("editReleaseDate").value = clean(data?.schedule?.releaseDate || data?.releaseDate);
+    $("editReleaseTime").value = clean(data?.schedule?.releaseTime || data?.releaseTime);
+    $("editTimeZone").value = clean(data?.schedule?.timeZone);
+    $("editOriginalDate").value = clean(data?.schedule?.originalDate);
+    $("editPreorderDate").value = clean(data?.schedule?.preorderDate);
+    $("editPlatformSpotify").value = clean(data?.platformLinks?.spotify || data?.platforms?.spotify || data?.links?.spotify);
+    $("editPlatformApple").value = clean(data?.platformLinks?.apple || data?.platformLinks?.appleMusic || data?.platforms?.apple || data?.platforms?.appleMusic || data?.links?.apple || data?.links?.appleMusic);
+    $("editPlatformDeezer").value = clean(data?.platformLinks?.deezer || data?.platforms?.deezer || data?.links?.deezer);
+    $("editPlatformYoutube").value = clean(data?.platformLinks?.youtube || data?.platformLinks?.youtubeMusic || data?.platformLinks?.ytmusic || data?.platforms?.youtube || data?.platforms?.youtubeMusic || data?.platforms?.ytmusic || data?.links?.youtube || data?.links?.youtubeMusic || data?.links?.ytmusic);
+    renderEditReleaseCollabs(data);
+    renderEditTracks(data);
+  }
+
+  async function saveReleaseEdits(rid){
+    // ✅ Vérifier que l'utilisateur est admin
+    const roleSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+    const role = roleSnap.exists() ? (roleSnap.data().role || "user") : "user";
+    if (role !== "admin"){
+      showError("Seuls les administrateurs peuvent modifer les sorties.");
+      return;
+    }
+
+    const okBox = $("editSuccess");
+    const errBox = $("editError");
+    const btn = $("btnSaveEdit");
+    okBox.style.display = "none";
+    errBox.style.display = "none";
+    btn.disabled = true;
+
+    try {
+      const existingTracks = Array.isArray(currentReleaseData?.tracks) ? currentReleaseData.tracks : [];
+      const nextTracks = [...existingTracks];
+
+      const trackEls = Array.from(document.querySelectorAll("#editTracksRoot .track"));
+      for (const trackEl of trackEls) {
+        const idx = Number(trackEl.getAttribute("data-track-idx"));
+        if (!Number.isFinite(idx) || !nextTracks[idx]) continue;
+
+        const currentTrack = nextTracks[idx] || {};
+        const currentFiles = (currentTrack.files && typeof currentTrack.files === "object") ? currentTrack.files : {};
+
+        let audioUrl = mediaUrlFromTrack(currentTrack, ["audioUrl", "fileUrl", "url"]);
+        let instrumentalUrl = firstUrl(
+          mediaUrlFromTrack(currentTrack, ["instrumentalUrl", "instrumentalAudioUrl", "instruUrl", "instrumental"]),
+          currentTrack?.instrumentalFile?.url
+        );
+        let atmosUrl = firstUrl(
+          mediaUrlFromTrack(currentTrack, ["atmosUrl", "dolbyUrl", "dolbyAtmosUrl", "audioDolbyUrl", "atmos", "dolby", "dolbyAtmos"]),
+          currentTrack?.atmosFile?.url,
+          currentTrack?.dolbyFile?.url
+        );
+
+        const audioFile = trackEl.querySelector(".editTrackAudioFile")?.files?.[0] || null;
+        const atmosFile = trackEl.querySelector(".editTrackAtmosFile")?.files?.[0] || null;
+        const instruFile = trackEl.querySelector(".editTrackInstruFile")?.files?.[0] || null;
+        const lrcFile = trackEl.querySelector(".editTrackLrcFile")?.files?.[0] || null;
+        let lyricsLrcUrl = clean(currentTrack?.lyricsLrcUrl);
+        let lyricsFromLrc = "";
+
+        if (audioFile) {
+          audioUrl = await uploadTrackFile({
+            ownerUid: currentReleaseData?.ownerUid,
+            releaseId: rid,
+            rank: idx + 1,
+            kind: "audio",
+            file: audioFile
+          });
+        }
+        if (atmosFile) {
+          atmosUrl = await uploadTrackFile({
+            ownerUid: currentReleaseData?.ownerUid,
+            releaseId: rid,
+            rank: idx + 1,
+            kind: "atmos",
+            file: atmosFile
+          });
+        }
+        if (instruFile) {
+          instrumentalUrl = await uploadTrackFile({
+            ownerUid: currentReleaseData?.ownerUid,
+            releaseId: rid,
+            rank: idx + 1,
+            kind: "instrumental",
+            file: instruFile
+          });
+        }
+
+        if (lrcFile) {
+          lyricsLrcUrl = await uploadTrackFile({
+            ownerUid: currentReleaseData?.ownerUid,
+            releaseId: rid,
+            rank: idx + 1,
+            kind: "lyrics",
+            file: lrcFile
+          });
+          lyricsFromLrc = await lrcFile.text();
+        }
+
+        const trackCollabs = readCollabsFrom(trackEl.querySelector(".editTrackCollabsRoot"));
+        const lyricsInput = clean(trackEl.querySelector(".editTrackLyrics")?.value) || null;
+        const finalLyrics = clean(lyricsFromLrc) || lyricsInput;
+
+        nextTracks[idx] = {
+          ...nextTracks[idx],
+          title: clean(trackEl.querySelector(".editTrackTitle")?.value) || nextTracks[idx].title || `Piste ${idx + 1}`,
+          versionLine: clean(trackEl.querySelector(".editTrackVersion")?.value) || null,
+          language: clean(trackEl.querySelector(".editTrackLanguage")?.value) || null,
+          genre: clean(trackEl.querySelector(".editTrackGenre")?.value) || null,
+          isrc: clean(trackEl.querySelector(".editTrackIsrc")?.value) || null,
+          iswc: clean(trackEl.querySelector(".editTrackIswc")?.value) || null,
+          instrumental: !!trackEl.querySelector(".editTrackInstrumental")?.checked,
+          lyrics: finalLyrics || null,
+          lyricsLrcUrl: lyricsLrcUrl || null,
+          collabs: trackCollabs,
+          files: {
+            ...currentFiles,
+            audioUrl: audioUrl || null,
+            instrumentalUrl: instrumentalUrl || null,
+            atmosUrl: atmosUrl || null,
+            audioFileName: audioFile ? clean(audioFile.name) : (currentFiles.audioFileName || null),
+            instrumentalFileName: instruFile ? clean(instruFile.name) : (currentFiles.instrumentalFileName || null),
+            atmosFileName: atmosFile ? clean(atmosFile.name) : (currentFiles.atmosFileName || null),
+            lyricsLrcFileName: lrcFile ? clean(lrcFile.name) : (currentFiles.lyricsLrcFileName || null)
+          },
+          audioUrl: audioUrl || null,
+          instrumentalUrl: instrumentalUrl || null,
+          atmosUrl: atmosUrl || null
+        };
+      }
+
+      const releaseInstrumental = nextTracks.length > 0 && nextTracks.every((t) => !!t?.instrumental);
+      const releaseCollabs = readCollabsFrom($("editReleaseCollabsRoot"));
+      const spotifyLink = clean($("editPlatformSpotify").value) || null;
+      const appleLink = clean($("editPlatformApple").value) || null;
+      const deezerLink = clean($("editPlatformDeezer").value) || null;
+      const youtubeLink = clean($("editPlatformYoutube").value) || null;
+
+      // Gestion upload pochette animée
+      const animatedCoverInput = document.getElementById("editAnimatedCover");
+      let animatedCoverUrl = currentReleaseData?.assets?.animatedCoverUrl || null;
+      if (animatedCoverInput && animatedCoverInput.files && animatedCoverInput.files[0]) {
+        const file = animatedCoverInput.files[0];
+        const safeOwner = clean(currentReleaseData?.ownerUid) || auth.currentUser?.uid || "unknown";
+        const safeRid = clean(rid) || "release";
+        const safeName = `${Date.now()}_animated_${file.name.replace(/[^a-zA-Z0-9._-]+/g, "_")}`;
+        const path = `releases/${safeOwner}/${safeRid}/animated/${safeName}`;
+        const r = ref(storage, path);
+        await uploadBytes(r, file, file?.type ? { contentType: file.type } : undefined);
+        animatedCoverUrl = await getDownloadURL(r);
+      }
+      await updateDoc(doc(db, "releases", rid), {
+        title: clean($("editTitle").value) || currentReleaseData?.title || "Sortie",
+        type: clean($("editType").value) || currentReleaseData?.type || null,
+        versionLine: clean($("editVersionLine").value) || null,
+        language: clean($("editLanguage").value) || null,
+        instrumental: releaseInstrumental,
+        schedule: {
+          ...(currentReleaseData?.schedule || {}),
+          releaseDate: clean($("editReleaseDate").value) || null,
+          releaseTime: clean($("editReleaseTime").value) || null,
+          timeZone: clean($("editTimeZone").value) || null,
+          originalDate: clean($("editOriginalDate").value) || null,
+          preorderDate: clean($("editPreorderDate").value) || null
+        },
+        platformLinks: {
+          ...(currentReleaseData?.platformLinks || {}),
+          spotify: spotifyLink,
+          apple: appleLink,
+          appleMusic: appleLink,
+          deezer: deezerLink,
+          youtube: youtubeLink,
+          youtubeMusic: youtubeLink,
+          ytmusic: youtubeLink
+        },
+        assets: {
+          ...(currentReleaseData?.assets || {}),
+          animatedCoverUrl: animatedCoverUrl || null
+        },
+        collabsRelease: releaseCollabs,
+        tracks: nextTracks,
+        updatedAt: serverTimestamp(),
+        adminEditedAt: serverTimestamp(),
+        adminEditedBy: auth.currentUser?.uid || null
+      });
+
+      okBox.textContent = "✅ Modifications enregistrées";
+      okBox.style.display = "block";
+      await loadRelease(rid);
+      fillEditForm(currentReleaseData || {});
+    } catch (e) {
+      errBox.textContent = "Erreur: " + (e?.message || String(e));
+      errBox.style.display = "block";
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function loadRelease(rid){
+    const snap = await getDoc(doc(db, "releases", rid));
+    if (!snap.exists()) throw new Error("Sortie introuvable");
+    const data = snap.data();
+
+    let ownerMail = null;
+    if (data.ownerUid){
+      try{
+        const u = await getDoc(doc(db, "users", data.ownerUid));
+        ownerMail = u.exists() ? (u.data().email || data.ownerUid) : data.ownerUid;
+      }catch{ ownerMail = data.ownerUid; }
+    }
+
+    currentReleaseData = {
+      ...data,
+      ownerEmailResolved: clean(ownerMail) || clean(data.ownerEmail)
+    };
+
+    $("releaseTitle").textContent = val(data.title || data.name);
+    const status = normalizeStatus(data);
+    $("statusSelect").value = status;
+    setBadge(status);
+
+    renderMainInfo(data, rid, ownerMail);
+    fillEditForm(data);
+    renderAssets(data);
+    renderReleaseCollabs(data);
+    renderTracks(data);
+
+    $("loadingState").style.display = "none";
+    $("contentArea").style.display = "block";
+    return data;
+  }
+
+  async function updateStatus(rid){
+    // ✅ Vérifier que l'utilisateur est admin
+    const roleSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+    const role = roleSnap.exists() ? (roleSnap.data().role || "user") : "user";
+    if (role !== "admin"){
+      showError("Seuls les administrateurs peuvent modifier le statut des sorties.");
+      return;
+    }
+
+    const newStatus = $("statusSelect").value;
+    const previousStatus = normalizeStatus(currentReleaseData || {});
+    const btn = $("btnUpdateStatus");
+    btn.disabled = true;
+    btn.innerHTML = 'Mise à jour <span class="spinner-inline"></span>';
+    $("errorMsg").style.display = "none";
+    $("successMsg").style.display = "none";
+
+    try{
+      await updateDoc(doc(db, "releases", rid), {
+        statusCode: newStatus,
+        statusUser: STATUS_LABELS[newStatus] || "—",
+        updatedAt: serverTimestamp(),
+        lastStatusUpdateBy: auth.currentUser?.uid || null,
+        lastStatusUpdateAt: serverTimestamp()
+      });
+
+      let newsletterResult = null;
+      if (newStatus === "4" && previousStatus !== "4") {
+        try {
+          newsletterResult = await sendAutoReleaseNewsletter(rid, currentReleaseData || {});
+        } catch (e) {
+          newsletterResult = { error: e?.message || String(e) };
+          console.warn("Newsletter auto nouvelles sorties non envoyee:", e);
+        }
+      }
+
+      if (currentReleaseData?.ownerUid) {
+        try {
+          await addDoc(collection(db, "notifications"), {
+            userUid: currentReleaseData.ownerUid,
+            releaseId: rid,
+            releaseTitle: clean(currentReleaseData.title) || "Sortie",
+            type: "release_status_updated",
+            statusCode: newStatus,
+            statusLabel: STATUS_LABELS[newStatus] || "—",
+            message: `Le statut de ta sortie \"${clean(currentReleaseData.title) || "Sortie"}\" est maintenant : ${STATUS_LABELS[newStatus] || "—"}`,
+            read: false,
+            createdAt: serverTimestamp()
+          });
+          if (currentReleaseData.ownerEmail) {
+            try {
+              const res = await fetch("/api/email/artist-notification", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  toEmail: currentReleaseData.ownerEmail,
+                  type: "notification"
+                })
+              });
+              if (!res.ok) {
+                const payload = await res.json().catch(() => ({}));
+                console.warn("Erreur API email:", payload.error || res.status);
+              }
+            } catch (e) {
+              console.warn("Erreur envoi email Resend:", e);
+            }
+          }
+        } catch (e) {
+          console.warn("Notification status update non créée:", e);
+        }
+      }
+
+      setBadge(newStatus);
+      let successText = "✅ Statut mis à jour avec succès !";
+      if (newsletterResult?.sent) successText += ` Newsletter nouvelles sorties envoyee a ${newsletterResult.count} destinataire(s).`;
+      if (newsletterResult?.reason === "already_sent") successText += " Newsletter nouvelles sorties deja envoyee pour cette sortie.";
+      if (newsletterResult?.reason === "no_recipients") successText += " Aucun destinataire newsletter nouvelles sorties.";
+      if (newsletterResult?.error) successText += ` Newsletter auto non envoyee (${newsletterResult.error}).`;
+      showSuccess(successText);
+    }catch(e){
+      showError("Erreur: " + (e?.message || String(e)));
+    }finally{
+      btn.disabled = false;
+      btn.textContent = "Mettre à jour le statut";
+    }
+  }
+
+  async function deleteRelease(rid){
+    // ✅ Vérifier que l'utilisateur est admin
+    const roleSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+    const role = roleSnap.exists() ? (roleSnap.data().role || "user") : "user";
+    if (role !== "admin"){
+      alert("❌ Seuls les administrateurs peuvent supprimer les sorties.");
+      return;
+    }
+
+    const confirmed = confirm("⚠️ Supprimer définitivement cette sortie ?");
+    if (!confirmed) return;
+
+    const btn = $("btnDelete");
+    btn.disabled = true;
+    btn.innerHTML = 'Suppression <span class="spinner-inline"></span>';
+    $("deleteError").style.display = "none";
+
+    try{
+      await deleteDoc(doc(db, "releases", rid));
+      alert("✅ Sortie supprimée avec succès.");
+      window.location.href = "/dash/admin/index.html";
+    }catch(e){
+      showError("Erreur de suppression: " + (e?.message || String(e)), $("deleteError"));
+      btn.disabled = false;
+      btn.textContent = "Supprimer cette sortie";
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user){
+      window.location.href = "/login.html?redirect=" + encodeURIComponent(window.location.href);
+      return;
+    }
+
+    try{
+      const roleSnap = await getDoc(doc(db, "users", user.uid));
+      const role = roleSnap.exists() ? (roleSnap.data().role || "user") : "user";
+      if (role !== "admin"){
+        alert("Accès refusé: admin uniquement");
+        window.location.href = "/dash/index.html";
+        return;
+      }
+
+      const rid = new URLSearchParams(window.location.search).get("id");
+      if (!rid){ $("loadingState").textContent = "ID de sortie manquant dans l'URL"; return; }
+
+      await loadRelease(rid);
+      $("btnAddReleaseCollab")?.addEventListener("click", () => {
+        const root = $("editReleaseCollabsRoot");
+        if (!root) return;
+        const list = root.querySelector(".collab-list") || root;
+        list.insertAdjacentHTML("beforeend", collabRowHtml({}));
+        bindRemoveCollabButtons(root);
+      });
+      $("btnUpdateStatus").addEventListener("click", () => updateStatus(rid));
+      $("btnSaveEdit").addEventListener("click", () => saveReleaseEdits(rid));
+      $("btnDelete").addEventListener("click", () => deleteRelease(rid));
+
+      if (window.location.hash === "#edit") {
+        document.getElementById("editSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }catch(e){
+      $("loadingState").textContent = "Erreur: " + (e?.message || String(e));
+    }
+  });
+
+
+</script>
+</body>
+</html>

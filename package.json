@@ -1,0 +1,29 @@
+{
+  "name": "mmcp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Momo-music02/MorgannMusicCP_.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Momo-music02/MorgannMusicCP_/issues"
+  },
+  "homepage": "https://github.com/Momo-music02/MorgannMusicCP_#readme",
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^7.2.5",
+    "nodemailer": "^8.0.4",
+    "puppeteer": "^24.41.0",
+    "stripe": "^17.0.0"
+  }
+}

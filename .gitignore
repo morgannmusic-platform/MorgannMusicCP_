@@ -1,0 +1,22 @@
+.DS_Store
+**/.DS_Store
+
+# Firebase local artifacts
+.firebase/
+firebase-debug.log
+firebase-debug*.log
+
+# Node dependencies
+node_modules/
+functions/node_modules/
+
+# Local secrets/data
+users.json
+.env
+.env.*
+
+config.js
+
+
+.vscode/
+*.zip

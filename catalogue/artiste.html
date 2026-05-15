@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <style>
+      .mm-loader {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        padding: 18px 0;
+      }
+      .mm-loader span {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--txt, #ff8fb1);
+        opacity: 0.5;
+        animation: mmDotPulse 1.2s infinite ease-in-out;
+      }
+      .mm-loader span:nth-child(2) { animation-delay: 0.15s; }
+      .mm-loader span:nth-child(3) { animation-delay: 0.3s; }
+      @keyframes mmDotPulse {
+        0%, 80%, 100% { transform: scale(0.55); opacity: 0.35; }
+        40% { transform: scale(1); opacity: 1; }
+      }
+    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Catalogue | Morgann Music</title>
+  <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+  <meta name="description" content="Catalogue artistes et sorties Morgann Music avec lecture continue sans coupure." />
+</head>
+<body class="artiste-page">
+  <style>
+    body {
+      padding: 0;
+    }
+  </style>
+  <style>
+    body {
+      padding: 0;
+    }
+  </style>
+ 
+  <div id="navbar-container"></div>
+  <main class="catalog-shell">
+    <header class="catalog-topbar">
+      <a class="catalog-brand"  data-nav="home">
+        <strong>Morgann Music Catalogue</strong>
+        <span>Artistes, sorties, lecture continue</span>
+      </a>
+      <input id="catalog-search" class="catalog-search" type="search" placeholder="Rechercher un artiste, une sortie, un titre" />
+      <nav class="catalog-nav">
+        <a class="pill-link" href="/catalogue/index.html" data-nav="home">Accueil</a>
+        <a class="pill-link" href="/catalogue/artistes.html" data-nav="artists">Artistes</a>
+        <a class="pill-link" href="/catalogue/sorties.html" data-nav="releases">Sorties</a>
+      </nav>
+    </header>
+
+    <div id="admin-status" style="display:none;padding:10px 0 0 0;text-align:center;"></div>
+
+    <section id="catalog-view" class="view-stack" aria-live="polite">
+      <div id="artist-banner" class="artist-banner" style="background-size:cover;background-position:center;">
+        <div class="artist-banner__inner">
+          <img id="artist-avatar" class="artist-banner__avatar" src="/assets/img/default-avatar.png" alt="Artiste" />
+          <div>
+            <h1 id="artist-name" style="margin:0;font-size:2.2rem;color:var(--txt);font-weight:900;"></h1>
+            <div id="edit-buttons" style="margin-top:10px;display:none;gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin:32px 0 0 0;">
+        <h2 style="font-size:1.4rem;color:var(--txt);font-weight:700;margin-bottom:18px;">Sorties de l'artiste</h2>
+        <div id="artist-releases" class="releases-grid"></div>
+      </div>
+    </section>
+    <script type="module" src="/assets/js/listAllReleases.js"></script>
+    <script type="module">
+      import { listAllReleases } from '/assets/js/listAllReleases.js';
+      const searchInput = document.querySelector('.catalog-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', async (e) => {
+          const q = e.target.value.trim().toLowerCase();
+          if (q.length < 2) return; // Ne cherche qu'à partir de 2 caractères
+          const releases = await listAllReleases();
+          const results = releases.filter(r =>
+            (r.title && r.title.toLowerCase().includes(q)) ||
+            (r.artistName && r.artistName.toLowerCase().includes(q))
+          );
+          // Affichage simple (console), à remplacer par un vrai dropdown ou suggestions
+          console.log('Résultats recherche releases:', results);
+        });
+      }
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+      import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+      import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+        authDomain: "morgann-music-cp.firebaseapp.com",
+        projectId: "morgann-music-cp",
+        storageBucket: "morgann-music-cp.firebasestorage.app",
+        messagingSenderId: "666812685196",
+        appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+        measurementId: "G-FKSSXYEZF0"
+      };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      function getIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('id');
+      }
+
+      async function loadArtistAndReleases() {
+        const artistId = getIdFromUrl();
+        if (!artistId) return;
+        // Artiste
+        const artistRef = doc(db, 'artists', artistId);
+        const artistSnap = await getDoc(artistRef);
+        if (!artistSnap.exists()) return;
+        const artist = artistSnap.data();
+        document.getElementById('artist-name').textContent = artist.name || 'Artiste';
+        document.getElementById('artist-avatar').src = artist.photoURL || '/assets/img/default-avatar.png';
+        if (artist.bannerURL) {
+          document.getElementById('artist-banner').style.backgroundImage = `url('${artist.bannerURL}')`;
+        }
+        // Affiche toutes les releases de l'artiste (champ artistId)
+        const releasesCol = collection(db, 'releases');
+        const q = query(releasesCol, where('artistId', '==', artistId));
+        const releasesSnap = await getDocs(q);
+        const releasesGrid = document.getElementById('artist-releases');
+        releasesGrid.innerHTML = '<div class="mm-loader"><span></span><span></span><span></span></div>';
+        let html = '';
+        let count = 0;
+        releasesSnap.forEach(docu => {
+          const rel = docu.data();
+          const dateToShow = rel.originalReleaseDate ? rel.originalReleaseDate : rel.releaseDate || '';
+          html += `
+            <div class="release-card" style="cursor:pointer;" onclick="window.location.href='/catalogue/sortie.html?id=${docu.id ? encodeURIComponent(docu.id) : ''}'">
+              <img src="${(rel.assets && rel.assets.coverUrl) || '/assets/img/default-avatar.png'}" onerror="this.onerror=null;this.src='/assets/img/1.png';" alt="${rel.title || ''}" />
+              <strong style="display:block;width:100%;max-width:160px;margin:10px auto 4px auto;writing-mode:horizontal-tb !important;transform:none !important;white-space:normal;word-break:break-word;text-align:center;">${rel.title || 'Sortie'}</strong>
+              <span>${dateToShow}</span>
+            </div>
+          `;
+          count++;
+        });
+        if (count === 0) {
+          releasesGrid.innerHTML = `<div style="color:red;font-weight:bold;text-align:center;">Aucune sortie trouvée pour l'artiste.<br>artistId utilisé : <b>${artistId}</b><br>Vérifie que tes releases Firestore ont bien ce champ.<br><br>Debug : <span id='debug-ids'></span></div>`;
+          // Affiche les artistId des releases dans le DOM pour debug visuel
+          const allReleasesSnap = await getDocs(releasesCol);
+          let allIds = [];
+          allReleasesSnap.forEach(docu => {
+            const rel = docu.data();
+            allIds.push(rel.artistId + ' (' + (rel.title || rel.id || '') + ')');
+          });
+          setTimeout(() => {
+            const debugSpan = document.getElementById('debug-ids');
+            if (debugSpan) debugSpan.textContent = allIds.join(' | ');
+          }, 100);
+        } else {
+          releasesGrid.innerHTML = html;
+        }
+          // Affiche le statut admin si l'utilisateur a l'uid "admin"
+          onAuthStateChanged(auth, user => {
+            const adminDiv = document.getElementById('admin-status');
+            if (user && user.uid === 'admin') {
+              adminDiv.style.display = 'block';
+              adminDiv.innerHTML = '<span style="color:#fff;background:#e74c3c;padding:6px 18px;border-radius:8px;font-weight:900;font-size:1.2rem;">ADMIN</span>';
+            } else {
+              adminDiv.style.display = 'none';
+            }
+          });
+        // Auth: afficher boutons édition si propriétaire
+        onAuthStateChanged(auth, user => {
+          const editDiv = document.getElementById('edit-buttons');
+          if (user && artist.ownerUid && user.uid === artist.ownerUid) {
+            editDiv.style.display = 'flex';
+            editDiv.innerHTML = `
+              <label style="padding:6px 14px;border-radius:8px;border:none;background:var(--txt);color:var(--bg);font-weight:600;cursor:pointer;display:inline-block;">
+                Modifier la photo
+                <input type="file" id="profile-photo-input" accept="image/*" style="display:none;">
+              </label>
+              <label style="padding:6px 14px;border-radius:8px;border:none;background:var(--txt);color:var(--bg);font-weight:600;cursor:pointer;display:inline-block;">
+                Modifier la bannière
+                <input type="file" id="banner-photo-input" accept="image/*" style="display:none;">
+              </label>
+            `;
+            // Upload photo de profil
+            const fileInput = document.getElementById('profile-photo-input');
+            if (fileInput) {
+              fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const { getStorage, ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js');
+                const storage = getStorage(app);
+                const storageRef = ref(storage, `artists/${artistId}/profile.jpg`);
+                try {
+                  await uploadBytes(storageRef, file);
+                  const url = await getDownloadURL(storageRef);
+                  await import('https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js').then(async ({ updateDoc, doc }) => {
+                    await updateDoc(doc(db, 'artists', artistId), { photoURL: url });
+                  });
+                  document.getElementById('artist-avatar').src = url;
+                  alert('Photo de profil mise à jour !');
+                } catch (err) {
+                  alert('Erreur lors de l\'upload : ' + err.message);
+                }
+              });
+            }
+            // Upload bannière
+            const bannerInput = document.getElementById('banner-photo-input');
+            if (bannerInput) {
+              bannerInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const { getStorage, ref, uploadBytes, getDownloadURL } = await import('https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js');
+                const storage = getStorage(app);
+                const storageRef = ref(storage, `artists/${artistId}/banner.jpg`);
+                try {
+                  await uploadBytes(storageRef, file);
+                  const url = await getDownloadURL(storageRef);
+                  await import('https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js').then(async ({ updateDoc, doc }) => {
+                    await updateDoc(doc(db, 'artists', artistId), { bannerURL: url });
+                  });
+                  document.getElementById('artist-banner').style.backgroundImage = `url('${url}')`;
+                  alert('Bannière mise à jour !');
+                } catch (err) {
+                  alert('Erreur lors de l\'upload : ' + err.message);
+                }
+              });
+            }
+          } else {
+            editDiv.style.display = 'none';
+          }
+        });
+      }
+      document.addEventListener('DOMContentLoaded', loadArtistAndReleases);
+    </script>
+  </main>
+  <!-- spa.js supprimé -->
+  <script type="module" src="/assets/js/navbar.js"></script>
+</body>
+</html>

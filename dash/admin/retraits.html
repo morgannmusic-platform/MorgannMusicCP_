@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Retraits</title>
+  <link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+  <style>
+    :root { --bg:#e2e2e2; --txt:#000; --stroke:rgba(0,0,0,.12); --card:rgba(255,255,255,.78); --muted:rgba(0,0,0,.58); --green:#16a34a; --amber:#d97706; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#414141; --txt:#fff; --stroke:rgba(255,255,255,.14); --card:rgba(30,30,30,.78); --muted:rgba(255,255,255,.65); --green:#22c55e; --amber:#f59e0b; }
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{background:var(--bg);color:var(--txt);font-family:Helvetica,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:34px 18px}
+    .title{font-size:30px;font-weight:900;margin-bottom:10px}
+    .sub{color:var(--muted);margin-bottom:16px}
+    .card{border:1px solid var(--stroke);border-radius:24px;background:var(--card);padding:16px}
+    .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+    .kpi{border:1px solid var(--stroke);border-radius:14px;padding:12px;background:rgba(0,0,0,.03)}
+    @media (prefers-color-scheme: dark){.kpi{background:rgba(255,255,255,.04)}}
+    .kpi strong{display:block;font-size:20px;line-height:1.2}
+    .kpi span{font-size:12px;color:var(--muted)}
+    .row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;border-radius:14px;background:rgba(0,0,0,.04);margin-bottom:10px}
+    @media (prefers-color-scheme: dark){.row{background:rgba(255,255,255,.05)}}
+    .badge{padding:6px 10px;border-radius:999px;font-size:11px;font-weight:900;border:1px solid var(--stroke)}
+    .badge.waiting{background:rgba(217,119,6,.14)}
+    .badge.done{background:rgba(22,163,74,.14)}
+    .badge.rejected{background:rgba(220,38,38,.14)}
+    .muted{color:var(--muted);font-size:12px}
+    .table-wrap{overflow:auto;border:1px solid var(--stroke);border-radius:14px}
+    table{width:100%;border-collapse:collapse;min-width:820px}
+    th,td{padding:10px 12px;border-bottom:1px solid var(--stroke);text-align:left;font-size:13px}
+    th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    tbody tr{cursor:pointer}
+    tbody tr:hover{background:rgba(0,0,0,.03)}
+    @media (prefers-color-scheme: dark){tbody tr:hover{background:rgba(255,255,255,.04)}}
+    tr:last-child td{border-bottom:none}
+    .empty{padding:14px;border:1px dashed var(--stroke);border-radius:12px;color:var(--muted);font-size:13px;display:none}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:2500;padding:14px}
+    .modal-box{width:min(560px,100%);border:1px solid var(--stroke);border-radius:16px;background:var(--card);padding:16px}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+    .close-btn{border:1px solid var(--stroke);background:transparent;color:var(--txt);border-radius:10px;padding:6px 10px;cursor:pointer}
+    .details{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .detail{border:1px solid var(--stroke);border-radius:12px;padding:10px}
+    .detail small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}
+    .iban-box{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .mini{border:1px solid var(--stroke);background:transparent;color:var(--txt);border-radius:999px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:700}
+    .mini[disabled]{opacity:.55;cursor:not-allowed}
+    @media (max-width:900px){.kpis{grid-template-columns:1fr}}
+    @media (max-width:680px){.details{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+
+  <main class="wrap">
+    <h1 class="title">Retraits</h1>
+    <p class="sub">Résumé rapide des retraits à traiter.</p>
+
+    <section class="card">
+      <div class="kpis">
+        <div class="kpi">
+          <strong id="kpiTotal">—</strong>
+          <span>Total demandes</span>
+        </div>
+        <div class="kpi">
+          <strong id="kpiPending">—</strong>
+          <span>En attente</span>
+        </div>
+        <div class="kpi">
+          <strong id="kpiPaid">—</strong>
+          <span>Payées</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Utilisateur</th>
+              <th>Email</th>
+              <th>IBAN</th>
+              <th>Montant</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="withdrawRows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="withdrawEmpty">Aucune demande de versement pour le moment.</div>
+    </section>
+  </main>
+
+  <div class="modal" id="withdrawDetailModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>Détails de la demande</h3>
+        <button class="close-btn" id="closeWithdrawDetail">Fermer</button>
+      </div>
+      <div class="details">
+        <div class="detail"><small>Date</small><div id="dDate">—</div></div>
+        <div class="detail"><small>Statut</small><div id="dStatus">—</div></div>
+        <div class="detail"><small>Utilisateur</small><div id="dUid">—</div></div>
+        <div class="detail"><small>Email</small><div id="dEmail">—</div></div>
+        <div class="detail"><small>Montant</small><div id="dAmount">—</div></div>
+        <div class="detail"><small>ID demande</small><div id="dRequestId">—</div></div>
+      </div>
+      <div class="detail" style="margin-top:10px;">
+        <small>IBAN complet</small>
+        <div class="iban-box">
+          <div id="dIban">••••••••</div>
+          <button class="mini" id="btnToggleIban">👁 Voir</button>
+          <button class="mini" id="btnCopyIban">Copier</button>
+          <button class="mini" id="btnMarkWithdrawProcessed">Marquer traité</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, query, orderBy, limit, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const rowsEl = document.getElementById("withdrawRows");
+    const emptyEl = document.getElementById("withdrawEmpty");
+    const kpiTotal = document.getElementById("kpiTotal");
+    const kpiPending = document.getElementById("kpiPending");
+    const kpiPaid = document.getElementById("kpiPaid");
+    const withdrawDetailModal = document.getElementById("withdrawDetailModal");
+    const closeWithdrawDetail = document.getElementById("closeWithdrawDetail");
+    const dDate = document.getElementById("dDate");
+    const dStatus = document.getElementById("dStatus");
+    const dUid = document.getElementById("dUid");
+    const dEmail = document.getElementById("dEmail");
+    const dAmount = document.getElementById("dAmount");
+    const dRequestId = document.getElementById("dRequestId");
+    const dIban = document.getElementById("dIban");
+    const btnToggleIban = document.getElementById("btnToggleIban");
+    const btnCopyIban = document.getElementById("btnCopyIban");
+    const btnMarkWithdrawProcessed = document.getElementById("btnMarkWithdrawProcessed");
+
+    let currentDetail = null;
+    let ibanVisible = false;
+
+    function clean(value) { return String(value || "").trim(); }
+
+    function esc(value) {
+      return clean(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function fmtDate(ts) {
+      try {
+        const d = ts?.toDate ? ts.toDate() : null;
+        return d ? d.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "—";
+      } catch {
+        return "—";
+      }
+    }
+
+    function fmtAmount(v) {
+      const n = Number(v || 0);
+      if (!Number.isFinite(n)) return "0,00 €";
+      return `${n.toFixed(2)} €`;
+    }
+
+    function statusBadge(statusRaw) {
+      const status = clean(statusRaw).toLowerCase();
+      if (status === "paid" || status === "done" || status === "validated") {
+        return '<span class="badge done">Payée</span>';
+      }
+      if (status === "rejected" || status === "refused") {
+        return '<span class="badge rejected">Refusée</span>';
+      }
+      return '<span class="badge waiting">En attente</span>';
+    }
+
+    function statusLabel(statusRaw) {
+      const status = clean(statusRaw).toLowerCase();
+      if (status === "paid" || status === "done" || status === "validated") return "Payée";
+      if (status === "rejected" || status === "refused") return "Refusée";
+      return "En attente";
+    }
+
+    function closeDetailModal() {
+      withdrawDetailModal.style.display = "none";
+      currentDetail = null;
+      ibanVisible = false;
+    }
+
+    function openDetailModal(row) {
+      currentDetail = row;
+      ibanVisible = false;
+      dDate.textContent = fmtDate(row.createdAt);
+      dStatus.textContent = statusLabel(row.status);
+      dUid.textContent = clean(row.ownerUid || "—");
+      dEmail.textContent = clean(row.ownerEmail || "—");
+      dAmount.textContent = fmtAmount(row.amountEur);
+      dRequestId.textContent = clean(row.id || "—");
+      dIban.textContent = clean(row.ibanMasked || "—");
+      btnToggleIban.textContent = "👁 Voir";
+      const processed = row?.adminProcessed === true;
+      btnMarkWithdrawProcessed.disabled = processed;
+      btnMarkWithdrawProcessed.textContent = processed ? "Déjà traité" : "Marquer traité";
+      withdrawDetailModal.style.display = "flex";
+    }
+
+    async function ensureAdmin(user) {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const role = userSnap.exists() ? String(userSnap.data().role || "").toLowerCase() : "";
+      if (role !== "admin") {
+        window.location.href = "/dash/index.html";
+        return false;
+      }
+      return true;
+    }
+
+    async function loadWithdrawals() {
+      let docs = [];
+      try {
+        const snap = await getDocs(query(collection(db, "withdrawalRequests"), orderBy("createdAt", "desc"), limit(300)));
+        docs = snap.docs;
+      } catch {
+        const fallback = await getDocs(query(collection(db, "withdrawalRequests"), limit(300)));
+        docs = fallback.docs.sort((a, b) => {
+          const ta = a.data()?.createdAt?.toMillis ? a.data().createdAt.toMillis() : 0;
+          const tb = b.data()?.createdAt?.toMillis ? b.data().createdAt.toMillis() : 0;
+          return tb - ta;
+        });
+      }
+
+      const rows = docs.map((d) => ({ id: d.id, ...d.data() }));
+      const pendingCount = rows.filter((r) => clean(r.status).toLowerCase() === "pending" && r?.adminProcessed !== true).length;
+      const paidCount = rows.filter((r) => {
+        const s = clean(r.status).toLowerCase();
+        return s === "paid" || s === "done" || s === "validated";
+      }).length;
+
+      kpiTotal.textContent = String(rows.length);
+      kpiPending.textContent = String(pendingCount);
+      kpiPaid.textContent = String(paidCount);
+
+      if (!rows.length) {
+        rowsEl.innerHTML = "";
+        emptyEl.style.display = "block";
+        return;
+      }
+
+      emptyEl.style.display = "none";
+      rowsEl.innerHTML = rows.map((r) => {
+        const owner = esc(clean(r.ownerUid || "—"));
+        const email = esc(clean(r.ownerEmail || "—"));
+        const iban = esc(clean(r.ibanMasked || r.iban || "—"));
+        const amount = esc(fmtAmount(r.amountEur));
+        const date = esc(fmtDate(r.createdAt));
+        const status = statusBadge(r.status);
+        const isProcessed = r?.adminProcessed === true;
+        return `
+          <tr data-row-id="${esc(r.id)}">
+            <td>${date}</td>
+            <td>${owner}</td>
+            <td>${email}</td>
+            <td>${iban}</td>
+            <td>${amount}</td>
+            <td>${status}</td>
+            <td><button class="mini" data-mark-processed="${esc(r.id)}" ${isProcessed ? "disabled" : ""}>${isProcessed ? "Traité" : "Traiter"}</button></td>
+          </tr>
+        `;
+      }).join("");
+
+      rowsEl.querySelectorAll("tr[data-row-id]").forEach((tr) => {
+        tr.addEventListener("click", () => {
+          const id = tr.getAttribute("data-row-id");
+          const row = rows.find((x) => x.id === id);
+          if (row) openDetailModal(row);
+        });
+      });
+
+      rowsEl.querySelectorAll("button[data-mark-processed]").forEach((btn) => {
+        btn.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          const id = btn.getAttribute("data-mark-processed");
+          if (!id) return;
+          btn.disabled = true;
+          try {
+            await updateDoc(doc(db, "withdrawalRequests", id), {
+              adminProcessed: true,
+              adminProcessedAt: serverTimestamp(),
+              adminProcessedBy: auth.currentUser?.uid || null,
+              updatedAt: serverTimestamp()
+            });
+            await loadWithdrawals();
+          } catch (error) {
+            alert("Erreur marquage traité: " + (error?.message || String(error)));
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    btnToggleIban?.addEventListener("click", () => {
+      if (!currentDetail) return;
+      ibanVisible = !ibanVisible;
+      if (ibanVisible) {
+        dIban.textContent = clean(currentDetail.iban || currentDetail.ibanMasked || "—");
+        btnToggleIban.textContent = "🙈 Masquer";
+      } else {
+        dIban.textContent = clean(currentDetail.ibanMasked || "—");
+        btnToggleIban.textContent = "👁 Voir";
+      }
+    });
+
+    btnCopyIban?.addEventListener("click", async () => {
+      if (!currentDetail) return;
+      const iban = clean(currentDetail.iban || "");
+      if (!iban) return;
+      try {
+        await navigator.clipboard.writeText(iban);
+        btnCopyIban.textContent = "Copié ✅";
+        setTimeout(() => { btnCopyIban.textContent = "Copier"; }, 1200);
+      } catch {
+        alert("Impossible de copier l'IBAN automatiquement.");
+      }
+    });
+
+    btnMarkWithdrawProcessed?.addEventListener("click", async () => {
+      if (!currentDetail?.id) return;
+      btnMarkWithdrawProcessed.disabled = true;
+      try {
+        await updateDoc(doc(db, "withdrawalRequests", currentDetail.id), {
+          adminProcessed: true,
+          adminProcessedAt: serverTimestamp(),
+          adminProcessedBy: auth.currentUser?.uid || null,
+          updatedAt: serverTimestamp()
+        });
+        closeDetailModal();
+        await loadWithdrawals();
+      } catch (error) {
+        alert("Erreur marquage traité: " + (error?.message || String(error)));
+        btnMarkWithdrawProcessed.disabled = false;
+      }
+    });
+
+    closeWithdrawDetail?.addEventListener("click", closeDetailModal);
+    withdrawDetailModal?.addEventListener("click", (e) => {
+      if (e.target === withdrawDetailModal) closeDetailModal();
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+      const ok = await ensureAdmin(user);
+      if (!ok) return;
+      await loadWithdrawals();
+    });
+  </script>
+</body>
+</html>

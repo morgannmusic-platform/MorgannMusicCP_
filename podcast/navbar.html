@@ -1,0 +1,78 @@
+
+<link rel="stylesheet" href="/assets/css/podcast/navbar.css?v=2026-04-09a">
+
+<header class="navbar" id="navbar">
+  <nav>
+    <div class="logo">
+      <a href="/index.html">
+        <img id="logo" src="/assets/logo/CP.svg?v=20260309" alt="Morgann Music Logo">
+      </a>
+    </div>
+
+    <ul id="nav-links">
+            <li><a href="index.html">Accueil</a></li>
+      </ul>
+
+    
+
+      <div id="auth-links" class="auth-links" style="display:none;">
+        <a href="/login.html" class="btn-auth btn-login-nav">Se connecter</a>
+        <a href="/login.html?tab=register" class="btn-auth btn-auth-outline">S'enregistrer</a>
+      </div>
+
+      <div id="user-menu" class="user-menu" style="display:none;">
+        <button class="mmcp-user mmcp-user-trigger" id="avatar-container" type="button" aria-expanded="false" aria-controls="user-dropdown" aria-label="Ouvrir le menu profil">
+          <img src="/assets/img/default-avatar.png" alt="Profil" class="mmcp-avatar" id="user-avatar">
+        </button>
+        <div class="mmcp-dropdown" id="user-dropdown">
+          <a href="/account.html" class="link-account-nav">Compte</a>
+          <a href="/dash/index.html">Tableau de bord</a>
+          <a href="/catalogue/index.html">Catalogue</a>
+          <a href="https://play.morgannmusic.uk">Play</a>
+          <a href="#" id="logout-btn">Déconnexion</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="navbar-panel-backdrop" id="navbar-panel-backdrop" hidden></div>
+  <section class="navbar-panel" id="navbar-panel" hidden aria-hidden="true">
+    <div class="navbar-panel-shell">
+      <div class="navbar-panel-stage is-primary" id="navbar-panel-stage">
+        <div class="navbar-panel-view navbar-panel-view-primary" id="navbar-panel-view-primary">
+          <div class="navbar-panel-header">
+            <p class="navbar-panel-kicker">Explorer</p>
+            <h2>Un raccourci rapide vers toutes les sections Morgann Music.</h2>
+          </div>
+          <div class="navbar-panel-grid">
+            <a class="navbar-panel-link" href="/index.html"><span>Accueil</span><small>Retour au point de depart</small></a>
+            <a class="navbar-panel-link" href="/distribution.html"><span>Distribution</span><small>Publier partout</small></a>
+            <a class="navbar-panel-link" href="/pricing.html"><span>Tarifs</span><small>Voir les offres</small></a>
+            <a class="navbar-panel-link" href="/pourquoi-nous.html"><span>Pourquoi nous</span><small>Comprendre l'approche</small></a>
+            <a class="navbar-panel-link" href="/catalogue/index.html"><span>Catalogue</span><small>Explorer les sorties</small></a>
+            <a class="navbar-panel-link" href="/dash/next-release.html"><span>Prochainement</span><small>Voir les prochaines sorties</small></a>
+            <a class="navbar-panel-link" href="/last-release.html"><span>Derniere sortie</span><small>La nouveaute du moment</small></a>
+          </div>
+        </div>
+
+        <div class="navbar-panel-view navbar-panel-view-account" id="navbar-panel-view-account" aria-hidden="true">
+          <div class="navbar-panel-header navbar-panel-header-account">
+            <button class="navbar-panel-back" id="navbar-panel-back" type="button" aria-label="Revenir au menu principal">
+              <span aria-hidden="true">←</span>
+              <span>Retour</span>
+            </button>
+            <div>
+              <p class="navbar-panel-kicker">Profil</p>
+              <h2>Ton espace personnel et les raccourcis utiles.</h2>
+            </div>
+          </div>
+          <div class="navbar-panel-grid navbar-panel-grid-account" id="navbar-panel-account-links">
+            <a class="navbar-panel-link" href="/account.html"><span>Compte</span><small>Informations personnelles</small></a>
+            <a class="navbar-panel-link" href="/dash/index.html"><span>Tableau de bord</span><small>Piloter les sorties</small></a>
+            <a class="navbar-panel-link navbar-panel-link-danger" href="#" id="panel-logout-btn"><span>Déconnexion</span><small>Fermer la session</small></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</header>

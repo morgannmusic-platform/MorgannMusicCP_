@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Support</title>
+  <link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+  <style>
+    :root {
+      --bg:#e2e2e2;
+      --txt:#000;
+      --stroke:rgba(0,0,0,.12);
+      --card:rgba(255,255,255,.78);
+      --muted:rgba(0,0,0,.58);
+      --blue:#2f63ff;
+      --green:#16a34a;
+      --red:#dc2626;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#414141;
+        --txt:#fff;
+        --stroke:rgba(255,255,255,.14);
+        --card:rgba(30,30,30,.78);
+        --muted:rgba(255,255,255,.65);
+        --blue:#3b82f6;
+        --green:#22c55e;
+        --red:#ef4444;
+      }
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{background:var(--bg);color:var(--txt);font-family:Helvetica,sans-serif}
+    .wrap{max-width:1200px;margin:0 auto;padding:24px 18px 28px}
+    .title{font-size:30px;font-weight:900;margin-bottom:8px}
+    .sub{color:var(--muted);margin-bottom:14px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .input,.select,.textarea{border:1px solid var(--stroke);border-radius:12px;background:transparent;color:var(--txt);padding:10px 12px}
+    .input{min-width:260px;flex:1;border-radius:999px}
+    .select{border-radius:999px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .ticket{border:1px solid var(--stroke);border-radius:18px;background:var(--card);overflow:hidden}
+    .head{padding:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;cursor:pointer}
+    .name{font-weight:900}
+    .meta{color:var(--muted);font-size:12px;margin-top:4px}
+    .badge{font-size:11px;border:1px solid var(--stroke);border-radius:999px;padding:6px 10px;white-space:nowrap}
+    .body{display:none;padding:12px;border-top:1px solid var(--stroke)}
+    .thread{margin-top:8px;padding:10px;border:1px dashed var(--stroke);border-radius:10px}
+    .msg{margin-bottom:8px;font-size:13px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    .textarea{width:100%;min-height:90px}
+    .btn{border:none;border-radius:999px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:900;cursor:pointer}
+    .btn.secondary{background:transparent;color:var(--txt);border:1px solid var(--stroke)}
+    .btn.ok{background:var(--green)}
+    .btn.danger{background:var(--red)}
+  </style>
+</head>
+<body>
+  <script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+
+  <main class="wrap">
+    <h1 class="title">Gestion support artistes</h1>
+    <p class="sub">Traite les tickets, réponds aux artistes et mets les statuts à jour.</p>
+
+    <div class="toolbar">
+      <input id="search" class="input" placeholder="Rechercher ticket / email / titre" />
+      <select id="statusFilter" class="select">
+        <option value="all">Tous les statuts</option>
+        <option value="Envoyé à MMCP">Envoyé à MMCP</option>
+        <option value="En cours">En cours</option>
+        <option value="Résolu">Résolu</option>
+        <option value="Fermé">Fermé</option>
+      </select>
+    </div>
+
+    <p class="meta" id="countInfo">Chargement…</p>
+    <section id="list" class="list"></section>
+  </main>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, collection, query, getDocs, limit, doc, getDoc, updateDoc, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const listEl = document.getElementById("list");
+    const countInfo = document.getElementById("countInfo");
+    const searchEl = document.getElementById("search");
+    const statusFilterEl = document.getElementById("statusFilter");
+
+    let allTickets = [];
+    let activeAdmin = null;
+
+    function clean(v){ return String(v || "").trim(); }
+
+    function fmtDate(ts){
+      try {
+        const d = ts?.toDate ? ts.toDate() : (ts instanceof Date ? ts : null);
+        return d ? d.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "—";
+      } catch { return "—"; }
+    }
+
+    function normalizeThread(ticket){
+      const base = Array.isArray(ticket?.thread) ? ticket.thread : [];
+      const sorted = base
+        .filter(m => m && clean(m.text))
+        .sort((a, b) => String(a.at || "").localeCompare(String(b.at || "")));
+
+      if (sorted.length) return sorted;
+
+      const fallback = [];
+      if (clean(ticket?.description)) fallback.push({ role: "artist", text: clean(ticket.description), at: "" });
+      if (clean(ticket?.adminResponse)) fallback.push({ role: "admin", text: clean(ticket.adminResponse), at: "" });
+      if (clean(ticket?.artistReply)) fallback.push({ role: "artist", text: clean(ticket.artistReply), at: "" });
+      return fallback;
+    }
+
+    function ticketBodyHtml(t){
+      const thread = normalizeThread(t);
+      const isProcessed = t?.adminProcessed === true;
+      const threadHtml = thread.length
+        ? thread.map(m => `<div class="msg"><strong>${m.role === "admin" ? "MMCP" : "Artiste"}:</strong> ${clean(m.text)} <span class="meta">(${m.at ? fmtDate(new Date(m.at)) : "—"})</span></div>`).join("")
+        : `<div class="msg">Pas encore de message.</div>`;
+
+      return `
+        <div class="meta">Ticket: ${t.id}</div>
+        <div class="meta">Catégorie: ${clean(t.category) || "—"}</div>
+        <div class="meta">Créé: ${fmtDate(t.createdAt)} • Maj: ${fmtDate(t.updatedAt)}</div>
+        ${clean(t.description) ? `<p style="margin-top:8px">${clean(t.description)}</p>` : ""}
+
+        <div class="thread">${threadHtml}</div>
+
+        <div class="controls">
+          <span class="badge">${isProcessed ? "✅ Traité" : "🟡 À traiter"}</span>
+          <select class="select" data-status="${t.id}">
+            <option value="Envoyé à MMCP" ${clean(t.status) === "Envoyé à MMCP" ? "selected" : ""}>Envoyé à MMCP</option>
+            <option value="En cours" ${clean(t.status) === "En cours" ? "selected" : ""}>En cours</option>
+            <option value="Résolu" ${clean(t.status) === "Résolu" ? "selected" : ""}>Résolu</option>
+            <option value="Fermé" ${clean(t.status) === "Fermé" ? "selected" : ""}>Fermé</option>
+          </select>
+          <button class="btn ok" data-save-status="${t.id}">Mettre statut</button>
+          <button class="btn secondary" data-mark-processed="${t.id}" ${isProcessed ? "disabled" : ""}>${isProcessed ? "Traité" : "Marquer traité"}</button>
+          <button class="btn secondary" data-toggle-reply="${t.id}">Autoriser réponse artiste</button>
+        </div>
+
+        <div style="margin-top:10px;">
+          <textarea class="textarea" data-reply="${t.id}" placeholder="Réponse admin..."></textarea>
+          <div class="controls">
+            <button class="btn" data-send-reply="${t.id}">Envoyer réponse</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function cardHtml(t){
+      return `
+        <article class="ticket">
+          <div class="head" data-toggle="${t.id}">
+            <div>
+              <div class="name">${clean(t.title) || "Ticket sans titre"}</div>
+              <div class="meta">${clean(t.ownerEmail) || "—"}</div>
+            </div>
+            <span class="badge">${clean(t.status) || "Envoyé à MMCP"}</span>
+          </div>
+          <div class="body" id="body-${t.id}">
+            ${ticketBodyHtml(t)}
+          </div>
+        </article>
+      `;
+    }
+
+    function bindInteractions(scope){
+      scope.querySelectorAll("[data-toggle]").forEach((el) => {
+        el.addEventListener("click", () => {
+          const id = el.getAttribute("data-toggle");
+          const body = document.getElementById(`body-${id}`);
+          if (!body) return;
+          body.style.display = body.style.display === "block" ? "none" : "block";
+        });
+      });
+
+      scope.querySelectorAll("[data-save-status]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-save-status");
+          const select = scope.querySelector(`[data-status="${id}"]`);
+          const status = clean(select?.value);
+          btn.disabled = true;
+          try {
+            await updateDoc(doc(db, "supportTickets", id), {
+              status,
+              updatedAt: serverTimestamp()
+            });
+            await reloadTickets();
+          } catch (e) {
+            alert("Erreur statut: " + (e?.message || String(e)));
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+
+      scope.querySelectorAll("[data-toggle-reply]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-toggle-reply");
+          btn.disabled = true;
+          try {
+            await updateDoc(doc(db, "supportTickets", id), {
+              allowArtistReply: true,
+              updatedAt: serverTimestamp()
+            });
+            await reloadTickets();
+          } catch (e) {
+            alert("Erreur autorisation réponse: " + (e?.message || String(e)));
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+
+      scope.querySelectorAll("[data-send-reply]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-send-reply");
+          const ticket = allTickets.find(x => x.id === id);
+          const ta = scope.querySelector(`[data-reply="${id}"]`);
+          const replyText = clean(ta?.value);
+          if (!replyText) {
+            alert("Écris une réponse avant d'envoyer.");
+            return;
+          }
+
+          btn.disabled = true;
+          try {
+            const prevThread = normalizeThread(ticket);
+            const nextThread = [
+              ...prevThread,
+              {
+                role: "admin",
+                text: replyText,
+                at: new Date().toISOString(),
+                byUid: activeAdmin?.uid || null,
+                byEmail: activeAdmin?.email || null
+              }
+            ];
+
+            await updateDoc(doc(db, "supportTickets", id), {
+              adminResponse: replyText,
+              adminResponseAt: serverTimestamp(),
+              allowArtistReply: true,
+              thread: nextThread,
+              updatedAt: serverTimestamp()
+            });
+            await reloadTickets();
+          } catch (e) {
+            alert("Erreur réponse admin: " + (e?.message || String(e)));
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+
+      scope.querySelectorAll("[data-mark-processed]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-mark-processed");
+          if (!id) return;
+          btn.disabled = true;
+          try {
+            await updateDoc(doc(db, "supportTickets", id), {
+              adminProcessed: true,
+              adminProcessedAt: serverTimestamp(),
+              adminProcessedBy: activeAdmin?.uid || null,
+              updatedAt: serverTimestamp()
+            });
+            await reloadTickets();
+          } catch (e) {
+            alert("Erreur marquage traité: " + (e?.message || String(e)));
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    function render(){
+      const q = clean(searchEl.value).toLowerCase();
+      const sf = clean(statusFilterEl.value);
+
+      const filtered = allTickets.filter((t) => {
+        const status = clean(t.status) || "Envoyé à MMCP";
+        if (sf !== "all" && status !== sf) return false;
+
+        if (!q) return true;
+        const hay = [t.id, t.ownerEmail, t.title, t.category, t.status, t.description].map(clean).join(" ").toLowerCase();
+        return hay.includes(q);
+      });
+
+      countInfo.textContent = `${filtered.length} ticket(s) affiché(s) sur ${allTickets.length}`;
+      listEl.innerHTML = filtered.length ? filtered.map(cardHtml).join("") : `<div class="meta">Aucun ticket trouvé.</div>`;
+      bindInteractions(document);
+    }
+
+    async function requireAdmin(user){
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const role = snap.exists() ? clean(snap.data()?.role).toLowerCase() : "";
+      if (role !== "admin") {
+        window.location.href = "/dash/index.html";
+        return false;
+      }
+      return true;
+    }
+
+    async function reloadTickets(){
+      let snap;
+      try {
+        snap = await getDocs(query(collection(db, "supportTickets"), orderBy("updatedAt", "desc"), limit(300)));
+      } catch {
+        snap = await getDocs(query(collection(db, "supportTickets"), limit(300)));
+      }
+      allTickets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+    }
+
+    searchEl.addEventListener("input", render);
+    statusFilterEl.addEventListener("change", render);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+      activeAdmin = user;
+      const ok = await requireAdmin(user);
+      if (!ok) return;
+      await reloadTickets();
+    });
+  </script>
+</body>
+</html>

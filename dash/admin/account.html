@@ -1,0 +1,959 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Compte</title>
+  <link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+
+
+  <style>
+    :root {
+      --bg: #e2e2e2;
+      --txt: #000000;
+      --bg2: #ffffff;
+      --cover: #bfbfbf;
+
+      --stroke: rgba(0,0,0,.12);
+      --card: rgba(255,255,255,.78);
+      --muted: rgba(0,0,0,.58);
+
+      --blue: #2f63ff;
+      --red: #dc2626;
+      --green: #16a34a;
+      --amber: #d97706;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #414141;
+        --txt: #ffffff;
+        --bg2: #1e1e1e;
+        --cover: #575757;
+
+        --stroke: rgba(255,255,255,.14);
+        --card: rgba(30,30,30,.78);
+        --muted: rgba(255,255,255,.65);
+
+        --blue: #3b82f6;
+        --red: #ef4444;
+        --green: #22c55e;
+        --amber: #f59e0b;
+      }
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html,body { background: var(--bg); color: var(--txt); font-family: Helvetica, sans-serif; }
+
+    .topbar{
+      position:fixed; top:0; left:0; right:0; height:64px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 18px;
+      background: rgba(255,255,255,.45);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom:1px solid var(--stroke);
+      z-index:9999;
+    }
+    @media (prefers-color-scheme: dark){ .topbar{ background: rgba(30,30,30,.55); } }
+
+    .brand{ display:flex; gap:10px; align-items:center; font-weight:900; }
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 12px; border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.06);
+      color: var(--muted); font-size:12px; font-weight:700;
+    }
+    @media (prefers-color-scheme: dark){ .pill{ background: rgba(255,255,255,.06); } }
+
+    .btn{
+      cursor:pointer; border:none; border-radius:999px;
+      padding:10px 14px; background: var(--blue); color:#fff;
+      font-weight:900; font-size:13px;
+    }
+    .btn.secondary{ background: transparent; border:1px solid var(--stroke); color: var(--txt); }
+
+    .wrap{ max-width: 1100px; margin:0 auto; padding:92px 18px 28px; }
+
+    .title{ font-size: 26px; font-weight: 900; margin-bottom: 8px; }
+    .sub{ color: var(--muted); margin-bottom: 18px; }
+
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } }
+
+    .card{
+      background: var(--card);
+      border:1px solid var(--stroke);
+      border-radius: 24px;
+      padding: 16px;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
+    .card h2{
+      font-size: 14px; font-weight: 900;
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom: 10px;
+    }
+    .kv{ display:flex; flex-direction:column; gap:8px; }
+    .line{ padding:10px 10px; border-radius: 16px; background: rgba(0,0,0,.04); }
+    @media (prefers-color-scheme: dark){ .line{ background: rgba(255,255,255,.05); } }
+
+    .k{ font-size: 12px; color: var(--muted); font-weight: 700; }
+    .v{ font-size: 13px; font-weight: 900; word-break: break-word; }
+
+    .row{
+      display:flex; justify-content:space-between; align-items:center;
+      gap:10px;
+      padding:10px 10px;
+      border-radius: 16px;
+      background: rgba(0,0,0,.04);
+      margin-bottom: 10px;
+    }
+    @media (prefers-color-scheme: dark){ .row{ background: rgba(255,255,255,.05); } }
+
+    .left{ min-width:0; display:flex; flex-direction:column; gap:4px; }
+    .rtitle{ font-size: 13px; font-weight: 900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 700px;}
+    .rmeta{ font-size: 12px; color: var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 760px;}
+    .mini{
+      cursor:pointer;
+      border:1px solid var(--stroke);
+      background: transparent;
+      color: var(--txt);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .error{ color: var(--red); font-weight: 900; }
+    .muted{ color: var(--muted); font-size: 12px; }
+  </style>
+</head>
+
+<body>
+  <script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+  <header class="topbar">
+    <div class="brand">
+      <span>👤</span>
+      <span>Admin</span>
+      <span class="pill" id="whoami">Chargement…</span>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="btn secondary" id="btnBack">Retour</button>
+      <button class="btn secondary" id="btnRefresh">Rafraîchir</button>
+      <button class="btn" id="btnLogout">Logout</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="title">Compte</div>
+    <div class="sub" id="subtitle">—</div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Infos utilisateur <span class="muted" id="userDocHint"></span></h2>
+        <div class="kv" id="userKv"></div>
+      </section>
+
+      <section class="card">
+        <h2>Abonnement Stripe <span class="muted" id="subHint"></span></h2>
+        <div class="kv">
+          <div class="line">
+            <div class="k">Plan</div>
+            <div class="v" id="subPlan">—</div>
+          </div>
+          <div class="line">
+            <div class="k">Statut</div>
+            <div class="v" id="subStatus">—</div>
+          </div>
+          <div class="line">
+            <div class="k">Dernière mise à jour</div>
+            <div class="v" id="subWhen">—</div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+            <button class="btn secondary" id="btnOpenPortal">Ouvrir le portail abonnement</button>
+          </div>
+
+          <p class="muted" style="margin-top:10px;">
+            ⚠️ Le portail Stripe dépend de ton lien (tu le mettras).
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:18px;">
+      <h2>Rôles & accès <span class="muted">Activation rapide</span></h2>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+        <button class="btn secondary" id="btnSetUser" type="button">Activer Compte normal</button>
+        <button class="btn secondary" id="btnSetVip" type="button">Activer VIP</button>
+        <button class="btn secondary" id="btnSetTeste" type="button">Activer Teste</button>
+        <button class="btn secondary" id="btnSetArtist" type="button">Activer Artiste signé</button>
+        <button class="btn secondary" id="btnSetAdminRole" type="button">Activer Admin</button>
+      </div>
+      <div class="muted" id="roleActionMsg">Choisis un profil à appliquer au compte.</div>
+    </section>
+
+    <section class="card" style="margin-top:18px; border-color: rgba(217,119,6,.35);">
+      <h2>État du compte <span class="muted">Connexion utilisateur</span></h2>
+      <p class="muted" style="margin-bottom:10px;">
+        Si le compte est désactivé, l'utilisateur verra un message de blocage à la connexion avec un bouton pour contacter le support.
+      </p>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button class="btn" id="btnDisableAccount" style="background: var(--amber);" type="button">Désactiver le compte</button>
+        <button class="btn secondary" id="btnEnableAccount" type="button">Réactiver le compte</button>
+        <span class="muted" id="accountStateMsg">—</span>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px;">
+      <h2>Édition complète du compte <span class="muted">JSON users/{uid}</span></h2>
+      <p class="muted" style="margin-bottom:10px;">
+        Modifie ici toutes les infos du compte. La sauvegarde remplace entièrement le document utilisateur.
+      </p>
+      <textarea id="userDocEditor" style="width:100%; min-height:260px; border:1px solid var(--stroke); border-radius:14px; background:transparent; color:var(--txt); padding:10px 12px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px;"></textarea>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn secondary" id="btnReloadUserDoc" type="button">Recharger le JSON</button>
+        <button class="btn" id="btnSaveUserDoc" type="button">Enregistrer toutes les modifications</button>
+        <span class="muted" id="userDocEditorMsg">—</span>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px;">
+      <h2>Releases de ce compte <span class="muted" id="releasesHint"></span></h2>
+      <div id="releasesList"></div>
+      <div class="muted" id="releasesEmpty" style="display:none;">Aucune release pour ce compte.</div>
+    </section>
+
+    <section class="card" style="margin-top:18px;">
+      <h2>Artistes de ce compte <span class="muted" id="artistsHint"></span></h2>
+      <div id="artistsList"></div>
+      <div class="muted" id="artistsEmpty" style="display:none;">Aucun artiste pour ce compte.</div>
+    </section>
+
+    <section class="card" style="margin-top:18px;">
+      <h2>Accompagnement de ce compte <span class="muted" id="accHint"></span></h2>
+      <div id="accList"></div>
+      <div class="muted" id="accEmpty" style="display:none;">Aucune donnée d'accompagnement.</div>
+    </section>
+
+    <section class="card" style="margin-top:18px; border-color: rgba(220,38,38,.35);">
+      <h2>Suppression compte <span class="muted">Action admin</span></h2>
+      <p class="muted" style="margin-bottom:10px;">
+        Cette action supprime le document utilisateur et détache les artistes/sorties liés à ce compte.
+      </p>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button class="btn" id="btnDeleteAccount" style="background: var(--red);">Supprimer ce compte</button>
+        <span class="muted" id="deleteHint"></span>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      deleteDoc,
+      setDoc,
+      updateDoc,
+      collection,
+      getDocs,
+      query,
+      where,
+      orderBy,
+      limit,
+      writeBatch
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    /* ======= CONFIG ======= */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const STRIPE_PORTAL_URL = "COLLE_TON_LIEN_STRIPE_PORTAL_ICI";
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const $ = (id) => document.getElementById(id);
+
+    const whoami = $("whoami");
+    const subtitle = $("subtitle");
+    const userKv = $("userKv");
+    const userDocHint = $("userDocHint");
+
+    const subPlan = $("subPlan");
+    const subStatus = $("subStatus");
+    const subWhen = $("subWhen");
+    const subHint = $("subHint");
+
+    const releasesList = $("releasesList");
+    const releasesHint = $("releasesHint");
+    const releasesEmpty = $("releasesEmpty");
+    const artistsList = $("artistsList");
+    const artistsHint = $("artistsHint");
+    const artistsEmpty = $("artistsEmpty");
+    const accList = $("accList");
+    const accHint = $("accHint");
+    const accEmpty = $("accEmpty");
+    const deleteHint = $("deleteHint");
+    const btnDeleteAccount = $("btnDeleteAccount");
+    const btnSetUser = $("btnSetUser");
+    const btnSetVip = $("btnSetVip");
+    const btnSetTeste = $("btnSetTeste");
+    const btnSetArtist = $("btnSetArtist");
+    const btnSetAdminRole = $("btnSetAdminRole");
+    const roleActionMsg = $("roleActionMsg");
+    const btnDisableAccount = $("btnDisableAccount");
+    const btnEnableAccount = $("btnEnableAccount");
+    const accountStateMsg = $("accountStateMsg");
+    const userDocEditor = $("userDocEditor");
+    const btnReloadUserDoc = $("btnReloadUserDoc");
+    const btnSaveUserDoc = $("btnSaveUserDoc");
+    const userDocEditorMsg = $("userDocEditorMsg");
+
+    let currentTargetUid = null;
+
+    $("btnBack").addEventListener("click", () => window.location.href = "/dash/admin/index.html");
+    $("btnRefresh").addEventListener("click", () => boot());
+    $("btnLogout").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "/login.html?redirect=" + encodeURIComponent(window.location.href);
+    });
+
+    $("btnOpenPortal").addEventListener("click", () => {
+      if (!STRIPE_PORTAL_URL || STRIPE_PORTAL_URL.includes("COLLE_TON_LIEN")) {
+        alert("Colle ton lien Stripe Portal dans STRIPE_PORTAL_URL.");
+        return;
+      }
+      window.open(STRIPE_PORTAL_URL, "_blank");
+    });
+
+    function safe(v, fallback="—") {
+      if (v === undefined || v === null || v === "") return fallback;
+      return v;
+    }
+
+    function fmtDate(ts) {
+      try {
+        const d = ts?.toDate ? ts.toDate() : (ts instanceof Date ? ts : null);
+        if (!d) return "—";
+        return d.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+      } catch {
+        return "—";
+      }
+    }
+
+    function encodeFirestoreValue(value) {
+      if (value?.toDate && typeof value.toDate === "function") {
+        return { __type: "timestamp", value: value.toDate().toISOString() };
+      }
+
+      if (value instanceof Date) {
+        return { __type: "timestamp", value: value.toISOString() };
+      }
+
+      if (Array.isArray(value)) {
+        return value.map((item) => encodeFirestoreValue(item));
+      }
+
+      if (value && typeof value === "object") {
+        const out = {};
+        Object.keys(value).forEach((key) => {
+          out[key] = encodeFirestoreValue(value[key]);
+        });
+        return out;
+      }
+
+      return value;
+    }
+
+    function decodeFirestoreValue(value) {
+      if (Array.isArray(value)) {
+        return value.map((item) => decodeFirestoreValue(item));
+      }
+
+      if (value && typeof value === "object") {
+        if (value.__type === "timestamp" && typeof value.value === "string") {
+          const parsed = new Date(value.value);
+          if (!Number.isNaN(parsed.getTime())) return parsed;
+        }
+
+        const out = {};
+        Object.keys(value).forEach((key) => {
+          out[key] = decodeFirestoreValue(value[key]);
+        });
+        return out;
+      }
+
+      return value;
+    }
+
+    function renderUserDocEditor(uid, data) {
+      if (!userDocEditor) return;
+      const payload = encodeFirestoreValue({ uid, ...data });
+      userDocEditor.value = JSON.stringify(payload, null, 2);
+      if (userDocEditorMsg) userDocEditorMsg.textContent = "JSON chargé.";
+    }
+
+    function planFromPriceId(priceId) {
+      const map = {
+        "price_1T03eDFhaOYWNNbbddL6iz7y": "Starter",
+        "price_1T03z6FhaOYWNNbbNyjacrEv": "Pro",
+        "price_1T042SFhaOYWNNbbs0OXpz8P": "Label",
+      };
+      return map[priceId] || (priceId ? "Abonné" : "—");
+    }
+
+    async function requireAdmin(user) {
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+      const role = snap.exists() ? (snap.data()?.role || null) : null;
+
+      if (role !== "admin") {
+        window.location.href = "/dash/index.html";
+        return false;
+      }
+      return true;
+    }
+
+    function getTargetUid() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("uid");
+    }
+
+    function renderKV(data) {
+      userKv.innerHTML = "";
+
+      const lines = [
+        ["UID", safe(data.uid)],
+        ["Email", safe(data.email)],
+        ["Nom", safe(data.displayName)],
+        ["Role", safe(data.role, "user")],
+        ["Compte", data.accountDisabled ? "Désactivé" : "Actif"],
+        ["Motif désactivation", safe(data.accountDisabledReason, "—")],
+        ["VIP", data.vip ? "Oui" : "Non"],
+        ["Plan (si stocké)", safe(data.plan)],
+        ["Créé le", fmtDate(data.createdAt)],
+        ["Maj le", fmtDate(data.updatedAt)],
+      ];
+
+      for (const [k, v] of lines) {
+        const div = document.createElement("div");
+        div.className = "line";
+        div.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+        userKv.appendChild(div);
+      }
+    }
+
+    async function getStripeSubscription(uid) {
+      try {
+        const subsRef = collection(db, "customers", uid, "subscriptions");
+        const qy = query(subsRef, orderBy("created", "desc"), limit(1));
+        const snap = await getDocs(qy);
+        if (snap.empty) return null;
+        return snap.docs[0].data();
+      } catch (e) {
+        console.warn("Stripe subs read error:", e);
+        return null;
+      }
+    }
+
+    function extractPriceId(sub) {
+      return (
+        sub?.price?.id ||
+        sub?.items?.[0]?.price?.id ||
+        sub?.items?.data?.[0]?.price?.id ||
+        null
+      );
+    }
+
+    async function loadArtistsForUid(uid) {
+      artistsHint.textContent = "Chargement…";
+      artistsList.innerHTML = "";
+      artistsEmpty.style.display = "none";
+
+      try {
+        let rows = [];
+        try {
+          const qy = query(
+            collection(db, "artists"),
+            where("ownerUid", "==", uid),
+            orderBy("createdAt", "desc"),
+            limit(200)
+          );
+          const snap = await getDocs(qy);
+          rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch {
+          const snap = await getDocs(query(collection(db, "artists"), where("ownerUid", "==", uid), limit(200)));
+          rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+
+        artistsHint.textContent = rows.length ? (rows.length >= 200 ? "Affiché: 200 (limite)" : "") : "";
+        artistsEmpty.style.display = rows.length ? "none" : "block";
+
+        for (const a of rows) {
+          const row = document.createElement("div");
+          row.className = "row";
+
+          const left = document.createElement("div");
+          left.className = "left";
+          left.innerHTML = `
+            <div class="rtitle">${safe(a.name, "Artiste")}</div>
+            <div class="rmeta">id: ${safe(a.id)} • supprimé: ${a.deleted ? "oui" : "non"} • ${fmtDate(a.updatedAt || a.createdAt)}</div>
+          `;
+
+          const btn = document.createElement("button");
+          btn.className = "mini";
+          btn.textContent = "Ouvrir";
+          btn.addEventListener("click", () => {
+            window.location.href = "/dash/admin/artist.html?id=" + encodeURIComponent(a.id);
+          });
+
+          row.appendChild(left);
+          row.appendChild(btn);
+          artistsList.appendChild(row);
+        }
+      } catch (e) {
+        console.error(e);
+        artistsHint.textContent = "";
+        artistsList.innerHTML = `<div class="error">Erreur artistes: ${safe(e?.message, String(e))}</div>`;
+      }
+    }
+
+    async function deleteAccount(uid) {
+      if (!uid) return;
+      if (auth.currentUser?.uid === uid) {
+        alert("Suppression de ton propre compte admin bloquée ici.");
+        return;
+      }
+
+      const ok = confirm("Supprimer ce compte ? Cette action supprime users/{uid} et détache les artistes/sorties liées.");
+      if (!ok) return;
+
+      btnDeleteAccount.disabled = true;
+      deleteHint.textContent = "Suppression en cours…";
+
+      try {
+        const artistSnap = await getDocs(query(collection(db, "artists"), where("ownerUid", "==", uid), limit(400)));
+        const releaseSnap = await getDocs(query(collection(db, "releases"), where("ownerUid", "==", uid), limit(400)));
+
+        const artistsBatch = writeBatch(db);
+        artistSnap.docs.forEach((d) => {
+          artistsBatch.update(d.ref, {
+            ownerUid: "",
+            updatedAt: new Date(),
+            updatedBy: auth.currentUser?.uid || ""
+          });
+        });
+
+        const releasesBatch = writeBatch(db);
+        releaseSnap.docs.forEach((d) => {
+          releasesBatch.update(d.ref, {
+            ownerUid: "",
+            ownerEmail: "",
+            updatedAt: new Date(),
+            updatedBy: auth.currentUser?.uid || ""
+          });
+        });
+
+        if (!artistSnap.empty) await artistsBatch.commit();
+        if (!releaseSnap.empty) await releasesBatch.commit();
+        await deleteDoc(doc(db, "users", uid));
+
+        deleteHint.textContent = "Compte supprimé. Redirection…";
+        setTimeout(() => {
+          window.location.href = "/dash/admin/index.html";
+        }, 700);
+      } catch (e) {
+        console.error(e);
+        deleteHint.textContent = "Erreur suppression: " + safe(e?.message, String(e));
+        btnDeleteAccount.disabled = false;
+      }
+    }
+
+    async function loadTargetUser(uid) {
+      userDocHint.textContent = "Chargement…";
+      const ref = doc(db, "users", uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        userDocHint.textContent = "";
+        userKv.innerHTML = `<div class="error">users/${uid} introuvable</div>`;
+        return null;
+      }
+
+      const data = { uid, ...snap.data() };
+      userDocHint.textContent = "";
+      renderKV(data);
+      renderUserDocEditor(uid, snap.data() || {});
+      subtitle.textContent = safe(data.email, uid);
+      return data;
+    }
+
+    async function saveEntireUserDoc(uid) {
+      if (!uid) return;
+      if (!userDocEditor) return;
+
+      const raw = String(userDocEditor.value || "").trim();
+      if (!raw) {
+        if (userDocEditorMsg) userDocEditorMsg.textContent = "JSON vide.";
+        return;
+      }
+
+      btnSaveUserDoc.disabled = true;
+      btnReloadUserDoc.disabled = true;
+      if (userDocEditorMsg) userDocEditorMsg.textContent = "Enregistrement complet en cours…";
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("Le JSON doit être un objet.");
+        }
+
+        const payload = decodeFirestoreValue(parsed);
+        if (payload.uid) delete payload.uid;
+
+        const ok = confirm("Confirmer l'écrasement complet de users/" + uid + " ?");
+        if (!ok) {
+          if (userDocEditorMsg) userDocEditorMsg.textContent = "Sauvegarde annulée.";
+          return;
+        }
+
+        await setDoc(doc(db, "users", uid), payload, { merge: false });
+        if (userDocEditorMsg) userDocEditorMsg.textContent = "Document remplacé ✅";
+        await loadTargetUser(uid);
+      } catch (e) {
+        console.error(e);
+        if (userDocEditorMsg) userDocEditorMsg.textContent = "Erreur JSON/sauvegarde: " + safe(e?.message, String(e));
+      } finally {
+        btnSaveUserDoc.disabled = false;
+        btnReloadUserDoc.disabled = false;
+      }
+    }
+
+    async function loadReleasesForUid(uid) {
+      releasesHint.textContent = "Chargement…";
+      releasesList.innerHTML = "";
+      releasesEmpty.style.display = "none";
+
+      try {
+        let rows = [];
+        let usedFallback = false;
+
+        try {
+          const qy = query(
+            collection(db, "releases"),
+            where("ownerUid", "==", uid),
+            orderBy("createdAt", "desc"),
+            limit(200)
+          );
+          const snap = await getDocs(qy);
+          rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) {
+          usedFallback = true;
+          const snap = await getDocs(
+            query(
+              collection(db, "releases"),
+              where("ownerUid", "==", uid),
+              limit(200)
+            )
+          );
+          rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+          rows.sort((a, b) => {
+            const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+            const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+            return tb - ta;
+          });
+        }
+
+        if (!rows.length) {
+          releasesHint.textContent = "";
+        } else if (usedFallback) {
+          releasesHint.textContent = rows.length >= 200 ? "Affiché: 200 (fallback sans index)" : "Fallback sans index";
+        } else {
+          releasesHint.textContent = rows.length >= 200 ? "Affiché: 200 (limite)" : "";
+        }
+        releasesEmpty.style.display = rows.length ? "none" : "block";
+
+        for (const r of rows) {
+          const row = document.createElement("div");
+          row.className = "row";
+
+          const left = document.createElement("div");
+          left.className = "left";
+          left.innerHTML = `
+            <div class="rtitle">${safe(r.title, "Release")} — ${safe(r.artistName, safe(r.artist, "—"))}</div>
+            <div class="rmeta">admin: ${safe(r.statusAdmin)} • user: ${safe(r.statusUser)} • ${fmtDate(r.createdAt)}</div>
+          `;
+
+          const btn = document.createElement("button");
+          btn.className = "mini";
+          btn.textContent = "Ouvrir";
+          btn.addEventListener("click", () => {
+            window.location.href = "/dash/admin/release.html?id=" + encodeURIComponent(r.id);
+          });
+
+          row.appendChild(left);
+          row.appendChild(btn);
+          releasesList.appendChild(row);
+        }
+      } catch (e) {
+        console.error(e);
+        releasesHint.textContent = "";
+        releasesList.innerHTML = `<div class="error">Erreur releases: ${safe(e?.message, String(e))}</div>`;
+      }
+    }
+
+    async function loadStripe(uid) {
+      subHint.textContent = "Chargement…";
+      subPlan.textContent = "—";
+      subStatus.textContent = "—";
+      subWhen.textContent = "—";
+
+      const sub = await getStripeSubscription(uid);
+      if (!sub) {
+        subHint.textContent = "Aucun abonnement";
+        return;
+      }
+
+      const priceId = extractPriceId(sub);
+      subPlan.textContent = planFromPriceId(priceId);
+      subStatus.textContent = safe(sub.status, "—");
+      subWhen.textContent = fmtDate(sub.created ? new Date(sub.created * 1000) : null);
+
+      subHint.textContent = "";
+    }
+
+    async function loadAccompagnementForUid(uid) {
+      accHint.textContent = "Chargement…";
+      accList.innerHTML = "";
+      accEmpty.style.display = "none";
+
+      try {
+        const [plansSnap, goalsSnap, draftsSnap, featSnap, pitchSnap] = await Promise.all([
+          getDocs(query(collection(db, "accompagnementPlans"), where("ownerUid", "==", uid), limit(200))),
+          getDocs(query(collection(db, "accompagnementGoals"), where("ownerUid", "==", uid), limit(200))),
+          getDocs(query(collection(db, "accompagnementDrafts"), where("ownerUid", "==", uid), limit(200))),
+          getDocs(query(collection(db, "featRequests"), where("ownerUid", "==", uid), limit(200))),
+          getDocs(query(collection(db, "editorialPitchRequests"), where("ownerUid", "==", uid), limit(200)))
+        ]);
+
+        const rows = [];
+        plansSnap.forEach((d) => {
+          const x = d.data() || {};
+          rows.push({ title: `Calendrier • ${safe(x.title, "Sortie")}`, meta: `Date: ${safe(x.plannedDate)} • id: ${d.id}`, extra: `Teasing: ${safe(x.teasing)} • Campagnes: ${safe(x.campaign)}` });
+        });
+        goalsSnap.forEach((d) => {
+          const x = d.data() || {};
+          rows.push({ title: `Objectif • ${safe(x.title, "Objectif")}`, meta: `Mois: ${safe(x.month)} • ${x.done ? "fait" : "à faire"} • id: ${d.id}`, extra: "" });
+        });
+        draftsSnap.forEach((d) => {
+          const x = d.data() || {};
+          rows.push({ title: `Préparation • ${safe(x.title, "Sortie sans titre")}`, meta: `Statut: ${safe(x.status)} • Type: ${safe(x.type)} • Pistes: ${Array.isArray(x.tracks) ? x.tracks.length : 0} • id: ${d.id}`, extra: `Date: ${safe(x.releaseDate)} • Langue: ${safe(x.language)}` });
+        });
+        featSnap.forEach((d) => {
+          const x = d.data() || {};
+          rows.push({ title: `Feat • ${safe(x.artistName, "Demande")}`, meta: `Statut: ${safe(x.status)} • id: ${d.id}`, extra: `Instagram: ${safe(x.instagramUrl)} • Détails: ${safe(x.note)}` });
+        });
+        pitchSnap.forEach((d) => {
+          const x = d.data() || {};
+          rows.push({ title: `Pitching • ${safe(x.releaseTitle, "Demande")}`, meta: `Statut: ${safe(x.status)} • Date: ${safe(x.releaseDate)} • id: ${d.id}`, extra: `ReleaseId: ${safe(x.releaseId)} • Argumentaire: ${safe(x.pitchText)}` });
+        });
+
+        accHint.textContent = rows.length ? `${rows.length} entrée(s)` : "";
+        accEmpty.style.display = rows.length ? "none" : "block";
+        accList.innerHTML = rows.map((r) => `
+          <div class="row">
+            <div class="left">
+              <div class="rtitle">${r.title}</div>
+              <div class="rmeta">${r.meta}</div>
+              ${r.extra ? `<div class="rmeta" style="margin-top:4px;white-space:normal;">${r.extra}</div>` : ""}
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        console.error(e);
+        accHint.textContent = "";
+        accList.innerHTML = `<div class="error">Erreur accompagnement: ${safe(e?.message, String(e))}</div>`;
+      }
+    }
+
+    async function setAccountProfile(uid, profileKey) {
+      if (!uid) return;
+
+      const payloadByProfile = {
+        user: {
+          role: "user",
+          userRole: "user",
+          accountType: "user",
+          plan: "starter",
+          vip: false,
+          isVip: false,
+          isArtist: false,
+          artist: false,
+          status: "active",
+          updatedAt: new Date(),
+          updatedBy: auth.currentUser?.uid || ""
+        },
+        vip: {
+          role: "vip",
+          vip: true,
+          isVip: true,
+          isArtist: false,
+          artist: false,
+          status: "vip",
+          updatedAt: new Date(),
+          updatedBy: auth.currentUser?.uid || ""
+        },
+        teste: {
+          role: "teste",
+          vip: false,
+          isVip: false,
+          isArtist: false,
+          artist: false,
+          status: "teste",
+          updatedAt: new Date(),
+          updatedBy: auth.currentUser?.uid || ""
+        },
+        artist: {
+          role: "artist",
+          vip: false,
+          isVip: false,
+          isArtist: true,
+          artist: true,
+          status: "artist",
+          updatedAt: new Date(),
+          updatedBy: auth.currentUser?.uid || ""
+        },
+        admin: {
+          role: "admin",
+          vip: false,
+          isVip: false,
+          isArtist: false,
+          artist: false,
+          status: "admin",
+          updatedAt: new Date(),
+          updatedBy: auth.currentUser?.uid || ""
+        }
+      };
+
+      const payload = payloadByProfile[profileKey];
+      if (!payload) return;
+
+      const allButtons = [btnSetUser, btnSetVip, btnSetTeste, btnSetArtist, btnSetAdminRole].filter(Boolean);
+      allButtons.forEach((btn) => { btn.disabled = true; });
+      roleActionMsg.textContent = "Mise à jour du rôle en cours…";
+
+      try {
+        await updateDoc(doc(db, "users", uid), payload);
+        roleActionMsg.textContent = "Profil mis à jour ✅";
+        await loadTargetUser(uid);
+      } catch (e) {
+        console.error(e);
+        roleActionMsg.textContent = "Erreur rôle: " + safe(e?.message, String(e));
+      } finally {
+        allButtons.forEach((btn) => { btn.disabled = false; });
+      }
+    }
+
+    async function setAccountDisabled(uid, disabled) {
+      if (!uid) return;
+      if (auth.currentUser?.uid === uid) {
+        alert("Tu ne peux pas modifier l'état de ton propre compte admin depuis cette page.");
+        return;
+      }
+
+      let reason = "";
+      if (disabled) {
+        reason = prompt("Motif de désactivation (optionnel)", "Compte désactivé par l'administration") || "";
+      }
+
+      btnDisableAccount.disabled = true;
+      btnEnableAccount.disabled = true;
+      accountStateMsg.textContent = disabled ? "Désactivation en cours…" : "Réactivation en cours…";
+
+      try {
+        await updateDoc(doc(db, "users", uid), {
+          accountDisabled: !!disabled,
+          accountDisabledReason: disabled ? reason.trim() : "",
+          accountDisabledAt: disabled ? new Date() : null,
+          accountDisabledBy: disabled ? (auth.currentUser?.uid || "") : "",
+          accountDisabledByEmail: disabled ? (auth.currentUser?.email || "") : "",
+          updatedAt: new Date(),
+          updatedBy: auth.currentUser?.uid || ""
+        });
+
+        accountStateMsg.textContent = disabled
+          ? "Compte désactivé ✅"
+          : "Compte réactivé ✅";
+
+        await loadTargetUser(uid);
+      } catch (e) {
+        console.error(e);
+        accountStateMsg.textContent = "Erreur état compte: " + safe(e?.message, String(e));
+      } finally {
+        btnDisableAccount.disabled = false;
+        btnEnableAccount.disabled = false;
+      }
+    }
+
+    async function boot() {
+      const uid = getTargetUid();
+      if (!uid) {
+        subtitle.textContent = "Erreur: uid manquant dans l’URL";
+        userKv.innerHTML = `<div class="error">URL invalide. Exemple: /dash/admin/account.html?uid=XXX</div>`;
+        return;
+      }
+
+      currentTargetUid = uid;
+
+      await loadTargetUser(uid);
+      await loadStripe(uid);
+      await loadReleasesForUid(uid);
+      await loadArtistsForUid(uid);
+      await loadAccompagnementForUid(uid);
+
+      btnSetUser.onclick = () => setAccountProfile(uid, "user");
+      btnSetVip.onclick = () => setAccountProfile(uid, "vip");
+      btnSetTeste.onclick = () => setAccountProfile(uid, "teste");
+      btnSetArtist.onclick = () => setAccountProfile(uid, "artist");
+      btnSetAdminRole.onclick = () => setAccountProfile(uid, "admin");
+      btnDisableAccount.onclick = () => setAccountDisabled(uid, true);
+      btnEnableAccount.onclick = () => setAccountDisabled(uid, false);
+      btnReloadUserDoc.onclick = () => loadTargetUser(uid);
+      btnSaveUserDoc.onclick = () => saveEntireUserDoc(uid);
+
+      btnDeleteAccount.onclick = () => deleteAccount(uid);
+      deleteHint.textContent = "";
+      accountStateMsg.textContent = "";
+      if (userDocEditorMsg) userDocEditorMsg.textContent = currentTargetUid ? "" : "";
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/login.html?redirect=" + encodeURIComponent(window.location.href);
+        return;
+      }
+
+      const ok = await requireAdmin(user);
+      if (!ok) return;
+
+      whoami.textContent = "Admin — " + (user.email || user.uid);
+      await boot();
+    });
+
+
+  </script>
+</body>
+</html>

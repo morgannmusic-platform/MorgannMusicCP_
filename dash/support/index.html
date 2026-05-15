@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Support — Morgann Music CP</title>
+  <link rel="stylesheet" href="/assets/css/dash/artist-sidebar.css" />
+  <style>
+    body.with-artist-sidebar {
+      margin-left: 300px;
+    }
+    @media (max-width: 900px) {
+      body.with-artist-sidebar {
+        margin-left: 0;
+      }
+    }
+    :root { --bg:#e2e2e2; --txt:#000; --bg2:#fff; --cover:#bfbfbf; --stroke:rgba(0,0,0,.12); --muted:rgba(0,0,0,.6); }
+    @media (prefers-color-scheme: dark){ :root{ --bg:#414141; --txt:#fff; --bg2:#1e1e1e; --cover:#575757; --stroke:rgba(255,255,255,.14); --muted:rgba(255,255,255,.65);} }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:Helvetica,Arial,sans-serif; background:var(--bg); color:var(--txt); }
+    .wrap { max-width:1100px; margin:0 auto; padding:22px; }
+    .title { font-size:30px; font-weight:900; margin:8px 0 4px; }
+    .sub { color:var(--muted); margin-bottom:12px; }
+    .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    .btn { text-decoration:none; border:1px solid var(--stroke); border-radius:999px; padding:10px 14px; color:var(--txt); font-weight:700; background:rgba(0,0,0,.04); cursor:pointer; }
+    .btn.primary { background:#2f63ff; color:#fff; border-color:transparent; }
+    @media (prefers-color-scheme: dark){ .btn{ background:rgba(255,255,255,.06);} }
+    .card { background:rgba(255,255,255,.62); border:1px solid var(--stroke); border-radius:18px; padding:14px; margin-bottom:12px; }
+    @media (prefers-color-scheme: dark){ .card{ background:rgba(30,30,30,.62);} }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media (max-width:840px){ .row2{ grid-template-columns:1fr; } }
+    .input, .textarea, .select { width:100%; border:1px solid var(--stroke); border-radius:10px; background:transparent; color:var(--txt); padding:10px; }
+    .textarea { min-height:110px; }
+    .error { color:#b91c1c; font-weight:700; }
+    .ok { color:#166534; font-weight:700; }
+    .ticket { border:1px solid var(--stroke); border-radius:12px; margin-top:10px; overflow:hidden; }
+    .ticketHead { padding:10px; display:flex; justify-content:space-between; gap:10px; align-items:center; cursor:pointer; background:rgba(0,0,0,.03); }
+    @media (prefers-color-scheme: dark){ .ticketHead{ background:rgba(255,255,255,.04);} }
+    .ticketTitle { font-weight:800; }
+    .badge { font-size:11px; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); white-space:nowrap; }
+    .ticketBody { display:none; padding:10px; border-top:1px solid var(--stroke); }
+    .meta { color:var(--muted); font-size:12px; margin-top:4px; }
+  </style>
+</head>
+<body>
+  <div id="sidebar-inject"></div>
+  <main class="wrap">
+    <h1 class="title">Support</h1>
+    <p class="sub">Crée un ticket support et suis sa réponse directement ici.</p>
+
+    <div class="toolbar">
+      <a class="btn" href="https://support.mm-cp.uk" target="_blank" rel="noopener">Support IA & Articles</a>
+    </div>
+
+    <section class="card">
+      <h2 style="font-size:16px; margin-bottom:10px;">Créer un ticket</h2>
+
+      <div class="row2">
+        <div>
+          <label class="sub">Type de problème</label>
+          <select id="category" class="select">
+            <option value="">Choisir un problème…</option>
+            <option value="tech">Problème technique</option>
+            <option value="billing">Facturation et abonnement</option>
+            <option value="payment">Problème de paiement</option>
+            <option value="artist_name">Changer de nom d'artiste</option>
+            <option value="youtube_oac">Demande de chaîne d'artiste officiel YouTube</option>
+            <option value="youtube_remap">Remappage YouTube</option>
+            <option value="redelivery">Re-livraison de contenu</option>
+            <option value="release_refusal">Refus de sortie</option>
+            <option value="copyright">Violation du droit d'auteur</option>
+            <option value="other">Autre raison</option>
+          </select>
+        </div>
+        <div>
+          <label class="sub">Titre du ticket</label>
+          <input id="title" class="input" placeholder="Résumé du problème" />
+        </div>
+      </div>
+
+      <div id="defaultExplain" style="margin-top:10px;">
+        <label class="sub">Explique le problème</label>
+        <textarea id="description" class="textarea" placeholder="Décris ton problème en détail"></textarea>
+      </div>
+
+      <div id="artistNameFields" style="display:none; margin-top:10px;">
+        <div class="row2">
+          <div>
+            <label class="sub">Ancien nom d'artiste</label>
+            <input id="artistOldName" class="input" placeholder="Nom actuel" />
+          </div>
+          <div>
+            <label class="sub">Nouveau nom d'artiste</label>
+            <input id="artistNewName" class="input" placeholder="Nouveau nom souhaité" />
+          </div>
+        </div>
+        <p class="meta" style="margin-top:8px; color:#b45309; font-weight:700;">
+          Attention : un changement de nom d'artiste nécessite de republier toutes les sorties concernées.
+        </p>
+      </div>
+
+      <div id="youtubeOacFields" style="display:none; margin-top:10px;">
+        <div class="row2">
+          <div>
+            <label class="sub">Lien de la chaîne Topic</label>
+            <input id="oacTopicUrl" class="input" placeholder="https://youtube.com/...topic" />
+          </div>
+          <div>
+            <label class="sub">Lien de la chaîne à rattacher</label>
+            <input id="oacAttachUrl" class="input" placeholder="https://youtube.com/@..." />
+          </div>
+        </div>
+      </div>
+
+      <div id="youtubeRemapFields" style="display:none; margin-top:10px;">
+        <div class="row2">
+          <div>
+            <label class="sub">Mauvaise chaîne</label>
+            <input id="remapWrongUrl" class="input" placeholder="https://youtube.com/..." />
+          </div>
+          <div>
+            <label class="sub">Bonne chaîne</label>
+            <input id="remapCorrectUrl" class="input" placeholder="https://youtube.com/..." />
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button id="createBtn" class="btn primary" type="button">Envoyer le ticket</button>
+        <span id="formMsg" class="meta"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="font-size:16px; margin-bottom:10px;">Mes tickets</h2>
+      <div id="ticketsList"></div>
+      <div id="ticketsEmpty" class="sub" style="display:none;">Aucun ticket pour le moment.</div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, collection, addDoc, getDocs, query, where, orderBy, limit, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const $ = (id) => document.getElementById(id);
+    const categoryEl = $("category");
+    const titleEl = $("title");
+    const descriptionEl = $("description");
+    const defaultExplain = $("defaultExplain");
+    const artistNameFields = $("artistNameFields");
+    const youtubeOacFields = $("youtubeOacFields");
+    const youtubeRemapFields = $("youtubeRemapFields");
+    const createBtn = $("createBtn");
+    const formMsg = $("formMsg");
+    const ticketsList = $("ticketsList");
+    const ticketsEmpty = $("ticketsEmpty");
+    let activeUser = null;
+
+    function clean(v){ return String(v || "").trim(); }
+    function setFormMsg(msg, cls="") { formMsg.className = cls; formMsg.textContent = msg || ""; }
+    async function withTimeout(promise, ms, label){
+      let timer = null;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error(`Délai dépassé (${label}). Réessaie.`)), ms);
+          })
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    }
+    function fmtDate(ts){
+      try {
+        const d = ts?.toDate ? ts.toDate() : null;
+        return d ? d.toLocaleString("fr-FR", { dateStyle:"short", timeStyle:"short" }) : "—";
+      } catch { return "—"; }
+    }
+
+    function categoryLabel(v){
+      const m = {
+        tech: "Problème technique",
+        billing: "Facturation et abonnement",
+        payment: "Problème de paiement",
+        artist_name: "Changer de nom d'artiste",
+        youtube_oac: "Chaîne d'artiste officiel YouTube",
+        youtube_remap: "Remappage YouTube",
+        redelivery: "Re-livraison de contenu",
+        release_refusal: "Refus de sortie",
+        copyright: "Violation du droit d'auteur",
+        other: "Autre raison"
+      };
+      return m[v] || "—";
+    }
+
+    function statusBadgeClass(status){
+      const s = clean(status).toLowerCase();
+      if (s.includes("envoy")) return "style='background:rgba(59,130,246,.15);'";
+      if (s.includes("en cours") || s.includes("cours")) return "style='background:rgba(245,158,11,.20);'";
+      if (s.includes("en ligne")) return "style='background:rgba(14,165,233,.18);'";
+      if (s.includes("termin")) return "style='background:rgba(34,197,94,.15);'";
+      if (s.includes("ferm")) return "style='background:rgba(239,68,68,.15);'";
+      if (s.includes("résol") || s.includes("resol")) return "style='background:rgba(34,197,94,.15);'";
+      return "";
+    }
+
+    function normalizeThread(ticket){
+      const base = Array.isArray(ticket?.thread) ? ticket.thread : [];
+      const sorted = base
+        .filter(m => m && clean(m.text))
+        .sort((a, b) => String(a.at || "").localeCompare(String(b.at || "")));
+
+      if (!sorted.length) {
+        const fallback = [];
+        if (clean(ticket?.adminResponse)) fallback.push({ role: "admin", text: clean(ticket.adminResponse), at: "" });
+        if (clean(ticket?.artistReply)) fallback.push({ role: "artist", text: clean(ticket.artistReply), at: "" });
+        return fallback;
+      }
+
+      return sorted;
+    }
+
+    function threadHtml(ticket){
+      const thread = normalizeThread(ticket);
+      if (!thread.length) return "<p style='margin-top:10px;'><b>Discussion:</b> Pas encore de message.</p>";
+
+      const items = thread.map((m) => {
+        const role = String(m.role || "artist").toLowerCase() === "admin" ? "MMCP" : "Toi";
+        const when = m.at ? fmtDate(new Date(m.at)) : "—";
+        return `<p style='margin-top:8px;'><b>${role}:</b> ${clean(m.text)} <span class='meta'>(${when})</span></p>`;
+      });
+      return `<div style='margin-top:10px;'><b>Discussion:</b>${items.join("")}</div>`;
+    }
+
+    function updateCategoryFields(){
+      const c = clean(categoryEl.value);
+      const isOac = c === "youtube_oac";
+      const isRemap = c === "youtube_remap";
+      const isArtistName = c === "artist_name";
+      youtubeOacFields.style.display = isOac ? "block" : "none";
+      youtubeRemapFields.style.display = isRemap ? "block" : "none";
+      artistNameFields.style.display = isArtistName ? "block" : "none";
+      defaultExplain.style.display = (isOac || isRemap || isArtistName) ? "none" : "block";
+    }
+
+    async function loadMyTickets(uid){
+      try {
+        const qy = query(collection(db, "supportTickets"), where("ownerUid", "==", uid), orderBy("updatedAt", "desc"), limit(200));
+        const snap = await getDocs(qy);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch {
+        const qy2 = query(collection(db, "supportTickets"), where("ownerUid", "==", uid), limit(200));
+        const snap2 = await getDocs(qy2);
+        return snap2.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+    }
+
+    function renderTickets(list){
+      ticketsList.innerHTML = "";
+      if (!list.length){
+        ticketsEmpty.style.display = "block";
+        return;
+      }
+      ticketsEmpty.style.display = "none";
+
+      list.forEach(t => {
+        const status = clean(t.status) || "Envoyé à MMCP";
+        const card = document.createElement("div");
+        card.className = "ticket";
+        card.innerHTML = `
+          <div class="ticketHead">
+            <div>
+              <div class="ticketTitle">${clean(t.title) || categoryLabel(t.category)}</div>
+              <div class="meta">${categoryLabel(t.category)} • ${fmtDate(t.createdAt)}</div>
+            </div>
+            <span class="badge" ${statusBadgeClass(status)}>${status}</span>
+          </div>
+          <div class="ticketBody">
+            <div class="meta">Ticket: ${t.id}</div>
+            ${clean(t.description) ? `<p style='margin-top:8px;'>${clean(t.description)}</p>` : ""}
+            ${t.category === "youtube_oac" ? `
+              <p style='margin-top:8px;'><b>Chaîne Topic:</b> ${clean(t?.details?.topicChannelUrl) || "—"}</p>
+              <p style='margin-top:4px;'><b>Chaîne à rattacher:</b> ${clean(t?.details?.attachChannelUrl) || "—"}</p>
+            ` : ""}
+            ${t.category === "youtube_remap" ? `
+              <p style='margin-top:8px;'><b>Mauvaise chaîne:</b> ${clean(t?.details?.wrongChannelUrl) || "—"}</p>
+              <p style='margin-top:4px;'><b>Bonne chaîne:</b> ${clean(t?.details?.correctChannelUrl) || "—"}</p>
+            ` : ""}
+            ${t.category === "artist_name" ? `
+              <p style='margin-top:8px;'><b>Ancien nom d'artiste:</b> ${clean(t?.details?.oldArtistName) || "—"}</p>
+              <p style='margin-top:4px;'><b>Nouveau nom d'artiste:</b> ${clean(t?.details?.newArtistName) || "—"}</p>
+              <p class='meta' style='margin-top:6px; color:#b45309; font-weight:700;'>Le changement de nom nécessite de republier toutes les sorties concernées.</p>
+            ` : ""}
+            ${threadHtml(t)}
+            ${t.allowArtistReply ? `
+              <div style='margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;'>
+                <input class='input' data-reply-input='${t.id}' placeholder='Répondre à MMCP...' style='max-width:420px;' />
+                <button class='btn' data-reply-btn='${t.id}'>Envoyer la réponse</button>
+              </div>
+            ` : ""}
+            <p class='meta'>Dernière mise à jour: ${fmtDate(t.updatedAt)}</p>
+          </div>
+        `;
+
+        const head = card.querySelector(".ticketHead");
+        const body = card.querySelector(".ticketBody");
+        head.addEventListener("click", () => {
+          body.style.display = body.style.display === "block" ? "none" : "block";
+        });
+
+        const replyBtn = card.querySelector("[data-reply-btn]");
+        if (replyBtn) {
+          replyBtn.addEventListener("click", async () => {
+            const input = card.querySelector("[data-reply-input]");
+            const replyText = clean(input?.value);
+            if (!replyText) {
+              alert("Écris une réponse avant d'envoyer.");
+              return;
+            }
+
+            replyBtn.disabled = true;
+            try {
+              const prevThread = normalizeThread(t);
+              const nextThread = [...prevThread, {
+                role: "artist",
+                text: replyText,
+                at: new Date().toISOString(),
+                byUid: activeUser?.uid || null,
+                byEmail: activeUser?.email || null
+              }];
+
+              await updateDoc(doc(db, "supportTickets", t.id), {
+                artistReply: replyText,
+                artistReplyAt: serverTimestamp(),
+                artistReplyBy: activeUser?.uid || null,
+                thread: nextThread,
+                updatedAt: serverTimestamp()
+              });
+              renderTickets(await loadMyTickets(activeUser.uid));
+            } catch (e) {
+              alert("Erreur réponse ticket: " + (e?.message || String(e)));
+            } finally {
+              replyBtn.disabled = false;
+            }
+          });
+        }
+
+        ticketsList.appendChild(card);
+      });
+    }
+
+    async function createTicket(user){
+      const category = clean(categoryEl.value);
+      const title = clean(titleEl.value);
+      const description = clean(descriptionEl.value);
+      if (!category) throw new Error("Choisis un type de problème.");
+      if (!title) throw new Error("Ajoute un titre au ticket.");
+
+      const payload = {
+        ownerUid: user.uid,
+        ownerEmail: clean(user.email),
+        category,
+        title,
+        status: "Envoyé à MMCP",
+        adminResponse: null,
+        description: null,
+        details: {},
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      if (category === "youtube_oac") {
+        const topic = clean($("oacTopicUrl").value);
+        const attach = clean($("oacAttachUrl").value);
+        if (!topic || !attach) throw new Error("Renseigne la chaîne Topic et la chaîne à rattacher.");
+        payload.details = { topicChannelUrl: topic, attachChannelUrl: attach };
+      } else if (category === "youtube_remap") {
+        const wrong = clean($("remapWrongUrl").value);
+        const correct = clean($("remapCorrectUrl").value);
+        if (!wrong || !correct) throw new Error("Renseigne la mauvaise chaîne et la bonne chaîne.");
+        payload.details = { wrongChannelUrl: wrong, correctChannelUrl: correct };
+      } else if (category === "artist_name") {
+        const oldArtistName = clean($("artistOldName").value);
+        const newArtistName = clean($("artistNewName").value);
+        if (!oldArtistName || !newArtistName) throw new Error("Renseigne l'ancien et le nouveau nom d'artiste.");
+        payload.details = { oldArtistName, newArtistName };
+      } else {
+        if (!description) throw new Error("Explique le problème.");
+        payload.description = description;
+      }
+
+      await withTimeout(addDoc(collection(db, "supportTickets"), payload), 15000, "envoi ticket");
+    }
+
+    categoryEl.addEventListener("change", updateCategoryFields);
+
+    createBtn.addEventListener("click", async () => {
+      if (!activeUser) {
+        setFormMsg("Tu dois être connecté pour envoyer un ticket.", "error");
+        alert("Tu dois être connecté pour envoyer un ticket.");
+        return;
+      }
+
+      createBtn.disabled = true;
+      setFormMsg("Envoi du ticket…", "meta");
+      try {
+        await createTicket(activeUser);
+        titleEl.value = "";
+        descriptionEl.value = "";
+        $("oacTopicUrl").value = "";
+        $("oacAttachUrl").value = "";
+        $("remapWrongUrl").value = "";
+        $("remapCorrectUrl").value = "";
+        $("artistOldName").value = "";
+        $("artistNewName").value = "";
+        setFormMsg("Ticket envoyé ✅", "ok");
+        renderTickets(await loadMyTickets(activeUser.uid));
+      } catch (e) {
+        const msg = e?.message || String(e);
+        setFormMsg(msg, "error");
+        if (String(e?.code || "").includes("permission") || msg.toLowerCase().includes("permission")) {
+          alert("Permission refusée pour créer le ticket. Vérifie les règles Firestore sur supportTickets.");
+        }
+      } finally {
+        createBtn.disabled = false;
+      }
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user){
+        const here = window.location.href;
+        window.location.href = "/login.html?redirect=" + encodeURIComponent(here);
+        return;
+      }
+
+      activeUser = user;
+
+      updateCategoryFields();
+      renderTickets(await loadMyTickets(user.uid));
+    });
+  </script>
+  <script src="/assets/js/dash/artist-sidebar.js"></script>
+</body>
+</html>

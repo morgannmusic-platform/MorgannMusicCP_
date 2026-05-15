@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Contrats</title>
+  <style>
+    body{font-family:Helvetica,Arial,sans-serif;background:#f9fafb;margin:0}
+    .wrap{max-width:1100px;margin:30px auto;padding:16px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:10px;border-bottom:1px solid #f1f5f9;text-align:left}
+    .muted{color:#6b7280}
+    .tag{display:inline-block;padding:3px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-weight:700;font-size:12px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+    button{border:0;background:#111827;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
+    select{padding:8px;border-radius:8px;border:1px solid #d1d5db}
+  </style>
+</head>
+<body>
+  <div id="navbar-container"></div>
+  <main class="wrap">
+    <section class="card">
+      <div class="row">
+        <h1 style="margin:0">Contrats</h1>
+        <select id="statusFilter">
+          <option value="all">Tous</option>
+          <option value="pending">Pending</option>
+          <option value="signed">Signed</option>
+          <option value="expired">Expired</option>
+          <option value="failed">Failed</option>
+        </select>
+        <button id="refreshBtn">Rafraîchir</button>
+      </div>
+      <p id="status" class="muted">Chargement...</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Titre</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="contractsBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script type="module" src="/assets/js/navbar.js"></script>
+  <script type="module" src="/assets/js/dash/admin/contracts.js"></script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<link rel="stylesheet" href="/assets/css/dash-navbar.css">
+<nav class="dash-navbar">
+  <div class="navbar-left">
+    <div class="navbar-icon-menu">
+      <img src="/assets/icon/music-album-song.svg" alt="Menu" class="navbar-icon clickable" id="menu-icon">
+      <div class="dropdown-menu" id="menu-dropdown" style="display:none;">
+        <button onclick="location.href='/dash/edit-release.html'">Créer une sortie</button>
+        <button onclick="location.href='/dash/release.html'">Gérer les sorties</button>
+      </div>
+    </div>
+    <div class="navbar-icon-notif">
+      <img src="/assets/icon/Notification-Application-1--Streamline-Flex.svg" alt="Notifications" class="navbar-icon clickable" id="notif-icon">
+      <div class="dropdown-menu" id="notif-dropdown" style="display:none;">
+        <div id="notif-list">
+          <!-- Les 5 dernières notifications seront injectées ici par JS -->
+        </div>
+        <button onclick="location.href='/dash/notifications.html'">Voir toutes les notifications</button>
+      </div>
+    </div>
+    <span id="navbar-greeting" style="margin-left:18px;font-weight:600;font-size:1.08em;color:#2f63ff;"></span>
+  </div>
+  <div class="navbar-right">
+    <a href="/index.html">
+    <img src="/assets/logo/logo.svg" alt="Logo" class="navbar-logo"> 
+  </a>
+</div>
+</nav>
+<script src="/assets/js/dash-navbar.js"></script>
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+  authDomain: "morgann-music-cp.firebaseapp.com",
+  projectId: "morgann-music-cp",
+  storageBucket: "morgann-music-cp.firebasestorage.app",
+  messagingSenderId: "666812685196",
+  appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+};
+
+// Initialisation propre
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, async (user) => {
+  const greetingDiv = document.getElementById('navbar-greeting');
+  if (!greetingDiv) return;
+
+  if (!user) {
+    greetingDiv.textContent = "";
+    return;
+  }
+
+  let prenom = "";
+  
+  try {
+    // On va chercher dans la collection "users" avec l'UID
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      // On teste tous les champs possibles
+      prenom = data.firstName || data.prenom || data.displayName || data.artistName;
+    }
+  } catch (e) {
+    console.error("Erreur Firestore :", e);
+  }
+
+  // Fallback sur les infos de base d'auth si Firestore est vide
+  if (!prenom) {
+    prenom = user.displayName || user.email?.split('@')[0] || "Artiste";
+  }
+
+  // Nettoyage pour ne garder que le premier mot (ex: "Morgann Rachedi" -> "Morgann")
+  prenom = prenom.split(" ")[0];
+
+  // Logique de l'heure
+  const hours = new Date().getHours();
+  let greeting = "Bonjour";
+
+  if (hours >= 21 || hours < 5) {
+    greeting = "Bonne nuit";
+  } else if (hours >= 18) {
+    greeting = "Bonsoir";
+  } else if (hours >= 12) {
+    greeting = "Bonne après-midi";
+  } else {
+    greeting = "Bonjour";
+  }
+
+  greetingDiv.textContent = `${greeting} ${prenom}`;
+  console.log("Greeting affiché :", greeting, prenom);
+});
+</script>
+
+<div class="nav-gear-overlay" id="navGearOverlay" aria-hidden="true"></div>
+
+<div class="nav-gear-popup" id="navGearPopup" role="dialog" aria-modal="true" aria-label="Paramètres du dashboard">
+  <div class="nav-gear-popup__head">
+    <span class="nav-gear-popup__title">Paramètres</span>
+    <button class="nav-gear-popup__close" id="navGearClose" type="button" aria-label="Fermer">✕</button>
+  </div>
+  <div class="nav-gear-popup__body">
+    <label class="nav-toggle-row" for="discreteLoadingToggle">
+      <div class="nav-toggle-info">
+        <span class="nav-toggle-label">Chargement discret</span>
+        <span class="nav-toggle-desc">Remplace le loader plein écran par un petit logo clignotant</span>
+      </div>
+      <div class="nav-switch">
+        <input type="checkbox" id="discreteLoadingToggle" class="nav-switch__input" role="switch">
+        <span class="nav-switch__track"></span>
+      </div>
+    </label>
+  </div>
+</div>
+
+<style>
+  .nav-gear-item { list-style: none; }
+  .nav-gear-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 15px;
+    cursor: pointer;
+    line-height: 1;
+    color: inherit;
+    transition: background 0.15s;
+  }
+  .nav-gear-btn:hover { background: rgba(255,255,255,0.1); }
+
+  .nav-gear-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 8990;
+  }
+  .nav-gear-overlay.is-open { display: block; }
+
+  .nav-gear-popup {
+    display: none;
+    position: fixed;
+    top: 60px;
+    right: 14px;
+    width: min(300px, calc(100vw - 28px));
+    z-index: 8991;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 16px;
+    background: rgba(18,18,18,0.95);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    color: #fff;
+    padding: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .nav-gear-popup.is-open { display: block; }
+
+  .nav-gear-popup__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .nav-gear-popup__title {
+    font-size: 13px;
+    font-weight: 900;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  .nav-gear-popup__close {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 7px;
+    border-radius: 8px;
+  }
+  .nav-gear-popup__close:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+
+  .nav-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  .nav-toggle-info { display: flex; flex-direction: column; gap: 3px; }
+  .nav-toggle-label {
+    font-size: 13px;
+    font-weight: 800;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  .nav-toggle-desc {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.35;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+
+  .nav-switch { position: relative; flex-shrink: 0; }
+  .nav-switch__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .nav-switch__track {
+    display: block;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .nav-switch__track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #fff;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .nav-switch__input:checked + .nav-switch__track { background: #2f63ff; }
+  .nav-switch__input:checked + .nav-switch__track::after { transform: translateX(18px); }
+</style>
+
+<script>
+(function () {
+  var LS_KEY = 'dashboardDiscreteLoading';
+
+  function getPref() {
+    try {
+      var v = localStorage.getItem(LS_KEY);
+      return v !== 'false';
+    } catch (e) { return true; }
+  }
+
+  function setPref(val) {
+    try { localStorage.setItem(LS_KEY, val ? 'true' : 'false'); } catch (e) {}
+  }
+
+  var gearBtn  = document.getElementById('navGearBtn');
+  var overlay  = document.getElementById('navGearOverlay');
+  var popup    = document.getElementById('navGearPopup');
+  var closeBtn = document.getElementById('navGearClose');
+  var toggle   = document.getElementById('discreteLoadingToggle');
+
+  if (toggle) toggle.checked = getPref();
+
+  function openPopup() {
+    popup   && popup.classList.add('is-open');
+    overlay && overlay.classList.add('is-open');
+  }
+
+  function closePopup() {
+    popup   && popup.classList.remove('is-open');
+    overlay && overlay.classList.remove('is-open');
+  }
+
+  gearBtn  && gearBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    popup && popup.classList.contains('is-open') ? closePopup() : openPopup();
+  });
+  closeBtn && closeBtn.addEventListener('click', closePopup);
+  overlay  && overlay.addEventListener('click', closePopup);
+
+  toggle && toggle.addEventListener('change', function () {
+    setPref(toggle.checked);
+  });
+}());
+</script>

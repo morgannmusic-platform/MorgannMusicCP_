@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin — Créer une sortie</title>
+<link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+
+
+<style>
+  body{
+    font-family:Helvetica, Arial;
+    background:#f2f2f2;
+    padding:40px;
+    max-width:1100px;
+    margin:auto;
+    color:#111;
+  }
+  body.admin-with-sidebar{
+    max-width:none;
+    margin:0;
+    padding-left:calc(var(--admin-sidebar-width) + 40px);
+  }
+  h1{margin-bottom:20px}
+  .section{
+    background:white;
+    padding:25px;
+    margin-bottom:25px;
+    border-radius:16px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.06);
+  }
+  h2{margin:0 0 10px 0}
+  input,select,textarea{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border-radius:10px;
+    border:1px solid #ddd;
+    outline:none;
+  }
+  textarea{min-height:90px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .muted{opacity:.7;font-size:13px;margin-top:6px}
+  .box{
+    border:1px solid #e0e0e0;
+    padding:10px;
+    border-radius:12px;
+    background:#fff;
+    margin:10px 0;
+  }
+  .miniActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  button{
+    padding:10px 16px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .addBtn{background:#22c55e;color:white}
+  .removeBtn{background:#ef4444;color:white}
+  .outlineBtn{background:#fff;border:1px solid #ddd}
+  .submitBtn{
+    background:#000;
+    color:#fff;
+    width:auto;
+    font-size:16px;
+    padding:14px 18px;
+    border-radius:14px;
+  }
+  .pill{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    background:#f3f4f6;
+    font-size:12px;
+    margin:6px 0 0 0;
+  }
+  .topTabs{
+    position:sticky;
+    top:12px;
+    z-index:5;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    background:#f2f2f2;
+    padding:8px 0 14px;
+    margin-bottom:10px;
+  }
+  .tabBtn{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:999px;
+    color:#111;
+    font-size:14px;
+    padding:8px 14px;
+    text-decoration:none;
+  }
+  .tabBtn.active{background:#111;color:#fff;border-color:#111}
+  .sectionGroup{display:none}
+  .sectionGroup.active{display:block}
+  .tracksTable{border:1px solid #e6e6e6;border-radius:14px;overflow:hidden;background:#fff}
+  .trackRow{
+    display:grid;
+    grid-template-columns:minmax(160px,2fr) minmax(100px,1fr) minmax(180px,1fr) auto;
+    gap:10px;
+    align-items:center;
+    padding:12px 14px;
+    border-bottom:1px solid #efefef;
+    cursor:pointer;
+  }
+  .trackRow:last-child{border-bottom:none}
+  .trackRow:hover{background:#fafafa}
+  .trackHeader{font-weight:700;cursor:default;background:#f9fafb}
+  .trackHeader:hover{background:#f9fafb}
+  .trackTitleCell{font-weight:600}
+  .trackTag{display:inline-block;border:1px solid #ddd;border-radius:999px;padding:2px 8px;font-size:12px}
+  .modalOverlay{
+    position:fixed;
+    top:0; left:var(--admin-sidebar-width); right:0; bottom:0;
+    background:rgba(0,0,0,0.5);
+    display:flex;align-items:center;justify-content:center;
+    padding:18px;
+    z-index:50;
+  }
+  .hidden{display:none !important}
+  .modal{
+    width:min(920px,100%);
+    max-height:90vh;
+    overflow:auto;
+    background:#fff;
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.25);
+  }
+  .modalTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .errorBox{
+    margin-top:12px;
+    border:1px solid #fecaca;
+    background:#fff1f2;
+    color:#991b1b;
+    border-radius:10px;
+    padding:10px;
+    font-size:13px;
+    white-space:pre-wrap;
+  }
+  .sectionNav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .recapGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .recapPre{white-space:pre-wrap;font-size:13px;line-height:1.45}
+  @media (max-width: 840px){
+    .trackRow{grid-template-columns:1fr;gap:6px}
+    .row2{grid-template-columns:1fr}
+    .recapGrid{grid-template-columns:1fr}
+  }
+  @media (max-width: 960px){
+    body.admin-with-sidebar{
+      padding-left:40px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>Admin — Créer une sortie</h1>
+<script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+
+<nav class="topTabs" id="sectionTabs">
+  <a class="tabBtn" data-hash="release" href="#release">Release</a>
+  <a class="tabBtn" data-hash="artwork" href="#artwork">Artwork</a>
+  <a class="tabBtn" data-hash="tracks" href="#tracks">Tracks</a>
+  <a class="tabBtn" data-hash="recap" href="#recap">Récap</a>
+</nav>
+
+<div id="section-release" class="sectionGroup" data-hash="release">
+  <div class="section">
+    <h2>🧑‍💼 Compte propriétaire</h2>
+    <select id="ownerUidSelect"></select>
+    <div class="muted">Choisis le compte pour lequel la sortie sera créée.</div>
+  </div>
+
+  <div class="section">
+    <h2>👤 Artiste principal</h2>
+    <select id="mainArtistSelect"></select>
+    <div class="muted">Tu choisis l’artiste déjà enregistré sur le compte sélectionné.</div>
+  </div>
+
+  <div class="section">
+    <h2>🎤 Collaborations (toute la sortie)</h2>
+    <div class="muted">Ces collaborations seront automatiquement appliquées à toutes les pistes.</div>
+    <div id="releaseCollabContainer"></div>
+    <div class="miniActions">
+      <button class="addBtn" type="button" onclick="addReleaseCollab()">+ Ajouter collaboration release</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📀 Informations générales</h2>
+    <input id="releaseTitle" placeholder="Titre de la sortie">
+
+    <div class="row2">
+      <select id="releaseType">
+        <option value="single">Single</option>
+        <option value="ep">EP</option>
+        <option value="album">Album</option>
+      </select>
+      <input id="releaseVersion" placeholder="Ligne de version (facultatif)">
+    </div>
+
+    <div class="row2">
+      <input id="releaseLanguage" placeholder="Langue (ex: fr, en)">
+      <label class="box" style="display:flex;align-items:center;gap:10px;margin:6px 0;">
+        <input type="checkbox" id="isInstrumentalRelease" style="width:auto;margin:0;">
+        Release instrumentale
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📅 Dates</h2>
+    <div class="row2">
+      <div>
+        <div class="pill">Date de sortie</div>
+        <input type="date" id="releaseDate" min="1970-01-01">
+      </div>
+      <div>
+        <div class="pill">Heure</div>
+        <input type="time" id="releaseTime">
+      </div>
+    </div>
+
+    <input id="timeZone" placeholder="Fuseau horaire (ex: Europe/Paris)">
+
+    <div class="row2">
+      <div>
+        <div class="pill">Date originale (facultatif)</div>
+        <input type="date" id="originalDate" max="9999-12-31">
+      </div>
+      <div>
+        <div class="pill">Précommande (facultatif)</div>
+        <input type="date" id="preorderDate">
+      </div>
+    </div>
+
+    <div class="sectionNav">
+      <span class="muted">Étape 1/4</span>
+      <button class="addBtn" type="button" data-next="artwork">Suivant →</button>
+    </div>
+  </div>
+</div>
+
+<div id="section-artwork" class="sectionGroup" data-hash="artwork">
+  <div class="section">
+    <h2>🖼 Assets</h2>
+    <div class="box">
+      <div class="pill">Pochette 1:1</div>
+      <input type="file" id="cover" accept="image/*">
+    </div>
+    <div class="box">
+      <div class="pill">Apple Motion Art (facultatif)</div>
+      <div class="miniActions" style="margin-top:8px;">
+        <button class="outlineBtn" type="button" id="openMotionArtBtn">Apple Motion Art</button>
+      </div>
+      <div class="muted" id="motionArtSummary" style="margin-top:8px;">Aucune pochette animée sélectionnée.</div>
+    </div>
+
+    <div class="sectionNav">
+      <button class="outlineBtn" type="button" data-prev="release">← Précédent</button>
+      <span class="muted">Étape 2/4</span>
+      <button class="addBtn" type="button" data-next="tracks">Suivant →</button>
+    </div>
+  </div>
+</div>
+
+<div id="section-tracks" class="sectionGroup" data-hash="tracks">
+  <div class="section">
+    <h2>🎧 Pistes</h2>
+    <div class="muted">Clique une ligne pour éditer la piste dans un popup.</div>
+
+    <div id="tracksList"></div>
+
+    <div class="miniActions">
+      <button class="addBtn" type="button" id="addTrackBtn">+ Ajouter une piste</button>
+      <button class="outlineBtn" type="button" id="addTrackPrefillBtn">+ Ajouter une piste (pré-remplie)</button>
+    </div>
+
+    <div class="sectionNav">
+      <button class="outlineBtn" type="button" data-prev="artwork">← Précédent</button>
+      <span class="muted">Étape 3/4</span>
+      <button class="addBtn" type="button" data-next="recap">Suivant →</button>
+    </div>
+  </div>
+</div>
+
+<div id="section-recap" class="sectionGroup" data-hash="recap">
+  <div class="section">
+    <h2>🧾 Récapitulatif complet</h2>
+    <div class="muted">Vérifie toutes les informations avant l’envoi.</div>
+    <div id="recapContainer"></div>
+
+    <div class="sectionNav">
+      <button class="outlineBtn" type="button" data-prev="tracks">← Précédent</button>
+      <span class="muted">Étape 4/4</span>
+      <button class="submitBtn" id="createBtn" type="button">Créer la sortie</button>
+    </div>
+  </div>
+</div>
+
+<div id="debug" style="margin:12px 0;padding:10px;border-radius:10px;background:#fff;border:1px solid #ddd;font-family:monospace;font-size:12px;white-space:pre-wrap;"></div>
+
+<div id="trackModalOverlay" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="trackModalTitle">
+  <div class="modal">
+    <div class="modalTop">
+      <h2 id="trackModalTitle">Piste</h2>
+      <button type="button" class="outlineBtn" id="closeTrackModalBtn">Fermer</button>
+    </div>
+
+    <div class="row2">
+      <input id="modalTrackTitle" placeholder="Titre piste *">
+      <input id="modalTrackVersion" placeholder="Ligne de version (facultatif)">
+    </div>
+
+    <div class="row2">
+      <input id="modalTrackLanguage" placeholder="Langue piste (ex: fr, en)">
+      <input id="modalTrackGenre" placeholder="Genre (facultatif)">
+    </div>
+
+    <div class="row2">
+      <label class="box" style="display:flex;align-items:center;gap:10px;margin:6px 0;">
+        <input type="checkbox" id="modalExplicit" style="width:auto;margin:0;"> Paroles explicites
+      </label>
+      <label class="box" style="display:flex;align-items:center;gap:10px;margin:6px 0;">
+        <input type="checkbox" id="modalClean" style="width:auto;margin:0;"> Version clean
+      </label>
+    </div>
+
+    <div class="row2">
+      <input id="modalIsrc" placeholder="ISRC (facultatif)">
+      <input id="modalIswc" placeholder="ISWC (facultatif)">
+    </div>
+
+    <input id="modalPreviewStart" type="number" min="0" step="1" placeholder="Preview start (secondes, facultatif)">
+    <input id="modalMasteringEmail" type="email" placeholder="Email maison de mastering (Apple Digital Master)">
+    <textarea id="modalLyrics" placeholder="Paroles (facultatif)"></textarea>
+
+    <div class="box">
+      <div class="pill">Fichiers piste</div>
+      Audio principal * <input type="file" id="modalAudio" accept="audio/*"><br>
+      Instrumental (facultatif) <input type="file" id="modalInstrumental" accept="audio/*"><br>
+      Dolby Atmos (facultatif) <input type="file" id="modalAtmos" accept="audio/*"><br>
+      <div id="modalFileStatus" class="muted"></div>
+    </div>
+
+    <div class="box">
+      <div class="pill">Collaborations piste</div>
+      <div id="modalTrackCollabContainer"></div>
+      <div class="miniActions">
+        <button class="addBtn" type="button" id="modalAddCollabBtn">+ Ajouter collab piste</button>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="pill">Écrivains (writers)</div>
+      <div id="modalWritersContainer"></div>
+      <div class="miniActions">
+        <button class="addBtn" type="button" id="modalAddWriterBtn">+ Ajouter écrivain</button>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="pill">Crédits additionnels</div>
+      <div id="modalCreditsContainer"></div>
+      <div class="miniActions">
+        <button class="addBtn" type="button" id="modalAddCreditBtn">+ Ajouter crédit</button>
+      </div>
+    </div>
+
+    <div id="trackModalErrors" class="errorBox hidden"></div>
+
+    <div class="miniActions">
+      <button class="submitBtn" type="button" id="saveTrackBtn" style="width:auto">Enregistrer</button>
+      <button class="outlineBtn" type="button" id="cancelTrackBtn">Annuler</button>
+      <button class="removeBtn hidden" type="button" id="deleteTrackBtn">Supprimer la piste</button>
+    </div>
+  </div>
+</div>
+
+<div id="motionArtModalOverlay" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="motionArtTitle">
+  <div class="modal">
+    <div class="modalTop">
+      <h2 id="motionArtTitle">Apple Motion Art</h2>
+      <button type="button" class="outlineBtn" id="closeMotionArtBtn">Fermer</button>
+    </div>
+
+    <div class="box">
+      <div class="pill">Pochette animée 1:1 (facultatif)</div>
+      <input type="file" id="motion11" accept=".mov">
+    </div>
+
+    <div class="box">
+      <div class="pill">Pochette animée 3:4 (facultatif)</div>
+      <input type="file" id="motion34" accept=".mov">
+    </div>
+
+    <div class="box muted" style="line-height:1.45;">
+      Format recommandé: <b>.mov</b><br>
+      Codec recommandé: <b>Apple ProRes</b><br>
+      Important: même si les formats sont corrects, Apple peut parfois refuser certaines pochettes animées selon ses contrôles internes.
+    </div>
+
+    <div class="miniActions">
+      <button class="submitBtn" type="button" id="saveMotionArtBtn" style="width:auto">Valider</button>
+      <button class="outlineBtn" type="button" id="cancelMotionArtBtn">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp, doc, getDoc }
+  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+  authDomain: "morgann-music-cp.firebaseapp.com",
+  projectId: "morgann-music-cp",
+  storageBucket: "morgann-music-cp.firebasestorage.app",
+  messagingSenderId: "666812685196",
+  appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+let currentUser = null;
+let tracksState = [];
+let editingTrackIndex = null;
+let modalDirty = false;
+let artistsById = {};
+let artistsAll = [];
+let ownerLabelByUid = {};
+
+function clean(v){ return String(v ?? "").trim(); }
+function esc(str){
+  return String(str ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function isMovFile(file){
+  return !!file && String(file.name || "").toLowerCase().endsWith(".mov");
+}
+
+function ownerLabel(uid){
+  const key = clean(uid);
+  if (!key) return "—";
+  return ownerLabelByUid[key] || key;
+}
+
+const dbg = (msg) => {
+  const el = document.getElementById("debug");
+  if (el) el.textContent += msg + "\n";
+  console.log(msg);
+};
+
+async function withTimeout(promise, ms, label){
+  let timer = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`Délai dépassé (${label}). Vérifie ta connexion et réessaie.`)), ms);
+      })
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function uploadFile(file, path){
+  if(!file) return null;
+  const r = ref(storage, path);
+  await uploadBytes(r, file);
+  return await getDownloadURL(r);
+}
+
+function createEmptyTrack(prefill=false){
+  const rank = tracksState.length + 1;
+  return {
+    title: prefill ? `Track ${rank}` : "",
+    versionLine: "",
+    language: "",
+    explicit: false,
+    cleanVersion: false,
+    isrc: "",
+    iswc: "",
+    genre: "",
+    previewStart: null,
+    lyrics: "",
+    appleMasteringEmail: "",
+    files: {
+      audioFile: null,
+      instrumentalFile: null,
+      atmosFile: null,
+      audioUrl: null,
+      instrumentalUrl: null,
+      atmosUrl: null
+    },
+    collabs: [],
+    writers: [],
+    credits: []
+  };
+}
+
+function renderArtistsForOwner(ownerUid){
+  const select = document.getElementById("mainArtistSelect");
+  select.innerHTML = "";
+  artistsById = {};
+
+  const list = artistsAll.filter(a => a.ownerUid === ownerUid && !a.deleted);
+
+  if (!list.length){
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Aucun artiste pour ce compte";
+    select.appendChild(opt);
+    return;
+  }
+
+  list.forEach(a => {
+    artistsById[a.id] = a.name || ("Artiste " + a.id);
+    const opt = document.createElement("option");
+    opt.value = a.id;
+    opt.textContent = artistsById[a.id];
+    select.appendChild(opt);
+  });
+}
+
+async function loadOwnersAndArtists(){
+  const ownerSelect = document.getElementById("ownerUidSelect");
+  ownerSelect.innerHTML = "";
+  artistsAll = [];
+  ownerLabelByUid = {};
+
+  try {
+    console.log("📊 Chargement des artistes...");
+    // Charger TOUS les artistes (lecture publique) et compter par propriétaire
+    const artistSnap = await withTimeout(getDocs(collection(db, "artists")), 10000, "lecture collection artists");
+    const ownerMap = {};
+    
+    artistSnap.forEach(d => {
+      const data = d.data() || {};
+      const ownerUid = clean(data.ownerUid);
+      if (!ownerUid) return;
+      
+      artistsAll.push({
+        id: d.id,
+        ownerUid,
+        name: clean(data.name) || ("Artiste " + d.id),
+        displayName: clean(data.displayName) || "",
+        spotify: clean(data.spotify) || "",
+        appleMusic: clean(data.appleMusic) || "",
+        deleted: !!data.deleted
+      });
+      if (!ownerMap[ownerUid]) ownerMap[ownerUid] = 0;
+      ownerMap[ownerUid] += 1;
+    });
+    console.log(`✅ ${artistsAll.length} artistes chargés`);
+
+    // Builder la liste des propriétaires uniques à partir des artistes
+    const allOwnerUids = Object.keys(ownerMap).sort();
+
+    // Charger les infos utilisateur pour chaque propriétaire
+    console.log("👥 Chargement des noms propriétaires...");
+    for (const uid of allOwnerUids) {
+      try {
+        const userSnap = await withTimeout(getDoc(doc(db, "users", uid)), 3000, `lecture user ${uid}`);
+        if (userSnap.exists()) {
+          const userData = userSnap.data() || {};
+          const label = clean(userData.displayName) || clean(userData.email) || uid;
+          ownerLabelByUid[uid] = label;
+        } else {
+          ownerLabelByUid[uid] = uid;
+        }
+      } catch (e) {
+        console.warn(`⚠️ Impossible de charger infos pour ${uid}:`, e?.message);
+        ownerLabelByUid[uid] = uid;
+      }
+    }
+    console.log(`✅ Noms propriétaires chargés`);
+
+    if (!allOwnerUids.length){
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Aucun artiste trouvé";
+      ownerSelect.appendChild(opt);
+      renderArtistsForOwner("");
+      return;
+    }
+
+    // Trier par nom du propriétaire
+    allOwnerUids.sort((a, b) => {
+      const labelA = ownerLabel(a).toLowerCase();
+      const labelB = ownerLabel(b).toLowerCase();
+      return labelA.localeCompare(labelB, "fr", { sensitivity: "base" });
+    });
+
+    // Afficher tous les propriétaires avec le nombre d'artistes
+    allOwnerUids.forEach(uid => {
+      const opt = document.createElement("option");
+      opt.value = uid;
+      const count = ownerMap[uid] || 0;
+      opt.textContent = `${ownerLabel(uid)} (${count} artiste${count > 1 ? "s" : ""})`;
+      ownerSelect.appendChild(opt);
+    });
+
+    ownerSelect.addEventListener("change", () => {
+      renderArtistsForOwner(ownerSelect.value);
+      renderRecap();
+    });
+
+    renderArtistsForOwner(ownerSelect.value);
+  } catch (e) {
+    console.error("❌ Erreur dans loadOwnersAndArtists:", e);
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = `⚠️ Erreur: ${e?.message || String(e)}`;
+    ownerSelect.appendChild(opt);
+  }
+}
+
+window.addReleaseCollab = function(prefill=false){
+  const div = document.createElement("div");
+  div.className = "box";
+  
+  // Créer le select avec les artistes Firestore
+  let artistOptionsHtml = '<option value="">--- Sélectionner artiste (optionnel) ---</option>';
+  const activeArtists = artistsAll.filter(a => !a.deleted);
+  activeArtists.forEach(artist => {
+    artistOptionsHtml += `<option value="${esc(artist.id)}" data-spotify="${esc(artist.spotify)}" data-apple="${esc(artist.appleMusic)}" data-name="${esc(artist.name)}">${esc(artist.name)}</option>`;
+  });
+  
+  div.innerHTML = `
+    <div class="pill">Collaboration (release)</div>
+    <select class="collabArtistSelect" onchange="window.onCollabArtistSelected(this)">
+      ${artistOptionsHtml}
+    </select>
+    <input class="collabName" placeholder="Nom artiste" value="${prefill ? "Feat Artist" : ""}">
+    <input class="collabSpotify" placeholder="Lien Spotify" value="">
+    <input class="collabApple" placeholder="Lien Apple Music" value="">
+    <div class="miniActions">
+      <button class="removeBtn" type="button" onclick="this.closest('.box').remove(); window.refreshRecap();">Supprimer</button>
+    </div>
+  `;
+  document.getElementById("releaseCollabContainer").appendChild(div);
+};
+
+window.onCollabArtistSelected = function(selectEl){
+  const box = selectEl.closest('.box');
+  if (!box) return;
+  
+  const selectedOption = selectEl.options[selectEl.selectedIndex];
+  if (!selectedOption || !selectedOption.value) return;
+  
+  const name = selectedOption.getAttribute('data-name') || '';
+  const spotify = selectedOption.getAttribute('data-spotify') || '';
+  const apple = selectedOption.getAttribute('data-apple') || '';
+  
+  box.querySelector('.collabName').value = name;
+  box.querySelector('.collabSpotify').value = spotify;
+  box.querySelector('.collabApple').value = apple;
+};
+
+function readCollabsFrom(containerEl){
+  const arr = [];
+  containerEl.querySelectorAll(".box").forEach(box=>{
+    const name = clean(box.querySelector(".collabName")?.value);
+    const spotifyUrl = clean(box.querySelector(".collabSpotify")?.value);
+    const appleMusicUrl = clean(box.querySelector(".collabApple")?.value);
+    const any = name || spotifyUrl || appleMusicUrl;
+    if (!any) return;
+    if (!name || !spotifyUrl || !appleMusicUrl){
+      throw new Error("Collaboration incomplète : nom + lien Spotify + lien Apple Music obligatoires.");
+    }
+    arr.push({ name, spotifyUrl, appleMusicUrl });
+  });
+  return arr;
+}
+
+function readWritersFrom(containerEl){
+  const arr = [];
+  containerEl.querySelectorAll(".box").forEach(box=>{
+    const name = clean(box.querySelector(".writerName")?.value);
+    const role = clean(box.querySelector(".writerRole")?.value);
+    const any = name || role;
+    if (!any) return;
+    if (!name) throw new Error("Écrivain incomplet : le nom est obligatoire.");
+    arr.push({ name, role: role || "composer_lyricist" });
+  });
+  return arr;
+}
+
+function readCreditsFrom(containerEl){
+  const arr = [];
+  containerEl.querySelectorAll(".box").forEach(box=>{
+    const instrument = clean(box.querySelector(".creditInstrument")?.value);
+    const name = clean(box.querySelector(".creditName")?.value);
+    const any = instrument || name;
+    if (!any) return;
+    if (!instrument || !name) throw new Error("Crédit incomplet : instrument + nom obligatoires.");
+    arr.push({ instrument, name });
+  });
+  return arr;
+}
+
+function renderTrackList(){
+  const root = document.getElementById("tracksList");
+
+  if (!tracksState.length){
+    root.innerHTML = `<div class="box muted">Aucune piste pour le moment.</div>`;
+    refreshRecap();
+    return;
+  }
+
+  root.innerHTML = `
+    <div class="tracksTable">
+      <div class="trackRow trackHeader">
+        <div>Titre</div>
+        <div>Langue</div>
+        <div>Apple Master</div>
+        <div>État</div>
+      </div>
+      ${tracksState.map((track, index)=>{
+        const hasAudio = !!(track.files?.audioFile || track.files?.audioUrl);
+        return `
+          <div class="trackRow" data-track-index="${index}">
+            <div class="trackTitleCell">${index + 1}. ${esc(clean(track.title) || `Piste ${index + 1}`)}</div>
+            <div>${esc(clean(track.language) || "-")}</div>
+            <div>${esc(clean(track.appleMasteringEmail) || "-")}</div>
+            <div><span class="trackTag">${hasAudio ? "Audio OK" : "Audio manquant"}</span></div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  root.querySelectorAll(".trackRow[data-track-index]").forEach(row=>{
+    row.addEventListener("click", ()=>openTrackModal(Number(row.dataset.trackIndex)));
+  });
+
+  refreshRecap();
+}
+
+function setModalError(msg=""){
+  const box = document.getElementById("trackModalErrors");
+  box.textContent = msg;
+  box.classList.toggle("hidden", !msg);
+}
+
+function markModalDirty(){ modalDirty = true; }
+
+function createCollabBox(data={}){
+  const div = document.createElement("div");
+  div.className = "box";
+  
+  // Créer le select avec les artistes Firestore
+  let artistOptionsHtml = '<option value="">--- Sélectionner artiste (optionnel) ---</option>';
+  const activeArtists = artistsAll.filter(a => !a.deleted);
+  activeArtists.forEach(artist => {
+    const isSelected = data.name === artist.name ? 'selected' : '';
+    artistOptionsHtml += `<option value="${esc(artist.id)}" data-spotify="${esc(artist.spotify)}" data-apple="${esc(artist.appleMusic)}" data-name="${esc(artist.name)}" ${isSelected}>${esc(artist.name)}</option>`;
+  });
+  
+  div.innerHTML = `
+    <div class="pill">Collaboration (piste)</div>
+    <select class="collabArtistSelect">
+      ${artistOptionsHtml}
+    </select>
+    <input class="collabName" placeholder="Nom artiste" value="${esc(data.name || "")}">
+    <input class="collabSpotify" placeholder="Lien Spotify" value="${esc(data.spotifyUrl || "")}">
+    <input class="collabApple" placeholder="Lien Apple Music" value="${esc(data.appleMusicUrl || "")}">
+    <div class="miniActions"><button class="removeBtn" type="button">Supprimer</button></div>
+  `;
+  
+  const selectEl = div.querySelector(".collabArtistSelect");
+  selectEl.addEventListener("change", ()=>{
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    if (!selectedOption.value) return;
+    
+    const name = selectedOption.getAttribute('data-name') || '';
+    const spotify = selectedOption.getAttribute('data-spotify') || '';
+    const apple = selectedOption.getAttribute('data-apple') || '';
+    
+    div.querySelector('.collabName').value = name;
+    div.querySelector('.collabSpotify').value = spotify;
+    div.querySelector('.collabApple').value = apple;
+    markModalDirty();
+  });
+  
+  div.querySelector(".removeBtn").addEventListener("click", ()=>{ div.remove(); markModalDirty(); });
+  return div;
+}
+
+function createWriterBox(data={}){
+  const role = data.role || "composer_lyricist";
+  const div = document.createElement("div");
+  div.className = "box";
+  div.innerHTML = `
+    <div class="pill">Écrivain</div>
+    <input class="writerName" placeholder="Nom de l’écrivain" value="${esc(data.name || "")}">
+    <select class="writerRole">
+      <option value="composer" ${role === "composer" ? "selected" : ""}>Compositeur</option>
+      <option value="lyricist" ${role === "lyricist" ? "selected" : ""}>Parolier</option>
+      <option value="composer_lyricist" ${role === "composer_lyricist" ? "selected" : ""}>Compositeur & Parolier</option>
+    </select>
+    <div class="miniActions"><button class="removeBtn" type="button">Supprimer</button></div>
+  `;
+  div.querySelector(".removeBtn").addEventListener("click", ()=>{ div.remove(); markModalDirty(); });
+  return div;
+}
+
+function createCreditBox(data={}){
+  const div = document.createElement("div");
+  div.className = "box";
+  div.innerHTML = `
+    <div class="pill">Crédit</div>
+    <div class="row2">
+      <input class="creditInstrument" placeholder="Instrument" value="${esc(data.instrument || "")}">
+      <input class="creditName" placeholder="Nom" value="${esc(data.name || "")}">
+    </div>
+    <div class="miniActions"><button class="removeBtn" type="button">Supprimer</button></div>
+  `;
+  div.querySelector(".removeBtn").addEventListener("click", ()=>{ div.remove(); markModalDirty(); });
+  return div;
+}
+
+function updateModalFileStatus(track){
+  const status = document.getElementById("modalFileStatus");
+  const chunks = [];
+  if (track.files?.audioFile) chunks.push(`Audio: ${track.files.audioFile.name}`);
+  else if (track.files?.audioUrl) chunks.push("Audio: déjà enregistré");
+  if (track.files?.instrumentalFile) chunks.push(`Instrumental: ${track.files.instrumentalFile.name}`);
+  else if (track.files?.instrumentalUrl) chunks.push("Instrumental: déjà enregistré");
+  if (track.files?.atmosFile) chunks.push(`Atmos: ${track.files.atmosFile.name}`);
+  else if (track.files?.atmosUrl) chunks.push("Atmos: déjà enregistré");
+  status.textContent = chunks.join(" | ") || "Aucun fichier sélectionné.";
+}
+
+function openTrackModal(index=null, prefill=false){
+  const isEdit = Number.isInteger(index) && index >= 0;
+  editingTrackIndex = isEdit ? index : null;
+  const sourceTrack = isEdit ? tracksState[index] : createEmptyTrack(prefill);
+
+  document.getElementById("trackModalTitle").textContent = isEdit ? `Modifier piste ${index + 1}` : "Ajouter une piste";
+  document.getElementById("deleteTrackBtn").classList.toggle("hidden", !isEdit);
+
+  document.getElementById("modalTrackTitle").value = sourceTrack.title || "";
+  document.getElementById("modalTrackVersion").value = sourceTrack.versionLine || "";
+  document.getElementById("modalTrackLanguage").value = sourceTrack.language || "";
+  document.getElementById("modalTrackGenre").value = sourceTrack.genre || "";
+  document.getElementById("modalExplicit").checked = !!sourceTrack.explicit;
+  document.getElementById("modalClean").checked = !!sourceTrack.cleanVersion;
+  document.getElementById("modalIsrc").value = sourceTrack.isrc || "";
+  document.getElementById("modalIswc").value = sourceTrack.iswc || "";
+  document.getElementById("modalPreviewStart").value = sourceTrack.previewStart ?? "";
+  document.getElementById("modalMasteringEmail").value = sourceTrack.appleMasteringEmail || "";
+  document.getElementById("modalLyrics").value = sourceTrack.lyrics || "";
+
+  document.getElementById("modalAudio").value = "";
+  document.getElementById("modalInstrumental").value = "";
+  document.getElementById("modalAtmos").value = "";
+
+  const collabRoot = document.getElementById("modalTrackCollabContainer");
+  const writersRoot = document.getElementById("modalWritersContainer");
+  const creditsRoot = document.getElementById("modalCreditsContainer");
+  collabRoot.innerHTML = "";
+  writersRoot.innerHTML = "";
+  creditsRoot.innerHTML = "";
+
+  (sourceTrack.collabs || []).forEach(c=>collabRoot.appendChild(createCollabBox(c)));
+  (sourceTrack.writers || []).forEach(w=>writersRoot.appendChild(createWriterBox(w)));
+  (sourceTrack.credits || []).forEach(c=>creditsRoot.appendChild(createCreditBox(c)));
+
+  setModalError("");
+  updateModalFileStatus(sourceTrack);
+  modalDirty = false;
+  document.getElementById("trackModalOverlay").classList.remove("hidden");
+}
+
+function closeTrackModal(force=false){
+  if (!force && modalDirty){
+    const ok = window.confirm("Des modifications n'ont pas été enregistrées. Fermer quand même ?");
+    if (!ok) return;
+  }
+  document.getElementById("trackModalOverlay").classList.add("hidden");
+  editingTrackIndex = null;
+  modalDirty = false;
+  setModalError("");
+}
+
+function saveTrackFromModal(){
+  try{
+    const existingTrack = Number.isInteger(editingTrackIndex) ? tracksState[editingTrackIndex] : createEmptyTrack(false);
+    const title = clean(document.getElementById("modalTrackTitle").value);
+    if (!title) throw new Error("Titre piste obligatoire.");
+
+    const isrc = clean(document.getElementById("modalIsrc").value);
+    if (isrc && !/^[A-Z]{2}[A-Z0-9]{3}\d{7}$/i.test(isrc)) throw new Error("Format ISRC invalide (exemple: FRABC2400001).");
+
+    const previewStartRaw = clean(document.getElementById("modalPreviewStart").value);
+    const previewStart = previewStartRaw ? Number(previewStartRaw) : null;
+    if (previewStartRaw && (!Number.isFinite(previewStart) || previewStart < 0)) throw new Error("Preview start doit être un nombre >= 0.");
+
+    const masteringEmail = clean(document.getElementById("modalMasteringEmail").value);
+    if (masteringEmail && !/^\S+@\S+\.\S+$/.test(masteringEmail)) throw new Error("Email de mastering invalide.");
+
+    const collabs = readCollabsFrom(document.getElementById("modalTrackCollabContainer"));
+    const writers = readWritersFrom(document.getElementById("modalWritersContainer"));
+    const credits = readCreditsFrom(document.getElementById("modalCreditsContainer"));
+
+    const audioFile = document.getElementById("modalAudio").files?.[0] || existingTrack.files?.audioFile || null;
+    const instrumentalFile = document.getElementById("modalInstrumental").files?.[0] || existingTrack.files?.instrumentalFile || null;
+    const atmosFile = document.getElementById("modalAtmos").files?.[0] || existingTrack.files?.atmosFile || null;
+
+    if (!audioFile && !existingTrack.files?.audioUrl) throw new Error("Audio principal obligatoire.");
+
+    const nextTrack = {
+      title,
+      versionLine: clean(document.getElementById("modalTrackVersion").value) || null,
+      language: clean(document.getElementById("modalTrackLanguage").value) || null,
+      explicit: !!document.getElementById("modalExplicit").checked,
+      cleanVersion: !!document.getElementById("modalClean").checked,
+      isrc: isrc || null,
+      iswc: clean(document.getElementById("modalIswc").value) || null,
+      genre: clean(document.getElementById("modalTrackGenre").value) || null,
+      previewStart,
+      appleMasteringEmail: masteringEmail || null,
+      lyrics: clean(document.getElementById("modalLyrics").value) || null,
+      files: {
+        audioFile,
+        instrumentalFile,
+        atmosFile,
+        audioUrl: existingTrack.files?.audioUrl || null,
+        instrumentalUrl: existingTrack.files?.instrumentalUrl || null,
+        atmosUrl: existingTrack.files?.atmosUrl || null
+      },
+      collabs,
+      writers,
+      credits
+    };
+
+    if (Number.isInteger(editingTrackIndex)) tracksState[editingTrackIndex] = nextTrack;
+    else tracksState.push(nextTrack);
+
+    renderTrackList();
+    closeTrackModal(true);
+  }catch(err){
+    setModalError(err?.message || String(err));
+  }
+}
+
+function deleteCurrentTrack(){
+  if (!Number.isInteger(editingTrackIndex)) return;
+  tracksState.splice(editingTrackIndex, 1);
+  renderTrackList();
+  closeTrackModal(true);
+}
+
+function renderRecap(){
+  const recap = document.getElementById("recapContainer");
+  const artistId = clean(document.getElementById("mainArtistSelect")?.value);
+  const artistName = artistsById[artistId] || "—";
+  const cover = document.getElementById("cover")?.files?.[0] || null;
+  const motion11 = document.getElementById("motion11")?.files?.[0] || null;
+  const motion34 = document.getElementById("motion34")?.files?.[0] || null;
+
+  let releaseCollabs = [];
+  try{ releaseCollabs = readCollabsFrom(document.getElementById("releaseCollabContainer")); }catch{}
+
+  const header = `
+Titre: ${clean(document.getElementById("releaseTitle")?.value) || "—"}
+Compte: ${ownerLabel(clean(document.getElementById("ownerUidSelect")?.value))}
+Artiste: ${artistName}
+Type: ${clean(document.getElementById("releaseType")?.value) || "—"}
+Version: ${clean(document.getElementById("releaseVersion")?.value) || "—"}
+Langue: ${clean(document.getElementById("releaseLanguage")?.value) || "—"}
+Instrumentale: ${document.getElementById("isInstrumentalRelease")?.checked ? "Oui" : "Non"}
+Date sortie: ${clean(document.getElementById("releaseDate")?.value) || "—"}
+Heure: ${clean(document.getElementById("releaseTime")?.value) || "—"}
+Fuseau: ${clean(document.getElementById("timeZone")?.value) || "—"}
+Date originale: ${clean(document.getElementById("originalDate")?.value) || "—"}
+Précommande: ${clean(document.getElementById("preorderDate")?.value) || "—"}
+Cover: ${cover ? cover.name : "—"}
+Apple Motion 1:1: ${motion11 ? motion11.name : "—"}
+Apple Motion 3:4: ${motion34 ? motion34.name : "—"}
+Collabs release: ${releaseCollabs.length}
+`.trim();
+
+  const tracksHtml = tracksState.length
+    ? tracksState.map((t, i)=>`
+      <div class="box recapPre">
+Piste ${i + 1}
+Titre: ${esc(clean(t.title) || "—")}
+Version: ${esc(clean(t.versionLine) || "—")}
+Langue: ${esc(clean(t.language) || "—")}
+ISRC: ${esc(clean(t.isrc) || "—")}
+ISWC: ${esc(clean(t.iswc) || "—")}
+Genre: ${esc(clean(t.genre) || "—")}
+Preview start: ${t.previewStart ?? "—"}
+Explicit: ${t.explicit ? "Oui" : "Non"}
+Clean: ${t.cleanVersion ? "Oui" : "Non"}
+Apple Mastering Email: ${esc(clean(t.appleMasteringEmail) || "—")}
+Lyrics: ${esc(clean(t.lyrics) || "—")}
+Audio: ${esc(t.files?.audioFile?.name || "—")}
+Instrumental: ${esc(t.files?.instrumentalFile?.name || "—")}
+Atmos: ${esc(t.files?.atmosFile?.name || "—")}
+Collabs: ${t.collabs?.length || 0}
+Writers: ${t.writers?.length || 0}
+Crédits: ${t.credits?.length || 0}
+      </div>
+    `).join("")
+    : `<div class="box muted">Aucune piste.</div>`;
+
+  recap.innerHTML = `
+    <div class="box recapPre">${esc(header)}</div>
+    <h3 style="margin:12px 0 8px">Pistes (${tracksState.length})</h3>
+    <div class="recapGrid">${tracksHtml}</div>
+  `;
+}
+
+window.refreshRecap = renderRecap;
+
+function setupTrackModalEvents(){
+  const overlay = document.getElementById("trackModalOverlay");
+
+  document.getElementById("addTrackBtn").addEventListener("click", ()=>openTrackModal(null, false));
+  document.getElementById("addTrackPrefillBtn").addEventListener("click", ()=>openTrackModal(null, true));
+
+  document.getElementById("closeTrackModalBtn").addEventListener("click", ()=>closeTrackModal(false));
+  document.getElementById("cancelTrackBtn").addEventListener("click", ()=>closeTrackModal(false));
+  document.getElementById("saveTrackBtn").addEventListener("click", saveTrackFromModal);
+  document.getElementById("deleteTrackBtn").addEventListener("click", deleteCurrentTrack);
+
+  overlay.addEventListener("click", (event)=>{ if (event.target === overlay) closeTrackModal(false); });
+
+  document.getElementById("modalAddCollabBtn").addEventListener("click", ()=>{
+    document.getElementById("modalTrackCollabContainer").appendChild(createCollabBox());
+    markModalDirty();
+  });
+  document.getElementById("modalAddWriterBtn").addEventListener("click", ()=>{
+    document.getElementById("modalWritersContainer").appendChild(createWriterBox());
+    markModalDirty();
+  });
+  document.getElementById("modalAddCreditBtn").addEventListener("click", ()=>{
+    document.getElementById("modalCreditsContainer").appendChild(createCreditBox());
+    markModalDirty();
+  });
+
+  overlay.addEventListener("input", (event)=>{
+    if (!overlay.classList.contains("hidden") && overlay.contains(event.target)) {
+      markModalDirty();
+      if (["modalAudio", "modalInstrumental", "modalAtmos"].includes(event.target.id)) {
+        const source = Number.isInteger(editingTrackIndex) ? tracksState[editingTrackIndex] : createEmptyTrack(false);
+        const ghost = {
+          files: {
+            ...source.files,
+            audioFile: document.getElementById("modalAudio").files?.[0] || source.files?.audioFile || null,
+            instrumentalFile: document.getElementById("modalInstrumental").files?.[0] || source.files?.instrumentalFile || null,
+            atmosFile: document.getElementById("modalAtmos").files?.[0] || source.files?.atmosFile || null
+          }
+        };
+        updateModalFileStatus(ghost);
+      }
+    }
+  });
+}
+
+function setupMotionArtModal(){
+  const overlay = document.getElementById("motionArtModalOverlay");
+  const openBtn = document.getElementById("openMotionArtBtn");
+  const closeBtn = document.getElementById("closeMotionArtBtn");
+  const cancelBtn = document.getElementById("cancelMotionArtBtn");
+  const saveBtn = document.getElementById("saveMotionArtBtn");
+  const motion11El = document.getElementById("motion11");
+  const motion34El = document.getElementById("motion34");
+  const summaryEl = document.getElementById("motionArtSummary");
+
+  const refreshSummary = () => {
+    const n11 = motion11El?.files?.[0]?.name || "—";
+    const n34 = motion34El?.files?.[0]?.name || "—";
+    if (n11 === "—" && n34 === "—") {
+      summaryEl.textContent = "Aucune pochette animée sélectionnée.";
+      return;
+    }
+    summaryEl.textContent = `1:1: ${n11} • 3:4: ${n34}`;
+  };
+
+  const closeModal = () => {
+    overlay.classList.add("hidden");
+    refreshSummary();
+    renderRecap();
+  };
+
+  openBtn?.addEventListener("click", () => overlay.classList.remove("hidden"));
+  closeBtn?.addEventListener("click", closeModal);
+  cancelBtn?.addEventListener("click", closeModal);
+  saveBtn?.addEventListener("click", closeModal);
+
+  overlay?.addEventListener("click", (event) => {
+    if (event.target === overlay) closeModal();
+  });
+
+  motion11El?.addEventListener("change", refreshSummary);
+  motion34El?.addEventListener("change", refreshSummary);
+  refreshSummary();
+}
+
+function setupHashNavigation(){
+  const allowed = ["release", "artwork", "tracks", "recap"];
+
+  function getHashKey(){
+    const key = clean((window.location.hash || "").replace("#", "")).toLowerCase();
+    return allowed.includes(key) ? key : "release";
+  }
+
+  function applySection(hashKey, smooth=true){
+    document.querySelectorAll(".sectionGroup").forEach(group=>{
+      group.classList.toggle("active", group.dataset.hash === hashKey);
+    });
+    document.querySelectorAll(".tabBtn").forEach(btn=>{
+      btn.classList.toggle("active", btn.dataset.hash === hashKey);
+    });
+    if (hashKey === "recap") renderRecap();
+    const target = document.querySelector(`.sectionGroup[data-hash="${hashKey}"]`);
+    if (target) target.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+  }
+
+  document.querySelectorAll(".tabBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const next = btn.dataset.hash;
+      if (window.location.hash !== `#${next}`) window.location.hash = next;
+    });
+  });
+
+  document.querySelectorAll("[data-next]").forEach(btn=>btn.addEventListener("click", ()=>{ window.location.hash = btn.dataset.next; }));
+  document.querySelectorAll("[data-prev]").forEach(btn=>btn.addEventListener("click", ()=>{ window.location.hash = btn.dataset.prev; }));
+
+  window.addEventListener("hashchange", ()=>applySection(getHashKey(), true));
+  applySection(getHashKey(), false);
+}
+
+function bindRecapAutoRefresh(){
+  document.querySelectorAll("input,select,textarea").forEach(el=>{
+    el.addEventListener("input", ()=>{
+      if (clean((window.location.hash || "").replace("#", "")) === "recap") renderRecap();
+    });
+    el.addEventListener("change", ()=>{
+      if (clean((window.location.hash || "").replace("#", "")) === "recap") renderRecap();
+    });
+  });
+}
+
+function toastAndRedirect(message, url) {
+  sessionStorage.setItem("toast", message);
+  window.location.href = url;
+}
+
+async function createRelease(){
+  const createBtn = document.getElementById("createBtn");
+  if (!auth.currentUser) { alert("Tu dois être connecté."); return; }
+  if (createBtn.dataset.busy === "1") return;
+
+  createBtn.dataset.busy = "1";
+  createBtn.disabled = true;
+  const originalText = createBtn.textContent;
+  createBtn.textContent = "Envoi…";
+
+  try {
+    dbg("🚀 Début envoi release");
+    const ownerUid = clean(document.getElementById("ownerUidSelect")?.value);
+    if (!ownerUid) throw new Error("Sélectionne un compte propriétaire.");
+    const uploadUid = clean(currentUser?.uid) || ownerUid;
+    const sel = document.getElementById("mainArtistSelect");
+    const artistId = sel?.value || "";
+    if (!artistId) throw new Error("Sélectionne un artiste.");
+
+    const releaseTitle = clean(document.getElementById("releaseTitle")?.value);
+    const releaseType = clean(document.getElementById("releaseType")?.value);
+    const releaseVersion = clean(document.getElementById("releaseVersion")?.value);
+    const releaseLanguage = clean(document.getElementById("releaseLanguage")?.value);
+    const isInstrumentalRelease = !!document.getElementById("isInstrumentalRelease")?.checked;
+    if (!releaseTitle) throw new Error("Titre de la sortie obligatoire.");
+    if (!releaseType) throw new Error("Type de sortie obligatoire.");
+
+    const releaseDate = clean(document.getElementById("releaseDate")?.value);
+    const releaseTime = clean(document.getElementById("releaseTime")?.value);
+    const timeZone = clean(document.getElementById("timeZone")?.value);
+    const originalDate = clean(document.getElementById("originalDate")?.value);
+    const preorderDate = clean(document.getElementById("preorderDate")?.value);
+
+    const todayIso = new Date(Date.now() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
+    if (releaseDate && releaseDate < todayIso) {
+      throw new Error("La date de sortie ne peut pas être inférieure à aujourd'hui.");
+    }
+    if (originalDate && originalDate > todayIso) {
+      throw new Error("La date originale ne peut pas être supérieure à la date du jour.");
+    }
+
+    const coverFile = document.getElementById("cover")?.files?.[0] || null;
+    const motion11File = document.getElementById("motion11")?.files?.[0] || null;
+    const motion34File = document.getElementById("motion34")?.files?.[0] || null;
+    if (motion11File && !isMovFile(motion11File)) throw new Error("Apple Motion 1:1 doit être un fichier .mov");
+    if (motion34File && !isMovFile(motion34File)) throw new Error("Apple Motion 3:4 doit être un fichier .mov");
+    if (!coverFile) throw new Error("La pochette 1:1 est obligatoire.");
+
+    const releaseCollabs = readCollabsFrom(document.getElementById("releaseCollabContainer"));
+    if (!tracksState.length) throw new Error("Ajoute au moins une piste.");
+
+    const releasePathId = (crypto.randomUUID && crypto.randomUUID()) || (Date.now() + "_" + Math.random().toString(16).slice(2));
+
+    dbg("📦 Upload assets release...");
+    const coverUrl = await uploadFile(coverFile, `releases/${uploadUid}/${releasePathId}/assets/cover_${coverFile.name}`);
+    const motion11Url = motion11File ? await uploadFile(motion11File, `releases/${uploadUid}/${releasePathId}/assets/motion_1x1_${motion11File.name}`) : null;
+    const motion34Url = motion34File ? await uploadFile(motion34File, `releases/${uploadUid}/${releasePathId}/assets/motion_3x4_${motion34File.name}`) : null;
+
+    const tracks = [];
+
+    for (let idx = 0; idx < tracksState.length; idx++) {
+      const track = tracksState[idx];
+      const rank = idx + 1;
+      dbg(`🎵 Upload piste ${rank}/${tracksState.length}...`);
+      const title = clean(track.title);
+      if (!title) throw new Error(`Titre piste obligatoire (piste ${rank}).`);
+
+      const audioFile = track.files?.audioFile || null;
+      if (!audioFile) throw new Error(`Audio principal obligatoire (piste ${rank}).`);
+
+      const instrumentalFile = track.files?.instrumentalFile || null;
+      const atmosFile = track.files?.atmosFile || null;
+
+      const audioUrl = await uploadFile(audioFile, `releases/${uploadUid}/${releasePathId}/tracks/${rank}/audio_${audioFile.name}`);
+      const instrumentalUrl = instrumentalFile ? await uploadFile(instrumentalFile, `releases/${uploadUid}/${releasePathId}/tracks/${rank}/instrumental_${instrumentalFile.name}`) : null;
+      const atmosUrl = atmosFile ? await uploadFile(atmosFile, `releases/${uploadUid}/${releasePathId}/tracks/${rank}/atmos_${atmosFile.name}`) : null;
+
+      tracks.push({
+        idx: rank,
+        title,
+        versionLine: clean(track.versionLine) || null,
+        language: clean(track.language) || null,
+        explicit: !!track.explicit,
+        cleanVersion: !!track.cleanVersion,
+        isrc: clean(track.isrc) || null,
+        iswc: clean(track.iswc) || null,
+        genre: clean(track.genre) || null,
+        previewStart: Number.isFinite(track.previewStart) ? track.previewStart : null,
+        lyrics: clean(track.lyrics) || null,
+        appleDigitalMaster: { masteringEmail: clean(track.appleMasteringEmail) || null },
+        files: {
+          audioUrl,
+          instrumentalUrl,
+          atmosUrl,
+          audioFileName: audioFile?.name || null,
+          instrumentalFileName: instrumentalFile?.name || null,
+          atmosFileName: atmosFile?.name || null
+        },
+        collabs: track.collabs || [],
+        writers: track.writers || [],
+        credits: track.credits || []
+      });
+    }
+
+    let artistName = artistsById[artistId] || null;
+    if (!artistName){
+      try{
+        const artistSnap = await withTimeout(getDoc(doc(db, "artists", artistId)), 10000, "lecture artiste");
+        if (artistSnap.exists()) artistName = artistSnap.data()?.name || null;
+      }catch{}
+    }
+
+    const payload = {
+      ownerUid: ownerUid,
+      artistId,
+      artistName: artistName || null,
+
+      title: releaseTitle,
+      type: releaseType,
+      versionLine: releaseVersion || null,
+      language: releaseLanguage || null,
+      instrumental: isInstrumentalRelease,
+
+      schedule: {
+        releaseDate: releaseDate || null,
+        releaseTime: releaseTime || null,
+        timeZone: timeZone || null,
+        originalDate: originalDate || null,
+        preorderDate: preorderDate || null
+      },
+
+      assets: {
+        coverUrl,
+        coverFileName: coverFile?.name || null,
+        appleMotion: {
+          oneOneUrl: motion11Url,
+          oneOneFileName: motion11File?.name || null,
+          threeFourUrl: motion34Url,
+          threeFourFileName: motion34File?.name || null
+        }
+      },
+
+      collabsRelease: releaseCollabs,
+      tracks,
+
+      statusUser: "Envoyée à Morgann Music CP (vérification 1)",
+      statusAdmin: "À vérifier (1)",
+      statusPlatform: "En attente (vérification 2)",
+
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    dbg("✍️ Écriture Firestore…");
+    const releaseRef = await withTimeout(addDoc(collection(db, "releases"), payload), 20000, "écriture release");
+
+    toastAndRedirect("Sortie créée depuis l’admin.", `/dash/admin/release.html?id=${releaseRef.id}`);
+  } catch (err) {
+    console.error("🔥 Erreur détaillée:", {
+      code: err?.code,
+      message: err?.message,
+      fullError: err
+    });
+    const code = clean(err?.code);
+    let msg = err?.message || String(err);
+
+    if (code === "storage/unauthorized") {
+      msg = "Permission refusée sur le stockage. Vérifie tes règles Firebase Storage.";
+      console.error("📝 UID de l'utilisateur:", currentUser?.uid);
+      console.error("📝 Email:", currentUser?.email);
+    } else if (code === "permission-denied") {
+      msg = "Permission refusée sur Firestore (création de la release). Vérifie les règles Firestore de la collection releases.";
+    } else if (code === "storage/retry-limit-exceeded") {
+      msg = "Upload interrompu (réseau instable ou fichier trop volumineux). Réessaie.";
+    } else if (msg.toLowerCase().includes("délai dépassé")) {
+      msg = "Envoi trop long : vérifie la connexion et la taille des fichiers, puis réessaie.";
+    }
+
+    dbg("🔥 Erreur: " + msg);
+    alert(msg);
+  } finally {
+    createBtn.dataset.busy = "0";
+    createBtn.disabled = false;
+    createBtn.textContent = originalText || "Créer la sortie";
+  }
+}
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    alert("Non connecté.");
+    return;
+  }
+
+  const profileSnap = await getDoc(doc(db, "users", user.uid));
+  const role = profileSnap.exists() ? clean(profileSnap.data()?.role).toLowerCase() : "";
+  
+  // Debug: log les infos de l'utilisateur
+  console.log("👤 Utilisateur connecté:", {
+    uid: user.uid,
+    email: user.email,
+    role: role,
+    userData: profileSnap.exists() ? profileSnap.data() : null
+  });
+  
+  if (role !== "admin"){
+    alert("Accès réservé aux admins.");
+    window.location.href = "/dash/index.html";
+    return;
+  }
+
+  currentUser = user;
+  
+  try {
+    await loadOwnersAndArtists();
+  } catch (e) {
+    console.error("❌ Erreur lors du chargement des artistes/comptes:", e);
+    dbg("❌ Erreur: " + (e?.message || String(e)));
+    alert("Erreur lors du chargement des données. Vérifie les permissions Firestore.");
+  }
+
+  setupTrackModalEvents();
+  setupMotionArtModal();
+  setupHashNavigation();
+  bindRecapAutoRefresh();
+
+  const todayIso = new Date(Date.now() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
+  const releaseDateEl = document.getElementById("releaseDate");
+  const originalDateEl = document.getElementById("originalDate");
+  if (releaseDateEl) releaseDateEl.min = todayIso;
+  if (originalDateEl) originalDateEl.max = todayIso;
+
+  document.getElementById("createBtn").addEventListener("click", createRelease);
+
+  if (!tracksState.length) tracksState.push(createEmptyTrack(true));
+  renderTrackList();
+  renderRecap();
+
+  dbg("✅ Script chargé.");
+});
+
+
+</script>
+
+</body>
+</html>

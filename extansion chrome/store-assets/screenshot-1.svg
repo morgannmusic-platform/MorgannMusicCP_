@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" role="img" aria-label="MMCP Connect Chrome Extension">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e2e2e2" />
+      <stop offset="100%" stop-color="#c9d6ff" />
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.98" />
+      <stop offset="100%" stop-color="#f7f9ff" stop-opacity="0.96" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#5b74c4" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <rect width="1280" height="800" fill="url(#bg)" />
+  <rect x="60" y="58" width="1160" height="684" rx="40" fill="#fbfcff" stroke="#d7def4" filter="url(#shadow)" />
+  <rect x="90" y="118" width="1100" height="594" rx="34" fill="url(#card)" stroke="#e2e7f8" />
+
+  <image href="../icon-128.png" x="118" y="105" width="100" height="100" preserveAspectRatio="xMidYMid meet" />
+  <text x="240" y="160" font-family="Poppins, Arial, sans-serif" font-size="54" font-weight="700" fill="#182033">MMCP Connect</text>
+  <text x="240" y="202" font-family="Poppins, Arial, sans-serif" font-size="28" font-weight="600" fill="#7494ec">Suivez vos sorties et notifications directement dans Chrome.</text>
+  <text x="120" y="252" font-family="Poppins, Arial, sans-serif" font-size="24" fill="#41506f">Extension officielle MMCP pour consulter rapidement vos sorties, votre session et vos notifications.</text>
+
+  <rect x="120" y="320" width="600" height="370" rx="30" fill="#f7f9ff" stroke="#c4cff1" />
+  <rect x="146" y="346" width="548" height="80" rx="20" fill="#ffffff" stroke="#d2dcf5" />
+  <text x="176" y="380" font-family="Poppins, Arial, sans-serif" font-size="28" font-weight="700" fill="#182033">MMCP Connect</text>
+  <text x="176" y="405" font-family="Poppins, Arial, sans-serif" font-size="20" fill="#5d6782">Connecté en tant que artiste@mmcp.fr</text>
+
+  <rect x="146" y="450" width="548" height="96" rx="20" fill="#ffffff" stroke="#d6dff6" />
+  <text x="170" y="484" font-family="Poppins, Arial, sans-serif" font-size="24" font-weight="700" fill="#1d2740">Statut de tes sorties</text>
+  <text x="170" y="514" font-family="Poppins, Arial, sans-serif" font-size="20" font-weight="600" fill="#7494ec">2 sorties actives</text>
+  <text x="170" y="538" font-family="Poppins, Arial, sans-serif" font-size="20" fill="#5d6782">Validée par MMCP - 26 avril 2026</text>
+
+  <rect x="146" y="564" width="548" height="96" rx="20" fill="#ffffff" stroke="#d6dff6" />
+  <text x="170" y="598" font-family="Poppins, Arial, sans-serif" font-size="24" font-weight="700" fill="#1d2740">Notifications</text>
+  <text x="170" y="628" font-family="Poppins, Arial, sans-serif" font-size="20" font-weight="600" fill="#7494ec">1 notification non lue</text>
+  <text x="170" y="652" font-family="Poppins, Arial, sans-serif" font-size="20" fill="#5d6782">Le statut de ta sortie a avancé.</text>
+
+  <text x="800" y="360" font-family="Poppins, Arial, sans-serif" font-size="30" font-weight="700" fill="#182033">Fonctions principales</text>
+
+  <circle cx="810" cy="412" r="10" fill="#7494ec" />
+  <text x="836" y="420" font-family="Poppins, Arial, sans-serif" font-size="24" fill="#41506f">Connexion à votre compte MMCP</text>
+
+  <circle cx="810" cy="474" r="10" fill="#7494ec" />
+  <text x="836" y="482" font-family="Poppins, Arial, sans-serif" font-size="24" fill="#41506f">Lecture des statuts de sorties</text>
+
+  <circle cx="810" cy="536" r="10" fill="#7494ec" />
+  <text x="836" y="544" font-family="Poppins, Arial, sans-serif" font-size="24" fill="#41506f">Notifications navigateur automatiques</text>
+
+  <circle cx="810" cy="598" r="10" fill="#7494ec" />
+  <text x="836" y="606" font-family="Poppins, Arial, sans-serif" font-size="24" fill="#41506f">Design aligné sur le site MMCP</text>
+
+  <text x="120" y="732" font-family="Poppins, Arial, sans-serif" font-size="20" fill="#6d7892">Capture marketing générée pour la fiche Chrome Web Store</text>
+</svg>

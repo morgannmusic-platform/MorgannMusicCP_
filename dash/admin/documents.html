@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documents Admin - Morgann Music CP</title>
+  <link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+    <link rel="stylesheet" href="/assets/css/dash/artist-sidebar.css" />
+    <link rel="stylesheet" href="/assets/css/dash/admin/navbar.css" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body class="admin-with-sidebar">
+<style>
+
+        :root {
+      --bg: #e2e2e2;
+      --txt: #000000;
+      --bg2: #ffffff;
+      --stroke: rgba(0,0,0,.12);
+      --card: rgba(255,255,255,.78);
+      --muted: rgba(0,0,0,.58);
+      --blue: #2f63ff;
+      --green: #16a34a;
+      --amber: #d97706;
+      --red: #dc2626;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #414141;
+        --txt: #ffffff;
+        --bg2: #1e1e1e;
+        --stroke: rgba(255,255,255,.14);
+        --card: rgba(30,30,30,.78);
+        --muted: rgba(255,255,255,.65);
+        --blue: #3b82f6;
+        --green: #22c55e;
+        --amber: #f59e0b;
+        --red: #ef4444;
+      }
+    }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: Helvetica, sans-serif;
+    }
+
+      .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      border-bottom: 1px solid var(--stroke);
+      background: rgba(255,255,255,.45);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      z-index: 9999;
+    }
+
+        @media (prefers-color-scheme: dark) {
+      .topbar { background: rgba(30,30,30,.55); }
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .pill {
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(0,0,0,.04);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .pill { background: rgba(255,255,255,.06); }
+    }
+
+
+.wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 90px 18px 28px;
+    }
+
+    .main {
+        margin-top: 75px;
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+</style>
+
+ <header class="topbar">
+    <div class="brand">
+      <span>🛠️</span>
+      <span>Accueil Admin</span>
+      <span class="pill" id="whoami">Connexion...</span>
+    </div>
+    <div class="pill" id="todayLabel">—</div>
+  </header>
+  <main class="main">
+    <header class="admin-header" style="display:flex;align-items:center;justify-content:space-between;">
+      <h1>Gestion des documents</h1>
+      <button id="add-document-btn" class="btn"><i class='bx bx-plus'></i> Ajouter un document</button>
+    </header>
+    <section id="documents-list" style="margin-top:24px;">
+      <!-- Liste des documents ici, conteneur ajouté par JS -->
+    </section>
+    <style>
+      .documents-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-top: 12px;
+      }
+      .document-item {
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: 12px;
+        padding: 18px 20px;
+        min-width: 220px;
+        max-width: 320px;
+        box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .document-title {
+        font-weight: bold;
+        font-size: 1.1em;
+      }
+      .document-account {
+        color: var(--muted);
+        font-size: 0.95em;
+      }
+      .document-item .btn {
+        margin-right: 8px;
+        margin-bottom: 2px;
+        width: fit-content;
+      }
+      .danger-btn {
+        background: var(--red, #dc2626);
+        color: #fff;
+        border: none;
+        transition: background 0.2s;
+      }
+      .danger-btn:hover {
+        background: #b91c1c;
+      }
+    </style>
+  </main>
+
+  <!-- Popup ajout document -->
+  <div id="add-document-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="close-modal">&times;</span>
+      <h2>Ajouter un document</h2>
+      <form id="add-document-form">
+        <label for="account-select">Compte :</label>
+        <select id="account-select" required>
+          <option value="">Sélectionner un compte</option>
+          <!-- Options dynamiques -->
+        </select>
+        <label for="document-title">Titre du document :</label>
+        <input type="text" id="document-title" required />
+        <label for="document-file">Fichier :</label>
+        <input type="file" id="document-file" required />
+        <button type="submit" class="btn">Ajouter</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/assets/js/admin-documents.js"></script>
+    <script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const whoami = document.getElementById("whoami");
+    const todayLabel = document.getElementById("todayLabel");
+
+    const now = new Date();
+    todayLabel.textContent = now.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "long" });
+
+    async function ensureAdmin(user) {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const role = userSnap.exists() ? String(userSnap.data().role || "").toLowerCase() : "";
+      if (role !== "admin") {
+        window.location.href = "/dash/index.html";
+        return false;
+      }
+      whoami.textContent = user.email || "Admin";
+      return true;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+      await ensureAdmin(user);
+    });
+  </script>
+</body>
+</html>

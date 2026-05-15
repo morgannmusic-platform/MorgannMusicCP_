@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Catalogue | Morgann Music</title>
+  <meta property="og:image" content="/assets/img/Banières/artistes.png">
+  <meta property="og:description" content="Catalogue artistes et sorties Morgann Music avec lecture continue sans coupure." />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+</head>
+<body>
+  <style>
+    body {
+      padding: 0;
+    }
+  </style>
+  <div id="navbar-container"></div>
+  <main class="catalog-shell">
+    <header class="catalog-topbar">
+      <a class="catalog-brand" data-nav="home">
+        <strong>Morgann Music Catalogue</strong>
+        <span>Artistes, sorties, lecture continue</span>
+      </a>
+      <input id="catalog-search" class="catalog-search" type="search" placeholder="Rechercher un artiste, une sortie, un titre" />
+      <nav class="catalog-nav">
+        <a class="pill-link" href="/catalogue/index.html" data-nav="home">Accueil</a>
+        <a class="pill-link is-active" href="/catalogue/artistes.html" data-nav="artists">Artistes</a>
+        <a class="pill-link" href="/catalogue/sorties.html" data-nav="releases">Sorties</a>
+      </nav>
+    </header>
+    <section id="catalog-view" class="view-stack" aria-live="polite">
+      <div class="hero-card" style="display:block;padding:32px 32px 32px 32px;background:var(--bg);box-shadow:none;border:none;">
+        <h2 class="main-title" style="font-size:2.5rem;font-weight:900;text-align:left;margin-bottom:18px;letter-spacing:-1px;">Nos artistes</h2>
+        <div class="artists-row" id="artists-row">
+          <!-- Les artistes Firestore seront injectés ici -->
+        </div>
+        <style>
+        .artist-links-logos {
+          margin-top: 6px;
+          display: flex;
+          gap: 10px;
+          align-items: center;
+        }
+        .artist-links-logos img {
+          height: 22px;
+          width: auto;
+          opacity: 0.85;
+          vertical-align: middle;
+        }
+        </style>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/assets/js/listAllReleases.js"></script>
+  <script type="module">
+    import { listAllReleases } from '/assets/js/listAllReleases.js';
+    const searchInput = document.querySelector('.catalog-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', async (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        if (q.length < 2) return; // Ne cherche qu'à partir de 2 caractères
+        const releases = await listAllReleases();
+        const results = releases.filter(r =>
+          (r.title && r.title.toLowerCase().includes(q)) ||
+          (r.artistName && r.artistName.toLowerCase().includes(q))
+        );
+        // Affichage simple (console), à remplacer par un vrai dropdown ou suggestions
+        console.log('Résultats recherche releases:', results);
+      });
+    }
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+      measurementId: "G-FKSSXYEZF0"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    async function loadArtists() {
+      const artistsCol = collection(db, 'artists');
+      const artistsSnapshot = await getDocs(artistsCol);
+      const artists = [];
+      artistsSnapshot.forEach(doc => {
+        const art = doc.data();
+        art.id = doc.id;
+        if (!art.deleted) {
+          artists.push(art);
+        }
+      });
+      // Tri alphabétique par nom d'artiste
+      artists.sort((a, b) => (a.displayName || a.name || '').localeCompare(b.displayName || b.name || ''));
+      const row = document.getElementById('artists-row');
+      row.innerHTML = '<div class="mm-loader"><span></span><span></span><span></span></div>';
+      let html = '';
+      for (const art of artists) {
+        html += `
+          <a class="artist-card" href="/catalogue/artiste.html?id=${encodeURIComponent(art.id)}" style="text-decoration:none;color:inherit;position:relative;">
+            <span class="img-loader" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;display:flex;align-items:center;justify-content:center;">
+              <span class="mm-loader"><span></span><span></span><span></span></span>
+            </span>
+            <img class="artist-avatar" src="${(art.playProfileImageUrl || art.photoURL || '/assets/img/artists/default.jpg')}" alt="${art.displayName || art.name || ''}" style="display:block;" onload="this.previousElementSibling.style.display='none'" onerror="this.previousElementSibling.style.display='none'" />
+            <strong>${art.displayName || art.name || 'Artiste'}</strong>
+            <div class="artist-links-logos" style="margin-top:4px;display:flex;gap:8px;align-items:center;">
+              ${art.platformLinks?.apple ? `<a href="${art.platformLinks.apple}" target="_blank"><img src="/assets/logo%20plateofmres%20for%20link/Apple_Music_icon.svg" alt="Apple Music" title="Apple Music" style="height:18px;width:auto;" /></a>` : ''}
+              ${art.platformLinks?.spotify ? `<a href="${art.platformLinks.spotify}" target="_blank"><img src="/assets/logo%20plateofmres%20for%20link/Spotify_logo_without_text.svg" alt="Spotify" title="Spotify" style="height:18px;width:auto;" /></a>` : ''}
+            </div>
+          </a>
+        `;
+      }
+      row.innerHTML = artists.length === 0
+        ? '<div style="color:var(--txt);opacity:0.7;text-align:center;">Aucun artiste trouvé</div>'
+        : html;
+    }
+    document.addEventListener('DOMContentLoaded', loadArtists);
+  </script>
+  <script type="module" src="/assets/js/navbar.js"></script>
+</body>
+</html>

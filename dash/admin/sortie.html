@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Détail Sortie — Admin</title>
+  <link rel="stylesheet" href="/assets/css/dash/artist-sidebar.css">
+  <style>
+    body { font-family: -apple-system, system-ui; background: #f5f5f7; color: #1d1d1f; padding: 40px 40px 40px 300px; }
+    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; border-radius: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.05); }
+    h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+    .meta-top { color: #86868b; margin-bottom: 30px; font-weight: 500; }
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; }
+    .section { margin-bottom: 40px; }
+    .section h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #86868b; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+    .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f5f5f7; }
+    .info-label { font-weight: 600; color: #86868b; }
+    .info-value { font-weight: 700; text-align: right; }
+    .cover-img { width: 100%; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); margin-bottom: 10px; }
+    .track-card { background: #f9f9fb; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .track-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .track-title { font-size: 18px; font-weight: 800; }
+    .audio-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .btn-audio { padding: 6px 12px; background: #eee; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 700; color: #333; }
+    .btn-audio:hover { background: #e0e0e0; }
+    .badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+    .badge-blue { background: #e3f2fd; color: #0071e3; }
+    .badge-purple { background: #f3e5f5; color: #6c47ff; }
+    .admin-actions { background: #1d1d1f; color: white; padding: 25px; border-radius: 18px; margin-top: 20px; }
+    .admin-actions select { background: #333; color: white; border: 1px solid #444; padding: 10px; border-radius: 8px; width: 100%; margin: 10px 0; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loading">Chargement des données...</div>
+    <div id="content" style="display:none;">
+      <div class="meta-top" id="releaseIdLabel">ID: ---</div>
+      <h1 id="releaseTitle">---</h1>
+      <p class="meta-top" id="artistName">---</p>
+
+      <div class="grid">
+        <div class="left-col">
+          <div class="section">
+            <h2>Informations Générales</h2>
+            <div class="info-row"><span class="info-label">Type</span> <span class="info-value" id="type">---</span></div>
+            <div class="info-row"><span class="info-label">Version</span> <span class="info-value" id="version">---</span></div>
+            <div class="info-row"><span class="info-label">Langue</span> <span class="info-value" id="language">---</span></div>
+            <div class="info-row"><span class="info-label">Instrumental</span> <span class="info-value" id="instrumental">---</span></div>
+          </div>
+
+          <div class="section">
+            <h2>Dates & Planning</h2>
+            <div class="info-row"><span class="info-label">Date de sortie</span> <span class="info-value" id="dateSortie">---</span></div>
+            <div class="info-row"><span class="info-label">Heure</span> <span class="info-value" id="heureSortie">---</span></div>
+            <div class="info-row"><span class="info-label">Date Originale</span> <span class="info-value" id="dateOriginale">---</span></div>
+            <div class="info-row"><span class="info-label">Précommande</span> <span class="info-value" id="datePreorder">---</span></div>
+          </div>
+
+          <div class="section">
+            <h2>Pistes (<span id="trackCount">0</span>)</h2>
+            <div id="tracksList"></div>
+          </div>
+        </div>
+
+        <div class="right-col">
+          <div class="admin-actions">
+            <h2 style="color:white; border:none; margin-bottom:5px;">Gestion Statut</h2>
+            <select id="statusSelect">
+              <option value="Brouillon">Brouillon</option>
+              <option value="À vérifier">À vérifier</option>
+              <option value="Validé">Validé</option>
+              <option value="Refusé">Refusé (Action requise)</option>
+              <option value="Distribué">Distribué</option>
+            </select>
+            <button id="updateStatusBtn" style="width:100%; padding:12px; background:var(--accent-color); color:white; border:none; border-radius:8px; font-weight:800; cursor:pointer;">Mettre à jour</button>
+            <a id="editInUploaderLink" href="/dash/upload.html" style="display:block; margin-top:10px; width:100%; padding:12px; background:#2f63ff; color:#fff; border-radius:8px; font-weight:800; text-align:center; text-decoration:none;">Modifier dans l'uploader</a>
+          </div>
+
+          <div class="section">
+            <h2>Visuel 1:1</h2>
+            <img id="coverImg" class="cover-img" src="" alt="Pochette">
+            <a id="coverLink" href="" target="_blank" class="btn-audio" style="display:block; text-align:center;">Télécharger HD</a>
+          </div>
+
+          <div class="section" id="motionSection" style="display:none;">
+            <h2>Arts Animés (Apple)</h2>
+            <div id="motionLinks" class="audio-links"></div>
+          </div>
+
+          <div class="section">
+            <h2>Livraison Additionnelle</h2>
+            <div id="addonsList" class="audio-links"></div>
+          </div>
+
+          <div class="section">
+            <h2>Actions Automatiques</h2>
+            <button id="findLinksBtn" style="width:100%;padding:12px;background:#0071e3;color:white;border:none;border-radius:8px;font-weight:800;cursor:pointer;">Trouver les liens plateformes</button>
+            <div id="findLinksStatus" style="margin-top:10px;font-size:14px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/assets/js/dash/admin/sortie.js"></script>
+</body>
+</html>

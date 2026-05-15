@@ -1,0 +1,27 @@
+<!-- Modèle d'email pour code d'authentification (2FA ou connexion) -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Votre code d'authentification</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+        .container { background: #fff; max-width: 480px; margin: 40px auto; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+        h1 { color: #1a1a1a; }
+        .code { font-size: 2em; letter-spacing: 0.2em; background: #f0f0f0; padding: 16px 0; border-radius: 6px; margin: 24px 0; text-align: center; color: #1a73e8; font-weight: bold; }
+        .footer { margin-top: 32px; font-size: 12px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Votre code d'authentification</h1>
+        <p>Bonjour,</p>
+        <p>Voici votre code d'authentification :</p>
+        <div class="code">[CODE]</div>
+        <p>Ce code est valable pendant 10 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email.</p>
+        <div class="footer">
+            <p>Merci de votre confiance.<br>L'équipe Morgann Music</p>
+        </div>
+    </div>
+</body>
+</html>

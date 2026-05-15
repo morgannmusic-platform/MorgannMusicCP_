@@ -1,0 +1,1557 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <style>
+      body {
+        margin-top: 40px;
+      }
+      body.with-artist-sidebar {
+        margin-left: 300px;
+      }
+    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Accompagnement — Morgann Music CP</title>
+  <link rel="stylesheet" href="/assets/css/dash/artist-sidebar.css" />
+  <style>
+    :root{ --bg:#e2e2e2; --txt:#000; --bg2:#fff; --line:rgba(0,0,0,.12); --muted:rgba(0,0,0,.58); --blue:#2f63ff; --ok:#16a34a; --warn:#d97706; }
+    @media (prefers-color-scheme: dark){ :root{ --bg:#414141; --txt:#fff; --bg2:#1e1e1e; --line:rgba(255,255,255,.14); --muted:rgba(255,255,255,.65); --blue:#3b82f6; --ok:#22c55e; --warn:#f59e0b; }}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+    .wrap{max-width:1200px;margin:0 auto;padding:24px 18px 30px}
+    .header-line{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+
+    @media (max-width: 900px) {
+    body.with-artist-sidebar {
+      margin-left: 0;
+    }
+}
+
+
+    .title{font-size:30px;font-weight:900;margin:0}
+    .sub{color:var(--muted);margin-bottom:14px}
+    .topTabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tabBtn{border:1px solid var(--line);padding:8px 14px;border-radius:999px;text-decoration:none;color:var(--txt);font-weight:700;background:transparent;display:inline-flex;align-items:center;gap:8px}
+    .tabBtn.active{background:var(--txt);color:var(--bg)}
+    .tabIcon{width:15px;height:15px;display:inline-block;object-fit:contain;object-position:center;flex:0 0 15px;opacity:.9}
+    .tabBtn.active .tabIcon{
+      opacity:1;
+      filter: brightness(0) saturate(100%) invert(94%) sepia(3%) saturate(12%) hue-rotate(314deg) brightness(96%) contrast(90%);
+    }
+    .sectionGroup{display:none}
+    .sectionGroup.active{display:block}
+    .card{border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:14px;margin-bottom:14px}
+    @media (prefers-color-scheme: dark){ .card{background:rgba(30,30,30,.75)} }
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+    h2{font-size:18px;margin-bottom:10px}
+    .sectionHeading{display:flex;align-items:center;gap:8px}
+    .sectionHeading .tabIcon{width:16px;height:16px;flex:0 0 16px}
+    .line{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .hidden{display:none !important}
+    .input,.textarea,.select{width:100%;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--txt);padding:10px}
+    .textarea{min-height:90px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    @media (max-width:760px){ .row2{grid-template-columns:1fr} }
+    .btn{border:1px solid var(--line);border-radius:999px;padding:9px 13px;background:transparent;color:var(--txt);font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+    .btn.primary{background:var(--blue);border-color:transparent;color:#fff}
+    .btn.danger{border-color:rgba(220,38,38,.5);color:#b91c1c}
+    @media (prefers-color-scheme: dark){ .btn.danger{color:#f87171;border-color:rgba(248,113,113,.5)} }
+    .pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+    .list{display:grid;gap:8px;margin-top:8px}
+    .item{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.03)}
+    @media (prefers-color-scheme: dark){ .item{background:rgba(255,255,255,.04)} }
+    .muted{color:var(--muted);font-size:12px}
+    .ok{color:var(--ok);font-weight:700}
+    .warn{color:var(--warn);font-weight:700}
+    .goal{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .goal label{display:flex;gap:8px;align-items:center;cursor:pointer}
+    .empty{color:var(--muted);font-size:13px;padding:8px 0}
+    .track{border:1px dashed var(--line);border-radius:12px;padding:10px;margin-top:8px}
+    .trackHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .hint{color:var(--muted);font-size:12px;margin-top:8px;white-space:pre-wrap}
+
+    /* ✅ Calendrier refait */
+    .calendar-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px;margin-bottom:10px;flex-wrap:wrap}
+    .calendar-title{font-weight:900;font-size:34px;line-height:1}
+    .calendar-shell{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0}
+    .calendar-head{font-size:12px;color:var(--muted);text-align:center;padding:8px 4px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);user-select:none}
+    .calendar-day{
+      min-height:120px;
+      border-right:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+      padding:8px;
+      background:rgba(0,0,0,.03);
+      cursor:default;
+      user-select:none;
+    }
+    @media (prefers-color-scheme: dark){ .calendar-day{background:rgba(255,255,255,.04)} }
+    .calendar-day:hover{background:rgba(59,130,246,.08)}
+    .calendar-day.is-other{opacity:.45}
+    .calendar-day.is-today{outline:2px solid rgba(59,130,246,.45); outline-offset:-2px}
+    .calendar-day.is-selected{outline:2px solid rgba(217,119,6,.55); outline-offset:-2px}
+    .calendar-num{font-size:13px;font-weight:800;margin-bottom:6px}
+    .calendar-event{
+      display:block;
+      font-size:11px;
+      line-height:1.2;
+      padding:3px 6px;
+      border-radius:6px;
+      margin-top:4px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      border:1px solid var(--line);
+    }
+    .calendar-event.plan{background:rgba(59,130,246,.18)}
+    .calendar-event.release{background:rgba(34,197,94,.18)}
+    .calendar-grid > :nth-child(7n){border-right:0}
+
+    /* ✅ Popup */
+    .modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:14px;z-index:1200}
+    .modalOverlay.hidden{display:none}
+    .modalBox{width:min(620px,100%);max-height:90vh;overflow:auto;background:var(--bg2);color:var(--txt);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .modalTitle{font-size:20px;font-weight:900;margin-bottom:10px}
+
+    /* ✅ Menu clic droit */
+    .dayContextMenu{position:fixed;z-index:1300;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:6px;min-width:180px;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+    .dayContextMenu.hidden{display:none}
+    .menuItem{width:100%;text-align:left;border:1px solid transparent;background:transparent;color:var(--txt);border-radius:8px;padding:8px 10px;font-weight:700;cursor:pointer}
+    .menuItem:hover{background:rgba(59,130,246,.12);border-color:var(--line)}
+    .testNotice{display:none;border:1px solid rgba(217,119,6,.4);background:rgba(245,158,11,.12);color:var(--txt);border-radius:12px;padding:10px 12px;margin:0 0 12px 0;font-size:13px}
+    .testNotice.show{display:block}
+    @media (max-width: 700px){
+      .title{font-size:26px}
+    }
+  </style>
+</head>
+<body>
+
+  <div id="navbar-inject"></div>
+  <div id="sidebar-inject"></div>
+
+  <main class="wrap">
+    <div class="header-line">
+      <h1 class="title">Accompagnement</h1>
+    </div>
+    <p class="sub">Espace réservé aux artistes signés : planning, objectifs, préparation de sorties, feat, pitching et suivi personnalisé.</p>
+    <div id="testNotice" class="testNotice" role="status" aria-live="polite"></div>
+
+    <nav class="topTabs" aria-label="Navigation accompagnement">
+      <a class="tabBtn" data-hash="calendrier" href="#calendrier"><img class="tabIcon" src="/assets/icon/Calendar-Mark--Streamline-Flex.svg" alt="">Calendrier</a>
+      <a class="tabBtn" data-hash="objectifs" href="#objectifs"><img class="tabIcon" src="/assets/icon/Target--Streamline-Flex.svg" alt="">Objectifs</a>
+      <a class="tabBtn" data-hash="liste" href="#liste"><img class="tabIcon" src="/assets/icon/Artist-Song--Streamline-Flex.svg" alt="">Liste</a>
+      <a class="tabBtn" data-hash="preparation" href="#preparation"><img class="tabIcon" src="/assets/icon/Pen-Tool--Streamline-Flex.svg" alt="">Préparation</a>
+      <a class="tabBtn" data-hash="suivi" href="#suivi"><img class="tabIcon" src="/assets/icon/Show-Layer--Streamline-Flex.svg" alt="">Suivi</a>
+      <a class="tabBtn" data-hash="feat" href="#feat"><img class="tabIcon" src="/assets/icon/Artist-Song--Streamline-Flex.svg" alt="">Feat</a>
+      <a class="tabBtn" data-hash="pitching" href="#pitching"><img class="tabIcon" src="/assets/icon/Mail-Send-Envelope--Streamline-Flex.svg" alt="">Pitching</a>
+    </nav>
+
+    <div class="grid">
+      <section>
+        <article id="section-calendrier" class="card sectionGroup" data-hash="calendrier">
+          <h2 class="sectionHeading"><img class="tabIcon" src="/assets/icon/Calendar-Mark--Streamline-Flex.svg" alt="">Calendrier sorties</h2>
+
+          <div class="calendar-toolbar">
+            <div class="line">
+              <button id="calAddOpen" class="btn primary" type="button" title="Ajouter une sortie (⌘/Ctrl+N)">＋</button>
+              <button id="calPrev" class="btn" type="button">←</button>
+              <button id="calToday" class="btn" type="button">Aujourd'hui</button>
+              <button id="calNext" class="btn" type="button">→</button>
+            </div>
+            <div id="calendarMonthLabel" class="calendar-title"></div>
+          </div>
+
+          <div id="planMsg" class="muted" style="margin-bottom:8px;"></div>
+
+          <div class="calendar-shell">
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </div>
+
+          <div class="line" style="margin-top:8px;">
+            <span class="pill">Bleu: planification</span>
+            <span class="pill">Vert: sortie créée</span>
+            <span class="pill">Clic droit / ⌘N: ajouter</span>
+          </div>
+
+          <div id="plansList" class="list"></div>
+        </article>
+
+        <article id="section-objectifs" class="card sectionGroup" data-hash="objectifs">
+          <h2 class="sectionHeading"><img class="tabIcon" src="/assets/icon/Target--Streamline-Flex.svg" alt="">Objectifs du mois</h2>
+          <div class="line">
+            <input id="goalTitle" class="input" placeholder="Nouvel objectif mensuel" />
+            <button id="btnAddGoal" class="btn primary" type="button">Ajouter</button>
+          </div>
+          <div id="dailyBoost" class="muted" style="margin-top:8px;"></div>
+          <div id="goalsList" class="list"></div>
+          <div id="monthSummary" class="muted" style="margin-top:10px;"></div>
+        </article>
+
+        <!-- Section Liste d'album -->
+        <article id="section-liste" class="card sectionGroup" data-hash="liste" style="margin-top:18px;">
+          <h2 class="sectionHeading"><img class="tabIcon" src="/assets/icon/Artist-Song--Streamline-Flex.svg" alt="">Liste d'album</h2>
+          <div class="line" style="margin-bottom:10px;">
+            <button id="btnAddAlbumList" class="btn primary" type="button">＋ Nouvelle liste</button>
+          </div>
+          <div id="albumLists"></div>
+        </article>
+
+        <!-- Modal création liste -->
+        <div id="albumListModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="albumListModalTitle">
+          <div class="modalBox">
+            <h3 id="albumListModalTitle" class="modalTitle">Nouvelle liste d'album</h3>
+            <input id="albumListNameInput" class="input" placeholder="Nom de la liste" />
+            <div class="line" style="margin-top:8px;justify-content:flex-end;">
+              <button id="albumListModalCancel" class="btn" type="button">Annuler</button>
+              <button id="albumListModalSave" class="btn primary" type="button">Créer</button>
+            </div>
+          </div>
+        </div>
+
+        <article id="section-preparation" class="card sectionGroup" data-hash="preparation">
+          <h2 class="sectionHeading"><img class="tabIcon" src="/assets/icon/Pen-Tool--Streamline-Flex.svg" alt="">Préparer une sortie</h2>
+          <p class="hint">Aucune obligation : tu peux enregistrer même si tout n'est pas rempli.
+Fichiers à compléter avant publication finale dans l'uploader : audio principal par piste (les autres fichiers restent optionnels).</p>
+          <div class="row2">
+            <input id="draftTitle" class="input" placeholder="Titre de la future sortie" />
+            <select id="draftType" class="select">
+              <option value="single">Single</option>
+              <option value="ep">EP</option>
+              <option value="album">Album</option>
+            </select>
+          </div>
+          <div class="row2">
+            <input id="draftLanguage" class="input" placeholder="Langue" />
+            <input id="draftDate" class="input" type="date" />
+          </div>
+          <select id="draftArtist" class="select"></select>
+          <div id="draftTracks"></div>
+          <div class="line" style="margin-top:8px;">
+            <button id="btnAddDraftTrack" class="btn" type="button">+ Piste</button>
+            <button id="btnSaveDraft" class="btn primary" type="button">Terminer la préparation</button>
+            <button id="btnCancelDraftEdit" class="btn hidden" type="button">Annuler modification</button>
+            <span id="draftMsg" class="muted"></span>
+          </div>
+          <div id="draftsList" class="list"></div>
+        </article>
+      </section>
+
+      <section>
+        <article id="section-suivi" class="card sectionGroup" data-hash="suivi">
+          <h2 class="sectionHeading"><img class="tabIcon" src="/assets/icon/Show-Layer--Streamline-Flex.svg" alt="">Suivi personnalisé</h2>
+          <div id="notesList" class="list"></div>
+        </article>
+
+        <article id="section-feat" class="card sectionGroup" data-hash="feat">
+          <h2 class="sectionHeading"><img class="tabIcon" src="/assets/icon/Artist-Song--Streamline-Flex.svg" alt="">Demande de feat</h2>
+          <p class="hint">Cette demande sert à ce que Morgann Music CP fasse la démarche à ta place.</p>
+          <input id="featArtistName" class="input" placeholder="Nom d'artiste" />
+          <input id="featInsta" class="input" placeholder="Lien Instagram (optionnel)" />
+          <textarea id="featNote" class="textarea" placeholder="Détails de la demande"></textarea>
+          <div class="line"><button id="btnSendFeat" class="btn primary" type="button">Envoyer la demande</button><span id="featMsg" class="muted"></span></div>
+          <div id="featList" class="list"></div>
+        </article>
+
+        <article id="section-pitching" class="card sectionGroup" data-hash="pitching">
+          <h2 class="sectionHeading"><img class="tabIcon" src="/assets/icon/Mail-Send-Envelope--Streamline-Flex.svg" alt="">Pitching éditorial Spotify</h2>
+          <select id="pitchRelease" class="select"></select>
+          <input id="pitchLink" class="input" placeholder="Lien d'écoute / référence (optionnel)" />
+          <textarea id="pitchText" class="textarea" placeholder="Ton argumentaire éditorial"></textarea>
+          <div class="line"><button id="btnSendPitch" class="btn primary" type="button">Envoyer la demande</button><span id="pitchMsg" class="muted"></span></div>
+          <div id="pitchList" class="list"></div>
+        </article>
+      </section>
+    </div>
+
+    <!-- ✅ Modal ajout sortie -->
+    <div id="planModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
+      <div class="modalBox">
+        <h3 id="planModalTitle" class="modalTitle">Ajouter une sortie</h3>
+        <div class="row2">
+          <input id="planTitle" class="input" placeholder="Nom du projet / sortie" />
+          <input id="planDate" class="input" type="date" />
+        </div>
+        <textarea id="planTeasing" class="textarea" placeholder="Teasing prévu"></textarea>
+        <textarea id="planCampaign" class="textarea" placeholder="Campagnes publicitaires prévues"></textarea>
+        <div class="line" style="margin-top:8px;justify-content:flex-end;">
+          <button id="btnDeletePlan" class="btn danger hidden" type="button">Supprimer</button>
+          <button id="planModalCancel" class="btn" type="button">Annuler</button>
+          <button id="btnAddPlan" class="btn primary" type="button">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ Menu clic droit -->
+    <div id="dayContextMenu" class="dayContextMenu hidden" role="menu" aria-label="Actions jour calendrier">
+      <button id="dayContextAdd" class="menuItem" type="button" role="menuitem">Ajouter une sortie</button>
+    </div>
+
+  </main>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, doc, query, where, serverTimestamp, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    const $ = (id) => document.getElementById(id);
+    const clean = (v) => String(v || "").trim();
+    const todayKey = () => new Date().toISOString().slice(0, 10);
+    const monthKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+    let me = null;
+    let myArtists = [];
+    let myReleases = [];
+    let calendarMonthAnchor = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    let selectedCalendarDate = ""; // ✅ dernière date "sélectionnée"
+    let editingPlanId = "";
+    let cachedPlans = [];
+    let editingDraftDocId = "";
+    let isTestMode = false;
+    const TEST_MODE_NOTICE = "Compte en mode test : actions désactivées. Quand le rôle test sera retiré, les données de test seront remises à zéro.";
+
+    function esc(s){ return String(s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m])); }
+
+    function setText(id, text, cls = "muted"){
+      const el = $(id); if (!el) return;
+      el.className = cls;
+      el.textContent = text || "";
+    }
+
+    function normalizeRoleValue(v){
+      return clean(v)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function ensureSignedArtist(userDoc){
+      if (!userDoc || typeof userDoc !== "object") return false;
+      const roleRaw = normalizeRoleValue(userDoc?.role);
+      if (roleRaw === "admin") return true;
+      if (roleRaw === "teste" || roleRaw === "test") return true;
+      const role = normalizeRoleValue(userDoc?.role);
+      const userRole = normalizeRoleValue(userDoc?.userRole);
+      const accountType = normalizeRoleValue(userDoc?.accountType);
+      const status = normalizeRoleValue(userDoc?.status);
+      const plan = normalizeRoleValue(userDoc?.plan);
+      const subscription = normalizeRoleValue(userDoc?.subscription);
+
+      const signedValues = ["artist","artiste","artiste signe","signed artist","signed"];
+      const testValues = ["teste","test","artiste test","test artist"];
+
+      return (
+        userDoc.isArtist === true ||
+        userDoc.artist === true ||
+        signedValues.includes(role) ||
+        signedValues.includes(userRole) ||
+        signedValues.includes(accountType) ||
+        signedValues.includes(status) ||
+        signedValues.includes(plan) ||
+        signedValues.includes(subscription) ||
+        testValues.includes(role) ||
+        testValues.includes(userRole) ||
+        testValues.includes(accountType) ||
+        testValues.includes(status) ||
+        testValues.includes(plan) ||
+        testValues.includes(subscription)
+      );
+    }
+
+    function isTestRole(userDoc){
+      if (!userDoc || typeof userDoc !== "object") return false;
+      const values = [
+        normalizeRoleValue(userDoc?.role),
+        normalizeRoleValue(userDoc?.userRole),
+        normalizeRoleValue(userDoc?.accountType),
+        normalizeRoleValue(userDoc?.status),
+        normalizeRoleValue(userDoc?.plan),
+        normalizeRoleValue(userDoc?.subscription)
+      ];
+      return values.includes("teste") || values.includes("test") || values.includes("artiste test") || values.includes("test artist");
+    }
+
+    function notifyTestAction(actionLabel){
+      const label = clean(actionLabel) || "Action";
+      alert(`${label} indisponible en mode test. ${TEST_MODE_NOTICE}`);
+    }
+
+    function enableTestModeUI(){
+      const notice = $("testNotice");
+      if (notice) {
+        notice.textContent = TEST_MODE_NOTICE;
+        notice.classList.add("show");
+      }
+
+      const blockedIds = [
+        "calAddOpen", "dayContextAdd", "btnAddPlan", "btnDeletePlan",
+        "btnAddGoal", "btnAddDraftTrack", "btnSaveDraft", "btnSendFeat", "btnSendPitch"
+      ];
+
+      blockedIds.forEach((id) => {
+        const node = $(id);
+        if (!node) return;
+        node.addEventListener("click", (event) => {
+          if (!isTestMode) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          notifyTestAction(node.textContent || "Action");
+        }, true);
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!isTestMode) return;
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+
+        const isBlockedButton = target.closest(
+          "button[data-plan-del],button[data-plan-edit],button[data-del-goal],button[data-edit-goal],button[data-open-draft],button[data-del-draft],button[data-edit-draft]"
+        );
+        if (isBlockedButton) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          notifyTestAction(isBlockedButton.textContent || "Action");
+          return;
+        }
+
+        const isTrackFile = target.closest("input[type='file']");
+        if (isTrackFile) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          notifyTestAction("Import de fichier");
+        }
+      }, true);
+
+      document.addEventListener("change", (event) => {
+        if (!isTestMode) return;
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        const goalToggle = target.closest("input[data-goal]");
+        if (goalToggle) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          notifyTestAction("Validation d'objectif");
+        }
+      }, true);
+    }
+
+    async function uploadDraftFile(uid, draftId, rank, kind, file){
+      const safeName = `${Date.now()}_${String(file?.name || "file").replace(/[^a-zA-Z0-9._-]+/g, "_")}`;
+      const r = ref(storage, `accompagnementDrafts/${uid}/${draftId}/tracks/${rank}/${kind}_${safeName}`);
+      await uploadBytes(r, file, file?.type ? { contentType: file.type } : undefined);
+      return await getDownloadURL(r);
+    }
+
+    function encouragement(goals){
+      const done = goals.filter(g => g.done).length;
+      const total = goals.length;
+      if (!total) return "Commence ton mois avec un objectif clair 🎯";
+      const ratio = done / total;
+      if (ratio === 1) return "Excellent travail, tous les objectifs du mois sont validés 🔥";
+      if (ratio >= .6) return "Très bon rythme, continue comme ça 💪";
+      if (ratio >= .3) return "Bon démarrage, garde le cap ✅";
+      return "Petit pas par petit pas : coche un objectif aujourd’hui ✨";
+    }
+
+    function isoDate(value){
+      const v = clean(value);
+      return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
+    }
+
+    function monthKeyFromDate(dateObj){
+      return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function monthTitleFr(dateObj){
+      return dateObj.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    }
+
+    function releaseDateFromDoc(data){
+      const scheduleDate = isoDate(data?.schedule?.releaseDate);
+      if (scheduleDate) return scheduleDate;
+      const directDate = isoDate(data?.releaseDate);
+      if (directDate) return directDate;
+      return "";
+    }
+
+    /* ✅ Calendrier: sélection visuelle */
+    function setSelectedDay(dateKey){
+      selectedCalendarDate = clean(dateKey) || todayKey();
+      document.querySelectorAll(".calendar-day").forEach(d => {
+        d.classList.toggle("is-selected", clean(d.getAttribute("data-date")) === selectedCalendarDate);
+      });
+    }
+
+    /* ✅ Calendrier: rendu mois complet */
+    function renderCalendar(eventsByDate){
+      const grid = $("calendarGrid");
+      const label = $("calendarMonthLabel");
+      if (!grid || !label) return;
+
+      label.textContent = monthTitleFr(calendarMonthAnchor);
+
+      const monthStart = new Date(calendarMonthAnchor.getFullYear(), calendarMonthAnchor.getMonth(), 1);
+      const monthEnd = new Date(calendarMonthAnchor.getFullYear(), calendarMonthAnchor.getMonth() + 1, 0);
+      const firstWeekday = (monthStart.getDay() + 6) % 7; // lun=0
+      const daysInMonth = monthEnd.getDate();
+
+      const prevMonthEnd = new Date(calendarMonthAnchor.getFullYear(), calendarMonthAnchor.getMonth(), 0);
+      const prevDays = prevMonthEnd.getDate();
+
+      const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+      const today = todayKey();
+
+      const weekDays = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."];
+      const headHtml = weekDays.map(d => `<div class="calendar-head">${d}</div>`).join("");
+
+      let daysHtml = "";
+      for (let i = 0; i < totalCells; i++) {
+        const inCurrent = i >= firstWeekday && (i - firstWeekday + 1) <= daysInMonth;
+
+        let y = calendarMonthAnchor.getFullYear();
+        let m = calendarMonthAnchor.getMonth();
+        let d = 1;
+
+        if (inCurrent) {
+          d = i - firstWeekday + 1;
+        } else if (i < firstWeekday) {
+          m -= 1;
+          if (m < 0) { m = 11; y -= 1; }
+          d = prevDays - firstWeekday + i + 1;
+        } else {
+          m += 1;
+          if (m > 11) { m = 0; y += 1; }
+          d = i - (firstWeekday + daysInMonth) + 1;
+        }
+
+        const key = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const items = Array.isArray(eventsByDate[key]) ? eventsByDate[key] : [];
+
+        const chips = items.slice(0, 3).map(ev => {
+          const label = ev.kind === "release" ? `• ${esc(ev.title)}` : esc(ev.title);
+          return `<span class="calendar-event ${ev.kind}">${label}</span>`;
+        }).join("");
+
+        const more = items.length > 3 ? `<span class="calendar-event">+${items.length - 3}</span>` : "";
+
+        const cls = [
+          "calendar-day",
+          inCurrent ? "" : "is-other",
+          key === today ? "is-today" : "",
+          key === selectedCalendarDate ? "is-selected" : ""
+        ].filter(Boolean).join(" ");
+
+        daysHtml += `
+          <div class="${cls}" data-date="${key}" tabindex="0" aria-label="Jour ${key}">
+            <div class="calendar-num">${d}</div>
+            ${chips}${more}
+          </div>
+        `;
+      }
+
+      grid.innerHTML = headHtml + daysHtml;
+
+      /* ✅ Clic simple = sélectionner */
+      grid.querySelectorAll(".calendar-day").forEach((cell) => {
+        cell.addEventListener("click", () => {
+          setSelectedDay(clean(cell.getAttribute("data-date")));
+        });
+
+        /* ✅ Double clic = ouvrir popup */
+        cell.addEventListener("dblclick", () => {
+          const date = clean(cell.getAttribute("data-date"));
+          setSelectedDay(date);
+          closeDayContextMenu();
+          openPlanModal(date);
+        });
+
+        /* ✅ Clic droit = menu contextuel */
+        cell.addEventListener("contextmenu", (event) => {
+          event.preventDefault();
+          const date = clean(cell.getAttribute("data-date"));
+          setSelectedDay(date);
+          openDayContextMenu(event.clientX, event.clientY, date);
+        });
+
+        /* ✅ Enter sur un jour (accessibilité) = ouvrir */
+        cell.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            const date = clean(cell.getAttribute("data-date"));
+            setSelectedDay(date);
+            closeDayContextMenu();
+            openPlanModal(date);
+          }
+        });
+      });
+    }
+
+    function closeDayContextMenu(){
+      $("dayContextMenu")?.classList.add("hidden");
+    }
+
+    function openDayContextMenu(x, y, date){
+      const menu = $("dayContextMenu");
+      if (!menu) return;
+
+      selectedCalendarDate = clean(date) || todayKey();
+      menu.classList.remove("hidden");
+
+      const maxX = window.innerWidth - menu.offsetWidth - 8;
+      const maxY = window.innerHeight - menu.offsetHeight - 8;
+      menu.style.left = `${Math.max(8, Math.min(x, maxX))}px`;
+      menu.style.top = `${Math.max(8, Math.min(y, maxY))}px`;
+    }
+
+    function openPlanModal(prefillDate = ""){
+      const modal = $("planModal");
+      if (!modal) return;
+
+      const targetDate = clean(prefillDate) || selectedCalendarDate || todayKey();
+      if ($("planDate") && /^\d{4}-\d{2}-\d{2}$/.test(targetDate)) $("planDate").value = targetDate;
+      $("planModalTitle").textContent = editingPlanId ? "Modifier la sortie" : "Ajouter une sortie";
+      $("btnDeletePlan")?.classList.toggle("hidden", !editingPlanId);
+
+      modal.classList.remove("hidden");
+      setTimeout(() => $("planTitle")?.focus(), 0);
+    }
+
+    function closePlanModal(){
+      $("planModal")?.classList.add("hidden");
+      editingPlanId = "";
+      $("planModalTitle").textContent = "Ajouter une sortie";
+      $("btnDeletePlan")?.classList.add("hidden");
+    }
+
+    function fillPlanModal(plan){
+      if (!plan) return;
+      editingPlanId = clean(plan.id);
+      $("planTitle").value = clean(plan.title);
+      $("planDate").value = clean(plan.date || plan.plannedDate);
+      $("planTeasing").value = clean(plan.teasing);
+      $("planCampaign").value = clean(plan.campaign);
+    }
+
+    function showPlanDetails(plan){
+      if (!plan) return;
+      alert(
+        `Titre: ${clean(plan.title) || "—"}\n`
+        + `Date: ${clean(plan.date || plan.plannedDate) || "—"}\n`
+        + `Teasing: ${clean(plan.teasing) || "—"}\n`
+        + `Campagnes: ${clean(plan.campaign) || "—"}`
+      );
+    }
+
+    function setupHashSections(){
+      // Ajout de 'liste' dans les onglets supportés
+      const allowed = ["calendrier", "objectifs", "liste", "preparation", "suivi", "feat", "pitching"];
+      function applyFromHash(){
+        const keyRaw = clean((window.location.hash || "").replace("#", "")).toLowerCase();
+        const key = allowed.includes(keyRaw) ? keyRaw : "calendrier";
+        document.querySelectorAll(".sectionGroup").forEach((node) => {
+          node.classList.toggle("active", node.getAttribute("data-hash") === key);
+        });
+        document.querySelectorAll(".tabBtn").forEach((btn) => {
+          btn.classList.toggle("active", clean(btn.getAttribute("data-hash")) === key);
+        });
+      }
+
+      document.querySelectorAll(".tabBtn").forEach((btn) => {
+        btn.addEventListener("click", () => setTimeout(applyFromHash, 0));
+      });
+      window.addEventListener("hashchange", applyFromHash);
+      if (!clean(window.location.hash)) {
+        window.location.hash = "calendrier";
+      } else {
+        applyFromHash();
+      }
+    }
+
+    function renderDraftTrackFields(){
+      const root = $("draftTracks");
+      const idx = root.querySelectorAll(".track").length + 1;
+      const div = document.createElement("div");
+      div.className = "track";
+      div.innerHTML = `
+        <div class="trackHead">
+          <strong>Piste ${idx}</strong>
+          <button class="btn danger" type="button" data-remove-track="1">Supprimer la piste</button>
+        </div>
+        <div class="row2">
+          <input class="input d-title" placeholder="Titre piste ${idx}" />
+          <input class="input d-language" placeholder="Langue piste" />
+        </div>
+        <div class="row2" style="margin-top:8px;">
+          <input class="input d-audio" type="file" accept="audio/*" />
+          <input class="input d-atmos" type="file" accept="audio/*" />
+        </div>
+        <div style="margin-top:8px;"><input class="input d-instru" type="file" accept="audio/*" /></div>
+      `;
+      root.appendChild(div);
+      div.querySelector("button[data-remove-track]")?.addEventListener("click", () => div.remove());
+    }
+
+    function renderDraftTrackFieldsFromData(track = {}){
+      const root = $("draftTracks");
+      const idx = root.querySelectorAll(".track").length + 1;
+      const div = document.createElement("div");
+      div.className = "track";
+      div.dataset.audioUrl = clean(track?.audioUrl || track?.files?.audioUrl);
+      div.dataset.atmosUrl = clean(track?.atmosUrl || track?.files?.atmosUrl);
+      div.dataset.instruUrl = clean(track?.instrumentalUrl || track?.files?.instrumentalUrl);
+      div.dataset.audioName = clean(track?.files?.audioFileName);
+      div.dataset.atmosName = clean(track?.files?.atmosFileName);
+      div.dataset.instruName = clean(track?.files?.instrumentalFileName);
+      div.innerHTML = `
+        <div class="trackHead">
+          <strong>Piste ${idx}</strong>
+          <button class="btn danger" type="button" data-remove-track="1">Supprimer la piste</button>
+        </div>
+        <div class="row2">
+          <input class="input d-title" placeholder="Titre piste ${idx}" value="${esc(clean(track?.title) || `Piste ${idx}`)}" />
+          <input class="input d-language" placeholder="Langue piste" value="${esc(clean(track?.language))}" />
+        </div>
+        <div class="row2" style="margin-top:8px;">
+          <input class="input d-audio" type="file" accept="audio/*" />
+          <input class="input d-atmos" type="file" accept="audio/*" />
+        </div>
+        <div style="margin-top:8px;"><input class="input d-instru" type="file" accept="audio/*" /></div>
+        <div class="hint">Audio actuel: ${esc(div.dataset.audioName || "—")} • Atmos: ${esc(div.dataset.atmosName || "—")} • Instrumental: ${esc(div.dataset.instruName || "—")}</div>
+      `;
+      root.appendChild(div);
+      div.querySelector("button[data-remove-track]")?.addEventListener("click", () => div.remove());
+    }
+
+    function resetDraftForm(){
+      editingDraftDocId = "";
+      $("draftTitle").value = "";
+      $("draftLanguage").value = "";
+      $("draftDate").value = "";
+      if ($("draftType")) $("draftType").value = "single";
+      $("draftTracks").innerHTML = "";
+      renderDraftTrackFields();
+      $("btnCancelDraftEdit")?.classList.add("hidden");
+      $("btnSaveDraft").textContent = "Terminer la préparation";
+    }
+
+    async function loadPitchReleaseOptions(uid){
+      const sel = $("pitchRelease");
+      if (!sel) return;
+      sel.innerHTML = `<option value="">Sélectionne une sortie</option>`;
+      myReleases = [];
+      const [releaseSnap, draftsSnap] = await Promise.all([
+        getDocs(query(collection(db, "releases"), where("ownerUid", "==", uid))),
+        getDocs(query(collection(db, "accompagnementDrafts"), where("ownerUid", "==", uid)))
+      ]);
+
+      releaseSnap.forEach((d) => {
+        const data = d.data() || {};
+        const releaseTitle = clean(data.title) || "Sortie sans titre";
+        const releaseDate = releaseDateFromDoc(data) || "date non définie";
+        myReleases.push({ id: d.id, title: releaseTitle, releaseDate, raw: data, source: "release" });
+      });
+
+      draftsSnap.forEach((d) => {
+        const data = d.data() || {};
+        const status = clean(data.status).toLowerCase();
+        if (!["prepared", "ready"].includes(status)) return;
+        const releaseTitle = clean(data.title) || "Sortie préparée sans titre";
+        const releaseDate = isoDate(data.releaseDate) || "date non définie";
+        myReleases.push({ id: `draft:${d.id}`, title: releaseTitle, releaseDate, raw: data, source: "draft", draftDocId: d.id });
+      });
+
+      myReleases.sort((a,b) => clean(a.releaseDate).localeCompare(clean(b.releaseDate)));
+
+      if (!myReleases.length) {
+        sel.innerHTML = `<option value="">Aucune sortie disponible</option>`;
+        return;
+      }
+
+      myReleases.forEach((r) => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = `${r.title} • ${r.releaseDate}${r.source === "draft" ? " • Préparée" : ""}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    async function loadArtists(uid){
+      const sel = $("draftArtist");
+      sel.innerHTML = "";
+      myArtists = [];
+      const snap = await getDocs(query(collection(db, "artists"), where("ownerUid", "==", uid)));
+      snap.forEach(d => {
+        const data = d.data() || {};
+        myArtists.push({ id: d.id, ...data });
+      });
+      if (!myArtists.length){
+        sel.innerHTML = `<option value="">Aucun artiste trouvé</option>`;
+        return;
+      }
+      myArtists.forEach(a => {
+        const opt = document.createElement("option");
+        opt.value = a.id;
+        opt.textContent = clean(a.name) || `Artiste ${a.id}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    async function loadPlans(uid){
+      const root = $("plansList");
+      const [planSnap, releaseSnap] = await Promise.all([
+        getDocs(query(collection(db, "accompagnementPlans"), where("ownerUid", "==", uid))),
+        getDocs(query(collection(db, "releases"), where("ownerUid", "==", uid)))
+      ]);
+
+      const plans = planSnap.docs
+        .map(d => ({ id: d.id, ...d.data(), kind: "plan", date: isoDate(d.data()?.plannedDate) }))
+        .filter(p => !!p.date)
+        .sort((a,b) => a.date.localeCompare(b.date));
+      cachedPlans = plans;
+
+      const releases = releaseSnap.docs
+        .map(d => {
+          const data = d.data() || {};
+          return {
+            id: d.id,
+            kind: "release",
+            date: releaseDateFromDoc(data),
+            title: clean(data.title) || "Sortie",
+            status: clean(data.statusUser || data.statusAdmin || "")
+          };
+        })
+        .filter(r => !!r.date);
+
+      const allEvents = [
+        ...plans.map(p => ({ date: p.date, title: clean(p.title) || "Plan", kind: "plan" })),
+        ...releases.map(r => ({ date: r.date, title: r.title, kind: "release" }))
+      ];
+
+      const eventsByDate = {};
+      allEvents.forEach(ev => {
+        if (!eventsByDate[ev.date]) eventsByDate[ev.date] = [];
+        eventsByDate[ev.date].push(ev);
+      });
+
+      if (!selectedCalendarDate) selectedCalendarDate = todayKey();
+      renderCalendar(eventsByDate);
+
+      const monthPlans = plans.filter(p => p.date.startsWith(monthKeyFromDate(calendarMonthAnchor)));
+      const monthReleases = releases.filter(r => r.date.startsWith(monthKeyFromDate(calendarMonthAnchor)));
+      const monthList = [
+        ...monthPlans.map(p => ({ id: p.id, type: "Plan", date: p.date, title: clean(p.title) || "Sortie", info: `Teasing: ${clean(p.teasing) || "—"} • Campagnes: ${clean(p.campaign) || "—"}` })),
+        ...monthReleases.map(r => ({ type: "Sortie", date: r.date, title: r.title, info: `Statut: ${r.status || "—"}` }))
+      ].sort((a,b) => a.date.localeCompare(b.date));
+
+      if (!monthList.length){
+        root.innerHTML = `<div class="empty">Aucune sortie sur ${monthTitleFr(calendarMonthAnchor)}.</div>`;
+        return;
+      }
+
+      root.innerHTML = monthList.map(p => `
+        <div class="item">
+          <div class="line" style="justify-content:space-between"><strong>${esc(p.title)}</strong><span class="pill">${esc(p.date)}</span></div>
+          <div class="muted" style="margin-top:6px;">${esc(p.type)} • ${esc(p.info)}</div>
+          ${p.type === "Plan" ? `<div class="line" style="margin-top:8px;justify-content:flex-start;"><button class="btn" data-plan-details="${esc(p.id)}">Détails</button><button class="btn" data-plan-edit="${esc(p.id)}">Modifier</button><button class="btn danger" data-plan-del="${esc(p.id)}">Supprimer</button></div>` : ""}
+        </div>
+      `).join("");
+
+      root.querySelectorAll("button[data-plan-details]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = clean(btn.getAttribute("data-plan-details"));
+          const plan = cachedPlans.find((x) => x.id === id);
+          showPlanDetails(plan);
+        });
+      });
+
+      root.querySelectorAll("button[data-plan-edit]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = clean(btn.getAttribute("data-plan-edit"));
+          const plan = cachedPlans.find((x) => x.id === id);
+          if (!plan) return;
+          fillPlanModal(plan);
+          openPlanModal(plan.date);
+        });
+      });
+
+      root.querySelectorAll("button[data-plan-del]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = clean(btn.getAttribute("data-plan-del"));
+          if (!id) return;
+          if (!confirm("Supprimer cette sortie du calendrier ?")) return;
+          await deleteDoc(doc(db, "accompagnementPlans", id));
+          setText("planMsg", "Sortie supprimée.", "ok");
+          await loadPlans(uid);
+        });
+      });
+    }
+
+    async function loadGoals(uid){
+      const mk = monthKey();
+      const root = $("goalsList");
+      const snap = await getDocs(query(collection(db, "accompagnementGoals"), where("ownerUid", "==", uid), where("month", "==", mk)));
+      const goals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setText("dailyBoost", encouragement(goals), "muted");
+      if (!goals.length){ root.innerHTML = `<div class="empty">Aucun objectif ce mois-ci.</div>`; }
+      else {
+        root.innerHTML = goals.map(g => `
+          <div class="item goal">
+            <label><input type="checkbox" data-goal="${g.id}" ${g.done ? "checked" : ""} /> <span>${esc(clean(g.title) || "Objectif")}</span></label>
+            <div class="line" style="justify-content:flex-end;gap:6px;">
+              <span class="pill">${g.done ? "Fait" : "À faire"}</span>
+              <button class="btn" data-edit-goal="${g.id}">Modifier</button>
+              <button class="btn danger" data-del-goal="${g.id}">Supprimer</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      const done = goals.filter(g => g.done).length;
+      const pct = goals.length ? Math.round((done / goals.length) * 100) : 0;
+      $("monthSummary").textContent = `Résumé ${mk}: ${done}/${goals.length} objectifs validés (${pct}%).`;
+
+      root.querySelectorAll("input[data-goal]").forEach(input => {
+        input.addEventListener("change", async () => {
+          await updateDoc(doc(db, "accompagnementGoals", input.dataset.goal), {
+            done: !!input.checked,
+            checkedAt: input.checked ? serverTimestamp() : null,
+            updatedAt: serverTimestamp()
+          });
+          await loadGoals(uid);
+        });
+      });
+
+      root.querySelectorAll("button[data-edit-goal]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = clean(btn.getAttribute("data-edit-goal"));
+          const current = goals.find((g) => g.id === id);
+          if (!current) return;
+          const next = clean(prompt("Modifier l'objectif", clean(current.title) || ""));
+          if (!next) return;
+          await updateDoc(doc(db, "accompagnementGoals", id), { title: next, updatedAt: serverTimestamp() });
+          await loadGoals(uid);
+        });
+      });
+
+      root.querySelectorAll("button[data-del-goal]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = clean(btn.getAttribute("data-del-goal"));
+          if (!id) return;
+          if (!confirm("Supprimer cet objectif ?")) return;
+          await deleteDoc(doc(db, "accompagnementGoals", id));
+          await loadGoals(uid);
+        });
+      });
+    }
+
+    async function loadNotes(uid){
+      const root = $("notesList");
+      const snap = await getDocs(query(collection(db, "accompagnementNotes"), where("ownerUid", "==", uid)));
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!list.length){ root.innerHTML = `<div class="empty">Aucune note pour le moment.</div>`; return; }
+      root.innerHTML = list.map(n => `
+        <div class="item">
+          <strong>${esc(clean(n.title) || "Note")}</strong>
+          <div class="muted" style="margin-top:6px;white-space:pre-wrap;">${esc(clean(n.body) || "")}</div>
+        </div>
+      `).join("");
+    }
+
+    async function loadFeatRequests(uid){
+      const root = $("featList");
+      const snap = await getDocs(query(collection(db, "featRequests"), where("ownerUid", "==", uid)));
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!list.length){ root.innerHTML = `<div class="empty">Aucune demande feat.</div>`; return; }
+      root.innerHTML = list.map(r => `
+        <div class="item">
+          <div class="line" style="justify-content:space-between"><strong>${esc(clean(r.artistName) || "Demande feat")}</strong><span class="pill">${esc(clean(r.status) || "reflexion")}</span></div>
+          <div class="muted" style="margin-top:6px;">Insta: ${esc(clean(r.instagramUrl) || "—")}</div>
+          <div class="muted">Contact admin: ${esc(clean(r.adminContact) || "—")}</div>
+        </div>
+      `).join("");
+    }
+
+    async function loadPitchRequests(uid){
+      const root = $("pitchList");
+      const snap = await getDocs(query(collection(db, "editorialPitchRequests"), where("ownerUid", "==", uid)));
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!list.length){ root.innerHTML = `<div class="empty">Aucune demande pitching.</div>`; return; }
+      root.innerHTML = list.map(p => `
+        <div class="item">
+          <div class="line" style="justify-content:space-between"><strong>${esc(clean(p.releaseTitle) || "Pitch")}</strong><span class="pill">${esc(clean(p.status) || "reflexion")}</span></div>
+          <div class="muted" style="margin-top:6px;">Date: ${esc(clean(p.releaseDate) || "—")}</div>
+          <div class="muted">Retour admin: ${esc(clean(p.adminNote) || "—")}</div>
+        </div>
+      `).join("");
+    }
+
+    async function loadDrafts(uid){
+      const root = $("draftsList");
+      const snap = await getDocs(query(collection(db, "accompagnementDrafts"), where("ownerUid", "==", uid)));
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!list.length){ root.innerHTML = `<div class="empty">Aucune préparation enregistrée.</div>`; return; }
+      root.innerHTML = list.map(d => `
+        <div class="item">
+          <div class="line" style="justify-content:space-between"><strong>${esc(clean(d.title) || "Sortie sans titre")}</strong><span class="pill">${esc(clean(d.status) === "prepared" || clean(d.status) === "ready" ? "Préparée" : clean(d.status) || "draft")}</span></div>
+          <div class="muted" style="margin-top:6px;">Pistes: ${Array.isArray(d.tracks) ? d.tracks.length : 0}</div>
+          <div class="line" style="margin-top:8px;">
+            <button class="btn" data-edit-draft="${d.id}">Modifier</button>
+            <button class="btn primary" data-open-draft="${d.id}">Publier</button>
+            <button class="btn" data-del-draft="${d.id}">Supprimer</button>
+          </div>
+        </div>
+      `).join("");
+
+      root.querySelectorAll("button[data-edit-draft]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-edit-draft");
+          const draft = list.find((x) => x.id === id);
+          if (!draft) return;
+          editingDraftDocId = id;
+          $("draftTitle").value = clean(draft.title);
+          $("draftLanguage").value = clean(draft.language);
+          $("draftDate").value = clean(draft.releaseDate);
+          if ($("draftType")) $("draftType").value = clean(draft.type) || "single";
+          if ($("draftArtist")) $("draftArtist").value = clean(draft.artistId);
+          $("draftTracks").innerHTML = "";
+          const tracks = Array.isArray(draft.tracks) ? draft.tracks : [];
+          if (!tracks.length) renderDraftTrackFields();
+          tracks.forEach((t) => renderDraftTrackFieldsFromData(t));
+          $("btnCancelDraftEdit")?.classList.remove("hidden");
+          $("btnSaveDraft").textContent = "Enregistrer les modifications";
+          setText("draftMsg", "Mode modification actif.", "muted");
+          window.location.hash = "preparation";
+        });
+      });
+
+      root.querySelectorAll("button[data-open-draft]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-open-draft");
+          const draft = list.find(x => x.id === id);
+          if (!draft) return;
+          localStorage.setItem("mmcpUploadDraft", JSON.stringify(draft));
+          window.location.href = "/dash/upload.html?fromDraft=" + encodeURIComponent(id);
+        });
+      });
+
+      root.querySelectorAll("button[data-del-draft]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-del-draft");
+          if (!id) return;
+          await deleteDoc(doc(db, "accompagnementDrafts", id));
+          await loadDrafts(uid);
+        });
+      });
+    }
+
+    async function bindActions(uid){
+      /* ✅ Bouton plus */
+      $("calAddOpen").addEventListener("click", () => {
+        closeDayContextMenu();
+        openPlanModal(selectedCalendarDate || todayKey());
+      });
+
+      /* ✅ Modal close */
+      $("planModalCancel").addEventListener("click", closePlanModal);
+      $("planModal")?.addEventListener("click", (event) => {
+        if (event.target === $("planModal")) closePlanModal();
+      });
+
+      /* ✅ Menu clic droit: ajouter */
+      $("dayContextAdd").addEventListener("click", () => {
+        const date = selectedCalendarDate || todayKey();
+        closeDayContextMenu();
+        openPlanModal(date);
+      });
+
+      /* ✅ Click ailleurs = fermer menu */
+      document.addEventListener("click", (event) => {
+        const menu = $("dayContextMenu");
+        if (!menu || menu.classList.contains("hidden")) return;
+        if (!menu.contains(event.target)) closeDayContextMenu();
+      });
+
+      /* ✅ Touche: ESC / ⌘N */
+      document.addEventListener("keydown", (event) => {
+        const isNewShortcut = (event.metaKey || event.ctrlKey) && String(event.key || "").toLowerCase() === "n";
+        if (isNewShortcut) {
+          event.preventDefault();
+          closeDayContextMenu();
+          if (!selectedCalendarDate) selectedCalendarDate = todayKey();
+          openPlanModal(selectedCalendarDate);
+          return;
+        }
+        if (event.key === "Escape") {
+          closeDayContextMenu();
+          closePlanModal();
+        }
+      });
+
+      /* ✅ Navigation mois */
+      $("calPrev").addEventListener("click", async () => {
+        calendarMonthAnchor = new Date(calendarMonthAnchor.getFullYear(), calendarMonthAnchor.getMonth() - 1, 1);
+        await loadPlans(uid);
+      });
+
+      $("calToday").addEventListener("click", async () => {
+        const now = new Date();
+        calendarMonthAnchor = new Date(now.getFullYear(), now.getMonth(), 1);
+        selectedCalendarDate = todayKey();
+        await loadPlans(uid);
+      });
+
+      $("calNext").addEventListener("click", async () => {
+        calendarMonthAnchor = new Date(calendarMonthAnchor.getFullYear(), calendarMonthAnchor.getMonth() + 1, 1);
+        await loadPlans(uid);
+      });
+
+      /* ✅ Sauver plan */
+      $("btnAddPlan").addEventListener("click", async () => {
+        const title = clean($("planTitle").value);
+        const plannedDate = clean($("planDate").value);
+        if (!title || !plannedDate){ setText("planMsg", "Titre + date obligatoires", "warn"); return; }
+
+        const saveBtn = $("btnAddPlan");
+        saveBtn.disabled = true;
+        setText("planMsg", "Enregistrement…", "muted");
+
+        try {
+          const payload = {
+            ownerUid: uid,
+            title,
+            plannedDate,
+            teasing: clean($("planTeasing").value),
+            campaign: clean($("planCampaign").value),
+            updatedAt: serverTimestamp()
+          };
+
+          if (editingPlanId) {
+            await updateDoc(doc(db, "accompagnementPlans", editingPlanId), payload);
+          } else {
+            await addDoc(collection(db, "accompagnementPlans"), {
+              ...payload,
+              createdAt: serverTimestamp()
+            });
+          }
+
+          $("planTitle").value = "";
+          $("planTeasing").value = "";
+          $("planCampaign").value = "";
+          setSelectedDay(plannedDate);
+
+          setText("planMsg", "Sortie planifiée ✅", "ok");
+          closePlanModal();
+          await loadPlans(uid);
+        } catch (error) {
+          console.error("Erreur enregistrement sortie:", error);
+          setText("planMsg", "Impossible d’enregistrer la sortie. Vérifie tes droits et réessaie.", "warn");
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+
+      /* ✅ Objectifs */
+      $("btnAddGoal").addEventListener("click", async () => {
+        const title = clean($("goalTitle").value);
+        if (!title) return;
+        await addDoc(collection(db, "accompagnementGoals"), {
+          ownerUid: uid,
+          month: monthKey(),
+          dateKey: todayKey(),
+          title,
+          done: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        $("goalTitle").value = "";
+        await loadGoals(uid);
+      });
+
+      /* ✅ Drafts */
+      $("btnAddDraftTrack").addEventListener("click", () => renderDraftTrackFields());
+      $("btnCancelDraftEdit").addEventListener("click", () => {
+        resetDraftForm();
+        setText("draftMsg", "Modification annulée.", "muted");
+      });
+      $("btnSaveDraft").addEventListener("click", async () => {
+        const title = clean($("draftTitle").value) || "Sortie sans titre";
+        const artistId = clean($("draftArtist").value);
+        const generatedDraftId = (crypto.randomUUID && crypto.randomUUID()) || String(Date.now());
+        const currentDraftId = editingDraftDocId || generatedDraftId;
+
+        const tracks = [];
+        const trackEls = Array.from($("draftTracks").querySelectorAll(".track"));
+        for (let i = 0; i < trackEls.length; i++){
+          const el = trackEls[i];
+          const rank = i + 1;
+          const trackTitle = clean(el.querySelector(".d-title")?.value) || `Piste ${rank}`;
+          const audioFile = el.querySelector(".d-audio")?.files?.[0] || null;
+          const atmosFile = el.querySelector(".d-atmos")?.files?.[0] || null;
+          const instruFile = el.querySelector(".d-instru")?.files?.[0] || null;
+          const existingAudioUrl = clean(el.dataset.audioUrl) || null;
+          const existingAtmosUrl = clean(el.dataset.atmosUrl) || null;
+          const existingInstruUrl = clean(el.dataset.instruUrl) || null;
+
+          const audioUrl = audioFile ? await uploadDraftFile(uid, currentDraftId, rank, "audio", audioFile) : existingAudioUrl;
+          const atmosUrl = atmosFile ? await uploadDraftFile(uid, currentDraftId, rank, "atmos", atmosFile) : existingAtmosUrl;
+          const instrumentalUrl = instruFile ? await uploadDraftFile(uid, currentDraftId, rank, "instrumental", instruFile) : existingInstruUrl;
+
+          tracks.push({
+            idx: rank,
+            title: trackTitle,
+            language: clean(el.querySelector(".d-language")?.value) || null,
+            files: {
+              audioUrl, atmosUrl, instrumentalUrl,
+              audioFileName: audioFile?.name || clean(el.dataset.audioName) || null,
+              atmosFileName: atmosFile?.name || clean(el.dataset.atmosName) || null,
+              instrumentalFileName: instruFile?.name || clean(el.dataset.instruName) || null
+            },
+            audioUrl, atmosUrl, instrumentalUrl
+          });
+        }
+
+        const payload = {
+          ownerUid: uid,
+          draftId: currentDraftId,
+          artistId,
+          title,
+          type: clean($("draftType").value) || "single",
+          language: clean($("draftLanguage").value) || null,
+          releaseDate: clean($("draftDate").value) || null,
+          status: "prepared",
+          tracks,
+          source: "accompagnement",
+          updatedAt: serverTimestamp()
+        };
+
+        if (editingDraftDocId) {
+          await updateDoc(doc(db, "accompagnementDrafts", editingDraftDocId), payload);
+        } else {
+          await addDoc(collection(db, "accompagnementDrafts"), {
+            ...payload,
+            createdAt: serverTimestamp()
+          });
+        }
+        localStorage.setItem("mmcpUploadDraft", JSON.stringify(payload));
+        setText("draftMsg", "Préparation enregistrée ✅", "ok");
+        resetDraftForm();
+        await loadDrafts(uid);
+        await loadPitchReleaseOptions(uid);
+      });
+
+      /* ✅ Feat */
+      $("btnSendFeat").addEventListener("click", async () => {
+        const btn = $("btnSendFeat");
+        const artistName = clean($("featArtistName").value);
+        const instagramUrl = clean($("featInsta").value);
+        const note = clean($("featNote").value);
+        if (!artistName || !note){ setText("featMsg", "Nom d'artiste + détails requis", "warn"); return; }
+        btn.disabled = true;
+        setText("featMsg", "Envoi en cours…", "muted");
+        try {
+          await addDoc(collection(db, "featRequests"), {
+            ownerUid: uid,
+            artistName,
+            instagramUrl: instagramUrl || null,
+            note,
+            status: "reflexion",
+            adminContact: null,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          $("featArtistName").value = ""; $("featInsta").value = ""; $("featNote").value = "";
+          setText("featMsg", "Demande feat envoyée ✅", "ok");
+          await loadFeatRequests(uid);
+        } catch (error) {
+          console.error("Erreur demande feat:", error);
+          setText("featMsg", "Impossible d'envoyer la demande. Vérifie tes droits et réessaie.", "warn");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      /* ✅ Pitch */
+      $("btnSendPitch").addEventListener("click", async () => {
+        const btn = $("btnSendPitch");
+        const releaseId = clean($("pitchRelease").value);
+        const pitchText = clean($("pitchText").value);
+        if (!releaseId || !pitchText){ setText("pitchMsg", "Sélectionne une sortie + argumentaire", "warn"); return; }
+        const selectedRelease = myReleases.find((r) => r.id === releaseId);
+        if (!selectedRelease){ setText("pitchMsg", "Sortie introuvable", "warn"); return; }
+        btn.disabled = true;
+        setText("pitchMsg", "Envoi en cours…", "muted");
+        try {
+          await addDoc(collection(db, "editorialPitchRequests"), {
+            ownerUid: uid,
+            releaseId,
+            releaseTitle: selectedRelease.title,
+            releaseDate: selectedRelease.releaseDate || null,
+            trackUrl: clean($("pitchLink").value) || null,
+            pitchText,
+            status: "reflexion",
+            adminNote: null,
+            sourceType: selectedRelease.source || "release",
+            sourceDraftId: selectedRelease.draftDocId || null,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          $("pitchRelease").value = ""; $("pitchLink").value = ""; $("pitchText").value = "";
+          setText("pitchMsg", "Demande pitching envoyée ✅", "ok");
+          await loadPitchRequests(uid);
+        } catch (error) {
+          console.error("Erreur demande pitching:", error);
+          setText("pitchMsg", "Impossible d'envoyer la demande. Vérifie tes droits et réessaie.", "warn");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      $("btnDeletePlan")?.addEventListener("click", async () => {
+        if (!editingPlanId) return;
+        if (!confirm("Supprimer cette sortie du calendrier ?")) return;
+        await deleteDoc(doc(db, "accompagnementPlans", editingPlanId));
+        closePlanModal();
+        setText("planMsg", "Sortie supprimée.", "ok");
+        await loadPlans(uid);
+      });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (!user){
+          window.location.href = "/login.html?redirect=" + encodeURIComponent(window.location.href);
+          return;
+        }
+
+        const meSnap = await getDoc(doc(db, "users", user.uid));
+        me = meSnap.exists() ? (meSnap.data() || {}) : {};
+        if (!ensureSignedArtist(me)){
+          alert("Page réservée aux artistes signés.");
+          window.location.href = "/dash/index.html";
+          return;
+        }
+        isTestMode = isTestRole(me);
+        if (isTestMode) enableTestModeUI();
+
+        setupHashSections();
+
+        await loadArtists(user.uid);
+        await loadPitchReleaseOptions(user.uid);
+        if (!$("draftTracks").querySelector(".track")) renderDraftTrackFields();
+
+        await Promise.all([
+          loadPlans(user.uid),
+          loadGoals(user.uid),
+          loadNotes(user.uid),
+          loadFeatRequests(user.uid),
+          loadPitchRequests(user.uid),
+          loadDrafts(user.uid)
+        ]);
+
+        await bindActions(user.uid);
+      } catch (error) {
+        console.error("Erreur chargement accompagnement:", error);
+      }
+    });
+
+    // --- Gestion section Liste d'album avec Firestore temps réel ---
+    // Firestore déjà importé plus haut, pas besoin de réimporter ici
+    // import { collection, addDoc, doc, setDoc, updateDoc, deleteDoc, getDocs, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    let albumLists = [];
+    let albumListsUnsubscribe = null;
+    let albumListsUid = null;
+
+    async function saveAlbumListToFirestore(list) {
+      if (!albumListsUid) return;
+      if (list.id) {
+        await updateDoc(doc(db, "albumLists", list.id), {
+          name: list.name,
+          tracks: list.tracks,
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        const ref = await addDoc(collection(db, "albumLists"), {
+          ownerUid: albumListsUid,
+          name: list.name,
+          tracks: list.tracks,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        list.id = ref.id;
+      }
+    }
+
+    async function deleteAlbumListFromFirestore(listId) {
+      if (!listId) return;
+      await deleteDoc(doc(db, "albumLists", listId));
+    }
+
+    function renderAlbumLists() {
+      const root = document.getElementById("albumLists");
+      if (!root) return;
+      if (!albumLists.length) {
+        root.innerHTML = '<div class="empty">Aucune liste créée.</div>';
+        return;
+      }
+      root.innerHTML = albumLists.map((list, idx) => `
+        <div class="item" style="margin-bottom:18px;">
+          <div class="line" style="justify-content:space-between;align-items:center;">
+            <strong>${esc(list.name)}</strong>
+            <button class="btn" data-add-track-list="${idx}">+ Ajouter un titre</button>
+            <button class="btn danger" data-del-list="${idx}" title="Supprimer la liste">🗑️</button>
+          </div>
+          <div class="list" id="album-list-${idx}"></div>
+        </div>
+      `).join("");
+      albumLists.forEach((list, idx) => renderTrackInputs(idx));
+      // Bind bouton ajouter un titre
+      root.querySelectorAll("button[data-add-track-list]").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const i = Number(btn.getAttribute("data-add-track-list"));
+          addTrackInput(i);
+        });
+      });
+      // Bind suppression liste
+      root.querySelectorAll("button[data-del-list]").forEach(btn => {
+        btn.addEventListener("click", async e => {
+          const i = Number(btn.getAttribute("data-del-list"));
+          const list = albumLists[i];
+          if (list && confirm("Supprimer cette liste ?")) {
+            await deleteAlbumListFromFirestore(list.id);
+          }
+        });
+      });
+    }
+
+    function renderTrackInputs(listIdx) {
+      const list = albumLists[listIdx];
+      const root = document.getElementById(`album-list-${listIdx}`);
+      if (!root) return;
+      root.innerHTML = "";
+      list.tracks.forEach((track, i) => {
+        const div = document.createElement("div");
+        div.className = "line";
+        div.style.marginBottom = "6px";
+        div.innerHTML = `
+          <span style="min-width:28px;">${i + 1}.</span>
+          <input class="input album-track-input" type="text" value="${esc(track)}" placeholder="Titre de la piste" style="flex:1;" />
+          <button class="btn" data-move-up="${i}" ${i === 0 ? "disabled" : ""} title="Monter">↑</button>
+          <button class="btn" data-move-down="${i}" ${i === list.tracks.length - 1 ? "disabled" : ""} title="Descendre">↓</button>
+          <button class="btn danger" data-remove-track="${i}" title="Supprimer">✕</button>
+        `;
+        root.appendChild(div);
+        const input = div.querySelector(".album-track-input");
+        // Sauvegarde uniquement sur blur (perte de focus)
+        input.addEventListener("blur", async e => {
+          list.tracks[i] = e.target.value;
+          await saveAlbumListToFirestore(list);
+          // Ajout d'un nouvel input vide uniquement sur blur du dernier input
+          if (i === list.tracks.length - 1 && input.value.trim() !== "" && list.tracks[list.tracks.length - 1].trim() !== "") {
+            list.tracks.push("");
+            await saveAlbumListToFirestore(list);
+            renderTrackInputs(listIdx);
+          }
+        });
+        // Monter
+        div.querySelector("[data-move-up]").addEventListener("click", async () => {
+          if (i > 0) {
+            [list.tracks[i - 1], list.tracks[i]] = [list.tracks[i], list.tracks[i - 1]];
+            await saveAlbumListToFirestore(list);
+            renderTrackInputs(listIdx);
+          }
+        });
+        // Descendre
+        div.querySelector("[data-move-down]").addEventListener("click", async () => {
+          if (i < list.tracks.length - 1) {
+            [list.tracks[i + 1], list.tracks[i]] = [list.tracks[i], list.tracks[i + 1]];
+            await saveAlbumListToFirestore(list);
+            renderTrackInputs(listIdx);
+          }
+        });
+        // Supprimer
+        div.querySelector("[data-remove-track]").addEventListener("click", async () => {
+          list.tracks.splice(i, 1);
+          await saveAlbumListToFirestore(list);
+          renderTrackInputs(listIdx);
+        });
+      });
+      // Ajout d'un input vide si aucun input n'existe
+      if (!list.tracks.length) {
+        list.tracks.push("");
+        saveAlbumListToFirestore(list);
+      }
+    }
+
+    function addTrackInput(listIdx) {
+      const list = albumLists[listIdx];
+      if (!list) return;
+      list.tracks.push("");
+      saveAlbumListToFirestore(list);
+      renderTrackInputs(listIdx);
+    }
+
+    // --- Pop-up création liste ---
+    // Désactive le bouton Créer tant que l'uid n'est pas prêt
+    const btnCreateList = document.getElementById("albumListModalSave");
+    btnCreateList.disabled = true;
+
+    document.getElementById("btnAddAlbumList").addEventListener("click", () => {
+      document.getElementById("albumListNameInput").value = "";
+      document.getElementById("albumListModal").classList.remove("hidden");
+      setTimeout(() => document.getElementById("albumListNameInput").focus(), 100);
+    });
+    document.getElementById("albumListModalCancel").addEventListener("click", () => {
+      document.getElementById("albumListModal").classList.add("hidden");
+    });
+    btnCreateList.addEventListener("click", async () => {
+      const name = document.getElementById("albumListNameInput").value.trim();
+      if (!name || !albumListsUid) return;
+      const list = { name, tracks: [""], id: null };
+      await saveAlbumListToFirestore(list);
+      document.getElementById("albumListModal").classList.add("hidden");
+    });
+    // Fermer pop-up si clic dehors
+    document.getElementById("albumListModal").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("albumListModal")) {
+        document.getElementById("albumListModal").classList.add("hidden");
+      }
+    });
+
+    // --- Chargement temps réel Firestore ---
+    function subscribeAlbumLists(uid) {
+      albumListsUid = uid;
+      if (btnCreateList) btnCreateList.disabled = false;
+      if (albumListsUnsubscribe) albumListsUnsubscribe();
+      const q = query(collection(db, "albumLists"), where("ownerUid", "==", uid));
+      albumListsUnsubscribe = onSnapshot(q, (snap) => {
+        albumLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAlbumLists();
+      });
+    }
+
+    // Initialisation après login
+    onAuthStateChanged(auth, async (user) => {
+      // ...existing code...
+      if (user) subscribeAlbumLists(user.uid);
+    });
+  </script>
+
+  <script src="/assets/js/dash/artist-sidebar.js"></script>
+</body>
+</html>

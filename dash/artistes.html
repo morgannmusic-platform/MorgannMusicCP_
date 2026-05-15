@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Artistes — Morgann Music CP</title>
+  <link rel="stylesheet" href="/assets/css/dash/artist-sidebar.css" />
+
+  <style>
+    @keyframes spin-literal {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .litual-loading-logo {
+      animation: spin-literal 1.1s linear infinite;
+    }
+    .litual-dots span {
+      opacity: 0.2;
+      animation: blink 1.2s infinite;
+    }
+    .litual-dots span:nth-child(1) { animation-delay: 0s; }
+    .litual-dots span:nth-child(2) { animation-delay: 0.3s; }
+    .litual-dots span:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+    body {
+      margin-top: 39px;
+    }
+
+        body.with-artist-sidebar {
+          margin-left: 246px;
+
+        }
+        @media (max-width: 900px) {
+    body.with-artist-sidebar {
+      margin-left: 0;
+    }
+}
+
+
+    :root{ --bg:#e2e2e2; --txt:#000; --cover:#d5d5d5; --bg2:#fff }
+    @media (prefers-color-scheme: dark){ :root{ --bg:#414141; --txt:#fff; --cover:#575757; --bg2:#1e1e1e }}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{background:var(--bg);color:var(--txt);font-family:Helvetica,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:20px}
+    .titre-page{padding:18px 0;margin-top:6px;font-size:22pt;font-weight:900;display:inline-flex;align-items:center;gap:10px;line-height:1.15}
+    .page-icon{width:24px;height:24px;display:inline-block;object-fit:contain;object-position:center;vertical-align:middle;flex:0 0 24px;transform:translateY(-0.5px)}
+    .card{background:var(--cover);padding:14px;border-radius:12px;border:1px solid rgba(0,0,0,0.08);margin-bottom:12px}
+    .row{display:flex;justify-content:space-between;align-items:center}
+    .title{font-weight:900}
+    .tag{padding:6px 10px;border-radius:999px;background:rgba(0,0,0,0.06)}
+    .btn{display:inline-block;padding:10px 12px;border-radius:999px;background:var(--cover);color:var(--txt);text-decoration:none}
+    .btn-outline{background:transparent;border:1px solid rgba(0,0,0,0.12)}
+    .btn-danger{background:transparent;border:1px solid #ff8fb1;color:#ff8fb1}
+    form .field{margin-top:8px}
+    input.input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.12)}
+  </style>
+  <script src="/assets/js/inject-dash-navbar.js"></script>
+</head>
+<body>
+  <div id="navbar-inject"></div>
+  <div id="sidebar-inject"></div>
+
+  <div class="wrap">
+    <h1 class="titre-page"><img class="page-icon" src="/assets/icon/Artist-Song--Streamline-Flex.svg" alt="">Mes artistes</h1>
+
+    <div id="accessMessage" class="card" style="display:none;"></div>
+
+    <div id="artistsGrid"></div>
+
+    <div class="card" id="createCard">
+      <h3>Ajouter un artiste</h3>
+      <div class="field">
+        <label>Nom</label>
+        <input id="newName" class="input" />
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="newSpotify" /> Cet artiste a un profil Spotify</label>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="newApple" /> Cet artiste a un profil Apple Music</label>
+      </div>
+      <div class="field">
+        <label>Bannière (optionnel)</label>
+        <input type="file" id="newBanner" accept="image/*" />
+      </div>
+      <div class="field">
+        <label>Photo de profil (optionnel)</label>
+        <input type="file" id="newAvatar" accept="image/*" />
+      </div>
+      <div style="margin-top:10px">
+        <button class="btn" id="btnCreate">Créer</button>
+      </div>
+    </div>
+
+    <div class="card" id="generatedNamesCard" style="margin-top:18px;">
+  <h3>Noms d'artiste proposés</h3>
+  <div class="field">
+    <label>Inspiration (optionnel)</label>
+    <input id="artistInspiration" class="input" placeholder="Ex: ambiance, style, mots-clés..." style="margin-top: 5px; margin-bottom: 10px;"/>
+  </div>
+  <div class="field" style="display:flex;align-items:center;gap:10px;">
+    <button class="btn" id="btnGenerateArtistName" type="button" style="margin-bottom: 10px;">Générer des noms d'artiste</button>
+  </div>
+  <div id="generatedArtistNames" style="display:flex;flex-wrap:wrap;gap:7px;"></div>
+  <div id="litualLoading" style="display:none;align-items:center;gap:10px;margin-top:14px;justify-content:flex-start;">
+    <img src="/assets/Litual/o!§ititititt.png" alt="Litual AI" class="litual-loading-logo" style="height:28px;width:28px;object-fit:cover;" />
+    <span style="font-size:15px;color:#ffffff;">Génération des propositions<span class="litual-dots"><span>.</span><span>.</span><span>.</span></span></span>
+  </div>
+  <div id="litualAttribution" style="display:none;align-items:center;gap:8px;margin-top:12px;">
+    <img src="/assets/Litual/o!§ititititt.png" alt="Litual AI" style="height:22px;width:22px;box-shadow:0 1px 4px #0001;object-fit:cover;" />
+    <span style="font-size:13px;color:#ffffff;">Généré par Litual AI</span>
+  </div>
+</div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import {
+      getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp, updateDoc, doc
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.appspot.com",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const $ = id => document.getElementById(id);
+
+    function planFromPriceId(priceId){
+      const map = {"price_1T03eDFhaOYWNNbbddL6iz7y":"Starter","price_1T03z6FhaOYWNNbbNyjacrEv":"Pro","price_1T042SFhaOYWNNbbs0OXpz8P":"Label"};
+      return map[priceId]||(priceId?"Abonné":"—");
+    }
+    function planLimit(plan){ if (plan==='Starter') return 1; if (plan==='Pro') return 2; if (plan==='Label') return Infinity; return 0 }
+
+    async function getUserDoc(uid){ const snap = await getDocs(query(collection(db,'users'))); /* fallback */ return (await (await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js')).getDoc(doc(db,'users',uid)))?.data?.() || null }
+
+    async function getStripeSub(uid){
+      try{
+        const subsRef = collection(db, "customers", uid, "subscriptions");
+        const qy = query(subsRef);
+        const snap = await getDocs(qy);
+        if (snap.empty) return null;
+        return snap.docs[0].data();
+      }catch(e){ return null }
+    }
+
+    async function loadMyArtists(uid){
+      try{ const qy = query(collection(db,'artists'), where('ownerUid','==',uid)); const snap = await getDocs(qy); return snap.docs.map(d=>({id:d.id,...d.data()})); }catch(e){ console.warn(e); return [] }
+    }
+
+    function render(list){
+      const root = $('artistsGrid'); root.innerHTML='';
+      if (!list.length) { root.innerHTML = '<div class="card">Aucun artiste.</div>'; return }
+      const activeCount = (list || []).filter(x => !x.deleted).length;
+      for (const a of list){
+        if (a.deleted) continue;
+        const div = document.createElement('div'); div.className='card';
+        const cannotDeleteLast = activeCount <= 1;
+        div.innerHTML = `<div class="row"><div><div class="title">${a.name||'Artiste'}</div></div><div class="tag">${a.spotify?.hasProfile? 'Spotify':''}${a.appleMusic?.hasProfile? (a.spotify?.hasProfile? ' • Apple':'Apple') : ''}</div></div><div style="margin-top:8px"><button class="btn btn-outline" data-open="${a.id}">Ouvrir</button> <button class="btn btn-danger" data-del="${a.id}" ${cannotDeleteLast ? 'disabled title="Tu dois garder au moins 1 artiste actif."' : ''}>Supprimer</button></div>`;
+        // Action ouvrir
+          div.querySelector('[data-open]')?.addEventListener('click', ()=>{
+            window.location.href = '/dash/artist.html?id=' + encodeURIComponent(a.id);
+          });
+        // Action supprimer
+        div.querySelector('[data-del]')?.addEventListener('click', async ()=>{
+          if (activeCount <= 1) {
+            alert("Tu dois garder au moins 1 artiste actif.");
+            return;
+          }
+          if(!confirm(`Supprimer ${a.name}? (action réversible par admin)`)) return;
+          try{
+            await updateDoc(doc(db,'artists',a.id),{ deleted:true, deletedAt:serverTimestamp(), deletedByUid:auth.currentUser.uid, deletedByEmail:auth.currentUser.email||null });
+            await addDoc(collection(db,'artistAdminLogs'),{ artistId:a.id, ownerUid:a.ownerUid||null, action:'soft-delete', byUid:auth.currentUser.uid, byEmail:auth.currentUser.email||null, ts:serverTimestamp() });
+            location.reload();
+          }catch(e){ alert(e?.message||String(e)) }
+        });
+        root.appendChild(div);
+      }
+    }
+
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user){ const here = window.location.href; window.location.href = '/login.html?redirect='+encodeURIComponent(here); return }
+      const udoc = (await (async ()=>{ try{ const ref = (await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js')).doc(db,'users',user.uid); const s = await (await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js')).getDoc(ref); return s.exists()?s.data():{} }catch(e){return{}} })())||{};
+      const role = String(udoc?.role||'user').toLowerCase();
+      const isAdmin = role==='admin';
+      const isArtist = role==='artist';
+      const isTest = role==='teste';
+      const sub = await getStripeSub(user.uid);
+      const plan = planFromPriceId(sub? (sub?.price?.id || sub?.items?.[0]?.price?.id) : null);
+
+      if (plan === 'Starter' && !isAdmin && !isArtist && !isTest){
+        $('accessMessage').style.display = 'block';
+        $('accessMessage').textContent = 'Accès réservé aux plans Pro et Label. Ton plan: Starter.';
+        $('createCard').style.display = 'none';
+        return;
+      }
+
+      const list = await loadMyArtists(user.uid);
+      render(list);
+
+      const btn = $('btnCreate');
+      btn.onclick = async ()=>{
+        const name = $('newName').value.trim(); if(!name){ alert('Entre un nom'); return }
+        const activeCount = (list||[]).filter(a=>!a.deleted).length;
+        const limit = (isAdmin || isArtist || isTest) ? Infinity : planLimit(plan);
+        if(!isAdmin && !isArtist && !isTest && limit!==Infinity && activeCount>=limit){ alert('Limite d\'artistes atteinte pour ton plan'); return }
+        try{
+          const payload = { ownerUid:user.uid, name, spotify:{ hasProfile:!!$('newSpotify').checked, uriOrUrl:null }, appleMusic:{ hasProfile:!!$('newApple').checked, url:null }, createdAt:serverTimestamp(), updatedAt:serverTimestamp() };
+          // Upload bannière
+          const bannerFile = $('newBanner').files[0];
+          if (bannerFile) {
+            const storageMod = await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js');
+            const storage = storageMod.getStorage(app);
+            const ref = storageMod.ref(storage, `artists/banners/${user.uid}_${Date.now()}_${bannerFile.name}`);
+            await storageMod.uploadBytes(ref, bannerFile);
+            payload.bannerUrl = await storageMod.getDownloadURL(ref);
+          }
+          // Upload avatar
+          const avatarFile = $('newAvatar').files[0];
+          if (avatarFile) {
+            const storageMod = await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js');
+            const storage = storageMod.getStorage(app);
+            const ref = storageMod.ref(storage, `artists/avatars/${user.uid}_${Date.now()}_${avatarFile.name}`);
+            await storageMod.uploadBytes(ref, avatarFile);
+            payload.playProfileImageUrl = await storageMod.getDownloadURL(ref);
+          }
+          await addDoc(collection(db,'artists'), payload);
+          location.reload();
+        }catch(e){ alert(e?.message||String(e)) }
+      }
+    });
+
+              // Génération de noms d'artiste par IA
+          let userFirstName = null;
+          onAuthStateChanged(auth, async (user)=>{
+            if(user){
+              // Récupère le prénom du compte
+              try {
+                const snap = await getDocs(query(collection(db,'users')));
+                const userDoc = snap.docs.find(d=>d.id===user.uid)?.data() || {};
+                userFirstName = (userDoc.prenom || userDoc.firstName || user.displayName || "").split(" ")[0] || "";
+              } catch {}
+            }
+          });
+
+          async function generateArtistNames() {
+  const inspiration = document.getElementById('artistInspiration').value.trim();
+  const prenom = userFirstName || '';
+  if (!prenom && !inspiration) { alert('Ajoute une inspiration ou connecte-toi.'); return; }
+  const card = document.getElementById('generatedNamesCard');
+  let container = document.getElementById('generatedArtistNames');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'generatedArtistNames';
+    container.style.display = 'flex';
+    container.style.flexWrap = 'wrap';
+    container.style.gap = '7px';
+    card.insertBefore(container, card.lastElementChild);
+  }
+  container.innerHTML = '';
+  // Affiche le loader
+  const loading = document.getElementById('litualLoading');
+  const attribution = document.getElementById('litualAttribution');
+  if (loading) loading.style.display = 'flex';
+  if (attribution) attribution.style.display = 'none';
+  card.style.display = '';
+
+  const prompt = `Propose uniquement des noms d'artiste originaux, créatifs et courts, sans texte explicatif, séparés par des virgules ou des retours à la ligne. Utilise comme base le prénom : ${prenom}${inspiration ? ' et l’inspiration : ' + inspiration : ''}.`;
+  const response = await fetch('https://litual.ai.morgannmusic.uk', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: prompt }],
+      instruction: "Génère uniquement des noms d'artiste, séparés par des virgules ou des retours à la ligne, sans texte explicatif."
+    })
+  });
+  if (!response.body) {
+    if (loading) loading.style.display = 'none';
+    return;
+  }
+  // Lecture du flux SSE et affichage direct
+  const reader = response.body.getReader();
+  let decoder = new TextDecoder();
+  let buffer = "";
+  let allText = "";
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let lines = buffer.split(/\r?\n/);
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (line.startsWith('data:')) {
+        try {
+          const jsonStr = line.replace(/^data:\s*/g, '');
+          const obj = JSON.parse(jsonStr);
+          if (obj.response) {
+            allText += obj.response;
+          }
+        } catch {}
+      }
+    }
+  }
+  // Extraction des noms (séparés par virgule ou retour à la ligne)
+  const names = allText.split(/[\n,]+/).map(n=>n.trim()).filter(Boolean);
+  container.innerHTML = '';
+  if (loading) loading.style.display = 'none';
+  if (names.length) {
+    card.style.display = '';
+    names.forEach(name => {
+      const pill = document.createElement('span');
+      pill.textContent = name;
+      pill.className = 'btn';
+      pill.style.background = '#ff94b0';
+      pill.style.color = '#fff';
+      pill.style.cursor = 'pointer';
+      pill.onclick = () => { document.getElementById('newName').value = name; };
+      container.appendChild(pill);
+    });
+    if (attribution) attribution.style.display = 'flex';
+  } else {
+    card.style.display = '';
+    if (attribution) attribution.style.display = 'none';
+  }
+          }
+
+          document.getElementById('btnGenerateArtistName').onclick = generateArtistNames;
+
+
+  </script>  <script src="/assets/js/dash/artist-sidebar.js"></script>
+
+
+</body>
+</html>

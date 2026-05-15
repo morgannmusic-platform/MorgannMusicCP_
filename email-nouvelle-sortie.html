@@ -1,0 +1,39 @@
+<!-- Modèle d'email pour annoncer une nouvelle sortie musicale -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Nouvelle Sortie Disponible !</title>
+    <style>
+        :root 
+        {
+            --bg: #fffc97;
+        }
+        body { font-family: Arial, sans-serif; background: #d8ff97; margin: 0; padding: 0; }
+        .container {   background:
+    radial-gradient(170% 100% at 0% 0%, #ff8fb1, transparent 55%),
+    radial-gradient(95% 90% at 100% 100%, #ff8fb1, transparent 60%),
+    color-mix(in srgb, var(--bg), #f1ff81 25%);
+ max-width: 600px; margin: 40px auto; border-radius: 40px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+        h1 { color: #d8ff97; }
+        .cta { display: inline-block; margin-top: 24px; padding: 12px 28px; background: #d8ff97; color: #ff8fb1; border-radius: 50px; text-decoration: none; font-weight: bold; }
+        .footer { margin-top: 40px; font-size: 12px; color: #ff8fb1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Nouvelle sortie disponible !</h1>
+        <p style="color: #d8ff97;">Bonjour,</p>
+        <div style="text-align:center; margin: 32px 0 24px 0;">
+            <img src="[URL_Pochette]" alt="Pochette de la sortie" style="max-width: 220px; width: 100%; border-radius: 30px; box-shadow: 0 2px 8px #0002; margin-bottom: 18px;">
+            <div style="font-size: 1.3em; font-weight: bold; color: #ff8fb1; margin-bottom: 6px;">[Titre de la sortie]</div>
+            <div style="font-size: 1.1em; color: #ff8fb1a7;">[Nom de l'artiste]</div>
+        </div>
+        <p style="color: #ff8fb1;">Découvrez cette nouveauté dès maintenant sur toutes les plateformes.</p>
+        <a href="[Lien vers la sortie]" class="cta">Écouter maintenant</a>
+        <div class="footer">
+            <p>Vous recevez cet email car vous êtes inscrit à nos notifications. <br>Pour vous désinscrire, <a href="https://mm-cp.uk/account#emails">cliquez ici.</a></p>
+        </div>
+    </div>
+</body>
+</html>
