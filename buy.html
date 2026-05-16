@@ -344,4 +344,473 @@
             border-radius: 999px;
             border: 1px solid var(--border-color);
             background: transparent;
-            color: var(--text-main
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.18s;
+            font-family: inherit;
+        }
+
+        .billing-btn-buy.is-active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .annual-save {
+            font-size: 11px;
+            font-weight: 700;
+            opacity: 0.9;
+            margin-left: 3px;
+        }
+
+        /* --- VERROU PLAN -18 --- */
+        .under18-gate {
+            text-align: center;
+            padding: 30px 20px;
+            border: 1.5px dashed var(--border-color);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            background: color-mix(in oklab, var(--bg-color) 20%, transparent);
+        }
+
+        .under18-gate .gate-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        /* --- RESPONSIVE MOBILE / TABLETTE --- */
+        @media (max-width: 868px) {
+            body {
+                padding: 90px 16px 40px;
+            }
+            .checkout-wrapper {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                padding: 24px;
+            }
+            .payment-column {
+                border-left: none;
+                padding-left: 0;
+            }
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+            .order-summary-box {
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+<div class="checkout-wrapper">
+    
+    <!-- COLONNE DE GAUCHE : OFFRES & RECAPITULATIF -->
+    <div class="selection-column">
+        <h1 class="checkout-title">Finalisez votre abonnement</h1>
+        <p class="checkout-subtitle">Propulsez vos morceaux sur toutes les plateformes avec Morgann Music CP.</p>
+
+        <!-- Toggle mensuel / annuel -->
+        <div class="billing-toggle-buy" id="billing-toggle-buy" role="group" aria-label="Cycle de facturation">
+            <button type="button" class="billing-btn-buy is-active" data-billing="monthly">Mensuel</button>
+            <button type="button" class="billing-btn-buy" data-billing="annual">Annuel <span class="annual-save">−10%</span></button>
+        </div>
+
+        <!-- Grille des plans (2x2 sur PC et mobile) -->
+        <div class="plans-grid">
+            <div class="plan-card" id="plan-starter"
+                 data-plan="starter"
+                 data-monthly="299" data-annual="3229"
+                 data-label-monthly="2,99 €/mois" data-label-annual="32,29 €/an"
+                 onclick="selectPlanCard(this)">
+                <div class="plan-name">Starter</div>
+                <div class="plan-price" id="price-starter">2,99 €/mois</div>
+            </div>
+            <div class="plan-card" id="plan-pro"
+                 data-plan="pro"
+                 data-monthly="399" data-annual="4309"
+                 data-label-monthly="3,99 €/mois" data-label-annual="43,09 €/an"
+                 onclick="selectPlanCard(this)">
+                <div class="plan-name">Pro</div>
+                <div class="plan-price" id="price-pro">3,99 €/mois</div>
+            </div>
+            <div class="plan-card" id="plan-label"
+                 data-plan="label"
+                 data-monthly="599" data-annual="6469"
+                 data-label-monthly="5,99 €/mois" data-label-annual="64,69 €/an"
+                 onclick="selectPlanCard(this)">
+                <div class="plan-name">Label</div>
+                <div class="plan-price" id="price-label">5,99 €/mois</div>
+            </div>
+            <div class="plan-card" id="plan-under18"
+                 data-plan="under18"
+                 data-monthly="99" data-annual="99"
+                 data-label-monthly="0,99 €/mois" data-label-annual="0,99 €/mois"
+                 onclick="selectPlanCard(this)">
+                <div class="plan-name">-18</div>
+                <div class="plan-price" id="price-under18">0,99 €/mois</div>
+            </div>
+        </div>
+
+        <!-- Récapitulatif dynamique de la commande -->
+        <div class="order-summary-box">
+            <div>
+                <div class="title">Abonnement sélectionné</div>
+                <div class="summary-details" id="summary-plan-text">Plan Starter (Mensuel)</div>
+            </div>
+            <div class="summary-total" id="summary-price-text">2,99 €</div>
+        </div>
+    </div>
+
+    <!-- COLONNE DE DROITE : PAIEMENT SÉCURISÉ -->
+    <div class="payment-column">
+        <div class="secure-header">
+            <i class='bx bxs-check-shield'></i>
+            <span>Paiement chiffré SSL sécurisé</span>
+        </div>
+
+        <!-- Verrou plan -18 -->
+        <div id="under18-gate" class="under18-gate" style="display:none;">
+            <div class="gate-icon">🔒</div>
+            <strong>Offre réservée aux mineurs</strong>
+            <p>Tu dois vérifier ton identité avant de pouvoir accéder à ce plan.<br>La vérification prend moins d'une minute.</p>
+            <a href="/mmcpforminor.html" class="btn-submit"
+               style="text-decoration:none; display:inline-block; padding:12px 28px; width:auto;">
+                Vérifier mon identité
+            </a>
+        </div>
+
+        <form id="payment-form">
+            <!-- Boutons de Portefeuilles Mobiles (Apple Pay / GPay) -->
+            <div id="payment-request-container" style="display:none; margin-bottom:20px;">
+                <div id="payment-request-button"></div>
+                <div style="text-align:center;color:var(--text-muted);font-size:12px;margin:16px 0;">— OU PAYER PAR CARTE —</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Numéro de carte</label>
+                <div id="card-number" class="stripe-input-container"></div>
+            </div>
+
+            <div class="row-inputs form-group">
+                <div>
+                    <label class="form-label">Date d'expiration</label>
+                    <div id="card-expiry" class="stripe-input-container"></div>
+                </div>
+                <div>
+                    <label class="form-label">Code CVC</label>
+                    <div id="card-cvc" class="stripe-input-container"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nom du titulaire</label>
+                <input type="text" id="card-name" class="standard-input" placeholder="Jean Dupont" required>
+            </div>
+
+            <button type="submit" id="submit-btn" class="btn-submit">
+                <i class='bx bxs-lock-alt'></i> <span id="submit-btn-text">Payer 2,99 €</span>
+            </button>
+
+            <!-- Badges de certification de confiance -->
+            <div class="security-footer-badges">
+                <span><i class='bx bxs-certification' style='color:#22c55e;'></i> Sécurité PCI-DSS</span>
+                <span>Propulsé par <i class='bx bxl-stripe' style="font-size:26px; color:#635bff; vertical-align: middle; margin-left: 2px;"></i></span>
+            </div>
+
+            <div id="error-message"></div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    // --- 1. CONFIGURATION FIREBASE ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+        authDomain: "morgann-music-cp.firebaseapp.com",
+        projectId: "morgann-music-cp",
+        storageBucket: "morgann-music-cp.firebasestorage.app",
+        messagingSenderId: "666812685196",
+        appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // --- 2. CONFIGURATION STRIPE ---
+    const stripe = Stripe('pk_test_51Sqie3FhaOYWNNbbkEzm71AEisKngfDFIAB7N4a5g2gOQpGFxaGRDAK19py9fE49NNPLSXQwfLbsoCgT4MpMvGpM00TkvPHrpm'); 
+    let elements;
+    
+    const PLAN_PRICES = {
+        starter:  { monthly: 299,  annual: 3229 },
+        pro:      { monthly: 399,  annual: 4309 },
+        label:    { monthly: 599,  annual: 6469 },
+        under18:  { monthly: 99,   annual: 99   },
+    };
+
+    let selectedPlanName = 'starter';
+    let selectedBilling  = 'monthly';
+    let selectedPlanAmount = PLAN_PRICES.starter.monthly;
+    let ageVerified = false; 
+    let paymentRequest = null;
+
+    function updateSummaryUI() {
+        const planNamesClean = { starter: 'Starter', pro: 'Pro', label: 'Label', under18: '-18' };
+        const billingText = selectedBilling === 'annual' ? 'Annuel' : 'Mensuel';
+        const rawAmount = (PLAN_PRICES[selectedPlanName] || PLAN_PRICES.starter)[selectedBilling];
+        
+        document.getElementById('summary-plan-text').textContent = `Plan ${planNamesClean[selectedPlanName]} (${billingText})`;
+        document.getElementById('summary-price-text').textContent = (rawAmount / 100).toFixed(2).replace('.', ',') + ' €';
+        document.getElementById('submit-btn-text').textContent = `Payer ${(rawAmount / 100).toFixed(2).replace('.', ',')} €`;
+    }
+
+    function updateAmount() {
+        selectedPlanAmount = (PLAN_PRICES[selectedPlanName] || PLAN_PRICES.starter)[selectedBilling];
+        if (paymentRequest) {
+            paymentRequest.update({
+                total: { label: 'Morgann Music CP', amount: selectedPlanAmount }
+            });
+        }
+        updateSummaryUI();
+    }
+
+    function selectPlanCard(el) {
+        document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedPlanName = el.dataset.plan;
+
+        // Le plan -18 est uniquement mensuel : masquer le toggle et forcer mensuel
+        const billingToggle = document.getElementById('billing-toggle-buy');
+        if (selectedPlanName === 'under18') {
+            if (billingToggle) billingToggle.style.display = 'none';
+            if (selectedBilling !== 'monthly') applyBilling('monthly');
+            document.body.classList.add('under18-selected');
+        } else {
+            if (billingToggle) billingToggle.style.display = '';
+            document.body.classList.remove('under18-selected');
+        }
+
+        updateAmount();
+
+        const gate = document.getElementById('under18-gate');
+        const form = document.getElementById('payment-form');
+        const summary = document.querySelector('.order-summary-box');
+
+        if (selectedPlanName === 'under18' && !ageVerified) {
+            if (gate) gate.style.display = 'block';
+            if (form) form.style.display  = 'none';
+            if (summary) summary.style.display = 'none';
+        } else {
+            if (gate) gate.style.display = 'none';
+            if (form) form.style.display  = 'block';
+            if (summary) summary.style.display = 'flex';
+        }
+    }
+
+    function applyBilling(mode) {
+        selectedBilling = mode;
+        document.querySelectorAll('.billing-btn-buy').forEach(b => {
+            b.classList.toggle('is-active', b.dataset.billing === mode);
+        });
+        document.querySelectorAll('.plan-card').forEach(card => {
+            const priceEl = card.querySelector('.plan-price');
+            if (priceEl) priceEl.textContent = card.dataset['label' + mode.charAt(0).toUpperCase() + mode.slice(1)];
+        });
+        updateAmount();
+    }
+
+    document.querySelectorAll('.billing-btn-buy').forEach(btn => {
+        btn.addEventListener('click', () => applyBilling(btn.dataset.billing));
+    });
+
+    (function initFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('plan') || '';
+        const parts = raw.split('-');
+        const lastPart = parts[parts.length - 1];
+        const hasBillingSuffix = lastPart === 'annual' || lastPart === 'monthly';
+        const billing = lastPart === 'annual' ? 'annual' : 'monthly';
+        const planName = (hasBillingSuffix ? parts.slice(0, -1) : parts).join('-') || 'starter';
+        const validPlans = Object.keys(PLAN_PRICES);
+        const plan = validPlans.includes(planName) ? planName : 'starter';
+        // Le plan -18 n'a pas d'option annuelle
+        const effectiveBilling = (plan === 'under18') ? 'monthly' : billing;
+
+        if (plan === 'under18') {
+            ageVerified = sessionStorage.getItem('age_verified') === 'true';
+            sessionStorage.removeItem('age_verified');
+        }
+
+        applyBilling(effectiveBilling);
+        const target = document.getElementById('plan-' + plan);
+        if (target) selectPlanCard(target);
+        else {
+            const first = document.querySelector('.plan-card');
+            if (first) selectPlanCard(first);
+        }
+    })();
+
+    function initStripeElements() {
+        elements = stripe.elements();
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const style = {
+            base: {
+                color: isDark ? '#ffffff' : '#000000',
+                fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, sans-serif',
+                fontSize: '16px',
+                '::placeholder': { color: isDark ? '#9ca3af' : '#868686' },
+            },
+            invalid: { color: '#ef4444' }
+        };
+
+        const cardNumber = elements.create('cardNumber', { style: style, placeholder: '1234 5678 1234 5678' });
+        cardNumber.mount('#card-number');
+
+        const cardCvc = elements.create('cardCvc', { style: style, placeholder: 'CVC' });
+        cardCvc.mount('#card-cvc');
+
+        const cardExpiry = elements.create('cardExpiry', { style: style, placeholder: 'MM / AA' });
+        cardExpiry.mount('#card-expiry');
+    }
+
+    initStripeElements();
+
+    function initPaymentRequestButton() {
+        paymentRequest = stripe.paymentRequest({
+            country: 'FR',
+            currency: 'eur',
+            total: { label: 'Morgann Music CP', amount: selectedPlanAmount },
+            requestPayerName: true,
+            requestPayerEmail: true,
+        });
+
+        const prElements = stripe.elements();
+        const prButton = prElements.create('paymentRequestButton', {
+            paymentRequest,
+            style: {
+                paymentRequestButton: { type: 'default', theme: 'dark', height: '48px' }
+            }
+        });
+
+        paymentRequest.canMakePayment().then(result => {
+            const container = document.getElementById('payment-request-container');
+            if (result) {
+                prButton.mount('#payment-request-button');
+                if (container) container.style.display = 'block';
+            } else {
+                if (container) container.style.display = 'none';
+            }
+        });
+
+        paymentRequest.on('paymentmethod', async (ev) => {
+            const errorDiv = document.getElementById('error-message');
+            const user = auth.currentUser;
+            if (!user) { ev.complete('fail'); errorDiv.textContent = 'Connecte-toi pour payer.'; return; }
+            if (selectedPlanName === 'under18' && !ageVerified) { ev.complete('fail'); return; }
+
+            try {
+                const response = await fetch('https://pay.mm-cp.uk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: selectedPlanAmount,
+                        planName: selectedPlanName + '-' + selectedBilling,
+                        userId: user.uid
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.clientSecret) throw new Error(data.error || 'Erreur serveur.');
+
+                const { paymentIntent, error } = await stripe.confirmCardPayment(
+                    data.clientSecret,
+                    { payment_method: ev.paymentMethod.id },
+                    { handleActions: false }
+                );
+
+                if (error) {
+                    ev.complete('fail');
+                    errorDiv.textContent = error.message;
+                } else {
+                    ev.complete('success');
+                    if (paymentIntent.status === 'requires_action') {
+                        const { error: actionErr } = await stripe.confirmCardPayment(data.clientSecret);
+                        if (actionErr) { errorDiv.textContent = actionErr.message; }
+                        else { window.location.href = 'https://mm-cp.uk/success'; }
+                    } else {
+                        window.location.href = 'https://mm-cp.uk/success';
+                    }
+                }
+            } catch (err) {
+                ev.complete('fail');
+                errorDiv.textContent = err.message;
+            }
+        });
+    }
+
+    initPaymentRequestButton();
+
+    document.getElementById('payment-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submit-btn');
+        const errorDiv = document.getElementById('error-message');
+        
+        errorDiv.textContent = '';
+        const user = auth.currentUser;
+        if (!user) {
+            errorDiv.textContent = "Erreur : Vous devez être connecté pour acheter un plan.";
+            return;
+        }
+
+        submitBtn.disabled = true;
+        document.getElementById('submit-btn-text').textContent = 'Traitement...';
+
+        if (selectedPlanName === 'under18' && !ageVerified) {
+            errorDiv.textContent = "Tu d'abord dois vérifier ton identité.";
+            submitBtn.disabled = false;
+            updateSummaryUI();
+            return;
+        }
+
+        try {
+            const response = await fetch('https://pay.mm-cp.uk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    amount: selectedPlanAmount,
+                    planName: selectedPlanName + '-' + selectedBilling,
+                    userId: user.uid
+                })
+            });
+            
+            const data = await response.json();
+            if (!response.ok || !data.clientSecret) throw new Error(data.error || "Erreur serveur.");
+
+            const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
+                payment_method: {
+                    card: elements.getElement('cardNumber'),
+                    billing_details: {
+                        name: document.getElementById('card-name').value
+                    }
+                }
+            });
+
+            if (error) {
+                errorDiv.textContent = error.message;
+                submitBtn.disabled = false;
+                updateSummaryUI();
+            } else if (paymentIntent.status === 'succeeded') {
+                window.location.href = 'https://mm-cp.uk/success';
+            }
+        } catch (err) {
+            errorDiv.textContent = err.message;
+            submitBtn.disabled = false;
+            updateSummaryUI();
+        }
+    });
+</script>
+<script type="module" src="/assets/js/navbar.js"></script>
+</body>
+</html>
