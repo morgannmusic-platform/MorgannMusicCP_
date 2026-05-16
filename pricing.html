@@ -65,12 +65,41 @@ new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-W99CNTFV');</script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W99CNTFV"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div id="navbar-container"></div>
+
+<!-- LITUAL AI CHAT BUTTON -->
+<button class="litual-float-btn" id="litual-pricing-btn" type="button" aria-label="Conseil IA">
+  <img src="/assets/icon/litual-icon.png" onerror="this.style.display='none'" alt="Litual">
+  Conseil IA
+</button>
+
+<!-- LITUAL AI CHAT OVERLAY -->
+<div class="litual-chat-overlay" id="litual-chat-overlay">
+  <div class="litual-chat-box">
+    <div class="litual-chat-header">
+      <img src="/assets/icon/litual-icon.png" onerror="this.style.display='none'" alt="Litual">
+      <span>Litual — Conseil abonnements</span>
+      <button class="litual-chat-close" id="litual-chat-close" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="litual-messages" id="litual-messages"></div>
+    <div class="litual-chips" id="litual-chips">
+      <button class="litual-chip" type="button" data-chip="Quel plan me convient ?">Quel plan me convient ?</button>
+      <button class="litual-chip" type="button" data-chip="C'est quoi le plan -18 ?">Plan -18 ans ?</button>
+      <button class="litual-chip" type="button" data-chip="Quelle différence entre Pro et Label ?">Pro vs Label</button>
+      <button class="litual-chip" type="button" data-chip="Comment fonctionne le paiement par sortie ?">Paiement par sortie ?</button>
+    </div>
+    <div class="litual-chat-input-row">
+      <textarea class="litual-chat-input" id="litual-input" rows="1" placeholder="Pose ta question…"></textarea>
+      <button class="litual-send-btn" id="litual-send" type="button" aria-label="Envoyer"><i class='bx bx-send'></i></button>
+    </div>
+  </div>
+</div>
 
   <style>
     h2 {
@@ -125,6 +154,158 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     .btn-loading {
       pointer-events: none;
       opacity: 0.7;
+    }
+
+    /* === LITUAL AI CHAT WIDGET === */
+    .litual-float-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 8000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border-radius: 50px;
+      border: none;
+      background: linear-gradient(135deg, #7494ec, #5a78d4);
+      color: #fff;
+      font-family: Poppins, sans-serif;
+      font-size: 0.92em;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(116,148,236,0.45);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .litual-float-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(116,148,236,0.55); }
+    .litual-float-btn img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+
+    .litual-chat-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 8500;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 0 20px 90px;
+    }
+    .litual-chat-overlay.open { display: flex; }
+
+    .litual-chat-box {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+      width: 360px;
+      max-width: calc(100vw - 32px);
+      max-height: 500px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: Poppins, sans-serif;
+    }
+    .litual-chat-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, #7494ec, #5a78d4);
+      color: #fff;
+    }
+    .litual-chat-header img { width: 28px; height: 28px; border-radius: 50%; }
+    .litual-chat-header span { font-weight: 600; font-size: 0.95em; flex: 1; }
+    .litual-chat-close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.3em;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+    }
+    .litual-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .litual-msg {
+      max-width: 85%;
+      padding: 9px 13px;
+      border-radius: 14px;
+      font-size: 0.87em;
+      line-height: 1.5;
+    }
+    .litual-msg.user {
+      align-self: flex-end;
+      background: #7494ec;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .litual-msg.gemini {
+      align-self: flex-start;
+      background: #f5f5f5;
+      color: #222;
+      border-bottom-left-radius: 4px;
+    }
+    .litual-msg.gemini p { margin: 0 0 4px; }
+    .litual-msg.gemini p:last-child { margin-bottom: 0; }
+    .litual-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 6px 14px 10px;
+    }
+    .litual-chip {
+      background: #f0f4ff;
+      border: 1px solid #c5d1f7;
+      color: #5a78d4;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.8em;
+      font-family: Poppins, sans-serif;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .litual-chip:hover { background: #dce5ff; }
+    .litual-chat-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      border-top: 1px solid #eee;
+      background: #fafafa;
+    }
+    .litual-chat-input {
+      flex: 1;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.88em;
+      font-family: Poppins, sans-serif;
+      outline: none;
+      resize: none;
+      height: 36px;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    .litual-send-btn {
+      background: #7494ec;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      padding: 0 14px;
+      cursor: pointer;
+      font-size: 1.1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 38px;
+    }
+    .litual-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    @media (max-width: 480px) {
+      .litual-chat-overlay { padding: 0 8px 82px; }
+      .litual-chat-box { width: 100%; max-height: 420px; }
     }
   </style>
 
@@ -763,6 +944,160 @@ if (sendMinorIdentityBtn) {
 window.addEventListener("click", (e) => {
   if (e.target === minorModal) minorModal.style.display = "none";
 });
+</script>
+
+<!-- LITUAL AI CHAT SCRIPT -->
+<script>
+(function () {
+  const LITUAL_URL = "https://litual.ai.morgannmusic.uk";
+  const SYSTEM_PROMPT = `Tu es Litual, l'assistante IA de Morgann Music CP. Tu aides les visiteurs à choisir le meilleur abonnement selon leur situation.
+Voici tous les plans disponibles :
+- Starter : 2,99 €/mois ou 32,29 €/an. 1 artiste, distribution illimitée sur toutes les plateformes, statistiques de base.
+- Pro : 3,99 €/mois ou 43,09 €/an. Jusqu'à 3 artistes, statistiques avancées, outils de promotion.
+- Label : 5,99 €/mois ou 64,69 €/an. Jusqu'à 10 artistes, tableau de bord label, accompagnement personnalisé.
+- Future Légende (-18) : 0,99 €/mois uniquement (pas d'option annuelle). Réservé aux moins de 18 ans. Jusqu'à 4 artistes. Vérification d'identité requise.
+- Paiement par sortie : paiement unique à la release, sans abonnement. Idéal pour les artistes qui sortent peu souvent.
+- Abonnement solidaire : offre à prix réduit pour soutenir les artistes indépendants qui n'ont pas les moyens. Se renseigner via le support.
+Oriente gentiment l'utilisateur selon ses besoins. Tu réponds en français. Sois concise et bienveillante.`;
+
+  const floatBtn = document.getElementById("litual-pricing-btn");
+  const overlay = document.getElementById("litual-chat-overlay");
+  const closeBtn = document.getElementById("litual-chat-close");
+  const messagesEl = document.getElementById("litual-messages");
+  const inputEl = document.getElementById("litual-input");
+  const sendBtn = document.getElementById("litual-send");
+  const chipsEl = document.getElementById("litual-chips");
+
+  let isStreaming = false;
+  let abortCtrl = null;
+  let greeted = false;
+
+  function addMessage(html, role, isHtml) {
+    const div = document.createElement("div");
+    div.className = "litual-msg " + role;
+    if (isHtml) {
+      div.innerHTML = html;
+    } else {
+      div.textContent = html;
+    }
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return div;
+  }
+
+  function renderMarkdown(text) {
+    if (typeof marked !== "undefined") {
+      try { return marked.parse(text); } catch (_) {}
+    }
+    return text.replace(/\n/g, "<br>");
+  }
+
+  async function sendMessage(userText) {
+    if (!userText.trim() || isStreaming) return;
+    isStreaming = true;
+    sendBtn.disabled = true;
+
+    addMessage(userText, "user", false);
+    inputEl.value = "";
+    if (chipsEl) chipsEl.style.display = "none";
+
+    const thinkingDiv = addMessage("…", "gemini", false);
+    let fullText = "";
+
+    abortCtrl = new AbortController();
+    try {
+      const res = await fetch(LITUAL_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: userText }],
+          instruction: SYSTEM_PROMPT
+        }),
+        signal: abortCtrl.signal
+      });
+
+      if (!res.ok || !res.body) throw new Error("Réponse invalide du serveur.");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      thinkingDiv.innerHTML = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const raw = line.slice(5).trim();
+          if (!raw || raw === "[DONE]") continue;
+          try {
+            const obj = JSON.parse(raw);
+            if (obj.response) {
+              fullText += obj.response;
+              thinkingDiv.innerHTML = renderMarkdown(fullText);
+              messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+          } catch (_) {}
+        }
+      }
+      if (!fullText) thinkingDiv.textContent = "Aucune réponse reçue.";
+    } catch (e) {
+      if (e.name !== "AbortError") {
+        thinkingDiv.textContent = "Erreur : " + (e.message || "impossible de joindre Litual.");
+      }
+    } finally {
+      isStreaming = false;
+      sendBtn.disabled = false;
+      abortCtrl = null;
+    }
+  }
+
+  if (floatBtn) {
+    floatBtn.addEventListener("click", () => {
+      overlay.classList.add("open");
+      if (!greeted) {
+        greeted = true;
+        addMessage("Salut ! Je suis <strong>Litual</strong> 👋<br>Dis-moi ce que tu recherches et je t'aide à choisir le plan qui te convient.", "gemini", true);
+      }
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      overlay.classList.remove("open");
+      if (isStreaming && abortCtrl) abortCtrl.abort();
+    });
+  }
+
+  if (sendBtn) {
+    sendBtn.addEventListener("click", () => sendMessage(inputEl.value));
+  }
+
+  if (inputEl) {
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(inputEl.value);
+      }
+    });
+  }
+
+  if (chipsEl) {
+    chipsEl.querySelectorAll(".litual-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        sendMessage(chip.dataset.chip);
+      });
+    });
+  }
+
+  window.addEventListener("click", (e) => {
+    if (overlay && e.target === overlay) overlay.classList.remove("open");
+  });
+})();
 </script>
 
 </body>

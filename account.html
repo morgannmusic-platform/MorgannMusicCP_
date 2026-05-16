@@ -8,6 +8,7 @@
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/account.css?v=2026-04-09a">
+  <script src="https://js.stripe.com/v3/"></script>
 
     <meta name="google-site-verification" content="code">
     <meta name="facebook-domain-verification" content="code">
@@ -292,5 +293,54 @@
   <script type="module" src="/assets/js/navbar.js?v=2026-04-09a"></script>
   <script type="module" src="/assets/js/account.js?v=2026-03-09-profil-v2"></script>
   <script type="module" src="/assets/js/account-documents.js"></script>
-</body>
+
+  <!-- MODAL : Confirmation résiliation -->
+  <div id="modal-cancel-sub" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+    <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:380px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,0.15);font-family:Poppins,sans-serif;">
+      <h3 style="margin:0 0 10px;font-size:1.1em;color:#dc2626;"><i class='bx bx-x-circle'></i> Résilier l'abonnement</h3>
+      <p style="margin:0 0 20px;color:#555;font-size:0.9em;">Cette action est irréversible. Ton accès sera coupé <strong>immédiatement</strong> pour les abonnements Stripe. Pour un plan PaymentIntent, l'accès est supprimé instantanément.</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" data-modal-close="modal-cancel-sub" style="padding:8px 18px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer;font-family:Poppins,sans-serif;">Annuler</button>
+        <button type="button" id="modal-cancel-confirm" style="padding:8px 18px;border-radius:8px;border:none;background:#dc2626;color:#fff;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600;">Résilier maintenant</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL : Mes factures -->
+  <div id="modal-invoices" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+    <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:480px;width:92%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.15);font-family:Poppins,sans-serif;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="margin:0;font-size:1.1em;"><i class='bx bx-receipt'></i> Mes factures</h3>
+        <button type="button" data-modal-close="modal-invoices" style="background:none;border:none;font-size:1.4em;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+      <style>
+        .invoice-row { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:0.88em; }
+        .invoice-row:last-child { border-bottom:none; }
+        .inv-date { flex:1.5; color:#555; }
+        .inv-amount { flex:0.8; font-weight:600; text-align:right; }
+        .inv-status { flex:1; text-align:right; }
+      </style>
+      <div id="invoices-list"></div>
+      <div style="margin-top:16px;text-align:right;">
+        <button type="button" data-modal-close="modal-invoices" style="padding:8px 18px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer;font-family:Poppins,sans-serif;">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL : Changer de carte (Stripe sub uniquement) -->
+  <div id="modal-change-card" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+    <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:420px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,0.15);font-family:Poppins,sans-serif;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="margin:0;font-size:1.1em;"><i class='bx bx-credit-card'></i> Changer de carte</h3>
+        <button type="button" data-modal-close="modal-change-card" style="background:none;border:none;font-size:1.4em;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+      <p style="font-size:0.88em;color:#666;margin:0 0 16px;">Saisis ta nouvelle carte bancaire.</p>
+      <div id="card-element-container" style="border:1px solid #ddd;border-radius:8px;padding:12px;background:#fafafa;"></div>
+      <div id="card-element-error" style="color:#dc2626;font-size:0.85em;margin-top:8px;"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button type="button" data-modal-close="modal-change-card" style="padding:8px 18px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer;font-family:Poppins,sans-serif;">Annuler</button>
+        <button type="button" id="modal-card-confirm" style="padding:8px 18px;border-radius:8px;border:none;background:#7494ec;color:#fff;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600;">Mettre à jour</button>
+      </div>
+    </div>
+  </div>
 </html>

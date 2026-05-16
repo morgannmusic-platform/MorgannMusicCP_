@@ -787,6 +787,7 @@ const statusLabels = {
 let currentUser = null;
 let currentStripeCustomerId = null;
 let currentSubId = null;
+let currentUserPlanDoc = null;
 let currentEmailPrefs = normalizeEmailPreferences(null);
 
 onAuthStateChanged(auth, async (user) => {
@@ -910,6 +911,7 @@ onAuthStateChanged(auth, async (user) => {
       if (!sub) {
         if (userPlanFromDoc) {
           // Plan payé via PaymentIntent, stocké dans users/{uid}.plan
+          currentUserPlanDoc = userPlanFromDoc;
           if (subPlanEl) subPlanEl.textContent = planNameFromKey(userPlanFromDoc);
           if (subStatusBadgeEl) { subStatusBadgeEl.textContent = "Actif"; subStatusBadgeEl.dataset.status = "active"; }
           if (subRenewalLineEl) subRenewalLineEl.style.display = "none";
@@ -1211,18 +1213,167 @@ btnRemoveAvatar?.addEventListener("click", async () => {
 });
 
 btnChangeCard?.addEventListener("click", () => {
-  openStripePortal(currentStripeCustomerId, "payment_method_update", null);
+  if (!currentSubId && !currentUserPlanDoc) {
+    setStatus("Aucun abonnement actif.", false);
+    return;
+  }
+  if (!currentSubId && currentUserPlanDoc) {
+    // Utilisateur PaymentIntent : pas de carte stockée → rediriger vers buy.html
+    window.location.href = "/buy.html";
+    return;
+  }
+  // Abonnement Stripe : ouvrir le modal de changement de carte
+  const modal = document.getElementById("modal-change-card");
+  if (modal) {
+    modal.style.display = "flex";
+    initStripeCardElement();
+  }
 });
 
-btnViewInvoices?.addEventListener("click", () => {
-  openStripePortal(currentStripeCustomerId, null, null);
+btnViewInvoices?.addEventListener("click", async () => {
+  const modal = document.getElementById("modal-invoices");
+  if (!modal || !currentUser) return;
+  modal.style.display = "flex";
+  const list = document.getElementById("invoices-list");
+  if (!list) return;
+  list.innerHTML = '<p style="opacity:0.6;text-align:center;">Chargement…</p>';
+  try {
+    const snap = await getDocs(
+      query(
+        collection(db, "customers", currentUser.uid, "payments"),
+        orderBy("created", "desc"),
+        limit(20)
+      )
+    );
+    if (snap.empty) {
+      list.innerHTML = '<p style="opacity:0.6;text-align:center;">Aucune facture trouvée.</p>';
+    } else {
+      list.innerHTML = "";
+      snap.docs.forEach(d => {
+        const data = d.data();
+        const amountCents = data.amount ?? (data.amount_received ?? 0);
+        const amount = (amountCents / 100).toFixed(2).replace(".", ",");
+        const created = data.created?.toDate ? data.created.toDate() : (data.created ? new Date(data.created * 1000) : null);
+        const dateStr = created ? created.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "—";
+        const status = String(data.status || "").toLowerCase();
+        const statusLabel = { succeeded: "Payé ✅", pending: "En attente ⏳", failed: "Échoué ❌" }[status] || data.status || "—";
+        const row = document.createElement("div");
+        row.className = "invoice-row";
+        row.innerHTML = `<span class="inv-date">${dateStr}</span><span class="inv-amount">${amount} €</span><span class="inv-status">${statusLabel}</span>`;
+        list.appendChild(row);
+      });
+    }
+  } catch (e) {
+    list.innerHTML = `<p style="color:#dc2626;text-align:center;">Erreur : ${e.message || "impossible de charger les factures."}</p>`;
+  }
 });
 
 btnCancelSub?.addEventListener("click", () => {
-  const ok = window.confirm("Confirmer la résiliation de ton abonnement ? Tu garderas l'accès jusqu'à la fin de la période en cours.");
-  if (!ok) return;
-  openStripePortal(currentStripeCustomerId, "subscription_cancel", currentSubId);
+  if (!currentSubId && !currentUserPlanDoc) {
+    setStatus("Aucun abonnement actif à résilier.", false);
+    return;
+  }
+  const modal = document.getElementById("modal-cancel-sub");
+  if (modal) modal.style.display = "flex";
 });
+
+// Confirmation de résiliation
+document.getElementById("modal-cancel-confirm")?.addEventListener("click", async () => {
+  const modal = document.getElementById("modal-cancel-sub");
+  if (modal) modal.style.display = "none";
+  try {
+    setStatus("Résiliation en cours…");
+    if (!currentSubId && currentUserPlanDoc) {
+      // Utilisateur PaymentIntent : effacer le plan dans Firestore
+      const userRef = await resolveCurrentUserDocRef(currentUser);
+      if (!userRef) throw new Error("Profil introuvable.");
+      await updateDoc(userRef, { plan: null, planCancelledAt: serverTimestamp() });
+      currentUserPlanDoc = null;
+      if (subCardEl) subCardEl.style.display = "none";
+      if (subNoneEl) subNoneEl.style.display = "";
+      setStatus("Abonnement résilié ✅ · Accès coupé immédiatement.");
+    } else if (currentSubId) {
+      // Abonnement Stripe : appeler l'endpoint de résiliation
+      const res = await fetch("https://pay.mm-cp.uk/cancel-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscriptionId: currentSubId })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setStatus("Abonnement résilié ✅");
+      window.location.reload();
+    }
+  } catch (e) {
+    setStatus(e.message || "Erreur lors de la résiliation — contacte support@mm-cp.uk", false);
+  }
+});
+
+// Confirmation changement de carte (Stripe sub)
+document.getElementById("modal-card-confirm")?.addEventListener("click", async () => {
+  if (!currentStripeCustomerId) {
+    setStatus("Identifiant client Stripe introuvable.", false);
+    return;
+  }
+  const btn = document.getElementById("modal-card-confirm");
+  const errorEl = document.getElementById("card-element-error");
+  if (btn) btn.disabled = true;
+  if (errorEl) errorEl.textContent = "";
+  try {
+    const stripe = window.Stripe("pk_test_51Sqie3FhaOYWNNbbkEzm71AEisKngfDFIAB7N4a5g2gOQpGFxaGRDAK19py9fE49NNPLSXQwfLbsoCgT4MpMvGpM00TkvPHrpm");
+    const cardElement = window._stripeCardElement;
+    if (!cardElement) throw new Error("Formulaire carte non initialisé.");
+    const { paymentMethod, error } = await stripe.createPaymentMethod({ type: "card", card: cardElement });
+    if (error) throw new Error(error.message);
+    const res = await fetch("https://pay.mm-cp.uk/update-payment-method", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customerId: currentStripeCustomerId, paymentMethodId: paymentMethod.id })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    const modal = document.getElementById("modal-change-card");
+    if (modal) modal.style.display = "none";
+    setStatus("Carte mise à jour ✅");
+  } catch (e) {
+    if (errorEl) errorEl.textContent = e.message || "Erreur lors de la mise à jour.";
+    if (btn) btn.disabled = false;
+  }
+});
+
+// Fermeture générique des modaux
+document.querySelectorAll("[data-modal-close]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const id = btn.dataset.modalClose;
+    const modal = document.getElementById(id);
+    if (modal) modal.style.display = "none";
+  });
+});
+
+// Initialisation du CardElement Stripe dans le modal changement de carte
+function initStripeCardElement() {
+  if (!window.Stripe) return;
+  const container = document.getElementById("card-element-container");
+  if (!container) return;
+  if (window._stripeCardElement) {
+    try { window._stripeCardElement.unmount(); } catch (_) {}
+    window._stripeCardElement = null;
+  }
+  const stripe = window.Stripe("pk_test_51Sqie3FhaOYWNNbbkEzm71AEisKngfDFIAB7N4a5g2gOQpGFxaGRDAK19py9fE49NNPLSXQwfLbsoCgT4MpMvGpM00TkvPHrpm");
+  const elements = stripe.elements();
+  const cardElement = elements.create("card", {
+    style: {
+      base: {
+        fontFamily: "Poppins, sans-serif",
+        fontSize: "16px",
+        color: "#2a2a2a",
+        "::placeholder": { color: "#aaa" }
+      }
+    }
+  });
+  cardElement.mount(container);
+  window._stripeCardElement = cardElement;
+}
 
 btnDisableTestRole?.addEventListener("click", async () => {
   if (!currentUser) return;
