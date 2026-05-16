@@ -3,12 +3,14 @@
    ============================= */
 
 .footer {
-    background: #0d0d0d;
+    background: #d7ff97;
     color: rgba(255, 255, 255, 0.55);
     padding: 64px 32px 0;
     font-family: 'Roboto', sans-serif;
     border-top: 1px solid rgba(255, 255, 255, 0.07);
     margin-top: 80px;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
 }
 
 /* Grid principal */
@@ -70,8 +72,8 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.5);
+    border: 1px solid #ff8fb1a2;
+    color: #ff8fb1a2;
     font-size: 0.82rem;
     text-decoration: none;
     transition: border-color 0.2s, color 0.2s, background 0.2s;
@@ -110,7 +112,7 @@
 
 .footer-col ul li a {
     font-size: 0.83rem;
-    color: rgba(255, 255, 255, 0.45);
+    color: #ff8fb1a2;
     text-decoration: none;
     transition: color 0.2s;
 }
@@ -128,7 +130,7 @@
     align-items: center;
     justify-content: space-between;
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.25);
+    color: #ff8fb1a2;
     flex-wrap: wrap;
     gap: 8px;
 }
@@ -139,7 +141,7 @@
 }
 
 .footer-bottom-links a {
-    color: rgba(255, 255, 255, 0.25);
+    color: #ff8fb1a2;
     text-decoration: none;
     transition: color 0.2s;
 }
