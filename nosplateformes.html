@@ -113,6 +113,60 @@
             flex-shrink: 0;
         }
 
+        /* Search bar */
+        .platforms-search-wrap {
+            display: flex;
+            justify-content: center;
+            margin: 28px 0 0;
+        }
+
+        .platforms-search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 143, 177, 0.25);
+            border-radius: 999px;
+            padding: 10px 20px;
+            width: 100%;
+            max-width: 420px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .platforms-search:focus-within {
+            border-color: rgba(255, 143, 177, 0.7);
+            box-shadow: 0 0 0 3px rgba(255, 143, 177, 0.12);
+        }
+
+        .platforms-search i {
+            color: rgba(255, 143, 177, 0.55);
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .platforms-search input {
+            background: none;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 0.88rem;
+            font-family: 'Roboto', sans-serif;
+            width: 100%;
+        }
+
+        .platforms-search input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .platforms-no-result {
+            display: none;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.88rem;
+            width: 100%;
+            padding: 24px 0;
+        }
+
         @media (max-width: 600px) {
             .platforms-page {
                 padding: 100px 16px 60px;
@@ -135,9 +189,16 @@
             <div class="platforms-count">478 plateformes</div>
             <h1>Nos <span>Plateformes</span></h1>
             <p>Votre musique distribuée sur l'ensemble de ces plateformes de streaming et de téléchargement mondiales.</p>
+
+            <div class="platforms-search-wrap">
+                <div class="platforms-search">
+                    <i class="fas fa-search"></i>
+                    <input type="search" id="platform-search" placeholder="Rechercher une plateforme…" autocomplete="off" spellcheck="false">
+                </div>
+            </div>
         </div>
 
-        <div class="platforms-grid">
+        <div class="platforms-grid" id="platforms-grid">
             <span class="platform-pill"><span class="dot"></span>7Digital</span>
             <span class="platform-pill"><span class="dot"></span>ACRCloud</span>
             <span class="platform-pill"><span class="dot"></span>Alibaba</span>
@@ -622,6 +683,28 @@
     <div id="footer-placeholder"></div>
 
     <script type="module" src="/assets/js/navbar.js"></script>
+    <script>
+        const searchInput = document.getElementById('platform-search');
+        const grid = document.getElementById('platforms-grid');
+        const pills = Array.from(grid.querySelectorAll('.platform-pill'));
+
+        let noResult = document.createElement('p');
+        noResult.className = 'platforms-no-result';
+        noResult.textContent = 'Aucune plateforme trouvée.';
+        grid.appendChild(noResult);
+
+        searchInput.addEventListener('input', () => {
+            const q = searchInput.value.trim().toLowerCase();
+            let visible = 0;
+            pills.forEach(pill => {
+                const name = pill.textContent.toLowerCase();
+                const match = !q || name.includes(q);
+                pill.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            noResult.style.display = visible === 0 ? 'block' : 'none';
+        });
+    </script>
     <script>
         // Inject navbar
         fetch('/navbar.html')
