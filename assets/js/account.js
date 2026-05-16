@@ -52,7 +52,6 @@ import {
 
 /* ========= CONFIG ========= */
 
-const STRIPE_WORKER_URL = "https://morgann-music-cp.YOUR_SUBDOMAIN.workers.dev"; // <-- remplace par l'URL de ton worker
 const REQUIRED_PROFILE_VERSION = 2;
 
 const firebaseConfig = {
@@ -510,18 +509,6 @@ async function ensureRecentLoginForSensitiveAction(user, { password } = {}) {
   throw new Error("Re-validation nécessaire mais provider non géré ici.");
 }
 
-function planFromPriceId(priceId) {
-  const map = {
-    "price_1T03eDFhaOYWNNbbddL6iz7y": "Starter",
-    "price_1T03z6FhaOYWNNbbNyjacrEv": "Pro",
-    "price_1T042SFhaOYWNNbbs0OXpz8P": "Label",
-    "price_1T8fI4FhaOYWNNbbxeAEijSz": "Starter",
-    "price_1T8fJnFhaOYWNNbbgunqrDsI": "Pro",
-    "price_1T8fLQFhaOYWNNbbdH6Bjcav": "Label"
-  };
-  return map[priceId] || (priceId ? "Abonné" : "—");
-}
-
 // Convertit une clé de plan (users/{uid}.plan) en libellé lisible
 function planNameFromKey(planKey) {
   const map = {
@@ -713,75 +700,6 @@ async function refreshTotpStatus() {
   }
 }
 
-async function loadSubscription(uid) {
-  const subsRef = collection(db, "customers", uid, "subscriptions");
-  const qy = query(subsRef, orderBy("created", "desc"), limit(20));
-  const snap = await getDocs(qy);
-
-  const subs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (!subs.length) return null;
-
-  const active = subs.find(s => ["active", "trialing"].includes(String(s.status || "").toLowerCase()));
-  return active || subs[0];
-}
-
-function extractPriceId(sub) {
-  return (
-    sub?.price?.id ||
-    sub?.items?.[0]?.price?.id ||
-    sub?.items?.data?.[0]?.price?.id ||
-    sub?.items?.data?.[0]?.price ||
-    null
-  );
-}
-
-async function getStripeCustomerId(uid) {
-  const snap = await getDoc(doc(db, "customers", uid));
-  if (!snap.exists()) return null;
-  return snap.data().stripeId || snap.data().customer_id || null;
-}
-
-async function openStripePortal(customerId, flow, subscriptionId) {
-  if (!STRIPE_WORKER_URL || STRIPE_WORKER_URL.includes("YOUR_SUBDOMAIN")) {
-    setStatus("Configure STRIPE_WORKER_URL dans account.js", false);
-    return;
-  }
-  if (!customerId) {
-    setStatus("Identifiant Stripe introuvable. Contacte le support.", false);
-    return;
-  }
-  setStatus("Redirection vers Stripe…");
-  try {
-    const body = { customerId, returnUrl: window.location.href };
-    if (flow) body.flow = flow;
-    if (subscriptionId) body.subscriptionId = subscriptionId;
-    const res = await fetch(`${STRIPE_WORKER_URL}/create-portal-session`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      throw new Error(data.error || "URL de portail manquante");
-    }
-  } catch (e) {
-    setStatus(e.message || "Erreur ouverture portail Stripe", false);
-  }
-}
-
-const statusLabels = {
-  active: "Actif",
-  trialing: "Essai gratuit",
-  past_due: "Paiement en retard",
-  canceled: "Résilié",
-  unpaid: "Impayé",
-  incomplete: "Incomplet",
-  incomplete_expired: "Expiré",
-  paused: "En pause",
-};
-
 /* ========= AUTH GUARD + INIT UI ========= */
 
 let currentUser = null;
@@ -907,51 +825,18 @@ onAuthStateChanged(auth, async (user) => {
       if (subCardEl) subCardEl.style.display = "";
       if (subNoneEl) subNoneEl.style.display = "none";
     } else {
-      const sub = await loadSubscription(user.uid);
-      if (!sub) {
-        if (userPlanFromDoc) {
-          // Plan payé via PaymentIntent, stocké dans users/{uid}.plan
-          currentUserPlanDoc = userPlanFromDoc;
-          if (subPlanEl) subPlanEl.textContent = planNameFromKey(userPlanFromDoc);
-          if (subStatusBadgeEl) { subStatusBadgeEl.textContent = "Actif"; subStatusBadgeEl.dataset.status = "active"; }
-          if (subRenewalLineEl) subRenewalLineEl.style.display = "none";
-          if (subCancelLineEl) subCancelLineEl.style.display = "none";
-          if (subCardEl) subCardEl.style.display = "";
-          if (subNoneEl) subNoneEl.style.display = "none";
-        } else {
-          if (subCardEl) subCardEl.style.display = "none";
-          if (subNoneEl) subNoneEl.style.display = "";
-        }
-      } else {
-        currentSubId = sub.id || null;
-        const status = String(sub.status || "").toLowerCase();
-        const priceId = extractPriceId(sub);
-        if (subPlanEl) subPlanEl.textContent = planFromPriceId(priceId);
-        if (subStatusBadgeEl) {
-          subStatusBadgeEl.textContent = statusLabels[status] || sub.status || "—";
-          subStatusBadgeEl.dataset.status = status;
-        }
-        // Date de renouvellement ou de fin
-        const periodEnd = sub.current_period_end;
-        if (periodEnd && subRenewalLineEl && subCancelLineEl) {
-          const d = periodEnd.toDate ? periodEnd.toDate() : new Date(periodEnd * 1000);
-          const formatted = d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-          if (sub.cancel_at_period_end) {
-            subRenewalLineEl.style.display = "none";
-            subCancelLineEl.textContent = `Résilié · Accès jusqu'au ${formatted}`;
-            subCancelLineEl.style.display = "";
-          } else {
-            subRenewalLineEl.textContent = `Prochain renouvellement : ${formatted}`;
-            subRenewalLineEl.style.display = "";
-            subCancelLineEl.style.display = "none";
-          }
-        }
+      if (userPlanFromDoc) {
+        // Plan payé via PaymentIntent, stocké dans users/{uid}.plan
+        currentUserPlanDoc = userPlanFromDoc;
+        if (subPlanEl) subPlanEl.textContent = planNameFromKey(userPlanFromDoc);
+        if (subStatusBadgeEl) { subStatusBadgeEl.textContent = "Actif"; subStatusBadgeEl.dataset.status = "active"; }
+        if (subRenewalLineEl) subRenewalLineEl.style.display = "none";
+        if (subCancelLineEl) subCancelLineEl.style.display = "none";
         if (subCardEl) subCardEl.style.display = "";
         if (subNoneEl) subNoneEl.style.display = "none";
-        // Récupération de l'ID Stripe Customer pour le portail
-        try {
-          currentStripeCustomerId = await getStripeCustomerId(user.uid);
-        } catch (_) {}
+      } else {
+        if (subCardEl) subCardEl.style.display = "none";
+        if (subNoneEl) subNoneEl.style.display = "";
       }
     }
   } catch (e) {
