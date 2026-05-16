@@ -52,7 +52,7 @@ import {
 
 /* ========= CONFIG ========= */
 
-const STRIPE_PORTAL_URL = "https://billing.stripe.com/p/login/dRmbJ1gpx2cB3uQ9se9EI00"; // <-- tu peux changer après
+const STRIPE_WORKER_URL = "https://morgann-music-cp.YOUR_SUBDOMAIN.workers.dev"; // <-- remplace par l'URL de ton worker
 const REQUIRED_PROFILE_VERSION = 2;
 
 const firebaseConfig = {
@@ -137,12 +137,18 @@ const btnChangeAvatar = $("btnChangeAvatar");
 const btnRemoveAvatar = $("btnRemoveAvatar");
 
 const btnReauthGoogle = $("btnReauthGoogle");
-const btnManageSub = $("btnManageSub");
+const btnChangeCard = $("btnChangeCard");
+const btnViewInvoices = $("btnViewInvoices");
+const btnCancelSub = $("btnCancelSub");
 const btnLogout = $("btnLogout");
 
 const statusLine = $("status-line");
 const subPlanEl = $("sub-plan");
-const subStatusEl = $("sub-status");
+const subStatusBadgeEl = $("sub-status-badge");
+const subCardEl = $("sub-card");
+const subNoneEl = $("sub-none");
+const subRenewalLineEl = $("sub-renewal-line");
+const subCancelLineEl = $("sub-cancel-line");
 const sectionProfil = $("profil");
 const sectionAbonnement = $("abonnement");
 const sectionPaiement = $("paiement");
@@ -516,6 +522,21 @@ function planFromPriceId(priceId) {
   return map[priceId] || (priceId ? "Abonné" : "—");
 }
 
+// Convertit une clé de plan (users/{uid}.plan) en libellé lisible
+function planNameFromKey(planKey) {
+  const map = {
+    "starter-monthly": "Starter",
+    "starter-annual":  "Starter",
+    "pro-monthly":     "Pro",
+    "pro-annual":      "Pro",
+    "label-monthly":   "Label",
+    "label-annual":    "Label",
+    "under18-monthly": "Future Légende (-18)",
+    "under18":         "Future Légende (-18)",
+  };
+  return map[planKey] || planKey;
+}
+
 function normalizeTotpCode(value) {
   return clean(value).replace(/\s+/g, "").replace(/[^0-9]/g, "").slice(0, 8);
 }
@@ -714,9 +735,58 @@ function extractPriceId(sub) {
   );
 }
 
+async function getStripeCustomerId(uid) {
+  const snap = await getDoc(doc(db, "customers", uid));
+  if (!snap.exists()) return null;
+  return snap.data().stripeId || snap.data().customer_id || null;
+}
+
+async function openStripePortal(customerId, flow, subscriptionId) {
+  if (!STRIPE_WORKER_URL || STRIPE_WORKER_URL.includes("YOUR_SUBDOMAIN")) {
+    setStatus("Configure STRIPE_WORKER_URL dans account.js", false);
+    return;
+  }
+  if (!customerId) {
+    setStatus("Identifiant Stripe introuvable. Contacte le support.", false);
+    return;
+  }
+  setStatus("Redirection vers Stripe…");
+  try {
+    const body = { customerId, returnUrl: window.location.href };
+    if (flow) body.flow = flow;
+    if (subscriptionId) body.subscriptionId = subscriptionId;
+    const res = await fetch(`${STRIPE_WORKER_URL}/create-portal-session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || "URL de portail manquante");
+    }
+  } catch (e) {
+    setStatus(e.message || "Erreur ouverture portail Stripe", false);
+  }
+}
+
+const statusLabels = {
+  active: "Actif",
+  trialing: "Essai gratuit",
+  past_due: "Paiement en retard",
+  canceled: "Résilié",
+  unpaid: "Impayé",
+  incomplete: "Incomplet",
+  incomplete_expired: "Expiré",
+  paused: "En pause",
+};
+
 /* ========= AUTH GUARD + INIT UI ========= */
 
 let currentUser = null;
+let currentStripeCustomerId = null;
+let currentSubId = null;
 let currentEmailPrefs = normalizeEmailPreferences(null);
 
 onAuthStateChanged(auth, async (user) => {
@@ -755,8 +825,10 @@ onAuthStateChanged(auth, async (user) => {
 
   let hasVipStatus = false;
   let hasTestStatus = false;
+  let userPlanFromDoc = null; // plan stocké dans users/{uid}.plan (PaymentIntent)
   try {
     const data = await getUserProfileData(user);
+    userPlanFromDoc = data?.plan || null;
     const fallbackSplitName = splitDisplayName(user.displayName || "");
     const firstName = clean(data?.firstName || fallbackSplitName.firstName);
     const lastName = clean(data?.lastName || fallbackSplitName.lastName);
@@ -829,24 +901,61 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     if (hasTestStatus) {
-      if (subPlanEl) subPlanEl.textContent = "Teste";
-      if (subStatusEl) subStatusEl.textContent = "Mode test";
+      if (subPlanEl) subPlanEl.textContent = "Test";
+      if (subStatusBadgeEl) { subStatusBadgeEl.textContent = "Mode test"; subStatusBadgeEl.dataset.status = "test"; }
+      if (subCardEl) subCardEl.style.display = "";
+      if (subNoneEl) subNoneEl.style.display = "none";
     } else {
-    const sub = await loadSubscription(user.uid);
-    if (!sub) {
-      if (subPlanEl) subPlanEl.textContent = "—";
-      if (subStatusEl) subStatusEl.textContent = "Aucun";
-    } else {
-      const status = sub.status || "—";
-      const priceId = extractPriceId(sub);
-      if (subPlanEl) subPlanEl.textContent = planFromPriceId(priceId);
-      if (subStatusEl) subStatusEl.textContent = status;
-    }
+      const sub = await loadSubscription(user.uid);
+      if (!sub) {
+        if (userPlanFromDoc) {
+          // Plan payé via PaymentIntent, stocké dans users/{uid}.plan
+          if (subPlanEl) subPlanEl.textContent = planNameFromKey(userPlanFromDoc);
+          if (subStatusBadgeEl) { subStatusBadgeEl.textContent = "Actif"; subStatusBadgeEl.dataset.status = "active"; }
+          if (subRenewalLineEl) subRenewalLineEl.style.display = "none";
+          if (subCancelLineEl) subCancelLineEl.style.display = "none";
+          if (subCardEl) subCardEl.style.display = "";
+          if (subNoneEl) subNoneEl.style.display = "none";
+        } else {
+          if (subCardEl) subCardEl.style.display = "none";
+          if (subNoneEl) subNoneEl.style.display = "";
+        }
+      } else {
+        currentSubId = sub.id || null;
+        const status = String(sub.status || "").toLowerCase();
+        const priceId = extractPriceId(sub);
+        if (subPlanEl) subPlanEl.textContent = planFromPriceId(priceId);
+        if (subStatusBadgeEl) {
+          subStatusBadgeEl.textContent = statusLabels[status] || sub.status || "—";
+          subStatusBadgeEl.dataset.status = status;
+        }
+        // Date de renouvellement ou de fin
+        const periodEnd = sub.current_period_end;
+        if (periodEnd && subRenewalLineEl && subCancelLineEl) {
+          const d = periodEnd.toDate ? periodEnd.toDate() : new Date(periodEnd * 1000);
+          const formatted = d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+          if (sub.cancel_at_period_end) {
+            subRenewalLineEl.style.display = "none";
+            subCancelLineEl.textContent = `Résilié · Accès jusqu'au ${formatted}`;
+            subCancelLineEl.style.display = "";
+          } else {
+            subRenewalLineEl.textContent = `Prochain renouvellement : ${formatted}`;
+            subRenewalLineEl.style.display = "";
+            subCancelLineEl.style.display = "none";
+          }
+        }
+        if (subCardEl) subCardEl.style.display = "";
+        if (subNoneEl) subNoneEl.style.display = "none";
+        // Récupération de l'ID Stripe Customer pour le portail
+        try {
+          currentStripeCustomerId = await getStripeCustomerId(user.uid);
+        } catch (_) {}
+      }
     }
   } catch (e) {
     console.error("Erreur lecture abonnement:", e);
-    if (subPlanEl) subPlanEl.textContent = "—";
-    if (subStatusEl) subStatusEl.textContent = "—";
+    if (subCardEl) subCardEl.style.display = "none";
+    if (subNoneEl) subNoneEl.style.display = "";
   } finally {
     setSectionLoading(sectionAbonnement, false);
   }
@@ -1101,12 +1210,18 @@ btnRemoveAvatar?.addEventListener("click", async () => {
   }
 });
 
-btnManageSub?.addEventListener("click", () => {
-  if (!STRIPE_PORTAL_URL || STRIPE_PORTAL_URL.includes("COLLE_TON_LIEN")) {
-    setStatus("Colle ton lien Stripe Portal dans STRIPE_PORTAL_URL.", false);
-    return;
-  }
-  window.location.href = STRIPE_PORTAL_URL;
+btnChangeCard?.addEventListener("click", () => {
+  openStripePortal(currentStripeCustomerId, "payment_method_update", null);
+});
+
+btnViewInvoices?.addEventListener("click", () => {
+  openStripePortal(currentStripeCustomerId, null, null);
+});
+
+btnCancelSub?.addEventListener("click", () => {
+  const ok = window.confirm("Confirmer la résiliation de ton abonnement ? Tu garderas l'accès jusqu'à la fin de la période en cours.");
+  if (!ok) return;
+  openStripePortal(currentStripeCustomerId, "subscription_cancel", currentSubId);
 });
 
 btnDisableTestRole?.addEventListener("click", async () => {

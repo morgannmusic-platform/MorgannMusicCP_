@@ -3,6 +3,8 @@ import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
   getFirestore,
+  doc,
+  getDoc,
   collection,
   getDocs,
   query,
@@ -27,7 +29,21 @@ const PRICE_TO_PLAN = {
   "price_1T03eDFhaOYWNNbbddL6iz7y": "Starter",
   "price_1T03z6FhaOYWNNbbNyjacrEv": "Pro",
   "price_1T042SFhaOYWNNbbs0OXpz8P": "Label",
+  "price_1T8fI4FhaOYWNNbbxeAEijSz": "Starter",
+  "price_1T8fJnFhaOYWNNbbgunqrDsI": "Pro",
+  "price_1T8fLQFhaOYWNNbbdH6Bjcav": "Label",
 };
+
+function planNameFromKey(planKey) {
+  const map = {
+    "starter-monthly": "Starter", "starter-annual": "Starter",
+    "pro-monthly": "Pro",         "pro-annual": "Pro",
+    "label-monthly": "Label",     "label-annual": "Label",
+    "under18-monthly": "Future Légende (-18)",
+    "under18": "Future Légende (-18)",
+  };
+  return map[planKey] || planKey;
+}
 
 const subStatus = document.getElementById("sub-status");
 const subPill = document.getElementById("sub-pill");
@@ -139,6 +155,20 @@ onAuthStateChanged(auth, async (user) => {
     const sub = await loadSubscription(user.uid);
 
     if (!sub) {
+      // Fallback : vérifier users/{uid}.plan (PaymentIntent)
+      try {
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        const directPlan = userSnap.data()?.plan;
+        if (directPlan) {
+          const label = planNameFromKey(directPlan);
+          subStatus.textContent = "Abonnement détecté ✅";
+          subPill.textContent = label;
+          subPlan.textContent = label + " (PaymentIntent)";
+          subState.textContent = "active";
+          subRenew.textContent = "—";
+          return;
+        }
+      } catch (_) {}
       subStatus.textContent = "Aucun abonnement actif";
       subPill.textContent = "Gratuit";
       subPlan.textContent = "—";

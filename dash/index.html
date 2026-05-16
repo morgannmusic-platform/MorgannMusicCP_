@@ -1483,11 +1483,27 @@
       return map[priceId] || (priceId ? "Abonné" : "—");
     }
 
+    // Convertit une clé de plan (users/{uid}.plan) en libellé lisible
+    function planNameFromKey(planKey) {
+      const map = {
+        "starter-monthly": "Starter",
+        "starter-annual":  "Starter",
+        "pro-monthly":     "Pro",
+        "pro-annual":      "Pro",
+        "label-monthly":   "Label",
+        "label-annual":    "Label",
+        "under18-monthly": "Future Légende (-18)",
+        "under18":         "Future Légende (-18)",
+      };
+      return map[planKey] || planKey;
+    }
+
     function planLimit(plan) {
       if (plan === "Starter") return 1;
       if (plan === "Pro") return 2;
       if (plan === "Label") return Infinity;
       if (plan === "Paiement par sortie") return Infinity;
+      if (plan === "Future Légende (-18)") return 4;
       return 0;
     }
 
@@ -2320,6 +2336,14 @@
           plan = "Paiement par sortie";
           subStatus = "active";
           artistLimit = Infinity;
+        } else if (plan === "—") {
+          // Fallback : plan PaymentIntent stocké dans users/{uid}.plan
+          const docPlan = clean(userDoc?.plan || "");
+          if (docPlan) {
+            plan = planNameFromKey(docPlan);
+            subStatus = "active";
+            artistLimit = planLimit(plan);
+          }
         }
 
         planName.textContent = plan;

@@ -140,10 +140,14 @@
     const $ = id => document.getElementById(id);
 
     function planFromPriceId(priceId){
-      const map = {"price_1T03eDFhaOYWNNbbddL6iz7y":"Starter","price_1T03z6FhaOYWNNbbNyjacrEv":"Pro","price_1T042SFhaOYWNNbbs0OXpz8P":"Label"};
+      const map = {"price_1T03eDFhaOYWNNbbddL6iz7y":"Starter","price_1T03z6FhaOYWNNbbNyjacrEv":"Pro","price_1T042SFhaOYWNNbbs0OXpz8P":"Label","price_1T8fI4FhaOYWNNbbxeAEijSz":"Starter","price_1T8fJnFhaOYWNNbbgunqrDsI":"Pro","price_1T8fLQFhaOYWNNbbdH6Bjcav":"Label"};
       return map[priceId]||(priceId?"Abonné":"—");
     }
-    function planLimit(plan){ if (plan==='Starter') return 1; if (plan==='Pro') return 2; if (plan==='Label') return Infinity; return 0 }
+    function planNameFromKey(planKey){
+      const map={"starter-monthly":"Starter","starter-annual":"Starter","pro-monthly":"Pro","pro-annual":"Pro","label-monthly":"Label","label-annual":"Label","under18-monthly":"Future Légende (-18)","under18":"Future Légende (-18)"};
+      return map[planKey]||planKey;
+    }
+    function planLimit(plan){ if (plan==='Starter') return 1; if (plan==='Pro') return 2; if (plan==='Label') return Infinity; if (plan==='Future Légende (-18)') return 4; return 0 }
 
     async function getUserDoc(uid){ const snap = await getDocs(query(collection(db,'users'))); /* fallback */ return (await (await import('https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js')).getDoc(doc(db,'users',uid)))?.data?.() || null }
 
@@ -199,7 +203,12 @@
       const isArtist = role==='artist';
       const isTest = role==='teste';
       const sub = await getStripeSub(user.uid);
-      const plan = planFromPriceId(sub? (sub?.price?.id || sub?.items?.[0]?.price?.id) : null);
+      let plan = planFromPriceId(sub? (sub?.price?.id || sub?.items?.[0]?.price?.id) : null);
+      // Fallback : plan PaymentIntent stocké dans users/{uid}.plan
+      if (plan === "—" && !isAdmin && !isArtist && !isTest) {
+        const directPlan = String(udoc?.plan || "");
+        if (directPlan) plan = planNameFromKey(directPlan);
+      }
 
       if (plan === 'Starter' && !isAdmin && !isArtist && !isTest){
         $('accessMessage').style.display = 'block';

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement - Morgann Music CP</title>
+
+    <meta name="theme-color" content="#ecca74" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#ad8e58" media="(prefers-color-scheme: dark)">
+    <meta name="msapplication-TileColor" content="#ecca74">
+
+    <link rel="canonical" href="https://mm-cp.uk/buy.html">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Morgann Music CP">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/android-chrome-192x192.png">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Morgann_Music">
+    <meta name="twitter:title" content="Paiement - Morgann Music CP">
+    <meta name="twitter:description" content="Choisissez votre plan et commencez à distribuer votre musique.">
+    <meta name="twitter:image" content="https://mm-cp.uk/assets/img/1.png">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Paiement - Morgann Music CP">
+    <meta property="og:description" content="Choisissez votre plan et commencez à distribuer votre musique.">
+    <meta property="og:image" content="https://mm-cp.uk/assets/img/1.png">
+    <meta property="og:url" content="https://mm-cp.uk/buy.html">
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style-login.css?v=2026-04-09a">
+    <style>
+        :root {
+            --bg-color: #ffefbe;
+            --bckgrnd: linear-gradient(90deg, #ffefbc, #ffe6a7);
+            --card-bg: #fff2d2ab;
+            --border-color: #ecca74;
+            --text-main: #000000;
+            --text-muted: #868686;
+            --accent: #ecca74;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #2a2a2a;
+                --bckgrnd: linear-gradient(90deg, #484848, #ad8e58);
+                --card-bg: #1e1e1e;
+                --border-color: #ad8e58;
+                --text-main: #ffffff;
+                --text-muted: #9ca3af;
+                --accent: #ad8e58;
+            }
+        }
+
+        body {
+            background: var(--bckgrnd);
+            color: var(--text-main);
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 100px 20px 40px;
+            box-sizing: border-box;
+        }
+
+        /* Fond animé plan -18 */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: url('/assets/img/login/clair.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: 0.2s ease;
+            pointer-events: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body::before {
+                background-image: url('/assets/img/login/sombre.png');
+            }
+        }
+
+        body.under18-selected::before {
+            opacity: 1;
+        }
+
+        /* Layout Grand Écran Multi-Colonnes */
+        .checkout-wrapper {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 40px;
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(236, 202, 116, 0.15);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Colonne de Gauche : Selection de l'offre */
+        .selection-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        /* Colonne de Droite : Formulaire */
+        .payment-column {
+            border-left: 1px solid color-mix(in oklab, var(--border-color) 40%, transparent);
+            padding-left: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .checkout-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+
+        .checkout-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0 0 24px 0;
+        }
+
+        /* --- ZONE DES PLANS --- */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .plan-card {
+            border: 1px solid var(--border-color);
+            background: color-mix(in oklab, var(--bg-color) 30%, transparent);
+            border-radius: 14px;
+            padding: 20px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .plan-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .plan-card.selected {
+            border-color: var(--accent);
+            background: color-mix(in oklab, var(--accent) 15%, var(--card-bg));
+            box-shadow: 0 0 10px 5px color-mix(in oklab, var(--accent) 30%, transparent);
+        }
+
+        .plan-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .plan-price {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* --- ZONE DE RÉASSURANCE / RÉCAP --- */
+        .order-summary-box {
+            background: color-mix(in oklab, var(--bg-color) 50%, transparent);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: auto; /* Pousse le récap en bas de la colonne gauche */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-summary-box .title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .order-summary-box .summary-details {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .order-summary-box .summary-total {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* --- BADGES ET HEADERS DE SÉCURITÉ --- */
+        .secure-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #22c55e;
+            margin-bottom: 24px;
+        }
+        .secure-header i {
+            font-size: 18px;
+        }
+
+        .security-footer-badges {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid color-mix(in oklab, var(--border-color) 30%, transparent);
+            padding-top: 16px;
+        }
+        .security-footer-badges span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* --- FORMULAIRE DE PAIEMENT STRIPE --- */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-main);
+            opacity: 0.85;
+        }
+
+        .row-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .stripe-input-container, .standard-input {
+            width: 100%;
+            height: 48px;
+            background: color-mix(in oklab, var(--bg-color) 60%, #fff);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-sizing: border-box;
+            padding: 14px 12px;
+            color: var(--text-main);
+            font-size: 16px;
+        }
+
+        .standard-input {
+            outline: none;
+            font-family: inherit;
+        }
+
+        .standard-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
+        }
+
+        /* --- BOUTONS D'ACTION --- */
+        .btn-submit {
+            width: 100%;
+            height: 50px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: opacity 0.2s, transform 0.15s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        #error-message {
+            color: #ff453a;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.4;
+        }
+
+        /* --- TOGGLE MENSUEL / ANNUEL --- */
+        .billing-toggle-buy {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .billing-btn-buy {
+            padding: 8px 20px;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-main

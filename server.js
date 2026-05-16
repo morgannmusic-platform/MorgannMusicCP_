@@ -1,3 +1,46 @@
+// --- Webhook Stripe pour abonnement ---
+const bodyParser = require('body-parser');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_xxx');
+
+// Pour recevoir le raw body Stripe
+app.post('/webhook/stripe', bodyParser.raw({type: 'application/json'}), async (req, res) => {
+    let event;
+    try {
+        event = req.body && req.headers['stripe-signature']
+            ? stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET)
+            : req.body;
+    } catch (err) {
+        console.error('Erreur signature Stripe:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Traite uniquement les abonnements
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        if (session.mode === 'subscription' && session.client_reference_id) {
+            try {
+                // Inscrire l'abonnement dans Firestore
+                const admin = require('firebase-admin');
+                if (!admin.apps.length) admin.initializeApp();
+                const db = admin.firestore();
+                const userRef = db.collection('users').doc(session.client_reference_id);
+                await userRef.set({
+                    subscription: {
+                        id: session.subscription,
+                        status: 'active',
+                        start: new Date().toISOString(),
+                        priceId: session.display_items ? session.display_items[0]?.price?.id : null
+                    }
+                }, { merge: true });
+                console.log('Abonnement inscrit pour', session.client_reference_id);
+            } catch (e) {
+                console.error('Erreur Firestore abonnement:', e);
+                return res.status(500).send('Erreur Firestore');
+            }
+        }
+    }
+    res.json({received: true});
+});
 const express = require("express");
 const fs = require("fs");
 const path = require("path");

@@ -48,7 +48,7 @@ function isLoginOrAccountPage() {
   const path = String(window.location.pathname || "")
     .toLowerCase()
     .replace(/\/+$/, "");
-  return /\/(login|account)(\.html)?$/.test(path);
+  return /\/(login|account|buy)(\.html)?$/.test(path);
 }
 
 function applyThemeColorMetaSet() {

@@ -398,6 +398,111 @@ body {
   height: 18px;
 }
 
+/* ========= SUBSCRIPTION CARD ========= */
+.sub-card {
+  background: color-mix(in oklab, var(--bg2) 80%, transparent);
+  border: 1px solid var(--bglg);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sub-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sub-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sub-card-plan {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--txt);
+}
+
+.sub-card-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: #16a34a22;
+  color: #15803d;
+  border: 1px solid #16a34a44;
+}
+
+.sub-card-badge[data-status="past_due"],
+.sub-card-badge[data-status="unpaid"] {
+  background: #b91c1c22;
+  color: #b91c1c;
+  border-color: #b91c1c44;
+}
+
+.sub-card-badge[data-status="canceled"],
+.sub-card-badge[data-status="incomplete_expired"] {
+  background: #6b728022;
+  color: #4b5563;
+  border-color: #6b728044;
+}
+
+.sub-card-badge[data-status="trialing"] {
+  background: #7c3aed22;
+  color: #7c3aed;
+  border-color: #7c3aed44;
+}
+
+.sub-card-badge[data-status="test"] {
+  background: #92400e22;
+  color: #92400e;
+  border-color: #92400e44;
+}
+
+.sub-card-actions {
+  margin-top: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sub-card {
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+  .sub-card-badge {
+    background: #16a34a33;
+    color: #4ade80;
+    border-color: #16a34a55;
+  }
+  .sub-card-badge[data-status="past_due"],
+  .sub-card-badge[data-status="unpaid"] {
+    background: #b91c1c33;
+    color: #f87171;
+    border-color: #b91c1c55;
+  }
+  .sub-card-badge[data-status="canceled"],
+  .sub-card-badge[data-status="incomplete_expired"] {
+    background: #37415133;
+    color: #9ca3af;
+    border-color: #37415155;
+  }
+  .sub-card-badge[data-status="trialing"] {
+    background: #7c3aed33;
+    color: #c4b5fd;
+    border-color: #7c3aed55;
+  }
+  .sub-card-badge[data-status="test"] {
+    background: #92400e33;
+    color: #fcd34d;
+    border-color: #92400e55;
+  }
+}
+
 .email-subprefs {
   margin-top: 10px;
   margin-left: 28px;

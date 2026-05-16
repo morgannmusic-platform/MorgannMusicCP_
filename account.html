@@ -124,9 +124,31 @@
           <span class="bar w-45"></span>
         </div>
         <h2>Abonnement</h2>
-        <p class="note">Plan : <strong id="sub-plan">—</strong> · Statut : <strong id="sub-status">—</strong></p>
-        <div class="mini-row">
-          <button type="button" class="btn" id="btnManageSub">Ouvrir Stripe (gérer / résilier)</button>
+
+        <!-- Carte abonnement actif -->
+        <div class="sub-card" id="sub-card" style="display:none;">
+          <div class="sub-card-inner">
+            <div class="sub-card-top">
+              <span class="sub-card-plan" id="sub-plan">—</span>
+              <span class="sub-card-badge" id="sub-status-badge">—</span>
+            </div>
+            <p class="note" id="sub-renewal-line" style="display:none;"></p>
+            <p class="note" id="sub-cancel-line" style="display:none;"></p>
+          </div>
+          <div class="mini-row sub-card-actions">
+            <button type="button" class="btn" id="btnChangeCard"><i class='bx bx-credit-card'></i> Changer de carte</button>
+            <button type="button" class="btn" id="btnViewInvoices"><i class='bx bx-receipt'></i> Mes factures</button>
+            <button type="button" class="mini-btn danger" id="btnCancelSub"><i class='bx bx-x-circle'></i> Résilier</button>
+          </div>
+        </div>
+
+        <!-- Aucun abonnement -->
+        <div id="sub-none" style="display:none;">
+          <p class="note">Aucun abonnement actif.</p>
+          <a href="/pricing.html" class="btn" style="display:inline-block; margin-top:10px;">Voir nos offres</a>
+        </div>
+
+        <div class="mini-row" style="margin-top:12px;">
           <button type="button" class="mini-btn danger" id="btnDisableTestRole" style="display:none;">Désactiver le mode test</button>
         </div>
       </section>

@@ -91,33 +91,33 @@ fetch("https://hook.eu1.make.com/ipq63kzsudkmk40qt9ynzd7au17e11la", {
       } else {
         window.location.href = "index.html";
       }
-    // Ajout pour login email/mot de passe (exemple générique)
-    const loginForm = document.querySelector('form');
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = loginForm.querySelector('input[type="email"]').value;
-        const password = loginForm.querySelector('input[type="password"]').value;
-        try {
-          // Remplace ceci par ta logique réelle d'authentification
-          const { signInWithEmailAndPassword, getAuth } = await import('https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js');
-          const auth = getAuth();
-          await signInWithEmailAndPassword(auth, email, password);
-          localStorage.setItem("mmcp_logged_in", "1");
-          if (window.opener && !window.opener.closed) {
-            window.opener.postMessage('register-success', '*');
-            window.close();
-          } else {
-            window.location.href = "index.html";
-          }
-        } catch (err) {
-          alert("Erreur de connexion : " + err.message);
-        }
-      });
-    }
     } catch (err) {
       console.error("Google login error", err);
       alert(err.message);
+    }
+  });
+}
+
+// SORTI DU BLOC GOOGLE POUR QUE ÇA FONCTIONNE :
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    try {
+      const { signInWithEmailAndPassword, getAuth } = await import('https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js');
+      const auth = getAuth();
+      await signInWithEmailAndPassword(auth, email, password);
+      localStorage.setItem("mmcp_logged_in", "1");
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage('register-success', '*');
+        window.close();
+      } else {
+        window.location.href = "index.html";
+      }
+    } catch (err) {
+      alert("Erreur de connexion : " + err.message);
     }
   });
 }

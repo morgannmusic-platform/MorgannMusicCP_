@@ -414,6 +414,20 @@
       return map[priceId] || (priceId ? "Abonné" : "—");
     }
 
+    function planNameFromKey(planKey) {
+      const map = {
+        "starter-monthly": "Starter",
+        "starter-annual":  "Starter",
+        "pro-monthly":     "Pro",
+        "pro-annual":      "Pro",
+        "label-monthly":   "Label",
+        "label-annual":    "Label",
+        "under18-monthly": "Future Légende (-18)",
+        "under18":         "Future Légende (-18)",
+      };
+      return map[planKey] || planKey;
+    }
+
     async function requireAdmin(user) {
       const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
@@ -723,6 +737,18 @@
 
       const sub = await getStripeSubscription(uid);
       if (!sub) {
+        // Fallback : vérifier users/{uid}.plan (plan PaymentIntent)
+        try {
+          const userSnap = await getDoc(doc(db, "users", uid));
+          const directPlan = userSnap.data()?.plan;
+          if (directPlan) {
+            subPlan.textContent = planNameFromKey(directPlan);
+            subStatus.textContent = "active (PaymentIntent)";
+            subWhen.textContent = "—";
+            subHint.textContent = "Plan via PaymentIntent";
+            return;
+          }
+        } catch {}
         subHint.textContent = "Aucun abonnement";
         return;
       }

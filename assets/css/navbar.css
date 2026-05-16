@@ -619,6 +619,18 @@ body.navbar-panel-open {
   }
 }
 
+@media (max-width: 1122px) {
+  .navbar-guest .menu-toggle {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 1136px) {
+  .navbar-guest .btn-login-nav {
+    display: none;
+  }
+}
+
 @media (max-width: 1024px) {
   .navbar ul {
     gap: 14px;
@@ -629,7 +641,7 @@ body.navbar-panel-open {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 862px) {
   .navbar nav {
     gap: 10px;
   }
