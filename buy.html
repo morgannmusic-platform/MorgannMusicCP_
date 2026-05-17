@@ -44,6 +44,7 @@
     <script src="https://js.stripe.com/v3/"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style-login.css?v=2026-04-09a">
@@ -331,6 +332,42 @@
             line-height: 1.4;
         }
 
+        /* ── Code promo ── */
+        .coupon-row-inputs {
+            display: flex;
+            gap: 8px;
+        }
+        .coupon-row-inputs .standard-input {
+            flex: 1;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+        .coupon-apply-btn {
+            white-space: nowrap;
+            height: 48px;
+            padding: 0 18px;
+            border-radius: 10px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background .15s, color .15s;
+        }
+        .coupon-apply-btn:hover:not(:disabled) { background: var(--accent); color: #fff; }
+        .coupon-apply-btn:disabled { opacity: .4; cursor: not-allowed; }
+        #coupon-feedback {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 6px;
+            min-height: 18px;
+        }
+        #coupon-feedback.success { color: #22c55e; }
+        #coupon-feedback.error   { color: #ef4444; }
+
         /* --- TOGGLE MENSUEL / ANNUEL --- */
         .billing-toggle-buy {
             display: flex;
@@ -511,6 +548,16 @@
                 <input type="text" id="card-name" class="standard-input" placeholder="Jean Dupont" required>
             </div>
 
+            <!-- CODE PROMO (optionnel) -->
+            <div class="form-group">
+                <label class="form-label">Code promo <span style="opacity:.5;font-weight:400">(optionnel)</span></label>
+                <div class="coupon-row-inputs">
+                    <input type="text" id="coupon-input" class="standard-input" placeholder="PROMO20" autocomplete="off" maxlength="20">
+                    <button type="button" id="coupon-apply-btn" class="coupon-apply-btn">Appliquer</button>
+                </div>
+                <div id="coupon-feedback"></div>
+            </div>
+
             <button type="submit" id="submit-btn" class="btn-submit">
                 <i class='bx bxs-lock-alt'></i> <span id="submit-btn-text">Payer 2,99 €</span>
             </button>
@@ -539,6 +586,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db   = firebase.firestore();
 
     // --- 2. CONFIGURATION STRIPE ---
     const stripe = Stripe('pk_live_51Sqie3FhaOYWNNbbxLwmW0xZXPGp0lR469OpeJq474Z1OFpUVQTPXCGPFZtwxvykTxq6V9ditCtOYOb0oPVymezf0074FXBmWP'); 
@@ -556,19 +604,28 @@
     let selectedPlanAmount = PLAN_PRICES.starter.monthly;
     let ageVerified = false; 
     let paymentRequest = null;
+    let couponDiscount = 0;       // % de réduction appliqué
+    let appliedCouponCode = null; // code coupon validé
 
     function updateSummaryUI() {
         const planNamesClean = { starter: 'Starter', pro: 'Pro', label: 'Label', under18: '-18' };
         const billingText = selectedBilling === 'annual' ? 'Annuel' : 'Mensuel';
         const rawAmount = (PLAN_PRICES[selectedPlanName] || PLAN_PRICES.starter)[selectedBilling];
-        
+        const finalAmount = couponDiscount > 0 ? Math.round(rawAmount * (1 - couponDiscount / 100)) : rawAmount;
+
         document.getElementById('summary-plan-text').textContent = `Plan ${planNamesClean[selectedPlanName]} (${billingText})`;
-        document.getElementById('summary-price-text').textContent = (rawAmount / 100).toFixed(2).replace('.', ',') + ' €';
-        document.getElementById('submit-btn-text').textContent = `Payer ${(rawAmount / 100).toFixed(2).replace('.', ',')} €`;
+        if (couponDiscount > 0) {
+            document.getElementById('summary-price-text').innerHTML =
+                `<span style="text-decoration:line-through;opacity:.45;font-size:.75em">${(rawAmount/100).toFixed(2).replace('.',',')} €</span> ${(finalAmount/100).toFixed(2).replace('.',',')} €`;
+        } else {
+            document.getElementById('summary-price-text').textContent = (rawAmount / 100).toFixed(2).replace('.', ',') + ' €';
+        }
+        document.getElementById('submit-btn-text').textContent = `Payer ${(finalAmount / 100).toFixed(2).replace('.', ',')} €`;
     }
 
     function updateAmount() {
-        selectedPlanAmount = (PLAN_PRICES[selectedPlanName] || PLAN_PRICES.starter)[selectedBilling];
+        const raw = (PLAN_PRICES[selectedPlanName] || PLAN_PRICES.starter)[selectedBilling];
+        selectedPlanAmount = couponDiscount > 0 ? Math.round(raw * (1 - couponDiscount / 100)) : raw;
         if (paymentRequest) {
             paymentRequest.update({
                 total: { label: 'Morgann Music CP', amount: selectedPlanAmount }
@@ -576,6 +633,48 @@
         }
         updateSummaryUI();
     }
+
+    /* ── Logique code promo ── */
+    document.getElementById('coupon-apply-btn').addEventListener('click', async () => {
+        const input    = document.getElementById('coupon-input');
+        const btn      = document.getElementById('coupon-apply-btn');
+        const feedback = document.getElementById('coupon-feedback');
+        const code     = input.value.trim().toUpperCase();
+
+        if (!code) { feedback.textContent = 'Saisis un code.'; feedback.className = 'error'; return; }
+
+        btn.disabled = true; btn.textContent = '…';
+        feedback.textContent = ''; feedback.className = '';
+
+        try {
+            const snap = await db.collection('coupons').doc(code).get();
+            if (!snap.exists || !snap.data().active) {
+                feedback.textContent = '❌ Code invalide ou expiré.';
+                feedback.className = 'error';
+                couponDiscount = 0; appliedCouponCode = null;
+                btn.disabled = false; btn.textContent = 'Appliquer';
+            } else {
+                couponDiscount = snap.data().discount;
+                appliedCouponCode = code;
+                feedback.textContent = `✅ Code appliqué — −${couponDiscount}% de réduction !`;
+                feedback.className = 'success';
+                input.disabled = true;
+                btn.textContent = '✓ Appliqué';
+                // Incrémenter le compteur d'utilisations
+                db.collection('coupons').doc(code).update({ uses: firebase.firestore.FieldValue.increment(1) });
+            }
+        } catch (err) {
+            feedback.textContent = 'Erreur lors de la vérification.';
+            feedback.className = 'error';
+            btn.disabled = false; btn.textContent = 'Appliquer';
+        }
+
+        updateAmount();
+    });
+
+    document.getElementById('coupon-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('coupon-apply-btn').click(); }
+    });
 
     function selectPlanCard(el) {
         document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));

@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Réductions — Admin MMCP</title>
+  <link rel="stylesheet" href="/assets/css/dash/admin/sidebar.css" />
+  <style>
+    :root {
+      --bg: #e2e2e2; --txt: #000000; --bg2: #ffffff;
+      --stroke: rgba(0,0,0,.12); --card: rgba(255,255,255,.78);
+      --muted: rgba(0,0,0,.58); --blue: #2f63ff;
+      --green: #16a34a; --amber: #d97706; --red: #dc2626;
+      --accent: #ff8fb1;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141414; --txt: #ffffff; --bg2: #1e1e1e;
+        --stroke: rgba(255,255,255,.12); --card: rgba(30,30,30,.9);
+        --muted: rgba(255,255,255,.55); --blue: #3b82f6;
+        --green: #22c55e; --amber: #f59e0b; --red: #ef4444;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--txt); font-family: Helvetica, sans-serif; }
+
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 64px;
+      border-bottom: 1px solid var(--stroke);
+      background: rgba(255,255,255,.45);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px; z-index: 9999;
+    }
+    @media (prefers-color-scheme: dark) { .topbar { background: rgba(20,20,20,.7); } }
+
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 14px; }
+    .pill {
+      border: 1px solid var(--stroke); border-radius: 999px;
+      padding: 8px 12px; font-size: 12px; color: var(--muted);
+      background: rgba(0,0,0,.04);
+    }
+    @media (prefers-color-scheme: dark) { .pill { background: rgba(255,255,255,.06); } }
+
+    .wrap { max-width: 900px; margin: 0 auto; padding: 90px 18px 40px; }
+    .page-title { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+    .page-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+    /* ── Formulaire ajout ── */
+    .add-card {
+      background: var(--card); border: 1px solid var(--stroke);
+      border-radius: 16px; padding: 24px; margin-bottom: 32px;
+    }
+    .add-card h2 { font-size: 16px; font-weight: 800; margin-bottom: 16px; }
+    .add-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .add-row label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--muted); }
+    .add-row input {
+      height: 44px; border-radius: 10px; border: 1px solid var(--stroke);
+      background: var(--bg2); color: var(--txt);
+      padding: 0 14px; font-size: 15px; font-family: inherit;
+      outline: none; transition: border-color 0.15s;
+    }
+    .add-row input:focus { border-color: var(--accent); }
+    #input-code { width: 180px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+    #input-discount { width: 120px; }
+    .btn-add {
+      height: 44px; padding: 0 22px; border-radius: 10px;
+      background: var(--accent); color: #fff; border: none;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: opacity .15s, transform .15s;
+      white-space: nowrap;
+    }
+    .btn-add:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-add:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    #add-feedback { font-size: 13px; font-weight: 600; margin-top: 10px; }
+    #add-feedback.success { color: var(--green); }
+    #add-feedback.error   { color: var(--red); }
+
+    /* ── Table coupons ── */
+    .table-card {
+      background: var(--card); border: 1px solid var(--stroke);
+      border-radius: 16px; overflow: hidden;
+    }
+    .table-head {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 80px 80px;
+      padding: 12px 20px; font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .6px; color: var(--muted);
+      border-bottom: 1px solid var(--stroke);
+    }
+    .coupon-row {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 80px 80px;
+      padding: 14px 20px; border-bottom: 1px solid var(--stroke);
+      align-items: center; font-size: 14px; transition: background .12s;
+    }
+    .coupon-row:last-child { border-bottom: none; }
+    .coupon-row:hover { background: rgba(255,143,177,.04); }
+    .coupon-code { font-weight: 800; letter-spacing: 1.5px; font-family: monospace; font-size: 15px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 800;
+    }
+    .badge.active   { background: rgba(22,163,74,.15);  color: var(--green); }
+    .badge.inactive { background: rgba(220,38,38,.12);  color: var(--red); }
+    .btn-icon {
+      border: 1px solid var(--stroke); background: transparent; color: var(--txt);
+      border-radius: 8px; padding: 6px 10px; cursor: pointer;
+      font-size: 13px; font-family: inherit; transition: background .12s;
+    }
+    .btn-icon:hover { background: rgba(0,0,0,.06); }
+    @media (prefers-color-scheme: dark) { .btn-icon:hover { background: rgba(255,255,255,.08); } }
+    .btn-icon.danger:hover { background: rgba(220,38,38,.12); color: var(--red); border-color: var(--red); }
+    .row-actions { display: flex; gap: 6px; }
+
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--muted); font-size: 14px;
+    }
+    .spinner {
+      display: inline-block; width: 20px; height: 20px;
+      border: 2px solid var(--stroke); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 600px) {
+      .table-head { display: none; }
+      .coupon-row { grid-template-columns: 1fr; gap: 6px; padding: 14px; }
+      .add-row { flex-direction: column; }
+      #input-code, #input-discount { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <script type="module" src="/assets/js/dash/admin/sidebar.js"></script>
+
+  <header class="topbar">
+    <div class="brand">
+      <span>🏷️</span>
+      <span>Codes de réduction</span>
+    </div>
+    <div class="pill" id="whoami">Connexion...</div>
+  </header>
+
+  <main class="wrap">
+    <h1 class="page-title">Codes promo</h1>
+    <p class="page-sub">Crée et gère les codes de réduction appliqués lors du paiement sur buy.html.</p>
+
+    <!-- Formulaire d'ajout -->
+    <div class="add-card">
+      <h2>➕ Nouveau code</h2>
+      <div class="add-row">
+        <div>
+          <label for="input-code">Code promo</label>
+          <input type="text" id="input-code" placeholder="EX : SUMMER25" maxlength="20" autocomplete="off">
+        </div>
+        <div>
+          <label for="input-discount">Réduction (%)</label>
+          <input type="number" id="input-discount" placeholder="20" min="1" max="100" step="1">
+        </div>
+        <button class="btn-add" id="btn-add-coupon">Créer le code</button>
+      </div>
+      <div id="add-feedback"></div>
+    </div>
+
+    <!-- Liste des codes -->
+    <div class="table-card" id="coupons-table">
+      <div class="table-head">
+        <span>Code</span>
+        <span>Réduction</span>
+        <span>Utilisations</span>
+        <span>Statut</span>
+        <span>Actions</span>
+      </div>
+      <div id="coupons-list">
+        <div class="empty-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection,
+      getDocs, setDoc, deleteDoc, updateDoc, serverTimestamp, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain: "morgann-music-cp.firebaseapp.com",
+      projectId: "morgann-music-cp",
+      storageBucket: "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    const whoami = document.getElementById("whoami");
+
+    async function ensureAdmin(user) {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const role = snap.exists() ? String(snap.data().role || "").toLowerCase() : "";
+      if (role !== "admin") { window.location.href = "/dash/index.html"; return false; }
+      whoami.textContent = user.email || "Admin";
+      return true;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = "/login.html"; return; }
+      const ok = await ensureAdmin(user);
+      if (ok) loadCoupons();
+    });
+
+    /* ── Charger et afficher les coupons ── */
+    async function loadCoupons() {
+      const list = document.getElementById("coupons-list");
+      try {
+        const snap = await getDocs(query(collection(db, "coupons"), orderBy("createdAt", "desc")));
+        if (snap.empty) {
+          list.innerHTML = '<div class="empty-state">Aucun code promo pour l\'instant.</div>';
+          return;
+        }
+        list.innerHTML = "";
+        snap.forEach(d => renderRow(d.id, d.data()));
+      } catch (e) {
+        list.innerHTML = `<div class="empty-state" style="color:var(--red)">Erreur : ${e.message}</div>`;
+      }
+    }
+
+    function renderRow(code, data) {
+      const list = document.getElementById("coupons-list");
+      const row = document.createElement("div");
+      row.className = "coupon-row";
+      row.id = "row-" + code;
+      const statusBadge = data.active
+        ? `<span class="badge active">✅ Actif</span>`
+        : `<span class="badge inactive">❌ Inactif</span>`;
+      const toggleLabel = data.active ? "Désactiver" : "Activer";
+      row.innerHTML = `
+        <span class="coupon-code">${code}</span>
+        <span><strong>−${data.discount}%</strong></span>
+        <span>${data.uses ?? 0} utilisation${(data.uses ?? 0) !== 1 ? 's' : ''}</span>
+        <span>${statusBadge}</span>
+        <span class="row-actions">
+          <button class="btn-icon" onclick="toggleCoupon('${code}', ${data.active})">${toggleLabel}</button>
+          <button class="btn-icon danger" onclick="deleteCoupon('${code}')">🗑️</button>
+        </span>
+      `;
+      list.appendChild(row);
+    }
+
+    /* ── Ajouter un coupon ── */
+    document.getElementById("btn-add-coupon").addEventListener("click", async () => {
+      const code     = document.getElementById("input-code").value.trim().toUpperCase().replace(/\s+/g, "");
+      const discount = parseInt(document.getElementById("input-discount").value, 10);
+      const feedback = document.getElementById("add-feedback");
+      const btn      = document.getElementById("btn-add-coupon");
+
+      feedback.className = ""; feedback.textContent = "";
+
+      if (!code || !/^[A-Z0-9_-]{2,20}$/.test(code)) {
+        feedback.textContent = "❌ Code invalide (2-20 caractères, lettres/chiffres uniquement).";
+        feedback.className = "error"; return;
+      }
+      if (!discount || discount < 1 || discount > 100) {
+        feedback.textContent = "❌ La réduction doit être entre 1 et 100 %.";
+        feedback.className = "error"; return;
+      }
+
+      btn.disabled = true; btn.textContent = "Création...";
+
+      try {
+        const existing = await getDoc(doc(db, "coupons", code));
+        if (existing.exists()) {
+          feedback.textContent = `❌ Le code "${code}" existe déjà.`;
+          feedback.className = "error";
+          btn.disabled = false; btn.textContent = "Créer le code"; return;
+        }
+        await setDoc(doc(db, "coupons", code), {
+          discount, active: true, uses: 0, createdAt: serverTimestamp()
+        });
+        feedback.textContent = `✅ Code "${code}" créé avec −${discount}% !`;
+        feedback.className = "success";
+        document.getElementById("input-code").value = "";
+        document.getElementById("input-discount").value = "";
+        // Ajouter la ligne sans recharger toute la liste
+        const list = document.getElementById("coupons-list");
+        if (list.querySelector(".empty-state")) list.innerHTML = "";
+        renderRow(code, { discount, active: true, uses: 0 });
+      } catch (e) {
+        feedback.textContent = "Erreur : " + e.message;
+        feedback.className = "error";
+      } finally {
+        btn.disabled = false; btn.textContent = "Créer le code";
+      }
+    });
+
+    /* Enter → clic sur le bouton */
+    ["input-code", "input-discount"].forEach(id => {
+      document.getElementById(id).addEventListener("keydown", e => {
+        if (e.key === "Enter") document.getElementById("btn-add-coupon").click();
+      });
+    });
+
+    /* ── Toggle actif / inactif ── */
+    window.toggleCoupon = async (code, currentActive) => {
+      try {
+        await updateDoc(doc(db, "coupons", code), { active: !currentActive });
+        // Refresh row
+        const snap = await getDoc(doc(db, "coupons", code));
+        const old = document.getElementById("row-" + code);
+        if (old) old.remove();
+        renderRow(code, snap.data());
+      } catch (e) { alert("Erreur : " + e.message); }
+    };
+
+    /* ── Supprimer ── */
+    window.deleteCoupon = async (code) => {
+      if (!confirm(`Supprimer définitivement le code "${code}" ?`)) return;
+      try {
+        await deleteDoc(doc(db, "coupons", code));
+        const row = document.getElementById("row-" + code);
+        if (row) row.remove();
+        if (!document.querySelector(".coupon-row")) {
+          document.getElementById("coupons-list").innerHTML =
+            '<div class="empty-state">Aucun code promo pour l\'instant.</div>';
+        }
+      } catch (e) { alert("Erreur : " + e.message); }
+    };
+  </script>
+</body>
+</html>

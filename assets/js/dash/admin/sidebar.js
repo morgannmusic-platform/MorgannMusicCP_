@@ -18,9 +18,8 @@ const links = [
   { label: "Links", href: "/dash/admin/linkrelease.html" },
   { label: "Lecteurs", href: "/dash/admin/lecteur-ap.html" },
   { label: "Visiteurs", href: "/dash/admin/visiteurs.html" },
-  { label: "Documents", href: "/dash/admin/documents.html" }
-
-
+  { label: "Documents", href: "/dash/admin/documents.html" },
+  { label: "Réductions", href: "/dash/admin/reductions.html" }
 ];
 
 function normalizePath(path) {
