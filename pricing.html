@@ -971,6 +971,7 @@ Oriente gentiment l'utilisateur selon ses besoins. Tu réponds en français. Soi
   let isStreaming = false;
   let abortCtrl = null;
   let greeted = false;
+  let conversationHistory = []; // historique complet pour le contexte
 
   function addMessage(html, role, isHtml) {
     const div = document.createElement("div");
@@ -998,6 +999,7 @@ Oriente gentiment l'utilisateur selon ses besoins. Tu réponds en français. Soi
     sendBtn.disabled = true;
 
     addMessage(userText, "user", false);
+    conversationHistory.push({ role: "user", content: userText });
     inputEl.value = "";
     if (chipsEl) chipsEl.style.display = "none";
 
@@ -1010,7 +1012,7 @@ Oriente gentiment l'utilisateur selon ses besoins. Tu réponds en français. Soi
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [{ role: "user", content: userText }],
+          messages: conversationHistory,
           instruction: SYSTEM_PROMPT
         }),
         signal: abortCtrl.signal

@@ -452,7 +452,6 @@
   <canvas id="offscreenRender" width="1080" height="1920"></canvas>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js"></script>
   <script type="module">
     import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
@@ -486,7 +485,7 @@
     const previewCanvas = $("promoPreview");
     const previewCtx = previewCanvas.getContext("2d");
     const renderCanvas = $("offscreenRender");
-    const renderCtx = renderCanvas.getContext("2d");
+    const renderCtx = renderCanvas.getContext("2d", { willReadFrequently: true });
 
     let releases = [];
     let previewDuration = 8;
@@ -790,53 +789,62 @@
       ctx.restore();
     }
 
-    function paintRotatingBlurredCoverBackground(ctx, W, H, coverImg, palette, tSec) {
-      if (!coverImg) {
-        paintRotatingTwoColorBackground(ctx, W, H, palette, tSec, 1);
-        return;
-      }
-
-      const maxSide = Math.max(W, H) * 2.1;
-      const angle = tSec * 0.18;
-      const driftX = Math.cos(tSec * 0.45) * 48;
-      const driftY = Math.sin(tSec * 0.35) * 36;
-
-      ctx.save();
-      ctx.translate(W / 2 + driftX, H / 2 + driftY);
-      ctx.rotate(angle);
-
-      if (typeof ctx.filter === "string") {
-        // Triple pass avec flou très marqué (renforcé)
-        ctx.filter = "blur(240px) saturate(0.95) brightness(0.82)";
-        ctx.globalAlpha = 0.99;
-        ctx.drawImage(coverImg, -maxSide / 2, -maxSide / 2, maxSide, maxSide);
-
-        ctx.filter = "blur(160px) saturate(0.98) brightness(0.72)";
-        ctx.globalAlpha = 0.85;
-        ctx.drawImage(coverImg, -maxSide / 2, -maxSide / 2, maxSide, maxSide);
-
-        ctx.filter = "blur(90px) saturate(1.0) brightness(0.65)";
-        ctx.globalAlpha = 0.58;
-        ctx.drawImage(coverImg, -maxSide / 2, -maxSide / 2, maxSide, maxSide);
-      } else {
-        // Fallback: simulation du flou par échantillonnage circulaire
-        ctx.globalAlpha = 0.22;
-        const samples = 18;
-        for (let i = 0; i < samples; i++) {
-          const angle = (i / samples) * Math.PI * 2;
-          const dist = 40;
-          const ox = Math.cos(angle) * dist;
-          const oy = Math.sin(angle) * dist;
-          ctx.drawImage(coverImg, -maxSide / 2 + ox, -maxSide / 2 + oy, maxSide, maxSide);
-        }
-      }
-
-      ctx.restore();
-
-      ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
+    function paintDynamicGradientBackground(ctx, W, H, palette, tSec) {
+      // Base sombre pour que les couleurs ressortent
+      ctx.fillStyle = "#080808";
       ctx.fillRect(0, 0, W, H);
+
+      // Dégradé linéaire rotatif avec vallées sombres — couleurs bien distinctes
+      const angle = tSec * 0.28;
+      const span  = Math.max(W, H) * 1.6;
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(angle);
+      const grad = ctx.createLinearGradient(-span, -span, span, span);
+      grad.addColorStop(0,    palette.c1);
+      grad.addColorStop(0.22, mixHex(palette.c1, "#040404", 0.60)); // vallée sombre
+      grad.addColorStop(0.50, mixHex(palette.c2, "#ffffff", 0.10)); // c2 légèrement éclairci
+      grad.addColorStop(0.78, mixHex(palette.c2, "#040404", 0.60)); // vallée sombre
+      grad.addColorStop(1,    palette.c1);
+      ctx.fillStyle = grad;
+      ctx.fillRect(-span, -span, span * 2, span * 2);
       ctx.restore();
+
+      // Blob lumineux 1 (c3) — haut-gauche, dérive lentement
+      const b1x = W * (0.25 + Math.sin(tSec * 0.65) * 0.22);
+      const b1y = H * (0.22 + Math.cos(tSec * 0.50) * 0.16);
+      const r1  = W * (0.55 + Math.sin(tSec * 0.38) * 0.10);
+      const c3  = hexToRgb(palette.c3);
+      const rg1 = ctx.createRadialGradient(b1x, b1y, 0, b1x, b1y, r1);
+      rg1.addColorStop(0,   `rgba(${c3.r},${c3.g},${c3.b},0.92)`);
+      rg1.addColorStop(0.4, `rgba(${c3.r},${c3.g},${c3.b},0.35)`);
+      rg1.addColorStop(1,   `rgba(${c3.r},${c3.g},${c3.b},0)`);
+      ctx.fillStyle = rg1;
+      ctx.fillRect(0, 0, W, H);
+
+      // Blob lumineux 2 (c2) — bas-droite, dérive en opposition
+      const b2x = W * (0.75 + Math.cos(tSec * 0.58) * 0.20);
+      const b2y = H * (0.72 + Math.sin(tSec * 0.47) * 0.17);
+      const r2  = W * (0.50 + Math.cos(tSec * 0.32) * 0.10);
+      const c2  = hexToRgb(palette.c2);
+      const rg2 = ctx.createRadialGradient(b2x, b2y, 0, b2x, b2y, r2);
+      rg2.addColorStop(0,   `rgba(${c2.r},${c2.g},${c2.b},0.85)`);
+      rg2.addColorStop(0.4, `rgba(${c2.r},${c2.g},${c2.b},0.28)`);
+      rg2.addColorStop(1,   `rgba(${c2.r},${c2.g},${c2.b},0)`);
+      ctx.fillStyle = rg2;
+      ctx.fillRect(0, 0, W, H);
+
+      // Blob lumineux 3 (c1) — centre, pulsation lente
+      const b3x = W * (0.50 + Math.sin(tSec * 0.42) * 0.15);
+      const b3y = H * (0.48 + Math.cos(tSec * 0.36) * 0.13);
+      const r3  = W * (0.38 + Math.sin(tSec * 0.55) * 0.09);
+      const c1  = hexToRgb(palette.c1);
+      const rg3 = ctx.createRadialGradient(b3x, b3y, 0, b3x, b3y, r3);
+      rg3.addColorStop(0,   `rgba(${c1.r},${c1.g},${c1.b},0.62)`);
+      rg3.addColorStop(0.4, `rgba(${c1.r},${c1.g},${c1.b},0.18)`);
+      rg3.addColorStop(1,   `rgba(${c1.r},${c1.g},${c1.b},0)`);
+      ctx.fillStyle = rg3;
+      ctx.fillRect(0, 0, W, H);
     }
 
     function roundRect(ctx, x, y, w, h, r) {
@@ -850,22 +858,51 @@
       ctx.closePath();
     }
 
+    // ---- Helpers d'animation ----
+    function easeOutBack(t) {
+      const c1 = 1.70158, c3 = c1 + 1;
+      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    }
+    function easeInBack(t) {
+      const c1 = 1.70158, c3 = c1 + 1;
+      return c3 * t * t * t - c1 * t * t;
+    }
+    // Retourne { p: 0→1→0, out: bool } pour un élément avec délai d'entrée
+    function _animP(tSec, dur, delay, inDur, outDur) {
+      const t = tSec - delay;
+      if (t < 0)               return { p: 0,                                                              out: false };
+      if (t < inDur)           return { p: easeOutBack(t / inDur),                                        out: false };
+      if (tSec > dur - outDur) return { p: 1 - easeInBack((tSec - (dur - outDur)) / outDur),              out: true  };
+      return                          { p: 1,                                                              out: false };
+    }
+
     function drawFrame(ctx, tSec, release, coverImg, palette, template) {
       const W = 1080;
       const H = 1920;
+      const DUR = 8;
       const title = getReleaseTitle(release);
       const artist = getReleaseArtist(release);
 
       ctx.clearRect(0, 0, W, H);
 
+      // Progression d'animation par élément (délais décalés)
+      const aCover = _animP(tSec, DUR, 0.12, 0.70, 0.70);
+      const aText  = _animP(tSec, DUR, 0.22, 0.70, 0.70);
+      const aLogo  = _animP(tSec, DUR, 0.34, 0.70, 0.70);
+
+      // Offsets : entrée depuis un côté, sortie vers l'opposé (sens inverse)
+      const coverDY = aCover.out ? -(1 - aCover.p) * 260 : (1 - aCover.p) * 260;
+      const titleDX = aText.out  ?  (1 - aText.p)  * 200 : -(1 - aText.p) * 200;
+      const subDX   = aText.out  ? -(1 - aText.p)  * 200 :  (1 - aText.p) * 200;
+      const logoDY  = (1 - aLogo.p) * 90;
+
       if (template === "glow-title") {
-        paintRotatingBlurredCoverBackground(ctx, W, H, coverImg, palette, tSec);
+        paintDynamicGradientBackground(ctx, W, H, palette, tSec);
 
-        ctx.fillStyle = "rgba(0,0,0,.32)";
-        roundRect(ctx, 70, 150, 940, 1620, 42);
-        ctx.fill();
-
+        // Titre — slide depuis gauche, sort vers droite
         ctx.save();
+        ctx.globalAlpha = Math.min(1, aText.p);
+        ctx.translate(titleDX, 0);
         ctx.textAlign = "center";
         ctx.shadowColor = mixHex(palette.c3, "#ffffff", 0.45);
         ctx.shadowBlur = 46;
@@ -873,6 +910,13 @@
         ctx.font = "700 86px Helvetica";
         ctx.fillText(title, W / 2, 500 + Math.sin(tSec * 2.8) * 10);
         ctx.shadowBlur = 0;
+        ctx.restore();
+
+        // "Ecoutez" + artiste — slide depuis droite, sort vers gauche
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aText.p);
+        ctx.translate(subDX, 0);
+        ctx.textAlign = "center";
         ctx.font = "700 72px Helvetica";
         ctx.fillStyle = "rgba(255,255,255,.9)";
         ctx.fillText("Ecoutez", W / 2, 620);
@@ -881,9 +925,13 @@
         ctx.fillText(artist, W / 2, 678);
         ctx.restore();
 
+        // Cover — monte depuis le bas, sort vers le haut
         const coverSize = 650;
         const coverX = (W - coverSize) / 2;
         const coverY = 760;
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aCover.p);
+        ctx.translate(0, coverDY);
         roundRect(ctx, coverX, coverY, coverSize, coverSize, 40);
         ctx.save();
         ctx.clip();
@@ -893,30 +941,35 @@
           ctx.fillRect(coverX, coverY, coverSize, coverSize);
         }
         ctx.restore();
-
         ctx.strokeStyle = "rgba(255,255,255,.34)";
         ctx.lineWidth = 2.4;
         roundRect(ctx, coverX, coverY, coverSize, coverSize, 40);
         ctx.stroke();
+        ctx.restore();
 
+        // Logo — apparaît depuis le bas
         const logoColor = logoColorForTemplate(template, palette);
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aLogo.p);
+        ctx.translate(0, logoDY);
         drawAdaptiveLogo(ctx, W / 2 - 120, 1475, 240, 110, logoColor);
+        ctx.restore();
         return;
       }
 
       if (template === "vinyl-spin") {
-        paintRotatingBlurredCoverBackground(ctx, W, H, coverImg, palette, tSec);
+        paintDynamicGradientBackground(ctx, W, H, palette, tSec);
 
-        ctx.fillStyle = "rgba(0,0,0,.28)";
-        roundRect(ctx, 68, 128, 944, 1660, 52);
-        ctx.fill();
-
+        // Vinyl — scale depuis 0.6 + rotation constante
         const discR = 350;
         const cx = W / 2;
         const cy = 950;
+        const discScale = 0.60 + Math.min(1, aCover.p) * 0.40;
         ctx.save();
+        ctx.globalAlpha = Math.min(1, aCover.p);
         ctx.translate(cx, cy);
         ctx.rotate(tSec * 0.95);
+        ctx.scale(discScale, discScale);
         const ring = ctx.createRadialGradient(0, 0, 20, 0, 0, discR);
         ring.addColorStop(0, "rgba(255,255,255,.36)");
         ring.addColorStop(.15, "rgba(20,20,20,.35)");
@@ -926,7 +979,6 @@
         ctx.beginPath();
         ctx.arc(0, 0, discR, 0, Math.PI * 2);
         ctx.fill();
-
         roundRect(ctx, -230, -230, 460, 460, 28);
         ctx.save();
         ctx.clip();
@@ -938,36 +990,55 @@
         ctx.restore();
         ctx.restore();
 
+        // Titre — slide depuis gauche, sort vers droite
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aText.p);
+        ctx.translate(titleDX, 0);
         ctx.textAlign = "center";
         ctx.fillStyle = "rgba(255,255,255,.94)";
         ctx.font = "700 80px Helvetica";
         ctx.fillText(title, W / 2, 345);
+        ctx.restore();
+
+        // "Ecoutez" + artiste — slide depuis droite, sort vers gauche
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aText.p);
+        ctx.translate(subDX, 0);
+        ctx.textAlign = "center";
         ctx.font = "700 70px Helvetica";
+        ctx.fillStyle = "rgba(255,255,255,.94)";
         ctx.fillText("Ecoutez", W / 2, 450);
         ctx.font = "500 39px Helvetica";
         ctx.fillStyle = "rgba(255,255,255,.8)";
         ctx.fillText(artist, W / 2, 510);
+        ctx.restore();
 
+        // Logo — apparaît depuis le bas
         const logoColor = logoColorForTemplate(template, palette);
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aLogo.p);
+        ctx.translate(0, logoDY);
         drawAdaptiveLogo(ctx, W / 2 - 128, 1570, 256, 120, logoColor, 0.96);
+        ctx.restore();
         return;
       }
 
       if (template === "noir-poster") {
-        paintRotatingBlurredCoverBackground(ctx, W, H, coverImg, {
+        paintDynamicGradientBackground(ctx, W, H, {
           c1: mixHex(palette.c1, "#000000", 0.55),
-          c2: mixHex(palette.c2, "#000000", 0.45)
+          c2: mixHex(palette.c2, "#000000", 0.45),
+          c3: mixHex(palette.c3, "#000000", 0.40)
         }, tSec);
 
-        ctx.fillStyle = "rgba(255,255,255,.08)";
-        roundRect(ctx, 98, 168, 884, 1560, 28);
-        ctx.fill();
-
+        // Cover — monte depuis le bas, sort vers le haut
         const coverSize = 700;
         const coverX = (W - coverSize) / 2;
         const coverY = 640;
         ctx.save();
+        ctx.globalAlpha = Math.min(1, aCover.p);
+        ctx.translate(0, coverDY);
         roundRect(ctx, coverX, coverY, coverSize, coverSize, 12);
+        ctx.save();
         ctx.clip();
         if (coverImg) ctx.drawImage(coverImg, coverX, coverY, coverSize, coverSize);
         else {
@@ -975,52 +1046,78 @@
           ctx.fillRect(coverX, coverY, coverSize, coverSize);
         }
         ctx.restore();
-
         ctx.strokeStyle = "rgba(255,255,255,.18)";
         ctx.lineWidth = 1.6;
         roundRect(ctx, coverX, coverY, coverSize, coverSize, 12);
         ctx.stroke();
+        ctx.restore();
 
+        // Titre — slide depuis gauche, sort vers droite
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aText.p);
+        ctx.translate(titleDX, 0);
         ctx.textAlign = "center";
         ctx.fillStyle = "rgba(255,255,255,.93)";
         ctx.font = "700 74px Helvetica";
         ctx.fillText(title, W / 2, 420);
+        ctx.restore();
+
+        // "Ecoutez" + artiste — slide depuis droite, sort vers gauche
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aText.p);
+        ctx.translate(subDX, 0);
+        ctx.textAlign = "center";
         ctx.font = "700 64px Helvetica";
+        ctx.fillStyle = "rgba(255,255,255,.93)";
         ctx.fillText("Ecoutez", W / 2, 510);
         ctx.font = "500 36px Helvetica";
         ctx.fillStyle = "rgba(255,255,255,.74)";
         ctx.fillText(artist, W / 2, 564);
+        ctx.restore();
 
+        // Logo — apparaît depuis le bas
         const logoColor = logoColorForTemplate(template, palette);
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, aLogo.p);
+        ctx.translate(0, logoDY);
         drawAdaptiveLogo(ctx, W / 2 - 118, 1450, 236, 106, logoColor, 0.9);
+        ctx.restore();
         return;
       }
 
-      paintRotatingBlurredCoverBackground(ctx, W, H, coverImg, palette, tSec);
+      // apple-card (default)
+      paintDynamicGradientBackground(ctx, W, H, palette, tSec);
 
-      ctx.fillStyle = "rgba(0,0,0,.36)";
-      roundRect(ctx, 90, 170, 900, 1580, 34);
-      ctx.fill();
-
+      // Titre — slide depuis gauche, sort vers droite
       ctx.save();
-      ctx.font = "700 72px Helvetica";
+      ctx.globalAlpha = Math.min(1, aText.p);
+      ctx.translate(titleDX, 0);
       ctx.textAlign = "center";
+      ctx.font = "700 72px Helvetica";
       ctx.fillStyle = "rgba(255,255,255,.92)";
       ctx.fillText(title, W / 2, 530);
       ctx.restore();
 
-      ctx.font = "700 86px Helvetica";
+      // "Ecoutez" + artiste — slide depuis droite, sort vers gauche
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, aText.p);
+      ctx.translate(subDX, 0);
       ctx.textAlign = "center";
+      ctx.font = "700 86px Helvetica";
       ctx.fillStyle = "rgba(255,255,255,.88)";
       ctx.fillText("Ecoutez", W / 2, 670);
-
       ctx.font = "500 42px Helvetica";
       ctx.fillStyle = "rgba(255,255,255,.8)";
       ctx.fillText(artist, W / 2, 735);
+      ctx.restore();
 
+      // Cover — monte depuis le bas, sort vers le haut
       const coverSize = 620;
       const coverX = (W - coverSize) / 2;
       const coverY = 810;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, aCover.p);
+      ctx.translate(0, coverDY);
       roundRect(ctx, coverX, coverY, coverSize, coverSize, 30);
       ctx.save();
       ctx.clip();
@@ -1031,14 +1128,19 @@
         ctx.fillRect(coverX, coverY, coverSize, coverSize);
       }
       ctx.restore();
-
       ctx.strokeStyle = "rgba(255,255,255,.22)";
       ctx.lineWidth = 2;
       roundRect(ctx, coverX, coverY, coverSize, coverSize, 30);
       ctx.stroke();
+      ctx.restore();
 
+      // Logo — apparaît depuis le bas
       const logoColor = logoColorForTemplate(template, palette);
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, aLogo.p);
+      ctx.translate(0, logoDY);
       drawAdaptiveLogo(ctx, W / 2 - 120, 1550, 240, 108, logoColor);
+      ctx.restore();
     }
 
     function renderPreviewLoop() {
@@ -1204,20 +1306,59 @@
       setStatus("Encodage H.264 en cours...");
 
       try {
-        const fps = 30;
         const durationSec = 8;
-        const W = 1080;
-        const H = 1920;
-        const totalFrames = durationSec * fps;
 
         // --- Méthode 1 : Web Codecs + mp4-muxer (H.264 natif, QuickTime ok) ---
-        const canUseWebCodecs = typeof VideoEncoder !== "undefined" && window.Mp4Muxer;
+        let _mp4Muxer = null;
+        try {
+          _mp4Muxer = await import('https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/+esm');
+        } catch(e) {
+          console.warn('mp4-muxer ESM indisponible, fallback MediaRecorder', e);
+        }
+        const canUseWebCodecs = typeof VideoEncoder !== "undefined" && _mp4Muxer;
         if (canUseWebCodecs) {
+          // ── Détection automatique du meilleur tier qualité ──
+          // Tiers du plus élevé au plus bas ; on prend le premier que le navigateur accepte
+          const qualityTiers = [
+            { W: 2160, H: 3840, fps: 60, bitrate: 40_000_000, label: "4K 60fps"    },
+            { W: 2160, H: 3840, fps: 30, bitrate: 25_000_000, label: "4K 30fps"    },
+            { W: 1080, H: 1920, fps: 60, bitrate: 16_000_000, label: "1080p 60fps" },
+            { W: 1080, H: 1920, fps: 30, bitrate:  8_000_000, label: "1080p 30fps" },
+          ];
+          const codecCandidates = [
+            "avc1.640034", // High Profile Level 5.2
+            "avc1.640033", // High Profile Level 5.1
+            "avc1.640028", // High Profile Level 4.0
+            "avc1.42C028", // Baseline Level 4.0 (Safari min)
+          ];
+
+          setPreviewLoading(true, "Détection qualité maximale...");
+          let bestTier   = qualityTiers[qualityTiers.length - 1]; // fallback sûr
+          let codecStr   = "avc1.42C028";
+          tierLoop: for (const t of qualityTiers) {
+            for (const c of codecCandidates) {
+              try {
+                const check = await VideoEncoder.isConfigSupported({
+                  codec: c, width: t.W, height: t.H, bitrate: t.bitrate, framerate: t.fps
+                });
+                if (check.supported) { bestTier = t; codecStr = c; break tierLoop; }
+              } catch {}
+            }
+          }
+
+          const { W, H, fps, bitrate } = bestTier;
+          const SCALE       = W / 1080;          // 2 pour 4K, 1 pour 1080p
+          const totalFrames = durationSec * fps;
+
+          // Redimensionner le canvas au tier sélectionné
+          renderCanvas.width  = W;
+          renderCanvas.height = H;
+
           // Pré-remplir le cache logo pour ce template (évite les frames sans logo)
           const logoColor = logoColorForTemplate(currentTemplate, selectedPalette);
           await getAdaptiveLogoImage(logoColor).catch(() => {});
 
-          const { Muxer, ArrayBufferTarget } = window.Mp4Muxer;
+          const { Muxer, ArrayBufferTarget } = _mp4Muxer;
           const target = new ArrayBufferTarget();
 
           const muxer = new Muxer({
@@ -1232,37 +1373,39 @@
             error: (e) => { encoderError = e; }
           });
 
-          // Baseline Profile Level 4.0 — compatibilité max QuickTime / iOS / partout
           encoder.configure({
-            codec: "avc1.42C028",
-            width: W,
-            height: H,
-            bitrate: 8_000_000,
-            framerate: fps,
-            latencyMode: "quality"
+            codec:                codecStr,
+            width:                W,
+            height:               H,
+            bitrate:              bitrate,
+            bitrateMode:          "constant",
+            framerate:            fps,
+            latencyMode:          "quality",
+            hardwareAcceleration: "prefer-software"
           });
 
-          const frameDuration = Math.round(1_000_000 / fps); // microsecondes par frame
+          const frameDuration = Math.round(1_000_000 / fps);
 
           for (let i = 0; i < totalFrames; i++) {
             if (encoderError) throw encoderError;
             const tSec = i / fps;
+
+            renderCtx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
             drawFrame(renderCtx, tSec, selectedRelease, selectedImage, selectedPalette, currentTemplate);
 
-            // createImageBitmap force le GPU à flusher le contenu du canvas
-            // avant de créer le VideoFrame (évite les frames vides sur canvas off-screen)
-            const bitmap = await createImageBitmap(renderCanvas);
-            const frame = new VideoFrame(bitmap, {
-              timestamp: i * frameDuration,
-              duration: frameDuration
-            });
-            encoder.encode(frame, { keyFrame: i % (fps * 2) === 0 });
-            frame.close();
-            bitmap.close();
+            // Forcer synchronisation CPU
+            renderCtx.getImageData(0, 0, 1, 1);
 
-            // Breather toutes les 15 images pour ne pas bloquer l'UI
-            if (i % 15 === 0) {
-              setPreviewLoading(true, `Encodage... ${Math.round((i / totalFrames) * 100)}%`);
+            const frame = new VideoFrame(renderCanvas, {
+              timestamp: Math.round(i * 1_000_000 / fps),
+              duration:  frameDuration,
+              alpha:     "discard"
+            });
+            encoder.encode(frame, { keyFrame: i % fps === 0 });
+            frame.close();
+
+            if (i % 10 === 0) {
+              setPreviewLoading(true, `Encodage ${bestTier.label}... ${Math.round((i / totalFrames) * 100)}%`);
               await new Promise(r => setTimeout(r, 0));
             }
           }
@@ -1272,19 +1415,31 @@
           encoder.close();
           muxer.finalize();
 
+          // Restaurer le canvas en 1080×1920 pour l'aperçu
+          renderCanvas.width  = 1080;
+          renderCanvas.height = 1920;
+
           const outputBlob = new Blob([target.buffer], { type: "video/mp4" });
           const safeName = getReleaseTitle(selectedRelease)
             .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "promo";
           const url = URL.createObjectURL(outputBlob);
-          btnDownload.download = `${safeName}-1080x1920-8s.mp4`;
+          const mbps = Math.round(bitrate / 1_000_000);
+          btnDownload.download = `${safeName}-${W}x${H}-${fps}fps-8s.mp4`;
           btnDownload.href = url;
           btnDownload.style.display = "block";
-          setStatus("Video MP4 prete. Clique sur Telecharger.");
+          setStatus(`Video prete : ${bestTier.label} — ${mbps} Mbps. Clique sur Telecharger.`);
           return;
         }
 
-        // --- Méthode 2 : MediaRecorder (fallback Chrome/Firefox) ---
-        setPreviewLoading(true, "Generation MediaRecorder...");
+        // --- Méthode 2 : MediaRecorder fallback ---
+        // Meilleur effort 1080p 60fps (MediaRecorder ne supporte pas 4K fiablement)
+        const fps   = 60;
+        const W     = 1080;
+        const H     = 1920;
+        const SCALE = 1;
+        setPreviewLoading(true, "Generation MediaRecorder 1080p...");
+        renderCanvas.width  = W;
+        renderCanvas.height = H;
         const stream = renderCanvas.captureStream(fps);
         const chunks = [];
 
@@ -1299,7 +1454,7 @@
         for (const candidate of mimeCandidates) {
           try {
             if (MediaRecorder.isTypeSupported && !MediaRecorder.isTypeSupported(candidate)) continue;
-            recorder = new MediaRecorder(stream, { mimeType: candidate, videoBitsPerSecond: 8_000_000 });
+            recorder = new MediaRecorder(stream, { mimeType: candidate, videoBitsPerSecond: 16_000_000 });
             usedMimeType = candidate;
             break;
           } catch {}
@@ -1319,6 +1474,7 @@
           const startedAt = performance.now();
           function renderTick(now) {
             const elapsed = (now - startedAt) / 1000;
+            renderCtx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
             drawFrame(renderCtx, Math.min(elapsed, durationSec), selectedRelease, selectedImage, selectedPalette, currentTemplate);
             if (elapsed < durationSec) { requestAnimationFrame(renderTick); return; }
             setTimeout(() => { try { recorder.stop(); } catch {} }, 200);
@@ -1326,14 +1482,18 @@
           requestAnimationFrame(renderTick);
         });
 
+        // Restaurer le canvas pour l'aperçu
+        renderCanvas.width  = 1080;
+        renderCanvas.height = 1920;
+
         const outputBlob = new Blob(chunks, { type: usedMimeType });
         const safeName = getReleaseTitle(selectedRelease)
           .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "promo";
         const url = URL.createObjectURL(outputBlob);
-        btnDownload.download = `${safeName}-1080x1920-8s.webm`;
+        btnDownload.download = `${safeName}-1080x1920-60fps-8s.webm`;
         btnDownload.href = url;
         btnDownload.style.display = "block";
-        setStatus("Video WebM prete (ouvrir avec VLC si QuickTime refuse).");
+        setStatus("Video 1080p 60fps WebM prete (ouvrir avec VLC si QuickTime refuse).");
 
       } catch (e) {
         console.error(e);
