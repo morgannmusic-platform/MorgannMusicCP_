@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demande de retrait — Morgann Music CP</title>
+  <meta name="description" content="Artiste ayant quitté Morgann Music CP ? Soumettez votre demande de retrait de vos contenus des plateformes de streaming.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32clair.png" media="(prefers-color-scheme: light)">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32sombre.png" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+  <link rel="stylesheet" href="/assets/css/pied-de-page.css">
+  <style>
+    body { padding-top: 88px; }
+
+    .retrait-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 48px 18px 72px;
+    }
+
+    .retrait-badge {
+      display: inline-block;
+      background: rgba(255, 143, 177, 0.15);
+      color: #ff8fb1;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+    }
+
+    .retrait-wrap h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+
+    .retrait-wrap .intro {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 36px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .retrait-wrap .intro { color: rgba(0, 0, 0, 0.6); }
+    }
+
+    .retrait-notice {
+      background: rgba(255, 143, 177, 0.1);
+      border: 1px solid rgba(255, 143, 177, 0.3);
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-bottom: 36px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    @media (prefers-color-scheme: light) {
+      .retrait-notice { color: rgba(0, 0, 0, 0.75); }
+    }
+
+    .retrait-notice strong { color: #ff8fb1; }
+
+    .retrait-form {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 0.95rem;
+      font-family: 'Roboto', sans-serif;
+      color: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        background: rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.14);
+      }
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #ff8fb1;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-hint {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.45);
+      margin-top: -4px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .form-hint { color: rgba(0, 0, 0, 0.45); }
+    }
+
+    .form-checkbox {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    @media (prefers-color-scheme: light) {
+      .form-checkbox { color: rgba(0, 0, 0, 0.7); }
+    }
+
+    .form-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      accent-color: #ff8fb1;
+      margin-top: 2px;
+      border: none;
+      background: none;
+      padding: 0;
+    }
+
+    .btn-retrait {
+      background: linear-gradient(135deg, #ff8fb1 0%, #c084fc 100%);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 15px 32px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: 'Roboto', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      width: 100%;
+    }
+
+    .btn-retrait:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-retrait:active { transform: translateY(0); }
+    .btn-retrait:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .form-success .success-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .form-success h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .form-success p {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.6;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .form-success p { color: rgba(0, 0, 0, 0.6); }
+    }
+
+    .form-error-msg {
+      display: none;
+      color: #ff6b6b;
+      font-size: 0.85rem;
+      padding: 10px 16px;
+      background: rgba(255, 107, 107, 0.1);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 107, 107, 0.25);
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="retrait-wrap">
+    <span class="retrait-badge">Artiste ayant quitté MMCP</span>
+    <h1>Demande de retrait</h1>
+    <p class="intro">
+      Vous avez quitté Morgann Music CP et souhaitez que vos contenus soient retirés des plateformes de streaming ?
+      Remplissez ce formulaire. Notre équipe traitera votre demande dans un délai de <strong>14 jours ouvrés</strong>.
+    </p>
+
+    <div class="retrait-notice">
+      <strong>Important :</strong> Le retrait est définitif et irréversible sur les plateformes. Assurez-vous d'avoir sauvegardé tous vos fichiers audio et visuels avant de soumettre cette demande. Les éventuels royalties dus restent payables conformément aux termes de votre contrat.
+    </div>
+
+    <form class="retrait-form" id="retraitForm" novalidate>
+
+      <div class="form-group">
+        <label for="artistName">Nom d'artiste *</label>
+        <input type="text" id="artistName" name="artistName" placeholder="ex. Morgann" required autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label for="realName">Nom complet (prénom et nom) *</label>
+        <input type="text" id="realName" name="realName" placeholder="ex. Jean Dupont" required autocomplete="name">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Adresse email utilisée sur MMCP *</label>
+        <input type="email" id="email" name="email" placeholder="ex. contact@artiste.com" required autocomplete="email">
+        <span class="form-hint">Doit correspondre à l'email de votre compte Morgann Music CP.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="scope">Portée du retrait *</label>
+        <select id="scope" name="scope" required>
+          <option value="" disabled selected>Sélectionnez une option</option>
+          <option value="all">Tous mes contenus (retrait total)</option>
+          <option value="partial">Certaines sorties uniquement</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="releasesGroup" style="display:none;">
+        <label for="releases">Sorties concernées</label>
+        <textarea id="releases" name="releases" placeholder="Listez les titres / ISRC ou UPC concernés, un par ligne…"></textarea>
+        <span class="form-hint">Indiquez le titre exact ou l'ISRC/UPC pour chaque sortie à retirer.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="reason">Motif du retrait</label>
+        <select id="reason" name="reason">
+          <option value="" disabled selected>Sélectionnez un motif (optionnel)</option>
+          <option value="label-change">Changement de distributeur / label</option>
+          <option value="stop-activity">Arrêt d'activité artistique</option>
+          <option value="rights">Récupération des droits</option>
+          <option value="contract-end">Fin de contrat</option>
+          <option value="other">Autre</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="message">Message complémentaire</label>
+        <textarea id="message" name="message" placeholder="Informations supplémentaires, instructions particulières…"></textarea>
+      </div>
+
+      <div class="form-checkbox">
+        <input type="checkbox" id="confirm" name="confirm" required>
+        <label for="confirm">
+          Je confirme être le titulaire des droits ou son représentant légal autorisé, et je certifie l'exactitude des informations fournies. Je comprends que cette demande est définitive.
+        </label>
+      </div>
+
+      <div class="form-error-msg" id="formError">Merci de remplir tous les champs obligatoires et de cocher la case de confirmation.</div>
+
+      <button type="submit" class="btn-retrait" id="submitBtn">Envoyer ma demande de retrait</button>
+    </form>
+
+    <div class="form-success" id="formSuccess">
+      <div class="success-icon">✅</div>
+      <h2>Demande envoyée</h2>
+      <p>Votre demande de retrait a bien été reçue. Notre équipe vous contactera à l'adresse indiquée dans un délai de 14 jours ouvrés.</p>
+    </div>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey:            "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+      authDomain:        "morgann-music-cp.firebaseapp.com",
+      projectId:         "morgann-music-cp",
+      storageBucket:     "morgann-music-cp.firebasestorage.app",
+      messagingSenderId: "666812685196",
+      appId:             "1:666812685196:web:fe3df6749ae768d68494a9"
+    };
+
+    const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // Afficher/masquer le champ sorties selon la portée choisie
+    document.getElementById("scope").addEventListener("change", function () {
+      document.getElementById("releasesGroup").style.display =
+        this.value === "partial" ? "flex" : "none";
+    });
+
+    document.getElementById("retraitForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const artistName = document.getElementById("artistName").value.trim();
+      const realName   = document.getElementById("realName").value.trim();
+      const email      = document.getElementById("email").value.trim();
+      const scope      = document.getElementById("scope").value;
+      const confirm    = document.getElementById("confirm").checked;
+      const errorEl    = document.getElementById("formError");
+      const btn        = document.getElementById("submitBtn");
+
+      // Validation simple côté client
+      if (!artistName || !realName || !email || !scope || !confirm) {
+        errorEl.style.display = "block";
+        return;
+      }
+      errorEl.style.display = "none";
+
+      // Validation email basique
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errorEl.textContent = "Veuillez saisir une adresse email valide.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Envoi en cours…";
+
+      try {
+        await addDoc(collection(db, "withdrawal_requests"), {
+          artistName,
+          realName,
+          email,
+          scope,
+          releases: document.getElementById("releases").value.trim() || null,
+          reason:   document.getElementById("reason").value || null,
+          message:  document.getElementById("message").value.trim() || null,
+          status:   "pending",
+          createdAt: serverTimestamp()
+        });
+
+        document.getElementById("retraitForm").style.display = "none";
+        document.getElementById("formSuccess").style.display = "block";
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = "Envoyer ma demande de retrait";
+        errorEl.textContent = "Une erreur est survenue. Veuillez réessayer ou nous contacter directement.";
+        errorEl.style.display = "block";
+      }
+    });
+  </script>
+
+  <script type="module" src="/assets/js/navbar.js"></script>
+  <script type="module" src="/assets/js/footer.js"></script>
+</body>
+</html>
