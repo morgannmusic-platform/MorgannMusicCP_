@@ -143,6 +143,19 @@ html, body { margin: 0; padding: 0; }
   align-self: flex-start;
 }
 
+.lai-card-chip--signed {
+  color: #c97e00;
+  background: rgba(255,185,0,.12);
+  border-color: rgba(255,185,0,.28);
+}
+@media (prefers-color-scheme: dark) {
+  .lai-card-chip--signed {
+    color: #ffd166;
+    background: rgba(255,209,102,.12);
+    border-color: rgba(255,209,102,.28);
+  }
+}
+
 /* ── CTA section ────────────────────────────────────────────── */
 .lai-cta-section {
   text-align: center;
