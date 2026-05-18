@@ -3111,8 +3111,16 @@ onAuthStateChanged(auth, async user => {
         }
         const dateMatch = /\[DATE\]([\s\S]*?)\[\/DATE\]/.exec(allText);
         const whyMatch = /\[WHY\]([\s\S]*?)\[\/WHY\]/.exec(allText);
-        const date = dateMatch ? dateMatch[1].trim() : null;
-        const why = whyMatch ? whyMatch[1].trim() : null;
+        // Nettoyage robuste : backticks, astérisques, espaces invisibles
+        const clean = s => s ? s.replace(/[\s\*`~]+/g, m => /\d{4}-\d{2}-\d{2}/.test(m) ? m : "").trim().replace(/^[\s\*`~]+|[\s\*`~]+$/g, "") : null;
+        let date = clean(dateMatch ? dateMatch[1] : null);
+        const why = whyMatch ? whyMatch[1].trim().replace(/^[\s\*`~]+|[\s\*`~]+$/g, "") : null;
+        // Fallback : chercher directement un pattern YYYY-MM-DD dans la réponse
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          const raw = dateMatch ? dateMatch[1] : allText;
+          const fallback = /(\d{4}-\d{2}-\d{2})/.exec(raw);
+          date = fallback ? fallback[1] : null;
+        }
         if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error();
         const fmt = new Date(date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
         resultEl.innerHTML = "";
