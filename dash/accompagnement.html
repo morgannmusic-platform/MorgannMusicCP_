@@ -288,10 +288,30 @@ Fichiers à compléter avant publication finale dans l'uploader : audio principa
           <select id="pitchRelease" class="select"></select>
           <input id="pitchLink" class="input" placeholder="Lien d'écoute / référence (optionnel)" />
           <textarea id="pitchText" class="textarea" placeholder="Ton argumentaire éditorial"></textarea>
+          <div class="line" style="margin-bottom:8px;">
+            <button id="btnLitualPitch" class="btn" type="button"><img src="/assets/Litual/o!§ititititt.png" style="height:16px;vertical-align:middle;margin-right:5px;" alt="Litual">Générer avec Litual ✦</button>
+            <span id="litualPitchHint" class="muted" style="font-size:12px;"></span>
+          </div>
           <div class="line"><button id="btnSendPitch" class="btn primary" type="button">Envoyer la demande</button><span id="pitchMsg" class="muted"></span></div>
           <div id="pitchList" class="list"></div>
         </article>
       </section>
+    </div>
+
+    <!-- Litual AI – Générer l'argumentaire pitching -->
+    <div id="litualPitchModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="litualPitchModalTitle">
+      <div class="modalBox" style="max-width:580px;">
+        <h3 id="litualPitchModalTitle" class="modalTitle"><img src="/assets/Litual/o!§ititititt.png" style="height:22px;vertical-align:middle;margin-right:7px;" alt="Litual">Litual — Argumentaire pitching</h3>
+        <div id="litualPitchReleaseInfo" style="border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:var(--muted);background:rgba(59,130,246,.06);"></div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:8px;">Ajoute des infos supplémentaires (ambiance, influences, message…) ou laisse vide pour une génération automatique.</p>
+        <textarea id="litualPitchInput" class="textarea" placeholder="Ex: ambiance mélancolique, influences trap UK, message d'espoir pour la jeunesse…" style="min-height:70px;"></textarea>
+        <div class="line" style="margin-top:8px;justify-content:flex-end;">
+          <button id="litualPitchModalCancel" class="btn" type="button">Fermer</button>
+          <button id="litualPitchSend" class="btn primary" type="button">Générer ✦</button>
+        </div>
+        <div id="litualPitchResponse" style="margin-top:12px;"></div>
+        <span id="litualPitchMsg" class="muted" style="display:block;margin-top:6px;"></span>
+      </div>
     </div>
 
     <!-- Litual AI – Proposer des dates de sortie -->
@@ -476,7 +496,7 @@ Fichiers à compléter avant publication finale dans l'uploader : audio principa
       const blockedIds = [
         "calAddOpen", "dayContextAdd", "btnAddPlan", "btnDeletePlan",
         "btnAddGoal", "btnAddDraftTrack", "btnSaveDraft", "btnSendFeat", "btnSendPitch",
-        "litualCalSend", "litualListSend", "litualGoalSend"
+        "litualCalSend", "litualListSend", "litualGoalSend", "litualPitchSend", "btnLitualPitch"
       ];
 
       blockedIds.forEach((id) => {
@@ -1861,6 +1881,113 @@ Fichiers à compléter avant publication finale dans l'uploader : audio principa
       });
     }
 
+    function initLitualPitchModal(uid) {
+      const modal = $("litualPitchModal");
+      const cancelBtn = $("litualPitchModalCancel");
+      const sendBtn = $("litualPitchSend");
+      const input = $("litualPitchInput");
+      const responseDiv = $("litualPitchResponse");
+      const msgSpan = $("litualPitchMsg");
+      const releaseInfo = $("litualPitchReleaseInfo");
+
+      $("btnLitualPitch")?.addEventListener("click", () => {
+        const releaseId = clean($("pitchRelease")?.value || "");
+        const selectedRelease = myReleases.find((r) => r.id === releaseId);
+        if (releaseInfo) {
+          if (selectedRelease) {
+            releaseInfo.innerHTML = `<strong>Titre sélectionné :</strong> ${esc(selectedRelease.title)} <span class="muted">• ${esc(selectedRelease.releaseDate || "date inconnue")}</span>`;
+          } else {
+            releaseInfo.innerHTML = `<span class="warn">Aucun titre sélectionné — sélectionne d'abord une sortie dans le formulaire.</span>`;
+          }
+        }
+        if (responseDiv) responseDiv.innerHTML = "";
+        if (msgSpan) msgSpan.textContent = "";
+        modal?.classList.remove("hidden");
+        setTimeout(() => input?.focus(), 0);
+      });
+
+      cancelBtn?.addEventListener("click", () => {
+        modal?.classList.add("hidden");
+        if (responseDiv) responseDiv.innerHTML = "";
+        if (msgSpan) msgSpan.textContent = "";
+        if (input) input.value = "";
+      });
+
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.add("hidden");
+      });
+
+      sendBtn?.addEventListener("click", async () => {
+        const releaseId = clean($("pitchRelease")?.value || "");
+        const selectedRelease = myReleases.find((r) => r.id === releaseId);
+        const userContext = clean(input?.value || "");
+        sendBtn.disabled = true;
+        if (responseDiv) responseDiv.innerHTML = '<div class="litual-thinking">Litual rédige ton argumentaire…</div>';
+        if (msgSpan) msgSpan.textContent = "";
+
+        const releaseTitle = selectedRelease ? clean(selectedRelease.title) : "Sortie musicale";
+        const releaseDate = selectedRelease ? clean(selectedRelease.releaseDate || "") : "";
+        const contextMsg = `Titre de la sortie : "${releaseTitle}"${releaseDate ? ` • Date de sortie : ${releaseDate}` : ""}${userContext ? `\n\nInformations supplémentaires : ${userContext}` : ""}`;
+        const instruction = `Tu es Litual, assistante musicale de Morgann Music CP. RÈGLE ABSOLUE : réponds UNIQUEMENT avec ce bloc exact, ZÉRO autre texte, ZÉRO commentaire, ZÉRO astérisque :\n[PITCH_TEXT]texte de l'argumentaire ici[/PITCH_TEXT]\nRédige un argumentaire éditorial Spotify professionnel, percutant et concis (150-250 mots) pour pitcher cette sortie aux équipes de playlisting. Mentionne le titre, l'ambiance, le potentiel de la sortie et pourquoi elle mérite une playlist éditoriale. En français.`;
+
+        try {
+          const res = await fetch("https://litual.ai.morgannmusic.uk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: [{ role: "user", content: contextMsg }], instruction })
+          });
+          if (!res.body) throw new Error("Pas de réponse");
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "", allText = "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split(/\r?\n/);
+            buffer = lines.pop();
+            for (const line of lines) {
+              if (line.startsWith("data:")) {
+                try { const obj = JSON.parse(line.replace(/^data:\s*/, "")); if (obj.response) allText += obj.response; } catch {}
+              }
+            }
+          }
+          const match = /\[PITCH_TEXT\]([\s\S]*?)\[\/PITCH_TEXT\]/.exec(allText);
+          const pitchResult = match ? match[1].trim() : allText.replace(/\[PITCH_TEXT\]|\[\/PITCH_TEXT\]/g, "").trim();
+          if (!pitchResult) {
+            if (responseDiv) responseDiv.innerHTML = `<div class="muted" style="font-size:13px;">Aucun argumentaire généré. Réessaie en précisant des infos sur ta sortie.</div>`;
+          } else {
+            if (responseDiv) {
+              const card = document.createElement("div");
+              card.className = "litual-proposal";
+              card.innerHTML = `
+                <h4 style="margin-bottom:8px;">✦ Argumentaire suggéré</h4>
+                <div style="font-size:13px;line-height:1.65;white-space:pre-wrap;">${esc(pitchResult)}</div>
+                <div class="line" style="margin-top:10px;justify-content:flex-end;">
+                  <button class="btn primary litual-pitch-use-btn" type="button" style="font-size:13px;">Utiliser cet argumentaire</button>
+                </div>
+              `;
+              responseDiv.innerHTML = "";
+              responseDiv.appendChild(card);
+              card.querySelector(".litual-pitch-use-btn")?.addEventListener("click", () => {
+                const pitchTextArea = $("pitchText");
+                if (pitchTextArea) pitchTextArea.value = pitchResult;
+                modal?.classList.add("hidden");
+                if (input) input.value = "";
+                responseDiv.innerHTML = "";
+                const hint = $("litualPitchHint");
+                if (hint) { hint.textContent = "Argumentaire inséré ✅"; setTimeout(() => { hint.textContent = ""; }, 3000); }
+              });
+            }
+          }
+        } catch {
+          if (responseDiv) responseDiv.innerHTML = '<span class="warn">Impossible de contacter Litual. Réessaie.</span>';
+        } finally {
+          sendBtn.disabled = false;
+        }
+      });
+    }
+
     onAuthStateChanged(auth, async (user) => {
       try {
         if (!user){
@@ -1897,6 +2024,7 @@ Fichiers à compléter avant publication finale dans l'uploader : audio principa
         initLitualCalModal(user.uid);
         initLitualListModal(user.uid);
         initLitualGoalModal(user.uid);
+        initLitualPitchModal(user.uid);
       } catch (error) {
         console.error("Erreur chargement accompagnement:", error);
       }
