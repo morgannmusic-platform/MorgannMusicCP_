@@ -624,11 +624,16 @@
     }
 
     function updateAmount() {
-        const raw = (PLAN_PRICES[selectedPlanName] || PLAN_PRICES.starter)[selectedBilling];
-        selectedPlanAmount = couponDiscount > 0 ? Math.round(raw * (1 - couponDiscount / 100)) : raw;
+        // selectedPlanAmount = TOUJOURS le prix original du plan (envoyé au worker)
+        // Le worker applique lui-même la réduction côté serveur via couponCode
+        selectedPlanAmount = (PLAN_PRICES[selectedPlanName] || PLAN_PRICES.starter)[selectedBilling];
+        // Pour l'affichage et Apple Pay/GPay : montant réduit si coupon actif
+        const displayAmount = couponDiscount > 0
+            ? Math.round(selectedPlanAmount * (1 - couponDiscount / 100))
+            : selectedPlanAmount;
         if (paymentRequest) {
             paymentRequest.update({
-                total: { label: 'Morgann Music CP', amount: selectedPlanAmount }
+                total: { label: 'Morgann Music CP', amount: displayAmount }
             });
         }
         updateSummaryUI();
@@ -817,7 +822,8 @@
                     body: JSON.stringify({
                         amount: selectedPlanAmount,
                         planName: selectedPlanName + '-' + selectedBilling,
-                        userId: user.uid
+                        userId: user.uid,
+                        ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {})
                     })
                 });
                 const data = await response.json();
@@ -880,7 +886,8 @@
                 body: JSON.stringify({ 
                     amount: selectedPlanAmount,
                     planName: selectedPlanName + '-' + selectedBilling,
-                    userId: user.uid
+                    userId: user.uid,
+                    ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {})
                 })
             });
             

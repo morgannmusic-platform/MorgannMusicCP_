@@ -1,9 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Codes promo — lecture par tout utilisateur connecté, écriture admin uniquement
+    // Codes promo — lecture publique (pas de données sensibles), écriture admin uniquement
     match /coupons/{code} {
-      allow read: if signedIn();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
