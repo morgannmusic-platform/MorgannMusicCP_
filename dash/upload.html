@@ -249,6 +249,60 @@
       gap: 10px;
     }
     .modal-popup .btn-row .modal-btn { flex: 1; }
+
+    /* Litual name generator */
+    .litual-gen-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: 1.5px solid var(--line); border-radius: 999px;
+      padding: 7px 13px; font-size: 12px; font-weight: 700; color: var(--muted);
+      cursor: pointer; width: 100%; justify-content: center; margin-bottom: 14px;
+      transition: border-color .15s, color .15s;
+    }
+    .litual-gen-btn:hover { border-color: var(--purple); color: var(--txt); }
+    .litual-gen-btn img { height: 15px; }
+    .litual-name-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .litual-name-chip {
+      border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 14px;
+      font-size: 13px; font-weight: 700; cursor: pointer; background: var(--bg2);
+      color: var(--txt); transition: border-color .15s, background .15s;
+    }
+    .litual-name-chip:hover { border-color: var(--purple); background: var(--purple-light); }
+    .litual-thinking-txt { color: var(--muted); font-size: 13px; text-align: center; padding: 12px 0; animation: litual-pulse .9s infinite alternate; }
+    @keyframes litual-pulse { from { opacity:.4; } to { opacity:1; } }
+
+    /* ── Help sidebar Litual mini-chat ── */
+    .help-divider { width: 100%; height: 1px; background: var(--line); margin: 20px 0; }
+    .help-litual-hd { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+    .help-litual-hd img { height: 20px; }
+    .help-litual-hd span { font-size: 12px; font-weight: 800; color: var(--purple); }
+    .help-litual-msgs { width: 100%; overflow-y: auto; max-height: 210px; display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+    .hlm-bubble { max-width: 100%; padding: 8px 11px; border-radius: 12px; font-size: 12px; line-height: 1.5; word-break: break-word; }
+    .hlm-bubble.ai { background: var(--purple-light); color: var(--txt); border-bottom-left-radius: 4px; align-self: flex-start; }
+    .hlm-bubble.user { background: var(--purple); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+    .hlm-thinking { color: var(--muted); font-size: 11px; padding: 4px 8px; animation: litual-pulse .9s infinite alternate; align-self: flex-start; }
+    .help-litual-row { display: flex; gap: 6px; width: 100%; }
+    .help-litual-inp { flex: 1; border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 11px; font-size: 12px; background: var(--bg2); color: var(--txt); outline: none; }
+    .help-litual-inp:focus { border-color: var(--purple); }
+    .help-litual-snd { background: var(--purple); border: none; border-radius: 999px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 13px; color: #fff; transition: opacity .15s; }
+    .help-litual-snd:disabled { opacity: .4; cursor: default; }
+
+    /* ── Date generator ── */
+    .date-gen-btn { display: inline-flex; align-items: center; gap: 5px; background: none; border: 1.5px solid var(--line); border-radius: 999px; padding: 5px 11px; font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; margin-top: 7px; transition: border-color .15s, color .15s; }
+    .date-gen-btn:hover { border-color: var(--purple); color: var(--txt); }
+    .date-gen-btn img { height: 13px; }
+    .date-gen-panel { margin-top: 10px; background: var(--purple-light); border: 1.5px solid var(--purple-dim); border-radius: 14px; padding: 13px 14px; display: none; }
+    .date-gen-panel.open { display: block; }
+    .date-gen-panel > label { font-size: 12px; font-weight: 700; color: var(--purple); display: block; margin-bottom: 5px; }
+    .date-gen-panel > input { width: 100%; box-sizing: border-box; border: 1.5px solid var(--purple-dim); border-radius: 10px; padding: 7px 10px; font-size: 12px; background: var(--bg2); color: var(--txt); outline: none; margin-bottom: 8px; }
+    .date-gen-panel > input:focus { border-color: var(--purple); }
+    .date-gen-btns { display: flex; gap: 6px; }
+    .date-gen-go { flex: 1; padding: 7px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; background: var(--purple); color: #fff; }
+    .date-gen-go:disabled { opacity: .5; cursor: default; }
+    .date-gen-cancel2 { padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; background: none; border: 1.5px solid var(--line); color: var(--muted); }
+    .date-gen-result { margin-top: 10px; text-align: center; }
+    .date-gen-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--bg2); border: 2px solid var(--purple); border-radius: 12px; padding: 8px 14px; font-weight: 800; color: var(--purple); font-size: 14px; cursor: pointer; transition: background .15s, color .15s; }
+    .date-gen-chip:hover { background: var(--purple); color: #fff; }
+    .date-gen-why { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
     .modal-popup .platform-row {
       display: flex;
       gap: 12px;
@@ -983,8 +1037,29 @@
     <p>Comment s'appelle votre prochaine sortie ?</p>
     <label for="popupTitleInput">Titre</label>
     <input type="text" id="popupTitleInput" placeholder="Ex: Level, Mon Album…" autocomplete="off">
+    <button class="litual-gen-btn" id="btnLitualGenName" type="button">
+      <img src="/assets/Litual/o!§ititititt.png" alt="Litual"> Générer un nom avec Litual ✦
+    </button>
     <div class="modal-error" id="popupTitleError"></div>
     <button class="modal-btn" id="popupTitleOk">Continuer →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     POPUP LITUAL — Générateur de nom de sortie
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="popupLitualName">
+  <div class="modal-popup">
+    <div class="popup-icon"><img src="/assets/Litual/o!§ititititt.png" style="height:36px;" alt="Litual"></div>
+    <h2>Générer un nom</h2>
+    <p>Décris ton projet et Litual te propose des noms.</p>
+    <label for="litualNameContext">Ton projet</label>
+    <input type="text" id="litualNameContext" placeholder="Ex: EP R&B mélancolique, single trap sombre…" autocomplete="off">
+    <div id="litualNameResult"></div>
+    <div class="btn-row" style="margin-top:4px;">
+      <button class="modal-btn secondary" id="btnLitualNameCancel" type="button">Annuler</button>
+      <button class="modal-btn" id="btnLitualNameGen" type="button">Générer ✦</button>
+    </div>
   </div>
 </div>
 
@@ -1333,6 +1408,18 @@
         <div class="field">
           <label>Date de sortie *</label>
           <input type="date" id="releaseDate" required>
+          <button class="date-gen-btn" id="btnDateGen" type="button">
+            <img src="/assets/Litual/o!§ititititt.png" alt="Litual"> Suggérer une date ✦
+          </button>
+          <div class="date-gen-panel" id="dateGenPanel">
+            <label for="dateGenCtx">Contexte <span style="font-weight:400;opacity:.7">(optionnel)</span></label>
+            <input type="text" id="dateGenCtx" placeholder="Ex: vendredi prochain, dans 3 semaines…" autocomplete="off">
+            <div class="date-gen-btns">
+              <button class="date-gen-cancel2" id="btnDateGenCancel" type="button">Annuler</button>
+              <button class="date-gen-go" id="btnDateGenGo" type="button">Suggérer ✦</button>
+            </div>
+            <div class="date-gen-result" id="dateGenResult"></div>
+          </div>
         </div>
         <div class="field">
           <label>Heure de sortie</label>
@@ -1486,6 +1573,18 @@
     <p id="helpText">Commencez par nommer votre sortie, puis sélectionnez l'artiste principal. C'est le nom qui apparaîtra sur toutes les plateformes.</p>
     <div class="help-tip" id="helpTip">
       💡 Le titre doit correspondre exactement à ce qui sera affiché sur Spotify, Apple Music, etc.
+    </div>
+
+    <div class="help-divider"></div>
+
+    <div class="help-litual-hd">
+      <img src="/assets/Litual/o!§ititititt.png" alt="Litual">
+      <span>Demande à Litual ✦</span>
+    </div>
+    <div class="help-litual-msgs" id="helpLitualMsgs"></div>
+    <div class="help-litual-row">
+      <input class="help-litual-inp" id="helpLitualInp" type="text" placeholder="Une question sur l'upload…" autocomplete="off">
+      <button class="help-litual-snd" id="helpLitualSnd" type="button">↑</button>
     </div>
   </aside>
 
@@ -2803,6 +2902,249 @@ onAuthStateChanged(auth, async user => {
     tracksState.push(createEmptyTrack(true));
     renderTrackList();
   }
+
+  /* ─── Litual — Générateur de nom de sortie ─── */
+  const popupLitualName = document.getElementById("popupLitualName");
+  const litualNameContext = document.getElementById("litualNameContext");
+  const litualNameResult = document.getElementById("litualNameResult");
+  const btnLitualNameGen = document.getElementById("btnLitualNameGen");
+  const btnLitualNameCancel = document.getElementById("btnLitualNameCancel");
+
+  document.getElementById("btnLitualGenName")?.addEventListener("click", () => {
+    litualNameContext.value = "";
+    litualNameResult.innerHTML = "";
+    popupLitualName.classList.add("active");
+    setTimeout(() => litualNameContext.focus(), 100);
+  });
+
+  btnLitualNameCancel?.addEventListener("click", () => {
+    popupLitualName.classList.remove("active");
+  });
+
+  async function runLitualNameGen() {
+    const ctx = (litualNameContext.value || "").trim();
+    if (!ctx) { litualNameContext.focus(); return; }
+    btnLitualNameGen.disabled = true;
+    litualNameResult.innerHTML = `<div class="litual-thinking-txt">Litual réfléchit…</div>`;
+    const instr = `Tu es Litual, l'IA de Morgann Music CP. Génère des noms de sorties musicales créatifs, courts et percutants. Réponds UNIQUEMENT avec ce bloc JSON exact, ZÉRO autre texte, ZÉRO commentaire :\n[NAMES]{"names":["Nom 1","Nom 2","Nom 3","Nom 4","Nom 5","Nom 6"]}[/NAMES]`;
+    try {
+      const res = await fetch("https://litual.ai.morgannmusic.uk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [{ role: "user", content: ctx }], instruction: instr })
+      });
+      if (!res.body) throw new Error();
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "", allText = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split(/\r?\n/); buffer = lines.pop();
+        for (const line of lines) {
+          if (line.startsWith("data:")) try { const o = JSON.parse(line.replace(/^data:\s*/, "")); if (o.response) allText += o.response; } catch {}
+        }
+      }
+      const match = /\[NAMES\]([\s\S]*?)\[\/NAMES\]/.exec(allText);
+      const names = match ? JSON.parse(match[1].trim().replace(/^[\s\*`]+|[\s\*`]+$/g, "")).names : [];
+      if (!names.length) throw new Error();
+      litualNameResult.innerHTML = "";
+      const chips = document.createElement("div");
+      chips.className = "litual-name-chips";
+      names.forEach(name => {
+        const chip = document.createElement("button");
+        chip.className = "litual-name-chip";
+        chip.type = "button";
+        chip.textContent = name;
+        chip.addEventListener("click", () => {
+          document.getElementById("popupTitleInput").value = name;
+          document.getElementById("popupTitleError").textContent = "";
+          popupLitualName.classList.remove("active");
+        });
+        chips.appendChild(chip);
+      });
+      litualNameResult.appendChild(chips);
+    } catch {
+      litualNameResult.innerHTML = `<div class="litual-thinking-txt">Impossible de contacter Litual. Réessaie.</div>`;
+    } finally {
+      btnLitualNameGen.disabled = false;
+    }
+  }
+
+  btnLitualNameGen?.addEventListener("click", runLitualNameGen);
+  litualNameContext?.addEventListener("keydown", e => { if (e.key === "Enter") runLitualNameGen(); });
+
+  /* ─── Litual — Mini-chat sidebar ─── */
+  (function initHelpChat() {
+    const msgsEl = document.getElementById("helpLitualMsgs");
+    const inp = document.getElementById("helpLitualInp");
+    const snd = document.getElementById("helpLitualSnd");
+    if (!msgsEl || !inp || !snd) return;
+
+    const INSTR_HELP = `Tu es Litual, l'IA de Morgann Music CP. Tu te trouves dans la barre latérale du formulaire d'upload de sortie musicale. L'artiste remplit actuellement son formulaire de dépôt de release (titre, pochette, date, genre, pistes, droits…). Ton rôle : répondre à ses questions sur comment remplir le formulaire, les bonnes pratiques de distribution musicale (délais, formats de fichiers, métadonnées, droits ISRC/ISWC, distribution Spotify/Apple Music…). Sois concis, bienveillant, professionnel. Réponds TOUJOURS en français. Maximum 3-4 phrases par réponse. Ne génère pas de blocs spéciaux.`;
+
+    let hlHist = [];
+    let hlBusy = false;
+
+    function escH(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+    function addMsg(role, html) {
+      const b = document.createElement("div");
+      b.className = `hlm-bubble ${role}`;
+      b.innerHTML = html;
+      msgsEl.appendChild(b);
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+      return b;
+    }
+
+    function addThinking() {
+      const t = document.createElement("div");
+      t.className = "hlm-thinking";
+      t.id = "hlmThink";
+      t.textContent = "Litual réfléchit…";
+      msgsEl.appendChild(t);
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+
+    function removeThinking() {
+      document.getElementById("hlmThink")?.remove();
+    }
+
+    async function doHelpSend() {
+      const q = (inp.value || "").trim();
+      if (!q || hlBusy) return;
+      hlBusy = true;
+      inp.value = "";
+      snd.disabled = true;
+      addMsg("user", escH(q));
+      hlHist.push({ role: "user", content: q });
+      addThinking();
+      try {
+        const res = await fetch("https://litual.ai.morgannmusic.uk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: hlHist, instruction: INSTR_HELP })
+        });
+        if (!res.body) throw new Error();
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "", allText = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split(/\r?\n/); buffer = lines.pop();
+          for (const line of lines) {
+            if (line.startsWith("data:")) try { const o = JSON.parse(line.replace(/^data:\s*/, "")); if (o.response) allText += o.response; } catch {}
+          }
+        }
+        removeThinking();
+        if (allText.trim()) {
+          hlHist.push({ role: "assistant", content: allText });
+          addMsg("ai", escH(allText));
+        }
+      } catch {
+        removeThinking();
+        addMsg("ai", "Impossible de contacter Litual. Réessaie.");
+      } finally {
+        hlBusy = false;
+        snd.disabled = false;
+        inp.focus();
+      }
+    }
+
+    snd.addEventListener("click", doHelpSend);
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") doHelpSend(); });
+
+    // Greeting
+    setTimeout(() => addMsg("ai", "Bonjour 👋 Tu as une question sur le formulaire ? Je suis là !"), 400);
+  })();
+
+  /* ─── Litual — Générateur de date de sortie ─── */
+  (function initDateGen() {
+    const btnOpen = document.getElementById("btnDateGen");
+    const panel = document.getElementById("dateGenPanel");
+    const ctxInp = document.getElementById("dateGenCtx");
+    const resultEl = document.getElementById("dateGenResult");
+    const btnGo = document.getElementById("btnDateGenGo");
+    const btnCancel = document.getElementById("btnDateGenCancel");
+    const releaseDateInp = document.getElementById("releaseDate");
+    if (!btnOpen || !panel) return;
+
+    btnOpen.addEventListener("click", () => {
+      panel.classList.toggle("open");
+      if (panel.classList.contains("open")) setTimeout(() => ctxInp.focus(), 80);
+    });
+
+    btnCancel.addEventListener("click", () => {
+      panel.classList.remove("open");
+      resultEl.innerHTML = "";
+      ctxInp.value = "";
+    });
+
+    async function runDateGen() {
+      const ctx = (ctxInp.value || "").trim();
+      const today = new Date().toISOString().slice(0, 10);
+      btnGo.disabled = true;
+      resultEl.innerHTML = `<div class="litual-thinking-txt">Litual cherche une date…</div>`;
+      const instr = `Tu es Litual, l'IA de Morgann Music CP. Aujourd'hui nous sommes le ${today}. L'artiste cherche une bonne date de sortie musicale. Les plateformes de streaming recommandent de sortir le vendredi (Friday Release Day). Tiens compte du contexte fourni si présent. Propose UNE seule date optimale et explique brièvement pourquoi en une phrase. Réponds UNIQUEMENT avec ce format exact, rien d'autre :\n[DATE]YYYY-MM-DD[/DATE]\n[WHY]raison courte en français[/WHY]`;
+      const userMsg = ctx ? `Je veux sortir ${ctx}` : "Propose-moi une bonne date de sortie prochainement.";
+      try {
+        const res = await fetch("https://litual.ai.morgannmusic.uk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: [{ role: "user", content: userMsg }], instruction: instr })
+        });
+        if (!res.body) throw new Error();
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "", allText = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split(/\r?\n/); buffer = lines.pop();
+          for (const line of lines) {
+            if (line.startsWith("data:")) try { const o = JSON.parse(line.replace(/^data:\s*/, "")); if (o.response) allText += o.response; } catch {}
+          }
+        }
+        const dateMatch = /\[DATE\]([\s\S]*?)\[\/DATE\]/.exec(allText);
+        const whyMatch = /\[WHY\]([\s\S]*?)\[\/WHY\]/.exec(allText);
+        const date = dateMatch ? dateMatch[1].trim() : null;
+        const why = whyMatch ? whyMatch[1].trim() : null;
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error();
+        const fmt = new Date(date + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        resultEl.innerHTML = "";
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "date-gen-chip";
+        chip.innerHTML = `📅 ${fmt}`;
+        chip.title = "Cliquer pour utiliser cette date";
+        chip.addEventListener("click", () => {
+          releaseDateInp.value = date;
+          releaseDateInp.dispatchEvent(new Event("change"));
+          panel.classList.remove("open");
+          resultEl.innerHTML = "";
+          ctxInp.value = "";
+        });
+        resultEl.appendChild(chip);
+        if (why) {
+          const w = document.createElement("p");
+          w.className = "date-gen-why";
+          w.textContent = why;
+          resultEl.appendChild(w);
+        }
+      } catch {
+        resultEl.innerHTML = `<div class="litual-thinking-txt">Impossible de générer une date. Réessaie.</div>`;
+      } finally {
+        btnGo.disabled = false;
+      }
+    }
+
+    btnGo.addEventListener("click", runDateGen);
+    ctxInp.addEventListener("keydown", e => { if (e.key === "Enter") runDateGen(); });
+  })();
 });
 </script>
 </body>
