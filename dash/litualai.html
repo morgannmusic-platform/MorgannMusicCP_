@@ -669,21 +669,76 @@
           <div style="font-weight:700;font-size:13px;">${escHtml(b.title || "Sortie")} — <span style="color:var(--mm-accent);">${escHtml(b.date || "")}</span></div>
           ${b.teasing ? `<div style="color:var(--mm-muted);font-size:12px;margin-top:3px;">Teasing : ${escHtml(b.teasing)}</div>` : ""}
           ${b.campaign ? `<div style="color:var(--mm-muted);font-size:12px;">Promo : ${escHtml(b.campaign)}</div>` : ""}
-          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-            <button class="prompt-chip" style="padding:6px 12px;font-size:12px;cursor:pointer;" data-cal-idx="${i}">➕ Ajouter au calendrier</button>
-            <span id="litual-cal-status-${i}" style="font-size:12px;color:var(--mm-muted);"></span>
+          <div style="margin-top:10px;">
+            <div style="font-size:12px;font-weight:700;margin-bottom:4px;">Nom de la sortie</div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <input class="litual-name-input" style="flex:1;min-width:120px;padding:5px 8px;border:1px solid var(--mm-line);border-radius:8px;font-size:13px;background:var(--mm-bg2,transparent);color:var(--mm-text);" value="${escHtml(b.title || "")}" placeholder="Nom de ta sortie" />
+              <button class="prompt-chip" style="padding:5px 10px;font-size:12px;cursor:pointer;white-space:nowrap;" data-gen-names="${i}"><img src="/assets/Litual/o!§ititititt.png" style="height:13px;vertical-align:middle;margin-right:3px;">Noms</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;" id="litual-name-chips-${i}"></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+              <button class="prompt-chip" style="padding:6px 12px;font-size:12px;cursor:pointer;" data-cal-idx="${i}">➕ Ajouter au calendrier</button>
+              <span id="litual-cal-status-${i}" style="font-size:12px;color:var(--mm-muted);"></span>
+            </div>
           </div>
         `;
         wrapper.appendChild(card);
+
+        // Génération de noms
+        card.querySelector(`[data-gen-names="${i}"]`).addEventListener("click", async (evt) => {
+          const genBtn = evt.currentTarget;
+          const chipsDiv = document.getElementById(`litual-name-chips-${i}`);
+          const nameInput = card.querySelector(".litual-name-input");
+          genBtn.disabled = true; genBtn.textContent = "…";
+          if (chipsDiv) chipsDiv.innerHTML = `<span style="font-size:12px;color:var(--mm-muted);opacity:.7;animation:litual-typing 1s infinite alternate">Génération…</span>`;
+          try {
+            const instr = `Tu es Litual. Réponds UNIQUEMENT avec ce bloc JSON exact, ZÉRO autre texte :\n[NAMES]{"names":["Nom 1","Nom 2","Nom 3"]}[/NAMES]\nGénère 3 noms créatifs de sortie musicale basés sur le contexte : date ${b.date}, teasing "${b.teasing || ""}". En français.`;
+            const res2 = await fetch("https://litual.ai.morgannmusic.uk", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messages: [{ role: "user", content: `Date: ${b.date}. Contexte: ${b.teasing || b.title || ""}.` }], instruction: instr })
+            });
+            if (!res2.body) throw new Error();
+            const reader2 = res2.body.getReader(); const decoder2 = new TextDecoder();
+            let buf2 = "", txt2 = "";
+            while (true) {
+              const { value, done } = await reader2.read(); if (done) break;
+              buf2 += decoder2.decode(value, { stream: true });
+              const lines2 = buf2.split(/\r?\n/); buf2 = lines2.pop();
+              for (const l of lines2) {
+                if (l.startsWith("data:")) { try { const o = JSON.parse(l.replace(/^data:\s*/, "")); if (o.response) txt2 += o.response; } catch {} }
+              }
+            }
+            const nm = /\[NAMES\]([\s\S]*?)\[\/NAMES\]/.exec(txt2);
+            const names = nm ? JSON.parse(nm[1].trim().replace(/^[\s\*`]+|[\s\*`]+$/g, "")).names : [];
+            if (chipsDiv && names.length) {
+              chipsDiv.innerHTML = "";
+              names.forEach(n => {
+                const chip = document.createElement("button");
+                chip.className = "prompt-chip";
+                chip.style.cssText = "padding:4px 9px;font-size:12px;cursor:pointer;";
+                chip.textContent = n;
+                chip.addEventListener("click", () => { if (nameInput) nameInput.value = n; });
+                chipsDiv.appendChild(chip);
+              });
+            } else if (chipsDiv) { chipsDiv.innerHTML = `<span style="font-size:12px;color:var(--mm-muted);">Aucun nom généré.</span>`; }
+          } catch { if (chipsDiv) chipsDiv.innerHTML = `<span style="font-size:12px;color:var(--mm-muted);">Erreur.</span>`; }
+          finally { genBtn.disabled = false; genBtn.innerHTML = `<img src="/assets/Litual/o!§ititititt.png" style="height:13px;vertical-align:middle;margin-right:3px;">Noms`; }
+        });
+
+        // Ajouter au calendrier
         card.querySelector(`[data-cal-idx="${i}"]`).addEventListener("click", async () => {
           const btn = card.querySelector(`[data-cal-idx="${i}"]`);
+          const nameInput = card.querySelector(".litual-name-input");
           const status = document.getElementById(`litual-cal-status-${i}`);
+          const title = (nameInput?.value || b.title || "").trim();
+          if (!title || !b.date) { if (status) status.textContent = "Nom + date requis."; return; }
           btn.disabled = true;
           if (status) status.textContent = "Ajout en cours…";
           try {
             await addDoc(collection(db, "accompagnementPlans"), {
               ownerUid: uid,
-              title: String(b.title || "Sortie proposée"),
+              title: String(title),
               plannedDate: String(b.date || ""),
               teasing: String(b.teasing || ""),
               campaign: String(b.campaign || ""),
