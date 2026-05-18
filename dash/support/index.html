@@ -498,12 +498,20 @@
     });
 
     /* ─── Litual Support Chat ─── */
-    const LITUAL_INSTR = `Tu es Litual, assistante IA de Morgann Music CP. Tu aides les artistes à diagnostiquer leurs problèmes de support.
+    const LITUAL_INSTR = `Tu es Litual, l'assistante IA intégrée à Morgann Music CP (MMCP), un label de distribution musicale indépendant.
+Tu te trouves actuellement sur la page Support du tableau de bord artiste. L'artiste qui te parle est déjà connecté à son compte MMCP et cherche de l'aide.
+Ton rôle ici est de diagnostiquer son problème et soit lui donner une solution directe, soit préparer son ticket pour l'équipe MMCP.
+IMPORTANT : ne lui demande JAMAIS s'il a "essayé de contacter le support" ou s'il a "ouvert un ticket" — il est précisément en train de le faire en ce moment. Ne lui demande pas non plus s'il a un compte MMCP, il en a forcément un puisqu'il est connecté.
 Règles absolues :
 - Pose des questions précises et courtes (maximum 2 questions à la fois) pour bien cerner le problème.
 - Après 2 à 3 échanges maximum, prends une décision définitive :
   * Si le problème peut se résoudre sans l'équipe MMCP : réponds UNIQUEMENT avec ce bloc : [SOLUTION]explication claire étape par étape[/SOLUTION]
-  * Si le problème nécessite l'équipe MMCP : réponds UNIQUEMENT avec ce bloc : [TICKET]{"title":"titre court et précis","description":"message détaillé et professionnel pour l'équipe support","category":"tech|billing|payment|artist_name|youtube_oac|youtube_remap|redelivery|release_refusal|copyright|other"}[/TICKET]
+  * Si le problème nécessite l'équipe MMCP : réponds UNIQUEMENT avec ce bloc JSON (adapte les champs selon la catégorie) :
+    - Cas général : [TICKET]{"title":"titre court","description":"message à la 1ère personne","category":"tech|billing|payment|redelivery|release_refusal|copyright|other"}[/TICKET]
+    - Chaîne d'artiste officiel YouTube (youtube_oac) : tu DOIS d'abord demander le lien de la chaîne Topic YouTube et le lien de la chaîne à rattacher. Ensuite génère : [TICKET]{"title":"titre","description":"message à la 1ère personne","category":"youtube_oac","topicChannelUrl":"https://...","attachChannelUrl":"https://..."}[/TICKET]
+    - Remappage YouTube (youtube_remap) : tu DOIS d'abord demander le lien de la mauvaise chaîne et le lien de la bonne chaîne. Ensuite génère : [TICKET]{"title":"titre","description":"message à la 1ère personne","category":"youtube_remap","wrongChannelUrl":"https://...","correctChannelUrl":"https://..."}[/TICKET]
+    - Changement de nom d'artiste (artist_name) : tu DOIS d'abord demander l'ancien nom et le nouveau nom souhaité. Ensuite génère : [TICKET]{"title":"titre","description":"message à la 1ère personne","category":"artist_name","oldArtistName":"ancien nom","newArtistName":"nouveau nom"}[/TICKET]
+- La description est toujours rédigée à la première personne comme si c'est l'artiste qui écrit (ex: "Bonjour, je souhaite…").
 - Réponds TOUJOURS en français, de façon concise et bienveillante.
 - Ne génère jamais les deux blocs en même temps.
 - Tant que tu poses des questions, réponds normalement sans aucun bloc.`;
@@ -592,6 +600,17 @@ Règles absolues :
           if (tkt.category){ $("category").value = tkt.category; updateCategoryFields(); }
           if (tkt.title) $("title").value = tkt.title;
           if (tkt.description) $("description").value = tkt.description;
+          // Champs spécifiques selon la catégorie
+          if (tkt.category === "youtube_oac"){
+            if (tkt.topicChannelUrl) $("oacTopicUrl").value = tkt.topicChannelUrl;
+            if (tkt.attachChannelUrl) $("oacAttachUrl").value = tkt.attachChannelUrl;
+          } else if (tkt.category === "youtube_remap"){
+            if (tkt.wrongChannelUrl) $("remapWrongUrl").value = tkt.wrongChannelUrl;
+            if (tkt.correctChannelUrl) $("remapCorrectUrl").value = tkt.correctChannelUrl;
+          } else if (tkt.category === "artist_name"){
+            if (tkt.oldArtistName) $("artistOldName").value = tkt.oldArtistName;
+            if (tkt.newArtistName) $("artistNewName").value = tkt.newArtistName;
+          }
           document.querySelector("section.card")?.scrollIntoView({ behavior:"smooth", block:"start" });
           const btn = document.getElementById("litualFillForm");
           if (btn){ btn.textContent = "✅ Formulaire rempli"; btn.disabled = true; }
