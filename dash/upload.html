@@ -1192,6 +1192,18 @@
         <div class="field">
           <label>Titre de la piste *</label>
           <input id="modalTrackTitle" placeholder="Titre…">
+          <button class="litual-gen-btn" id="btnTrackTitleGen" type="button" style="margin-top:8px;">
+            <img src="/assets/Litual/o!§ititititt.png" alt="Litual"> Générer un titre avec Litual ✦
+          </button>
+          <div class="date-gen-panel" id="trackTitleGenPanel">
+            <label for="trackTitleCtx">Décris la piste <span style="font-weight:400;opacity:.7">(optionnel)</span></label>
+            <input type="text" id="trackTitleCtx" placeholder="Ex: prod trap sombre, mélodie piano mélancolique…" autocomplete="off">
+            <div class="date-gen-btns">
+              <button class="date-gen-cancel2" id="btnTrackTitleCancel" type="button">Annuler</button>
+              <button class="date-gen-go" id="btnTrackTitleGo" type="button">Générer ✦</button>
+            </div>
+            <div class="date-gen-result" id="trackTitleResult"></div>
+          </div>
         </div>
         <div class="field">
           <label>Ligne de version</label>
@@ -3152,6 +3164,87 @@ onAuthStateChanged(auth, async user => {
 
     btnGo.addEventListener("click", runDateGen);
     ctxInp.addEventListener("keydown", e => { if (e.key === "Enter") runDateGen(); });
+  })();
+
+  /* ─── Litual — Générateur de titre de piste ─── */
+  (function initTrackTitleGen() {
+    const btnOpen = document.getElementById("btnTrackTitleGen");
+    const panel = document.getElementById("trackTitleGenPanel");
+    const ctxInp = document.getElementById("trackTitleCtx");
+    const resultEl = document.getElementById("trackTitleResult");
+    const btnGo = document.getElementById("btnTrackTitleGo");
+    const btnCancel = document.getElementById("btnTrackTitleCancel");
+    if (!btnOpen || !panel) return;
+
+    btnOpen.addEventListener("click", () => {
+      panel.classList.toggle("open");
+      if (panel.classList.contains("open")) setTimeout(() => ctxInp.focus(), 80);
+    });
+
+    btnCancel.addEventListener("click", () => {
+      panel.classList.remove("open");
+      resultEl.innerHTML = "";
+      ctxInp.value = "";
+    });
+
+    async function runTrackTitleGen() {
+      const ctx = (ctxInp.value || "").trim();
+      const albumTitle = (document.getElementById("releaseTitle")?.value || "").trim();
+      btnGo.disabled = true;
+      resultEl.innerHTML = `<div class="litual-thinking-txt">Litual génère des titres…</div>`;
+      const context = [
+        albumTitle ? `Cette piste fait partie de la sortie : "${albumTitle}".` : "",
+        ctx ? `Description de la piste : ${ctx}.` : ""
+      ].filter(Boolean).join(" ") || "Piste musicale sans description supplémentaire.";
+      const instr = `Tu es Litual, l'IA de Morgann Music CP. Génère des titres de pistes musicales créatifs, courts et percutants. Réponds UNIQUEMENT avec ce bloc JSON exact, ZÉRO autre texte, ZÉRO commentaire :\n[NAMES]{"names":["Titre 1","Titre 2","Titre 3","Titre 4","Titre 5","Titre 6"]}[/NAMES]`;
+      try {
+        const res = await fetch("https://litual.ai.morgannmusic.uk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: [{ role: "user", content: context }], instruction: instr })
+        });
+        if (!res.body) throw new Error();
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "", allText = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split(/\r?\n/); buffer = lines.pop();
+          for (const line of lines) {
+            if (line.startsWith("data:")) try { const o = JSON.parse(line.replace(/^data:\s*/, "")); if (o.response) allText += o.response; } catch {}
+          }
+        }
+        const match = /\[NAMES\]([\s\S]*?)\[\/NAMES\]/.exec(allText);
+        const names = match ? JSON.parse(match[1].trim().replace(/^[\s\*`]+|[\s\*`]+$/g, "")).names : [];
+        if (!names.length) throw new Error();
+        resultEl.innerHTML = "";
+        const chips = document.createElement("div");
+        chips.className = "litual-name-chips";
+        names.forEach(name => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "litual-name-chip";
+          chip.textContent = name;
+          chip.addEventListener("click", () => {
+            document.getElementById("modalTrackTitle").value = name;
+            panel.classList.remove("open");
+            resultEl.innerHTML = "";
+            ctxInp.value = "";
+          });
+          chips.appendChild(chip);
+        });
+        resultEl.appendChild(chips);
+      } catch {
+        resultEl.innerHTML = `<div class="litual-thinking-txt">Impossible de contacter Litual. Réessaie.</div>`;
+      } finally {
+        btnGo.disabled = false;
+      }
+    }
+
+    btnGo.addEventListener("click", runTrackTitleGen);
+    ctxInp.addEventListener("keydown", e => { if (e.key === "Enter") runTrackTitleGen(); });
   })();
 });
 </script>
