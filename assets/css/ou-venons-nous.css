@@ -4,7 +4,7 @@
   --txt:    #000000;
   --card:   #ffffff58;
   --muted:  #555555;
-  --accent: #5b7cff;
+  --accent: #FC8FB0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -13,7 +13,7 @@
     --txt:    #ffffff;
     --card:   #3a3a3a58;
     --muted:  #d4d4d4;
-    --accent: #8fa3ff;
+    --accent: #FC8FB0;
   }
 }
 

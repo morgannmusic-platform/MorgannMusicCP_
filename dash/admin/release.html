@@ -396,13 +396,23 @@
       <div class="info-item"><div class="label">Type</div><div class="value">${val(data.type)}</div></div>
       <div class="info-item"><div class="label">Date de sortie</div><div class="value">${val(data?.schedule?.releaseDate || data.releaseDate)}</div></div>
       <div class="info-item"><div class="label">Décompte</div><div class="value countdown">${formatCountdown(parseReleaseDate(data))}</div></div>
-      <div class="info-item"><div class="label">Version</div><div class="value">${val(data.versionLine)}</div></div>
+      <div class="info-item"><div class="label">Version</div><div class="value">${val(data.versionLine || data.version)}</div></div>
       <div class="info-item"><div class="label">Langue</div><div class="value">${val(data.language)}</div></div>
+      <div class="info-item"><div class="label">Genre primaire</div><div class="value">${val(data.primaryGenre || data.genrePrimary || data.genre)}</div></div>
+      <div class="info-item"><div class="label">Genre secondaire</div><div class="value">${val(data.secondaryGenre || data.genreSecondary)}</div></div>
+      <div class="info-item"><div class="label">Instrumental (release)</div><div class="value">${(data.instrumental || data.isInstrumental) ? "Oui" : "Non"}</div></div>
       <div class="info-item"><div class="label">Instrumentales (pistes)</div><div class="value">${instrumentalSummary}</div></div>
       <div class="info-item"><div class="label">Propriétaire</div><div class="value">${val(ownerMail || data.ownerUid)}</div></div>
       <div class="info-item"><div class="label">Fuseau</div><div class="value">${val(data?.schedule?.timeZone)}</div></div>
       <div class="info-item"><div class="label">Date originale</div><div class="value">${val(data?.schedule?.originalDate)}</div></div>
       <div class="info-item"><div class="label">Précommande</div><div class="value">${val(data?.schedule?.preorderDate)}</div></div>
+      <div class="info-item"><div class="label">UPC</div><div class="value">${val(data.upc || data.upcCode)}</div></div>
+      <div class="info-item"><div class="label">Licence</div><div class="value">${val(data.license || data.licenseType)}</div></div>
+      <div class="info-item" style="grid-column:1/-1"><div class="label">© Copyright</div><div class="value">${val(data?.copyrights?.cLine)}</div></div>
+      <div class="info-item" style="grid-column:1/-1"><div class="label">℗ Phonogramme</div><div class="value">${val(data?.copyrights?.pLine)}</div></div>
+      <div class="info-item" style="grid-column:1/-1"><div class="label">Livraisons additionnelles</div><div class="value">${
+        Object.entries(data?.addons || {}).filter(([,v]) => !!v).map(([k]) => k.toUpperCase()).join(" · ") || "—"
+      }</div></div>
       <div class="info-item" style="grid-column:1/-1"><div class="label">Liens plateformes</div><div class="value">
         Spotify: ${clean(data?.platformLinks?.spotify) ? `<a href="${data.platformLinks.spotify}" target="_blank" rel="noopener">ouvrir</a>` : "—"}<br>
         Apple Music: ${clean(data?.platformLinks?.apple) ? `<a href="${data.platformLinks.apple}" target="_blank" rel="noopener">ouvrir</a>` : "—"}<br>
@@ -415,8 +425,8 @@
 
   function renderAssets(data){
     const cover = clean(data?.assets?.coverUrl);
-    const one = clean(data?.assets?.appleMotion?.oneOneUrl);
-    const three = clean(data?.assets?.appleMotion?.threeFourUrl);
+    const one   = clean(data?.assets?.appleMotion?.oneOneUrl   || data?.assets?.motion11);
+    const three = clean(data?.assets?.appleMotion?.threeFourUrl || data?.assets?.motion34);
 
     $("assetsList").innerHTML = `
       <div class="info-grid">

@@ -114,6 +114,48 @@
       opacity: 1;
       pointer-events: all;
     }
+
+    /* ── Loader auth ── */
+    #authLoader {
+      position: fixed;
+      inset: 0;
+      background: var(--bg, #0a081e);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 9999;
+      transition: opacity 0.3s ease;
+    }
+    #authLoader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #authLoader .loader-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #FC8FB0 0%, #c06090 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #authLoader .loader-logo img { width: 32px; height: 32px; filter: brightness(0) invert(1); }
+    #authLoader .loader-spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(252,143,176,.2);
+      border-top-color: #FC8FB0;
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #authLoader p {
+      font-size: 13px;
+      opacity: .45;
+      margin: 0;
+    }
     .modal-popup {
       background: var(--card);
       border: 1px solid var(--line);
@@ -922,6 +964,15 @@
 </head>
 <body>
 
+<!-- Loader affiché pendant l'auth Firebase -->
+<div id="authLoader">
+  <div class="loader-logo">
+    <img src="/assets/icon/Music-Note-Circle--Streamline-Flex.svg" alt="">
+  </div>
+  <div class="loader-spinner"></div>
+  <p>Chargement…</p>
+</div>
+
 <!-- ═══════════════════════════════════════════════
      POPUP 1 — Nom de la sortie
 ════════════════════════════════════════════════ -->
@@ -1355,16 +1406,16 @@
       <div class="subsection">
         <h3>Copyright Line</h3>
         <div style="display:flex; flex-direction:column; gap:12px;">
-          <div style="display:flex; gap:8px; align-items:center;">
-            <span style="font-weight:800; font-size:15px; white-space:nowrap;">© </span>
-            <input id="cYear" value="2026" style="width:85px; padding:10px; text-align:center; margin:0;">
-            <input id="cText" placeholder="..." style="padding:10px; margin:0; flex:1;">
-            <span style="font-weight:800; font-size:15px; white-space:nowrap;">, Morgann Music CP</span>
+          <!-- © line : tous plans sauf Label et admin -->
+          <div id="cLineSection" style="display:flex; gap:8px; align-items:center;">
+            <input id="cYear" value="2026" style="width:72px; padding:10px; text-align:center; margin:0;">
+            <span style="font-weight:600; font-size:14px; white-space:nowrap; opacity:.65;">, Morgann Music CP,</span>
+            <input id="cText" placeholder="Nom de l'artiste…" style="padding:10px; margin:0; flex:1;">
           </div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <span style="font-weight:800; font-size:15px; white-space:nowrap;">℗ </span>
-            <input id="pYear" value="2026" style="width:85px; padding:10px; text-align:center; margin:0;">
-            <span style="font-weight:800; font-size:15px; white-space:nowrap;">℗ Morgann Music CP</span>
+          <!-- ℗ line : Label et admin uniquement -->
+          <div id="pLineSection" style="display:none; gap:8px; align-items:center;">
+            <input id="pYear" value="2026" style="width:72px; padding:10px; text-align:center; margin:0;">
+            <input id="pText" placeholder="Nom du label…" style="padding:10px; margin:0; flex:1;">
           </div>
         </div>
       </div>
@@ -1534,6 +1585,33 @@ function isPaymentBypassProfile(data) {
   return role === "admin" || accountType === "admin" || role === "vip" || accountType === "vip";
 }
 
+function isLabelPlan() {
+  const fromUrl = normalizePlanToken(__uploadParams.get("plan") || "");
+  const fromStorage = normalizePlanToken(localStorage.getItem("mmcpSelectedPlan") || "");
+  const fromUserData = normalizePlanToken(currentUserData?.plan || "");
+  const accountType = normalizePlanToken(currentUserData?.accountType || "");
+  return fromUrl.includes("label") || fromStorage.includes("label")
+    || fromUserData.includes("label") || accountType === "label";
+}
+
+function isAdminUser() {
+  const role = normalizePlanToken(currentUserData?.role || "");
+  const accountType = normalizePlanToken(currentUserData?.accountType || "");
+  return role === "admin" || accountType === "admin";
+}
+
+function isLabelOrAdmin() {
+  return isLabelPlan() || isAdminUser();
+}
+
+function updateCopyrightUI() {
+  const la = isLabelOrAdmin();
+  const cSec = document.getElementById("cLineSection");
+  const pSec = document.getElementById("pLineSection");
+  if (cSec) cSec.style.display = la ? "none" : "flex";
+  if (pSec) pSec.style.display = la ? "flex" : "none";
+}
+
 function hasPayPerReleasePaymentProof(data) {
   if (!data || typeof data !== "object") return false;
   if (Number(data?.releasePaymentCredits || 0) > 0) return true;
@@ -1574,6 +1652,8 @@ function isMovFile(file) {
 
 function disableOnboardingPopupsForEditMode() {
   if (!editReleaseId) return;
+  const _loader = document.getElementById("authLoader");
+  if (_loader) { _loader.classList.add("hidden"); setTimeout(() => _loader.style.display = "none", 350); }
   document.body.classList.add("edit-mode");
   // Nettoyage spécifique et radical des popups d'onboarding
   const onboardingIds = ['popupTitle', 'popupArtist', 'popupAddArtist'];
@@ -1711,6 +1791,8 @@ async function initPopupFlow() {
   const artistError = document.getElementById("popupArtistError");
 
   // Afficher popup 1
+  const _loader = document.getElementById("authLoader");
+  if (_loader) { _loader.classList.add("hidden"); setTimeout(() => _loader.style.display = "none", 350); }
   popupTitle.classList.add("active");
   setTimeout(() => titleInput.focus(), 300);
 
@@ -1725,7 +1807,14 @@ async function initPopupFlow() {
     titleError.textContent = "";
     document.getElementById("releaseTitle").value = val;
     popupTitle.classList.remove("active");
+
+    // Loader pendant le chargement des artistes
+    const _l = document.getElementById("authLoader");
+    if (_l) { _l.style.display = "flex"; requestAnimationFrame(() => _l.classList.remove("hidden")); }
+
     await loadArtistsIntoSelect(artistSelect);
+
+    if (_l) { _l.classList.add("hidden"); setTimeout(() => _l.style.display = "none", 350); }
     setTimeout(() => popupArtist.classList.add("active"), 250);
   }
 
@@ -1864,8 +1953,17 @@ async function prefillReleaseForEdit(releaseId) {
   setSelectOrOther("secondaryGenre", "secondaryGenreOther", data.secondaryGenre || data.genreSecondary || data.secondary_genre);
 
   const copyrights = data.copyrights || {};
-  document.getElementById("cText").value = clean((copyrights.cLine || "").split(",").slice(1).join(",")).trim();
-  document.getElementById("pText").value = clean((copyrights.pLine || "").split(",").slice(1).join(",")).trim();
+  // cLine: "© YEAR, Morgann Music CP, TEXT"
+  const cParts = (copyrights.cLine || "").split(",");
+  const cYearRaw = cParts[0]?.replace(/[©℗\s]/g, "").trim();
+  if (cYearRaw) document.getElementById("cYear").value = cYearRaw;
+  document.getElementById("cText").value = cParts.slice(2).join(",").trim();
+  // pLine: "℗ YEAR TEXT"
+  const pRaw = (copyrights.pLine || "").replace(/^[℗©\s]+/, "");
+  const pSpaceIdx = pRaw.indexOf(" ");
+  const pYearRaw = pSpaceIdx >= 0 ? pRaw.slice(0, pSpaceIdx).trim() : pRaw.trim();
+  if (pYearRaw) document.getElementById("pYear").value = pYearRaw;
+  document.getElementById("pText").value = pSpaceIdx >= 0 ? pRaw.slice(pSpaceIdx + 1).trim() : "";
   document.getElementById("releaseVersion").value = clean(data.version || data.releaseVersion);
   document.getElementById("licenseType").value = clean(data.license || data.licenseType) || "Copyright";
   document.getElementById("upcCode").value = clean(data.upc || data.upcCode);
@@ -2506,10 +2604,17 @@ async function createRelease(isDraft = false, triggerBtn = null) {
       secondaryGenre,
       language: clean(document.getElementById("releaseLanguage")?.value) || null,
       instrumental: !!document.getElementById("isInstrumentalRelease").checked,
-      copyrights: {
-        cLine: `${clean(document.getElementById("cYear").value)} © Morgann Music CP, ${clean(document.getElementById("cText").value)}`,
-        pLine: `${clean(document.getElementById("pYear").value)} ℗ Morgann Music CP, ${clean(document.getElementById("pText").value)}`
-      },
+      copyrights: (() => {
+        const la = isLabelOrAdmin();
+        const year = clean(document.getElementById(la ? "pYear" : "cYear").value);
+        if (la) {
+          const txt = clean(document.getElementById("pText")?.value || "");
+          return { cLine: null, pLine: txt ? `℗ ${year} ${txt}` : `℗ ${year}` };
+        } else {
+          const txt = clean(document.getElementById("cText")?.value || "");
+          return { cLine: `© ${year}, Morgann Music CP, ${txt}`, pLine: null };
+        }
+      })(),
       upc: clean(document.getElementById("upcCode").value) || null,
       license: document.getElementById("licenseType").value,
       schedule: {
@@ -2518,7 +2623,13 @@ async function createRelease(isDraft = false, triggerBtn = null) {
         originalDate: clean(document.getElementById("originalDate")?.value) || null,
         preorderDate: clean(document.getElementById("preorderDate")?.value) || null
       },
-      assets: { coverUrl: uploadedAssets.cover11, motion11: uploadedAssets.motion11, motion34: uploadedAssets.motion34 },
+      assets: {
+        coverUrl: uploadedAssets.cover11 || null,
+        appleMotion: {
+          oneOneUrl: uploadedAssets.motion11 || null,
+          threeFourUrl: uploadedAssets.motion34 || null
+        }
+      },
       addons: { 
         yt: document.getElementById("addonYT").checked, 
         meta: document.getElementById("addonMeta").checked,
@@ -2531,10 +2642,11 @@ async function createRelease(isDraft = false, triggerBtn = null) {
         lyricFind: document.getElementById("addonLF").checked
       },
       tracks,
+      versionLine: clean(document.getElementById("releaseVersion")?.value) || null,
       statusUser: isDraft ? "Brouillon" : "Envoyée (vérification en cours)",
       statusAdmin: isDraft ? "Brouillon" : "À vérifier",
-      updatedAt: serverTimestamp(),
-      version: clean(document.getElementById("releaseVersion")?.value)
+      statusCode: isDraft ? null : "1",
+      updatedAt: serverTimestamp()
     };
 
     console.log("📤 Envoi vers Firestore...");
@@ -2577,27 +2689,28 @@ onAuthStateChanged(auth, async user => {
   currentUser = user;
   disableOnboardingPopupsForEditMode();
 
-  // Récupérer données user
-  try {
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (snap.exists()) currentUserData = snap.data();
-  } catch(e) {}
-
-  isTestVisitor = currentUserData?.role === "teste";
-
-  if (isTestVisitor) {
-    const notice = document.getElementById("testModeNotice");
-    notice.textContent = "👀 Mode visiteur — consultation uniquement, aucune publication possible.";
-    notice.classList.add("show");
-  }
-
-  // Lancer la séquence de popups uniquement en création
+  // Lancer le popup immédiatement (sans attendre les données user)
   if (!editReleaseId) {
     initPopupFlow();
   } else {
     document.getElementById("popupTitle")?.classList.remove("active");
     document.getElementById("popupArtist")?.classList.remove("active");
     document.getElementById("popupAddArtist")?.classList.remove("active");
+  }
+
+  // Récupérer données user (en parallèle du popup)
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (snap.exists()) currentUserData = snap.data();
+  } catch(e) {}
+
+  isTestVisitor = currentUserData?.role === "teste";
+  updateCopyrightUI();
+
+  if (isTestVisitor) {
+    const notice = document.getElementById("testModeNotice");
+    notice.textContent = "👀 Mode visiteur — consultation uniquement, aucune publication possible.";
+    notice.classList.add("show");
   }
 
   await loadArtists();
