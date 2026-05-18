@@ -40,6 +40,32 @@
     .badge { font-size:11px; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); white-space:nowrap; }
     .ticketBody { display:none; padding:10px; border-top:1px solid var(--stroke); }
     .meta { color:var(--muted); font-size:12px; margin-top:4px; }
+
+    /* Litual support chat */
+    .litual-card { border:1px solid rgba(59,130,246,.35); border-radius:18px; padding:14px; margin-bottom:12px; background:rgba(59,130,246,.06); }
+    .litual-chat-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .litual-chat-header img { height:24px; flex-shrink:0; }
+    .litual-chat-header h2 { font-size:16px; font-weight:900; margin:0; }
+    .litual-chat-header p { font-size:12px; color:var(--muted); margin:2px 0 0; }
+    .litual-messages { display:flex; flex-direction:column; gap:8px; margin-bottom:10px; max-height:320px; overflow-y:auto; padding:2px 0; }
+    .litual-msg { display:flex; gap:8px; align-items:flex-start; }
+    .litual-msg.user { flex-direction:row-reverse; }
+    .litual-bubble { border-radius:12px; padding:9px 12px; font-size:13px; line-height:1.55; max-width:88%; white-space:pre-wrap; word-break:break-word; }
+    .litual-bubble.ai { background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.22); }
+    .litual-bubble.user { background:rgba(0,0,0,.07); border:1px solid var(--stroke); }
+    @media (prefers-color-scheme:dark){ .litual-bubble.user{ background:rgba(255,255,255,.07); } }
+    .litual-avatar { width:24px; height:24px; border-radius:999px; flex-shrink:0; object-fit:cover; margin-top:2px; }
+    .litual-avatar-user { width:24px; height:24px; border-radius:999px; flex-shrink:0; background:var(--stroke); margin-top:2px; }
+    .litual-solution { border:1px solid rgba(34,197,94,.35); border-radius:12px; padding:10px; background:rgba(34,197,94,.07); font-size:13px; line-height:1.65; white-space:pre-wrap; }
+    .litual-ticket-preview { border:1px solid var(--stroke); border-radius:10px; padding:8px 10px; font-size:12px; margin-bottom:8px; background:rgba(0,0,0,.03); }
+    @media (prefers-color-scheme:dark){ .litual-ticket-preview{ background:rgba(255,255,255,.04); } }
+    .litual-thinking { display:flex; gap:4px; align-items:center; padding:2px 0; }
+    .litual-dot { width:6px; height:6px; border-radius:999px; background:var(--muted); animation:litual-bounce .9s infinite; }
+    .litual-dot:nth-child(2){ animation-delay:.15s; }
+    .litual-dot:nth-child(3){ animation-delay:.3s; }
+    @keyframes litual-bounce{ 0%,80%,100%{ transform:translateY(0); } 40%{ transform:translateY(-5px); } }
+    .litual-input-row { display:flex; gap:8px; align-items:center; }
+    .litual-input-row .input { flex:1; font-size:13px; }
   </style>
 </head>
 <body>
@@ -50,6 +76,23 @@
 
     <div class="toolbar">
       <a class="btn" href="https://support.mm-cp.uk" target="_blank" rel="noopener">Support IA & Articles</a>
+    </div>
+
+    <!-- Litual Diagnostic -->
+    <div class="card litual-card">
+      <div class="litual-chat-header">
+        <img src="/assets/Litual/o!§ititititt.png" alt="Litual">
+        <div style="flex:1;">
+          <h2>Litual — Diagnostic</h2>
+          <p>Décris ton problème en quelques mots. Litual te pose des questions, puis te guide vers une solution ou prépare ton ticket.</p>
+        </div>
+        <button id="litualReset" class="btn" type="button" style="margin-left:auto;font-size:12px;white-space:nowrap;">↺ Reset</button>
+      </div>
+      <div id="litualMessages" class="litual-messages"></div>
+      <div class="litual-input-row">
+        <input id="litualInput" class="input" placeholder="Décris ton problème en quelques mots…" autocomplete="off" />
+        <button id="litualSend" class="btn primary" type="button">Envoyer</button>
+      </div>
     </div>
 
     <section class="card">
@@ -453,7 +496,178 @@
       updateCategoryFields();
       renderTickets(await loadMyTickets(user.uid));
     });
+
+    /* ─── Litual Support Chat ─── */
+    const LITUAL_INSTR = `Tu es Litual, assistante IA de Morgann Music CP. Tu aides les artistes à diagnostiquer leurs problèmes de support.
+Règles absolues :
+- Pose des questions précises et courtes (maximum 2 questions à la fois) pour bien cerner le problème.
+- Après 2 à 3 échanges maximum, prends une décision définitive :
+  * Si le problème peut se résoudre sans l'équipe MMCP : réponds UNIQUEMENT avec ce bloc : [SOLUTION]explication claire étape par étape[/SOLUTION]
+  * Si le problème nécessite l'équipe MMCP : réponds UNIQUEMENT avec ce bloc : [TICKET]{"title":"titre court et précis","description":"message détaillé et professionnel pour l'équipe support","category":"tech|billing|payment|artist_name|youtube_oac|youtube_remap|redelivery|release_refusal|copyright|other"}[/TICKET]
+- Réponds TOUJOURS en français, de façon concise et bienveillante.
+- Ne génère jamais les deux blocs en même temps.
+- Tant que tu poses des questions, réponds normalement sans aucun bloc.`;
+
+    const litualHist = [];
+    let litualBusy = false;
+
+    function escL(s){ return String(s||"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m])); }
+
+    function appendLMsg(role, htmlContent, raw){
+      const root = $("litualMessages");
+      if (!root) return;
+      const wrap = document.createElement("div");
+      wrap.className = "litual-msg " + role;
+      const av = role === "ai"
+        ? `<img class="litual-avatar" src="/assets/Litual/o!§ititititt.png" alt="Litual">`
+        : `<div class="litual-avatar-user"></div>`;
+      wrap.innerHTML = av + `<div class="litual-bubble ${role}">${htmlContent}</div>`;
+      root.appendChild(wrap);
+      root.scrollTop = root.scrollHeight;
+      if (raw) litualHist.push({ role: role === "ai" ? "assistant" : "user", content: raw });
+    }
+
+    function appendThinking(){
+      const root = $("litualMessages");
+      if (!root) return;
+      const wrap = document.createElement("div");
+      wrap.className = "litual-msg ai litual-thinking-wrap";
+      wrap.innerHTML = `<img class="litual-avatar" src="/assets/Litual/o!§ititititt.png" alt="Litual">
+        <div class="litual-bubble ai litual-thinking"><div class="litual-dot"></div><div class="litual-dot"></div><div class="litual-dot"></div></div>`;
+      root.appendChild(wrap);
+      root.scrollTop = root.scrollHeight;
+    }
+
+    function removeThinking(){ document.querySelectorAll(".litual-thinking-wrap").forEach(e=>e.remove()); }
+
+    function handleLitualResp(rawText){
+      removeThinking();
+      const solMatch = /\[SOLUTION\]([\s\S]*?)\[\/SOLUTION\]/.exec(rawText);
+      const tktMatch = /\[TICKET\]([\s\S]*?)\[\/TICKET\]/.exec(rawText);
+
+      if (solMatch){
+        const sol = solMatch[1].trim();
+        litualHist.push({ role:"assistant", content: rawText });
+        const root = $("litualMessages");
+        const wrap = document.createElement("div");
+        wrap.className = "litual-msg ai";
+        wrap.innerHTML = `<img class="litual-avatar" src="/assets/Litual/o!§ititititt.png" alt="Litual">
+          <div style="max-width:88%;">
+            <div class="litual-bubble ai" style="margin-bottom:6px;">✅ Voilà comment régler ça :</div>
+            <div class="litual-solution">${escL(sol)}</div>
+            <div style="margin-top:8px;">
+              <button class="btn" id="litualNotFixed" type="button" style="font-size:12px;">Ça ne règle pas le problème</button>
+            </div>
+          </div>`;
+        root.appendChild(wrap);
+        root.scrollTop = root.scrollHeight;
+        document.getElementById("litualNotFixed")?.addEventListener("click", () => {
+          document.getElementById("litualNotFixed").disabled = true;
+          const msg = "Cette solution ne résout pas mon problème. Génère un ticket support pour moi.";
+          appendLMsg("user", escL(msg), msg);
+          doLitualSend();
+        });
+        return;
+      }
+
+      if (tktMatch){
+        let tkt = {};
+        try { tkt = JSON.parse(tktMatch[1].trim().replace(/^[\s\*`]+|[\s\*`]+$/g,"")); } catch {}
+        litualHist.push({ role:"assistant", content: rawText });
+        const root = $("litualMessages");
+        const wrap = document.createElement("div");
+        wrap.className = "litual-msg ai";
+        wrap.innerHTML = `<img class="litual-avatar" src="/assets/Litual/o!§ititititt.png" alt="Litual">
+          <div style="max-width:88%;">
+            <div class="litual-bubble ai" style="margin-bottom:6px;">J'ai préparé ton ticket. Voilà ce que j'ai rédigé :</div>
+            <div class="litual-ticket-preview">
+              <div><b>Titre :</b> ${escL(tkt.title||"—")}</div>
+              <div style="margin-top:4px;color:var(--muted);">${escL((tkt.description||"").slice(0,140))}…</div>
+            </div>
+            <button class="btn primary" id="litualFillForm" type="button" style="font-size:12px;">Pré-remplir le formulaire ↓</button>
+          </div>`;
+        root.appendChild(wrap);
+        root.scrollTop = root.scrollHeight;
+        document.getElementById("litualFillForm")?.addEventListener("click", () => {
+          if (tkt.category){ $("category").value = tkt.category; updateCategoryFields(); }
+          if (tkt.title) $("title").value = tkt.title;
+          if (tkt.description) $("description").value = tkt.description;
+          document.querySelector("section.card")?.scrollIntoView({ behavior:"smooth", block:"start" });
+          const btn = document.getElementById("litualFillForm");
+          if (btn){ btn.textContent = "✅ Formulaire rempli"; btn.disabled = true; }
+        });
+        return;
+      }
+
+      const plain = rawText
+        .replace(/\[SOLUTION\][\s\S]*?\[\/SOLUTION\]/g,"")
+        .replace(/\[TICKET\][\s\S]*?\[\/TICKET\]/g,"")
+        .trim();
+      if (plain) appendLMsg("ai", escL(plain), plain);
+    }
+
+    async function doLitualSend(){
+      if (litualBusy) return;
+      litualBusy = true;
+      $("litualSend").disabled = true;
+      appendThinking();
+      try {
+        const res = await fetch("https://litual.ai.morgannmusic.uk", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ messages: litualHist, instruction: LITUAL_INSTR })
+        });
+        if (!res.body) throw new Error("Pas de réponse");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "", allText = "";
+        while(true){
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream:true });
+          const lines = buffer.split(/\r?\n/); buffer = lines.pop();
+          for (const line of lines){
+            if (line.startsWith("data:")) try { const o = JSON.parse(line.replace(/^data:\s*/,"")); if (o.response) allText += o.response; } catch {}
+          }
+        }
+        handleLitualResp(allText);
+      } catch {
+        removeThinking();
+        appendLMsg("ai", escL("Impossible de contacter Litual. Réessaie dans un instant."), "Impossible de contacter Litual.");
+      } finally {
+        litualBusy = false;
+        $("litualSend").disabled = false;
+        $("litualInput")?.focus();
+      }
+    }
+
+    // Salutation initiale
+    setTimeout(() => {
+      appendLMsg("ai", escL("Bonjour ! Je suis Litual 👋 Décris-moi ton problème en quelques mots et je vais t'aider."), "Bonjour ! Je suis Litual 👋 Décris-moi ton problème en quelques mots et je vais t'aider.");
+    }, 350);
+
+    $("litualSend")?.addEventListener("click", () => {
+      const input = $("litualInput");
+      const text = String(input?.value||"").trim();
+      if (!text || litualBusy) return;
+      input.value = "";
+      appendLMsg("user", escL(text), text);
+      doLitualSend();
+    });
+
+    $("litualInput")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); $("litualSend")?.click(); }
+    });
+
+    $("litualReset")?.addEventListener("click", () => {
+      litualHist.length = 0;
+      const root = $("litualMessages");
+      if (root) root.innerHTML = "";
+      setTimeout(() => {
+        appendLMsg("ai", escL("C'est reparti ! Décris-moi ton nouveau problème."), "C'est reparti ! Décris-moi ton nouveau problème.");
+      }, 100);
+    });
   </script>
   <script src="/assets/js/dash/artist-sidebar.js"></script>
 </body>
-</html>
+</html> 
