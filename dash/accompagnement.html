@@ -124,6 +124,11 @@
     @media (max-width: 700px){
       .title{font-size:26px}
     }
+    /* Litual Calendar */
+    .litual-thinking{color:var(--muted);font-size:13px;animation:litual-blink 1s infinite alternate}
+    @keyframes litual-blink{from{opacity:.4}to{opacity:1}}
+    .litual-proposal{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;background:rgba(59,130,246,.07)}
+    .litual-proposal h4{font-size:14px;font-weight:700;margin-bottom:4px}
   </style>
 </head>
 <body>
@@ -156,6 +161,7 @@
           <div class="calendar-toolbar">
             <div class="line">
               <button id="calAddOpen" class="btn primary" type="button" title="Ajouter une sortie (⌘/Ctrl+N)">＋</button>
+              <button id="calLitualOpen" class="btn" type="button" title="Litual IA – proposer des dates">🤖 Litual</button>
               <button id="calPrev" class="btn" type="button">←</button>
               <button id="calToday" class="btn" type="button">Aujourd'hui</button>
               <button id="calNext" class="btn" type="button">→</button>
@@ -194,6 +200,7 @@
           <h2 class="sectionHeading"><img class="tabIcon" src="/assets/icon/Artist-Song--Streamline-Flex.svg" alt="">Liste d'album</h2>
           <div class="line" style="margin-bottom:10px;">
             <button id="btnAddAlbumList" class="btn primary" type="button">＋ Nouvelle liste</button>
+            <button id="litualListOpen" class="btn" type="button" title="Litual IA – Générer une liste">🤖 Litual</button>
           </div>
           <div id="albumLists"></div>
         </article>
@@ -263,6 +270,36 @@ Fichiers à compléter avant publication finale dans l'uploader : audio principa
           <div id="pitchList" class="list"></div>
         </article>
       </section>
+    </div>
+
+    <!-- Litual AI – Proposer des dates de sortie -->
+    <div id="litualCalModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="litualCalModalTitle">
+      <div class="modalBox" style="max-width:560px;">
+        <h3 id="litualCalModalTitle" class="modalTitle">🤖 Litual — Proposer des dates</h3>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:10px;">Décris ton projet et Litual te suggère des dates stratégiques à ajouter directement à ton calendrier.</p>
+        <textarea id="litualCalInput" class="textarea" placeholder="Ex: Je veux sortir un single pop en automne, j'ai 6 semaines de promo disponibles…" style="min-height:80px;"></textarea>
+        <div class="line" style="margin-top:8px;justify-content:flex-end;">
+          <button id="litualCalModalCancel" class="btn" type="button">Fermer</button>
+          <button id="litualCalSend" class="btn primary" type="button">Générer ✦</button>
+        </div>
+        <div id="litualCalResponse" style="margin-top:12px;"></div>
+        <span id="litualCalMsg" class="muted" style="display:block;margin-top:6px;"></span>
+      </div>
+    </div>
+
+    <!-- Litual AI – Générer une liste de pistes -->
+    <div id="litualListModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="litualListModalTitle">
+      <div class="modalBox" style="max-width:560px;">
+        <h3 id="litualListModalTitle" class="modalTitle">🤖 Litual — Générer une liste</h3>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:10px;">Décris ton projet et Litual génère une tracklist à ajouter directement à tes listes.</p>
+        <textarea id="litualListInput" class="textarea" placeholder="Ex: EP de 5 titres R&amp;B entre 2 et 4 min, ambiance lo-fi…" style="min-height:80px;"></textarea>
+        <div class="line" style="margin-top:8px;justify-content:flex-end;">
+          <button id="litualListModalCancel" class="btn" type="button">Fermer</button>
+          <button id="litualListSend" class="btn primary" type="button">Générer ✦</button>
+        </div>
+        <div id="litualListResponse" style="margin-top:12px;"></div>
+        <span id="litualListMsg" class="muted" style="display:block;margin-top:6px;"></span>
+      </div>
     </div>
 
     <!-- ✅ Modal ajout sortie -->
@@ -401,7 +438,8 @@ Fichiers à compléter avant publication finale dans l'uploader : audio principa
 
       const blockedIds = [
         "calAddOpen", "dayContextAdd", "btnAddPlan", "btnDeletePlan",
-        "btnAddGoal", "btnAddDraftTrack", "btnSaveDraft", "btnSendFeat", "btnSendPitch"
+        "btnAddGoal", "btnAddDraftTrack", "btnSaveDraft", "btnSendFeat", "btnSendPitch",
+        "litualCalSend", "litualListSend"
       ];
 
       blockedIds.forEach((id) => {
@@ -1331,6 +1369,248 @@ Fichiers à compléter avant publication finale dans l'uploader : audio principa
       });
     }
 
+    function initLitualCalModal(uid) {
+      const modal = $("litualCalModal");
+      const cancelBtn = $("litualCalModalCancel");
+      const sendBtn2 = $("litualCalSend");
+      const input = $("litualCalInput");
+      const responseDiv = $("litualCalResponse");
+      const msgSpan = $("litualCalMsg");
+
+      $("calLitualOpen")?.addEventListener("click", () => {
+        modal?.classList.remove("hidden");
+        setTimeout(() => input?.focus(), 0);
+      });
+
+      cancelBtn?.addEventListener("click", () => {
+        modal?.classList.add("hidden");
+        if (responseDiv) responseDiv.innerHTML = "";
+        if (msgSpan) msgSpan.textContent = "";
+        if (input) input.value = "";
+      });
+
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.add("hidden");
+      });
+
+      sendBtn2?.addEventListener("click", async () => {
+        const msg = clean(input?.value || "");
+        if (!msg) return;
+        sendBtn2.disabled = true;
+        if (responseDiv) responseDiv.innerHTML = '<div class="litual-thinking">Litual réfléchit…</div>';
+        if (msgSpan) msgSpan.textContent = "";
+        const today = new Date().toISOString().slice(0, 10);
+        const instruction = `Tu es Litual, assistant musical intégré à Morgann Music CP. L'utilisateur est un artiste signé avec accès à la section Accompagnement. Il te demande de lui proposer des dates de sortie musicale. Aujourd'hui nous sommes le ${today}. Propose 2 à 4 dates pertinentes pour ses sorties, en expliquant brièvement pourquoi chaque date est stratégique (saisons musicales, éviter les conflits de sorties, etc.). Pour chaque date proposée, inclus OBLIGATOIREMENT un bloc JSON au format exact suivant :\n[RELEASE_DATE]{"title":"Nom du projet","date":"YYYY-MM-DD","teasing":"Idée de teasing","campaign":"Idée de campagne promo"}[/RELEASE_DATE]\nRéponds en français, de façon concise et créative.`;
+
+        try {
+          const res = await fetch("https://litual.ai.morgannmusic.uk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: [{ role: "user", content: msg }], instruction })
+          });
+          if (!res.body) throw new Error("Pas de réponse");
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let allText = "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split(/\r?\n/);
+            buffer = lines.pop();
+            for (const line of lines) {
+              if (line.startsWith("data:")) {
+                try {
+                  const obj = JSON.parse(line.replace(/^data:\s*/, ""));
+                  if (obj.response) allText += obj.response;
+                } catch {}
+              }
+            }
+          }
+          renderLitualCalResponse(allText, uid, responseDiv, msgSpan);
+        } catch {
+          if (responseDiv) responseDiv.innerHTML = '<span class="warn">Impossible de contacter Litual. Réessaie.</span>';
+        } finally {
+          sendBtn2.disabled = false;
+        }
+      });
+    }
+
+    function renderLitualCalResponse(text, uid, responseDiv, msgSpan) {
+      const blocks = [];
+      const re = /\[RELEASE_DATE\]([\s\S]*?)\[\/RELEASE_DATE\]/g;
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        try { blocks.push(JSON.parse(m[1].trim())); } catch {}
+      }
+      const displayText = text.replace(/\[RELEASE_DATE\][\s\S]*?\[\/RELEASE_DATE\]/g, "").trim();
+      let html = `<div style="font-size:14px;line-height:1.6;white-space:pre-wrap;color:var(--txt);">${esc(displayText)}</div>`;
+      if (blocks.length) {
+        html += `<div style="font-weight:700;font-size:13px;margin-top:10px;">Dates proposées :</div>`;
+        blocks.forEach((b, i) => {
+          html += `
+            <div class="litual-proposal">
+              <h4>${esc(b.title || "Sortie")} — <span style="color:var(--blue);">${esc(b.date || "")}</span></h4>
+              ${b.teasing ? `<div class="muted">Teasing : ${esc(b.teasing)}</div>` : ""}
+              ${b.campaign ? `<div class="muted">Promo : ${esc(b.campaign)}</div>` : ""}
+              <div class="line" style="margin-top:8px;">
+                <button class="btn primary" style="font-size:13px;" data-add-litual="${i}">➕ Ajouter au calendrier</button>
+                <span class="muted" id="litualPlanMsg-${i}"></span>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        html += `<div class="muted" style="margin-top:8px;font-size:13px;">Aucune date trouvée. Réessaie en précisant bien ton projet.</div>`;
+      }
+      if (responseDiv) responseDiv.innerHTML = html;
+      responseDiv?.querySelectorAll("[data-add-litual]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const idx = Number(btn.getAttribute("data-add-litual"));
+          const b = blocks[idx];
+          if (!b || !b.date || !b.title) return;
+          btn.disabled = true;
+          const statusEl = document.getElementById(`litualPlanMsg-${idx}`);
+          if (statusEl) statusEl.textContent = "Ajout en cours…";
+          try {
+            await addDoc(collection(db, "accompagnementPlans"), {
+              ownerUid: uid,
+              title: clean(b.title),
+              plannedDate: clean(b.date),
+              teasing: clean(b.teasing || ""),
+              campaign: clean(b.campaign || ""),
+              source: "litual",
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            if (statusEl) statusEl.textContent = "✅ Ajouté au calendrier !";
+            btn.textContent = "✅ Ajouté";
+            setSelectedDay(clean(b.date));
+            await loadPlans(uid);
+          } catch {
+            if (statusEl) statusEl.textContent = "Erreur d'ajout.";
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    function initLitualListModal(uid) {
+      const modal = $("litualListModal");
+      const cancelBtn = $("litualListModalCancel");
+      const sendBtn3 = $("litualListSend");
+      const input = $("litualListInput");
+      const responseDiv = $("litualListResponse");
+      const msgSpan = $("litualListMsg");
+
+      $("litualListOpen")?.addEventListener("click", () => {
+        modal?.classList.remove("hidden");
+        setTimeout(() => input?.focus(), 0);
+      });
+      cancelBtn?.addEventListener("click", () => {
+        modal?.classList.add("hidden");
+        if (responseDiv) responseDiv.innerHTML = "";
+        if (msgSpan) msgSpan.textContent = "";
+        if (input) input.value = "";
+      });
+      modal?.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.add("hidden");
+      });
+
+      sendBtn3?.addEventListener("click", async () => {
+        const msg = clean(input?.value || "");
+        if (!msg) return;
+        sendBtn3.disabled = true;
+        if (responseDiv) responseDiv.innerHTML = '<div class="litual-thinking">Litual génère ta liste…</div>';
+        if (msgSpan) msgSpan.textContent = "";
+        const instruction = `Tu es Litual, assistant musical intégré à Morgann Music CP. L'utilisateur est un artiste signé. Il te demande de générer une liste de pistes pour son projet. Génère une tracklist créative et cohérente. Inclus OBLIGATOIREMENT un bloc JSON au format exact suivant :\n[ALBUM_LIST]{"name":"Nom du projet","tracks":["Titre 1","Titre 2","Titre 3"]}[/ALBUM_LIST]\nLes noms de pistes doivent être inspirants et cohérents avec le genre décrit. Réponds en français.`;
+        try {
+          const res = await fetch("https://litual.ai.morgannmusic.uk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: [{ role: "user", content: msg }], instruction })
+          });
+          if (!res.body) throw new Error("Pas de réponse");
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "", allText = "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split(/\r?\n/);
+            buffer = lines.pop();
+            for (const line of lines) {
+              if (line.startsWith("data:")) {
+                try { const obj = JSON.parse(line.replace(/^data:\s*/, "")); if (obj.response) allText += obj.response; } catch {}
+              }
+            }
+          }
+          renderLitualListResponse(allText, uid, responseDiv, msgSpan);
+        } catch {
+          if (responseDiv) responseDiv.innerHTML = '<span class="warn">Impossible de contacter Litual. Réessaie.</span>';
+        } finally {
+          sendBtn3.disabled = false;
+        }
+      });
+    }
+
+    function renderLitualListResponse(text, uid, responseDiv) {
+      const blocks = [];
+      const re = /\[ALBUM_LIST\]([\s\S]*?)\[\/ALBUM_LIST\]/g;
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        try { blocks.push(JSON.parse(m[1].trim())); } catch {}
+      }
+      const displayText = text.replace(/\[ALBUM_LIST\][\s\S]*?\[\/ALBUM_LIST\]/g, "").trim();
+      let html = displayText ? `<div style="font-size:14px;line-height:1.6;white-space:pre-wrap;color:var(--txt);">${esc(displayText)}</div>` : "";
+      if (blocks.length) {
+        blocks.forEach((b, i) => {
+          const tracks = Array.isArray(b.tracks) ? b.tracks : [];
+          html += `
+            <div class="litual-proposal">
+              <h4>🎵 ${esc(b.name || "Nouvelle liste")}</h4>
+              <ol style="margin:6px 0 8px 18px;font-size:13px;">${tracks.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
+              <div class="line" style="margin-top:8px;">
+                <button class="btn primary" style="font-size:13px;" data-add-list="${i}">➕ Ajouter à mes listes</button>
+                <span class="muted" id="litualListMsg-${i}"></span>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        html += `<div class="muted" style="margin-top:8px;font-size:13px;">Aucune liste générée. Réessaie en précisant ton projet.</div>`;
+      }
+      if (responseDiv) responseDiv.innerHTML = html;
+      responseDiv?.querySelectorAll("[data-add-list]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const idx = Number(btn.getAttribute("data-add-list"));
+          const b = blocks[idx];
+          if (!b || !b.name) return;
+          btn.disabled = true;
+          const statusEl = document.getElementById(`litualListMsg-${idx}`);
+          if (statusEl) statusEl.textContent = "Ajout en cours…";
+          try {
+            const tracks = Array.isArray(b.tracks) ? b.tracks.filter(t => String(t || "").trim()) : [];
+            await addDoc(collection(db, "albumLists"), {
+              ownerUid: uid,
+              name: clean(b.name),
+              tracks,
+              source: "litual",
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            if (statusEl) statusEl.textContent = "✅ Ajoutée !";
+            btn.textContent = "✅ Ajoutée";
+          } catch {
+            if (statusEl) statusEl.textContent = "Erreur d'ajout.";
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
     onAuthStateChanged(auth, async (user) => {
       try {
         if (!user){
@@ -1364,6 +1644,8 @@ Fichiers à compléter avant publication finale dans l'uploader : audio principa
         ]);
 
         await bindActions(user.uid);
+        initLitualCalModal(user.uid);
+        initLitualListModal(user.uid);
       } catch (error) {
         console.error("Erreur chargement accompagnement:", error);
       }

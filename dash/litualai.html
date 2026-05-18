@@ -519,7 +519,7 @@
               });
           import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
           import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-          import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+          import { getFirestore, collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
           const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
@@ -533,9 +533,11 @@
           const auth = getAuth(app);
           const db = getFirestore(app);
 
-          let userInfos = {prenom: '', nom: '', sorties: []};
+          let userInfos = {prenom: '', nom: '', sorties: [], hasAccompagnement: false};
+          let currentUid = null;
           onAuthStateChanged(auth, async (user) => {
             if (!user) return;
+            currentUid = user.uid;
             // Récupère nom/prénom
             try {
               const userSnap = await getDoc(doc(db, "users", user.uid));
@@ -543,6 +545,8 @@
                 const d = userSnap.data();
                 userInfos.prenom = d.prenom || d.firstName || '';
                 userInfos.nom = d.nom || d.lastName || '';
+                userInfos.hasAccompagnement = isSignedArtist(d);
+                if (userInfos.hasAccompagnement) showAccompagnementChips();
               }
             } catch {}
             // Récupère toutes les sorties
@@ -605,6 +609,148 @@
       });
     });
 
+    function isSignedArtist(d) {
+      if (!d || typeof d !== "object") return false;
+      const norm = v => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const vals = [norm(d.role), norm(d.userRole), norm(d.accountType), norm(d.status), norm(d.plan), norm(d.subscription)];
+      const signed = ["artist","artiste","artiste signe","signed artist","signed","teste","test","artiste test","test artist"];
+      return vals.some(v => signed.includes(v)) || d.isArtist === true || d.artist === true || norm(d.role) === "admin";
+    }
+
+    function escHtml(s) {
+      return String(s || "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[m]);
+    }
+
+    function showAccompagnementChips() {
+      const chatTools = document.querySelector(".chat-tools");
+      if (!chatTools || document.getElementById("chipDates")) return;
+      const chip = document.createElement("button");
+      chip.className = "prompt-chip";
+      chip.id = "chipDates";
+      chip.type = "button";
+      chip.textContent = "📅 Proposer des dates de sortie";
+      chip.dataset.prompt = "Propose-moi des dates stratégiques pour ma prochaine sortie musicale et ajoute-les à mon calendrier d'accompagnement.";
+      chatTools.appendChild(chip);
+      chip.addEventListener("click", () => {
+        chatInput.value = chip.dataset.prompt;
+        chatInput.style.height = "auto";
+        chatInput.style.height = chatInput.scrollHeight + "px";
+        sendBtn.disabled = false;
+        chatInput.focus();
+      });
+      const chip2 = document.createElement("button");
+      chip2.className = "prompt-chip";
+      chip2.id = "chipTracklist";
+      chip2.type = "button";
+      chip2.textContent = "📋 Créer une liste de pistes";
+      chip2.dataset.prompt = "Génère-moi une tracklist créative pour mon prochain projet musical et ajoute-la à mes listes.";
+      chatTools.appendChild(chip2);
+      chip2.addEventListener("click", () => {
+        chatInput.value = chip2.dataset.prompt;
+        chatInput.style.height = "auto";
+        chatInput.style.height = chatInput.scrollHeight + "px";
+        sendBtn.disabled = false;
+        chatInput.focus();
+      });
+    }
+
+    function appendCalendarProposals(parentEl, blocks, uid) {
+      if (!blocks.length || !uid) return;
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "margin-top:12px;display:flex;flex-direction:column;gap:8px;";
+      const label = document.createElement("div");
+      label.style.cssText = "font-size:12px;font-weight:700;color:var(--mm-muted);margin-bottom:4px;";
+      label.textContent = "📅 Dates proposées pour ton calendrier :";
+      wrapper.appendChild(label);
+      blocks.forEach((b, i) => {
+        const card = document.createElement("div");
+        card.style.cssText = "border:1px solid var(--mm-line);border-radius:10px;padding:10px;background:rgba(47,99,255,.06);";
+        card.innerHTML = `
+          <div style="font-weight:700;font-size:13px;">${escHtml(b.title || "Sortie")} — <span style="color:var(--mm-accent);">${escHtml(b.date || "")}</span></div>
+          ${b.teasing ? `<div style="color:var(--mm-muted);font-size:12px;margin-top:3px;">Teasing : ${escHtml(b.teasing)}</div>` : ""}
+          ${b.campaign ? `<div style="color:var(--mm-muted);font-size:12px;">Promo : ${escHtml(b.campaign)}</div>` : ""}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <button class="prompt-chip" style="padding:6px 12px;font-size:12px;cursor:pointer;" data-cal-idx="${i}">➕ Ajouter au calendrier</button>
+            <span id="litual-cal-status-${i}" style="font-size:12px;color:var(--mm-muted);"></span>
+          </div>
+        `;
+        wrapper.appendChild(card);
+        card.querySelector(`[data-cal-idx="${i}"]`).addEventListener("click", async () => {
+          const btn = card.querySelector(`[data-cal-idx="${i}"]`);
+          const status = document.getElementById(`litual-cal-status-${i}`);
+          btn.disabled = true;
+          if (status) status.textContent = "Ajout en cours…";
+          try {
+            await addDoc(collection(db, "accompagnementPlans"), {
+              ownerUid: uid,
+              title: String(b.title || "Sortie proposée"),
+              plannedDate: String(b.date || ""),
+              teasing: String(b.teasing || ""),
+              campaign: String(b.campaign || ""),
+              source: "litual",
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            if (status) status.textContent = "✅ Ajouté !";
+            btn.textContent = "✅ Ajouté";
+          } catch {
+            if (status) status.textContent = "Erreur.";
+            btn.disabled = false;
+          }
+        });
+      });
+      parentEl.appendChild(wrapper);
+      chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: "smooth" });
+    }
+
+    function appendListProposals(parentEl, blocks, uid) {
+      if (!blocks.length || !uid) return;
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "margin-top:12px;display:flex;flex-direction:column;gap:8px;";
+      const label = document.createElement("div");
+      label.style.cssText = "font-size:12px;font-weight:700;color:var(--mm-muted);margin-bottom:4px;";
+      label.textContent = "🎵 Listes de pistes générées :";
+      wrapper.appendChild(label);
+      blocks.forEach((b, i) => {
+        const tracks = Array.isArray(b.tracks) ? b.tracks : [];
+        const card = document.createElement("div");
+        card.style.cssText = "border:1px solid var(--mm-line);border-radius:10px;padding:10px;background:rgba(47,99,255,.06);";
+        const tracksList = tracks.map((t, n) => `<div style="font-size:12px;color:var(--mm-muted);">${n+1}. ${escHtml(t)}</div>`).join("");
+        card.innerHTML = `
+          <div style="font-weight:700;font-size:13px;">${escHtml(b.name || "Nouvelle liste")}</div>
+          <div style="margin-top:6px;">${tracksList}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <button class="prompt-chip" style="padding:6px 12px;font-size:12px;cursor:pointer;" data-list-idx="${i}">➕ Ajouter à mes listes</button>
+            <span id="litual-list-status-${i}" style="font-size:12px;color:var(--mm-muted);"></span>
+          </div>
+        `;
+        wrapper.appendChild(card);
+        card.querySelector(`[data-list-idx="${i}"]`).addEventListener("click", async () => {
+          const btn = card.querySelector(`[data-list-idx="${i}"]`);
+          const status = document.getElementById(`litual-list-status-${i}`);
+          btn.disabled = true;
+          if (status) status.textContent = "Ajout en cours…";
+          try {
+            await addDoc(collection(db, "albumLists"), {
+              ownerUid: uid,
+              name: String(b.name || "Nouvelle liste"),
+              tracks: tracks.filter(t => String(t || "").trim()),
+              source: "litual",
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            if (status) status.textContent = "✅ Ajoutée !";
+            btn.textContent = "✅ Ajoutée";
+          } catch {
+            if (status) status.textContent = "Erreur.";
+            btn.disabled = false;
+          }
+        });
+      });
+      parentEl.appendChild(wrapper);
+      chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: "smooth" });
+    }
+
     async function sendMessage() {
       const msg = chatInput.value.trim();
       if (!msg) return;
@@ -642,7 +788,10 @@
           });
         }
         context += `\nTu dois TOUJOURS garder en mémoire ces informations utilisateur pour toute la session, et t'en servir pour personnaliser tes réponses.\n`;
-        const instruction = context + `Réponds comme un assistant musical expert, en markdown. Tu es Litual, integré à Morgann Music CP, et tu aides les artistes à planifier leurs sorties, créer du contenu promotionnel et optimiser leur stratégie de distribution. Sois concis, pertinent et créatif dans tes réponses. Morgann Music CP est une plateforme de distribution musicale qui aide les artistes à distribuer leur musique partout, à planifier leurs sorties et à optimiser leur stratégie de distribution. Tu peux donner des conseils sur la planification de sortie, la création de contenu promotionnel, l'optimisation de la distribution et répondre à toute question liée à la musique et à l'industrie musicale. Ton site web a toi sans integration est https://ai.morgannmusic.uk. tu le donne uniquement si l'utilisateur te le demande explicitement. Tu parle uniquement francais principalement mais tu peux aussi comprendre et répondre en anglais si l'utilisateur te parle en anglais.`;
+        const calendarInstr = userInfos.hasAccompagnement
+          ? `\n\nL'utilisateur est un artiste signé avec accès à la section Accompagnement. Si l'utilisateur demande des dates de sortie ou une planification calendrier, tu DOIS inclure dans ta réponse des blocs au format exact suivant (un par date proposée) :\n[RELEASE_DATE]{"title":"Nom du projet","date":"YYYY-MM-DD","teasing":"Idée de teasing","campaign":"Idée de campagne promo"}[/RELEASE_DATE]\nCes blocs seront convertis en boutons \u201cAjouter au calendrier\u201d. Propose 2 à 4 dates avec explication stratégique. Date actuelle : ${new Date().toISOString().slice(0,10)}.\n\nSi l'utilisateur demande une tracklist, une liste de pistes ou un plan de projet musical, inclus un bloc au format exact suivant :\n[ALBUM_LIST]{"name":"Nom du projet","tracks":["Titre 1","Titre 2","Titre 3"]}[/ALBUM_LIST]\nCe bloc sera converti en bouton \u201cAjouter à mes listes\u201d.`
+          : "";
+        const instruction = context + `Réponds comme un assistant musical expert, en markdown. Tu es Litual, integré à Morgann Music CP, et tu aides les artistes à planifier leurs sorties, créer du contenu promotionnel et optimiser leur stratégie de distribution. Sois concis, pertinent et créatif dans tes réponses. Morgann Music CP est une plateforme de distribution musicale qui aide les artistes à distribuer leur musique partout, à planifier leurs sorties et à optimiser leur stratégie de distribution. Tu peux donner des conseils sur la planification de sortie, la création de contenu promotionnel, l'optimisation de la distribution et répondre à toute question liée à la musique et à l'industrie musicale. Ton site web a toi sans integration est https://ai.morgannmusic.uk. tu le donne uniquement si l'utilisateur te le demande explicitement. Tu parle uniquement francais principalement mais tu peux aussi comprendre et répondre en anglais si l'utilisateur te parle en anglais.` + calendarInstr;
         const res = await fetch(url, {
           method: "POST",
           headers: { 'Content-Type': 'application/json' },
@@ -680,7 +829,7 @@
                   let prevWords = lastDisplayed.split(/(\s+)/g);
                   let toShow = words.slice(0, prevWords.length + 1).join("");
                   if (toShow !== lastDisplayed) {
-                    loading.innerHTML = marked.parse(toShow);
+                    loading.innerHTML = marked.parse(toShow.replace(/\[RELEASE_DATE\][\s\S]*?\[\/RELEASE_DATE\]/g, "").replace(/\[ALBUM_LIST\][\s\S]*?\[\/ALBUM_LIST\]/g, "").trim() || toShow);
                     lastDisplayed = toShow;
                     await new Promise(r => setTimeout(r, isFirst ? 0 : 45));
                     isFirst = false;
@@ -691,7 +840,26 @@
           }
         }
         chatWindow.removeChild(loading);
-        addMessage(allText || "Aucun signal.", "gemini", true);
+        const calBlocks = [];
+        const listBlocks = [];
+        if (userInfos.hasAccompagnement) {
+          const calRe = /\[RELEASE_DATE\]([\s\S]*?)\[\/RELEASE_DATE\]/g;
+          let calM;
+          while ((calM = calRe.exec(allText)) !== null) {
+            try { calBlocks.push(JSON.parse(calM[1].trim())); } catch {}
+          }
+          const listRe = /\[ALBUM_LIST\]([\s\S]*?)\[\/ALBUM_LIST\]/g;
+          let listM;
+          while ((listM = listRe.exec(allText)) !== null) {
+            try { listBlocks.push(JSON.parse(listM[1].trim())); } catch {}
+          }
+        }
+        const cleanText = (calBlocks.length || listBlocks.length)
+          ? allText.replace(/\[RELEASE_DATE\][\s\S]*?\[\/RELEASE_DATE\]/g, "").replace(/\[ALBUM_LIST\][\s\S]*?\[\/ALBUM_LIST\]/g, "").trim()
+          : allText;
+        const msgEl = addMessage(cleanText || "Aucun signal.", "gemini", true);
+        if (calBlocks.length && currentUid) appendCalendarProposals(msgEl, calBlocks, currentUid);
+        if (listBlocks.length && currentUid) appendListProposals(msgEl, listBlocks, currentUid);
 
       } catch (e) {
         chatWindow.removeChild(loading);
