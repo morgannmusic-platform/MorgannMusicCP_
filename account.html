@@ -136,11 +136,6 @@
             <p class="note" id="sub-renewal-line" style="display:none;"></p>
             <p class="note" id="sub-cancel-line" style="display:none;"></p>
           </div>
-          <div class="mini-row sub-card-actions">
-            <button type="button" class="btn" id="btnChangeCard"><i class='bx bx-credit-card'></i> Changer de carte</button>
-            <button type="button" class="btn" id="btnViewInvoices"><i class='bx bx-receipt'></i> Mes factures</button>
-            <button type="button" class="mini-btn danger" id="btnCancelSub"><i class='bx bx-x-circle'></i> Résilier</button>
-          </div>
         </div>
 
         <!-- Aucun abonnement -->
@@ -150,21 +145,24 @@
         </div>
 
         <!-- Portail Stripe -->
-        <div style="margin-top:20px; padding:16px 18px; border-radius:12px; background:var(--card-bg, #f9f3e3); border:1px solid var(--border-color, #ecca74);">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M2 7C2 5.89 2.89 5 4 5h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.8"/><path d="M2 10h20" stroke="currentColor" stroke-width="1.8"/></svg>
-            <span style="font-weight:600; font-size:0.95em;">Gestion de l'abonnement via Stripe</span>
+        <div style="margin-top:16px; padding:18px 20px; border-radius:12px; background:var(--card-bg, #f9f3e3); border:1px solid var(--border-color, #ecca74);">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <!-- Logo Stripe officiel -->
+            <svg width="52" height="22" viewBox="0 0 60 25" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+              <path d="M28.02 8.37c-1.26 0-2.07.56-2.52 1.07l-.17-.85H22.7v14.1l2.97-.63.01-3.42c.46.34 1.14.82 2.27.82 2.29 0 4.38-1.84 4.38-5.9-.01-3.72-2.12-5.19-4.31-5.19zm-.76 8.04c-.76 0-1.2-.27-1.51-.61l-.02-4.82c.34-.38.79-.63 1.53-.63 1.17 0 1.98 1.32 1.98 3.02 0 1.74-.79 3.04-1.98 3.04zM35.38 7.2l-2.98.63v2.3l2.98-.64V7.2zM32.4 10.47h2.98v9.23H32.4zM40.5 11.3l-.19-.83h-2.55v9.23h2.97v-6.25c.7-.91 1.88-.74 2.25-.61v-2.73c-.4-.15-1.84-.41-2.48 1.19zM46.63 8.37c-.97 0-1.55.54-1.55 1.3 0 .72.56 1.29 1.55 1.29.98 0 1.56-.57 1.56-1.29 0-.76-.58-1.3-1.56-1.3zM45.14 19.7h2.97v-9.23h-2.97v9.23zM54.7 13.8c-1.24-.47-1.83-.62-1.83-1.09 0-.38.34-.6.97-.6.93 0 1.89.36 2.54.73l.39-2.3c-.59-.34-1.69-.67-2.9-.67-2.15 0-3.57 1.13-3.57 2.97 0 1.55 1.1 2.33 2.87 2.93 1.18.41 1.6.65 1.6 1.12 0 .42-.38.66-1.1.66-1 0-2.17-.42-2.95-.92l-.4 2.32c.72.44 2.02.87 3.29.87 2.22 0 3.67-1.07 3.67-2.99 0-1.67-1.12-2.43-2.58-3.03zM13.38 10.84c0-.46.38-.64.99-.65a6.48 6.48 0 012.89.74V8.47a7.74 7.74 0 00-2.88-.53c-2.36 0-3.92 1.23-3.92 3.29 0 3.2 4.42 2.69 4.42 4.08 0 .54-.47.72-1.12.72-1 0-2.26-.41-3.25-.96l-.01 2.5c1.1.47 2.21.67 3.25.67 2.42 0 4.08-1.2 4.08-3.28 0-3.47-4.45-2.85-4.45-4.12z" fill="#635BFF"/>
+            </svg>
+            <span style="font-weight:600; font-size:0.95em;">Gérer ton abonnement</span>
           </div>
-          <p class="note" style="margin:0 0 6px;">Morgann Music CP collabore avec <strong>Stripe</strong> pour la gestion sécurisée de tous les paiements. Via le portail Stripe, tu peux gérer :</p>
-          <ul class="note" style="margin:6px 0 14px; padding-left:18px; line-height:1.8;">
+          <p class="note" style="margin:0 0 6px;">Morgann Music CP collabore avec <strong>Stripe</strong> pour la gestion sécurisée de tous les paiements. Via le portail Stripe, tu peux :</p>
+          <ul class="note" style="margin:6px 0 14px; padding-left:18px; line-height:1.9;">
             <li>Consulter et télécharger tes <strong>factures</strong></li>
             <li>Mettre à jour ta <strong>carte bancaire</strong></li>
             <li>Modifier ou <strong>résilier ton abonnement</strong></li>
             <li>Voir l'<strong>historique de facturation</strong></li>
-            <li>Gérer les <strong>informations de facturation</strong> (nom, adresse)</li>
+            <li>Gérer tes <strong>informations de facturation</strong> (nom, adresse)</li>
           </ul>
           <a href="https://billing.stripe.com/p/login/dRmbJ1gpx2cB3uQ9se9EI00" target="_blank" rel="noopener" class="btn" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none;">
-            <i class='bx bx-link-external'></i> Gérer mon abonnement Stripe
+            <i class='bx bx-link-external'></i> Accéder au portail Stripe
           </a>
         </div>
 
