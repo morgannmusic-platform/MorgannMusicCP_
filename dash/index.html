@@ -2323,8 +2323,10 @@
         const sub = await getStripeSub(user.uid);
         const priceId = extractPriceId(sub);
 
-        let plan = planFromPriceId(priceId);
-        let subStatus = clean(sub?.status || "Aucun");
+        // Priorité 1 : plan stocké dans users/{uid}.plan (PaymentIntent)
+        const docPlanKey = clean(userDoc?.plan || "");
+        let plan = docPlanKey ? planNameFromKey(docPlanKey) : planFromPriceId(priceId);
+        let subStatus = docPlanKey ? "active" : clean(sub?.status || "Aucun");
         let artistLimit = planLimit(plan);
         const payPerRelease = isPayPerReleasePlanActive();
 
@@ -2336,14 +2338,6 @@
           plan = "Paiement par sortie";
           subStatus = "active";
           artistLimit = Infinity;
-        } else if (plan === "—") {
-          // Fallback : plan PaymentIntent stocké dans users/{uid}.plan
-          const docPlan = clean(userDoc?.plan || "");
-          if (docPlan) {
-            plan = planNameFromKey(docPlan);
-            subStatus = "active";
-            artistLimit = planLimit(plan);
-          }
         }
 
         planName.textContent = plan;

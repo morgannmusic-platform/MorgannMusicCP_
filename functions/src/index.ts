@@ -1476,3 +1476,52 @@ export const getContractAudioDownloadsCallable = onCall({ region: "europe-west1"
   if (!contractId) throw new HttpsError("invalid-argument", "contractId requis");
   return getContractAudioDownloads({ uid, contractId });
 });
+
+// --- Webhook Stripe : mise à jour du plan après payment_intent.succeeded ---
+export const stripeWebhookPlan = onRequest(
+  { region: "europe-west1", secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] },
+  async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).send("Method Not Allowed");
+    return;
+  }
+
+  const sig = req.header("stripe-signature") || "";
+  const secret = process.env.STRIPE_WEBHOOK_SECRET || "";
+  if (!secret) {
+    res.status(500).send("STRIPE_WEBHOOK_SECRET manquante");
+    return;
+  }
+
+  let event: Stripe.Event;
+  try {
+    const stripe = getStripeClient(process.env.STRIPE_SECRET_KEY);
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, secret);
+  } catch (err: any) {
+    console.error("[stripeWebhookPlan] Signature invalide:", err.message);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  if (event.type === "payment_intent.succeeded") {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const userId = paymentIntent.metadata?.userId;
+    const planName = paymentIntent.metadata?.planName;
+
+    if (userId && planName) {
+      try {
+        await db.collection("users").doc(userId).update({
+          plan: planName,
+          planUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        console.info(`[stripeWebhookPlan] Plan mis à jour : ${userId} → ${planName}`);
+      } catch (err: any) {
+        console.error("[stripeWebhookPlan] Erreur Firestore:", err.message);
+        res.status(500).send("Erreur Firestore");
+        return;
+      }
+    }
+  }
+
+  res.status(200).json({ received: true });
+});

@@ -826,7 +826,9 @@
                         ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {})
                     })
                 });
-                const data = await response.json();
+                const rawText = await response.text();
+                let data;
+                try { data = JSON.parse(rawText); } catch (e) { throw new Error('Erreur serveur: ' + rawText); }
                 if (!response.ok || !data.clientSecret) throw new Error(data.error || 'Erreur serveur.');
 
                 const { paymentIntent, error } = await stripe.confirmCardPayment(
@@ -891,7 +893,9 @@
                 })
             });
             
-            const data = await response.json();
+            const rawText = await response.text();
+            let data;
+            try { data = JSON.parse(rawText); } catch (e) { throw new Error('Erreur serveur: ' + rawText); }
             if (!response.ok || !data.clientSecret) throw new Error(data.error || "Erreur serveur.");
 
             const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {

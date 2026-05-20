@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
+  <meta name="theme-color" content="#FAFAFA">
   <title>Upload Release — Morgann Music CP</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <style>
@@ -432,6 +433,49 @@
       max-width: 900px;
       min-width: 0;
       margin: 0 auto;
+      position: relative;
+      /* Arrondi des coins supérieurs — base de l'effet concave */
+      border-radius: 20px 20px 0 0;
+      /* overflow visible : indispensable pour que les ::before/::after
+         ne soient pas clippés par le border-radius du parent          */
+      overflow: visible;
+    }
+
+    /* ── Effet "inverse border-radius" macOS ──────────────────────
+       Les deux pseudo-éléments remplissent le creux entre les
+       sidebars et les coins arrondis du contenu central.
+       Couleur : var(--card) = background des deux sidebars.
+       Ajuster --corner-r pour changer la taille de l'arrondi.      */
+    :root { --corner-r: 20px; }
+
+    /* Coin supérieur GAUCHE (rejoint la sidebar gauche) */
+    .uploader-main::before {
+      content: '';
+      position: absolute;
+      top:  0;
+      left: 0;
+      width:  var(--corner-r);
+      height: var(--corner-r);
+      background: var(--card);            /* = couleur sidebar gauche */
+      border-bottom-right-radius: var(--corner-r);
+      box-shadow: 1px 1px 0 0 var(--card);/* anti pixel-gap           */
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Coin supérieur DROIT (rejoint la sidebar droite) */
+    .uploader-main::after {
+      content: '';
+      position: absolute;
+      top:   0;
+      right: 0;
+      width:  var(--corner-r);
+      height: var(--corner-r);
+      background: var(--card);            /* = couleur sidebar droite */
+      border-bottom-left-radius: var(--corner-r);
+      box-shadow: -1px 1px 0 0 var(--card);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* ===== HELP SIDEBAR (right) ===== */
@@ -865,6 +909,37 @@
     }
     .mini-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 
+    /* ===== TRACK MODAL TABS ===== */
+    .track-modal-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 18px;
+    }
+    .track-tab {
+      flex: 1;
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .track-tab.active {
+      background: var(--card);
+      color: var(--txt);
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+    .track-tab:hover:not(.active) { color: var(--txt); }
+    .track-tab-panel { display: none; }
+    .track-tab-panel.active { display: block; }
+
     /* ===== RECAP ===== */
     .recap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
     @media (max-width: 600px) { .recap-grid { grid-template-columns: 1fr; } }
@@ -1147,7 +1222,7 @@
 
     <input type="file" id="universalFileInput" style="display:none">
     <div class="btn-upload-trigger" id="dropZone">
-      Cliquez pour parcourir<br><span style="font-size:12px; opacity:0.7;">ou glissez le fichier ici</span>
+      Cliquez pour parcourir<br><span id="dropZoneHint" style="font-size:12px; opacity:0.7;">ou glissez le fichier ici</span>
     </div>
     
     <div class="upload-status-bar" id="uploadProgress">
@@ -1186,117 +1261,144 @@
       <button class="btn-outline" id="closeTrackModalBtn">✕ Fermer</button>
     </div>
     <div id="trackModalErrorBox" class="modal-error-box hidden"></div>
-    <div class="subsection">
-      <h3>Général</h3>
-      <div class="row2">
-        <div class="field">
-          <label>Titre de la piste *</label>
-          <input id="modalTrackTitle" placeholder="Titre…">
-          <button class="litual-gen-btn" id="btnTrackTitleGen" type="button" style="margin-top:8px;">
-            <img src="/assets/Litual/o!§ititititt.png" alt="Litual"> Générer un titre avec Litual ✦
-          </button>
-          <div class="date-gen-panel" id="trackTitleGenPanel">
-            <label for="trackTitleCtx">Décris la piste <span style="font-weight:400;opacity:.7">(optionnel)</span></label>
-            <input type="text" id="trackTitleCtx" placeholder="Ex: prod trap sombre, mélodie piano mélancolique…" autocomplete="off">
-            <div class="date-gen-btns">
-              <button class="date-gen-cancel2" id="btnTrackTitleCancel" type="button">Annuler</button>
-              <button class="date-gen-go" id="btnTrackTitleGo" type="button">Générer ✦</button>
+
+    <!-- Barre d'onglets -->
+    <div class="track-modal-tabs" id="trackModalTabs">
+      <button class="track-tab active" data-tab="general">🎵 Général</button>
+      <button class="track-tab" data-tab="audio">🎧 Audio</button>
+      <button class="track-tab" data-tab="paroles">📝 Paroles & Crédits</button>
+      <button class="track-tab" data-tab="participants">👥 Participants</button>
+    </div>
+
+    <!-- Onglet 1 : Général -->
+    <div class="track-tab-panel active" id="tabPanel-general">
+      <div class="subsection">
+        <h3>Général</h3>
+        <div class="row2">
+          <div class="field">
+            <label>Titre de la piste * <span id="trackTitleLockBadge" style="display:none;background:var(--purple-light);color:var(--purple);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;">🔒 Single — verrouillé</span></label>
+            <input id="modalTrackTitle" placeholder="Titre…">
+            <button class="litual-gen-btn" id="btnTrackTitleGen" type="button" style="margin-top:8px;">
+              <img src="/assets/Litual/o!§ititititt.png" alt="Litual"> Générer un titre avec Litual ✦
+            </button>
+            <div class="date-gen-panel" id="trackTitleGenPanel">
+              <label for="trackTitleCtx">Décris la piste <span style="font-weight:400;opacity:.7">(optionnel)</span></label>
+              <input type="text" id="trackTitleCtx" placeholder="Ex: prod trap sombre, mélodie piano mélancolique…" autocomplete="off">
+              <div class="date-gen-btns">
+                <button class="date-gen-cancel2" id="btnTrackTitleCancel" type="button">Annuler</button>
+                <button class="date-gen-go" id="btnTrackTitleGo" type="button">Générer ✦</button>
+              </div>
+              <div class="date-gen-result" id="trackTitleResult"></div>
             </div>
-            <div class="date-gen-result" id="trackTitleResult"></div>
           </div>
-        </div>
-        <div class="field">
-          <label>Ligne de version</label>
-          <input id="modalTrackVersion" placeholder="Ex: Remix, Live…">
-        </div>
-      </div>
-    </div>
-    <div class="subsection">
-      <h3>Langue & Contenu</h3>
-      <div class="row2">
-        <div class="field">
-          <label>Langue</label>
-          <select id="modalTrackLanguage">
-            <option value="">— Choisir —</option>
-            <option value="fr">Français</option>
-            <option value="en">Anglais</option>
-            <option value="es">Espagnol</option>
-            <option value="de">Allemand</option>
-            <option value="pt">Portugais</option>
-            <option value="it">Italien</option>
-            <option value="ja">Japonais</option>
-            <option value="ko">Coréen</option>
-            <option value="zh">Chinois</option>
-            <option value="ar">Arabe</option>
-          </select>
-        </div>
-        <div class="field" style="padding-top:22px;">
-          <div class="checkbox-row">
-            <input type="checkbox" id="modalExplicit"> Paroles explicites
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="modalClean"> Version propre
+          <div class="field">
+            <label>Ligne de version</label>
+            <input id="modalTrackVersion" placeholder="Ex: Remix, Live…">
           </div>
         </div>
       </div>
-    </div>
-    <div class="subsection">
-      <h3>ISRC & Codes</h3>
-      <div class="row2">
-        <div class="field">
-          <label>ISRC</label>
-          <input id="modalIsrc" placeholder="Ex: FRABC2400001">
+      <div class="subsection">
+        <h3>Langue & Contenu</h3>
+        <div class="row2">
+          <div class="field">
+            <label>Langue</label>
+            <select id="modalTrackLanguage">
+              <option value="">— Choisir —</option>
+              <option value="fr">Français</option>
+              <option value="en">Anglais</option>
+              <option value="es">Espagnol</option>
+              <option value="de">Allemand</option>
+              <option value="pt">Portugais</option>
+              <option value="it">Italien</option>
+              <option value="ja">Japonais</option>
+              <option value="ko">Coréen</option>
+              <option value="zh">Chinois</option>
+              <option value="ar">Arabe</option>
+            </select>
+          </div>
+          <div class="field" style="padding-top:22px;">
+            <div class="checkbox-row">
+              <input type="checkbox" id="modalExplicit"> Paroles explicites
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="modalClean"> Version propre
+            </div>
+          </div>
         </div>
-        <div class="field">
-          <label>ISWC</label>
-          <input id="modalIswc" placeholder="Ex: T-123456789-0">
+      </div>
+      <div class="subsection">
+        <h3>ISRC & Codes</h3>
+        <div class="row2">
+          <div class="field">
+            <label>ISRC</label>
+            <input id="modalIsrc" placeholder="Ex: FRABC2400001">
+          </div>
+          <div class="field">
+            <label>ISWC</label>
+            <input id="modalIswc" placeholder="Ex: T-123456789-0">
+          </div>
         </div>
       </div>
     </div>
-    <div class="subsection">
-      <h3>Audio</h3>
-      <div class="row2">
-        <div class="field">
-          <label>Fichier audio principal *</label>
-          <button class="btn-outline" id="btnUploadAudio" style="width:100%">Choisir l'audio</button>
+
+    <!-- Onglet 2 : Audio -->
+    <div class="track-tab-panel" id="tabPanel-audio">
+      <div class="subsection">
+        <h3>Fichiers audio</h3>
+        <div class="row2">
+          <div class="field">
+            <label>Fichier audio principal *</label>
+            <button class="btn-outline" id="btnUploadAudio" style="width:100%">Choisir l'audio</button>
+          </div>
+          <div class="field">
+            <label>Instrumental (optionnel)</label>
+            <button class="btn-outline" id="btnUploadInstru" style="width:100%">Choisir l'instru</button>
+          </div>
+          <div class="field">
+            <label>Dolby Atmos (optionnel)</label>
+            <button class="btn-outline" id="btnUploadAtmos" style="width:100%">Choisir l'Atmos</button>
+          </div>
         </div>
+      </div>
+      <div class="subsection">
+        <h3>Apple Digital Master</h3>
         <div class="field">
-          <label>Instrumental (optionnel)</label>
-          <button class="btn-outline" id="btnUploadInstru" style="width:100%">Choisir l'instru</button>
+          <label>Email maison de mastering</label>
+          <input type="email" id="modalMasteringEmail" placeholder="mastering@example.com">
         </div>
+      </div>
+    </div>
+
+    <!-- Onglet 3 : Paroles & Crédits -->
+    <div class="track-tab-panel" id="tabPanel-paroles">
+      <div class="subsection">
+        <h3>Paroles (optionnel)</h3>
         <div class="field">
-          <label>Dolby Atmos (optionnel)</label>
-          <button class="btn-outline" id="btnUploadAtmos" style="width:100%">Choisir l'Atmos</button>
+          <textarea id="modalLyrics" placeholder="Collez les paroles ici…"></textarea>
         </div>
       </div>
-      <div class="field">
-        <label>Email maison de mastering (Apple Digital Master)</label>
-        <input type="email" id="modalMasteringEmail" placeholder="mastering@example.com">
+      <div class="subsection">
+        <h3>Crédits des instruments</h3>
+        <div class="field">
+          <input id="modalInstrumentCredits" placeholder="Ex: Guitare: Jean Dupont, Batterie: ...">
+        </div>
       </div>
     </div>
-    <div class="subsection">
-      <h3>Paroles (optionnel)</h3>
-      <div class="field">
-        <textarea id="modalLyrics" placeholder="Collez les paroles ici…"></textarea>
+
+    <!-- Onglet 4 : Participants -->
+    <div class="track-tab-panel" id="tabPanel-participants">
+      <div class="subsection">
+        <h3>Collaborations</h3>
+        <div id="modalCollabContainer"></div>
+        <button type="button" class="btn-add" id="modalAddCollabBtn">+ Collaboration</button>
+      </div>
+      <div class="subsection">
+        <h3>Auteurs / Compositeurs</h3>
+        <div id="modalWritersContainer"></div>
+        <button type="button" class="btn-add" id="modalAddWriterBtn">+ Auteur</button>
       </div>
     </div>
-    <div class="subsection">
-      <h3>Crédits</h3>
-      <div class="field">
-        <label>Crédits des instruments</label>
-        <input id="modalInstrumentCredits" placeholder="Ex: Guitare: Jean Dupont, Batterie: ...">
-      </div>
-    </div>
-    <div class="subsection">
-      <h3>Participants — Collaborations</h3>
-      <div id="modalCollabContainer"></div>
-      <button type="button" class="btn-add" id="modalAddCollabBtn">+ Collaboration</button>
-    </div>
-    <div class="subsection">
-      <h3>Participants — Auteurs / Compositeurs</h3>
-      <div id="modalWritersContainer"></div>
-      <button type="button" class="btn-add" id="modalAddWriterBtn">+ Auteur</button>
-    </div>
+
     <div class="mini-actions" style="margin-top:16px;">
       <button class="btn-primary" type="button" id="saveTrackBtn">💾 Enregistrer</button>
       <button class="btn-outline" type="button" id="cancelTrackBtn">Annuler</button>
@@ -1395,6 +1497,7 @@
       </div>
       <div class="field">
         <label>Pochette carrée (1:1) *</label>
+        <img id="cover11Preview" class="hidden" style="width:280px;height:280px;object-fit:cover;border-radius:16px;margin:0 auto 16px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.22);" alt="Aperçu pochette">
         <button class="btn-upload-trigger" id="btnTriggerCover11">🖼️ Uploader la pochette 1:1</button>
         <div id="cover11Status" class="hidden" style="color:var(--green); font-weight:800; text-align:center; margin-top:10px; font-size:14px;">✅ Pochette 1:1 uploadée avec succès !</div>
       </div>
@@ -1507,14 +1610,14 @@
         <div style="display:flex; flex-direction:column; gap:12px;">
           <!-- © line : tous plans sauf Label et admin -->
           <div id="cLineSection" style="display:flex; gap:8px; align-items:center;">
-            <input id="cYear" value="2026" style="width:72px; padding:10px; text-align:center; margin:0;">
+            <input id="cYear" value="2026" style="width:72px; padding:10px; text-align:center; margin:0; border-radius:8px; border:1px solid var(--line);">
             <span style="font-weight:600; font-size:14px; white-space:nowrap; opacity:.65;">, Morgann Music CP,</span>
-            <input id="cText" placeholder="Nom de l'artiste…" style="padding:10px; margin:0; flex:1;">
+            <input id="cText" placeholder="Nom de l'artiste…" style="padding:10px; margin:0; flex:1; border-radius:8px; border:1px solid var(--line);">
           </div>
           <!-- ℗ line : Label et admin uniquement -->
           <div id="pLineSection" style="display:none; gap:8px; align-items:center;">
-            <input id="pYear" value="2026" style="width:72px; padding:10px; text-align:center; margin:0;">
-            <input id="pText" placeholder="Nom du label…" style="padding:10px; margin:0; flex:1;">
+            <input id="pYear" value="2026" style="width:72px; padding:10px; text-align:center; margin:0; border-radius:8px; border:1px solid var(--line);">
+            <input id="pText" placeholder="Nom du label…" style="padding:10px; margin:0; flex:1; border-radius:8px; border:1px solid var(--line);">
           </div>
         </div>
       </div>
@@ -1832,8 +1935,7 @@ function getProblems() {
   }
 
   // — Pochette
-  const coverFile = document.getElementById("cover")?.files?.[0];
-  if (!coverFile) {
+  if (!uploadedAssets.cover11) {
     add("error", "La pochette 1:1 est obligatoire.");
   }
 
@@ -2049,6 +2151,11 @@ async function prefillReleaseForEdit(releaseId) {
 
   document.getElementById("releaseLanguage").value = clean(data.language || data.lang || "fr");
   document.getElementById("isInstrumentalRelease").checked = !!(data.instrumental || data.isInstrumental);
+  // Synchroniser LyricFind selon l'état instrumental chargé
+  if (data.instrumental || data.isInstrumental) {
+    document.getElementById("addonLyricFindRow").classList.add("hidden");
+    document.getElementById("addonLF").checked = false;
+  }
   
   const schedule = data.schedule || {};
   document.getElementById("releaseDate").value = clean(schedule.releaseDate || data.releaseDate);
@@ -2343,7 +2450,34 @@ function openTrackModal(index = null, prefill = false) {
   document.getElementById("trackModalErrorBox").classList.add("hidden");
   document.getElementById("trackModalErrorBox").textContent = "";
 
-  document.getElementById("modalTrackTitle").value = src.title || "";
+  // Auto-remplir le titre avec le titre de la sortie si piste vide/Track 1
+  const releaseTitleVal = clean(document.getElementById("releaseTitle")?.value) || "";
+  const isSingle = clean(document.getElementById("releaseType")?.value).toLowerCase() === "single";
+  const titleInput = document.getElementById("modalTrackTitle");
+
+  if (isSingle) {
+    // Pour un single, le titre de la piste = titre de la sortie (non modifiable)
+    titleInput.value = releaseTitleVal;
+    titleInput.disabled = true;
+    titleInput.readOnly = true;
+    titleInput.title = "Le titre de la piste est celui de la sortie pour un single.";
+    titleInput.style.opacity = "0.6";
+    titleInput.style.cursor = "not-allowed";
+    document.getElementById("trackTitleLockBadge").style.display = "inline";
+    document.getElementById("btnTrackTitleGen").style.display = "none";
+  } else {
+    const defaultTitle = (src.title === "" || src.title === `Track ${(isEdit ? index : tracksState.length) + 1}`) && releaseTitleVal && tracksState.length <= 1
+      ? releaseTitleVal
+      : src.title || "";
+    titleInput.value = defaultTitle;
+    titleInput.disabled = false;
+    titleInput.readOnly = false;
+    titleInput.title = "";
+    titleInput.style.opacity = "";
+    titleInput.style.cursor = "";
+    document.getElementById("trackTitleLockBadge").style.display = "none";
+    document.getElementById("btnTrackTitleGen").style.display = "";
+  }
   document.getElementById("modalTrackVersion").value = src.versionLine || "";
   document.getElementById("modalTrackLanguage").value = src.language || "";
   document.getElementById("modalExplicit").checked = !!src.explicit;
@@ -2365,12 +2499,19 @@ function openTrackModal(index = null, prefill = false) {
 
   document.getElementById("trackModalOverlay").classList.remove("hidden");
   document.getElementById("trackModalOverlay").classList.add("active");
+  // Reset à l'onglet Général
+  switchTrackTab("general");
 }
 
 function updateTrackModalAudioStatus(src) {
   document.getElementById("btnUploadAudio").textContent = src.files?.audioUrl ? "✅ Audio Uploadé" : "Choisir l'audio";
   document.getElementById("btnUploadInstru").textContent = src.files?.instrumentalUrl ? "✅ Instru Uploadée" : "Choisir l'instru";
   document.getElementById("btnUploadAtmos").textContent = src.files?.atmosUrl ? "✅ Atmos Uploadé" : "Choisir l'Atmos";
+}
+
+function switchTrackTab(tabId) {
+  document.querySelectorAll(".track-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabId));
+  document.querySelectorAll(".track-tab-panel").forEach(p => p.classList.toggle("active", p.id === `tabPanel-${tabId}`));
 }
 
 function closeTrackModal() {
@@ -2386,7 +2527,10 @@ function saveTrackFromModal() {
 
   try {
     const existing = Number.isInteger(editingTrackIndex) ? tracksState[editingTrackIndex] : createEmptyTrack(false);
-    const title = clean(document.getElementById("modalTrackTitle").value);
+    const isSingleRelease = clean(document.getElementById("releaseType")?.value).toLowerCase() === "single";
+    const title = isSingleRelease
+      ? (clean(document.getElementById("releaseTitle")?.value) || clean(document.getElementById("modalTrackTitle").value))
+      : clean(document.getElementById("modalTrackTitle").value);
     if (!title) throw new Error("Le titre de la piste est obligatoire.");
 
     const isrc = clean(document.getElementById("modalIsrc").value);
@@ -2399,7 +2543,7 @@ function saveTrackFromModal() {
       throw new Error("Email de mastering invalide.");
     }
 
-    if (!existing.files?.audioUrl) throw new Error("Le fichier audio est obligatoire.");
+    // Audio validé uniquement à la publication (pas bloquant ici)
 
     const next = {
       title,
@@ -2554,22 +2698,35 @@ function openUploadModal(ctx) {
   const bar = document.getElementById("uploadProgressBar");
   const btn = document.getElementById("confirmUploadBtn");
   
-  document.getElementById("universalFileInput").value = ""; // Clear file input for next upload
+  const fileInput = document.getElementById("universalFileInput");
+  fileInput.value = ""; // Clear file input for next upload
   bar.style.width = "0%";
   document.getElementById("uploadProgress").style.display = "none";
   document.getElementById("uploadStatusText").textContent = "";
   btn.disabled = true;
   btn.textContent = "Uploader le fichier";
   
+  const desc = document.getElementById("uploadModalDesc");
+  const hint = document.getElementById("dropZoneHint");
+
   if (ctx.target.includes("motion")) {
     title.textContent = "Art Animé Apple";
+    desc.textContent = "Sélectionnez ou glissez votre fichier vidéo .mov ici.";
+    hint.textContent = "Fichiers .mov uniquement";
     specs.style.display = "block";
-  } else if (ctx.target.includes("audio")) {
+    fileInput.accept = ".mov,video/*";
+  } else if (ctx.target.includes("audio") || ctx.target.includes("atmos") || ctx.target.includes("instru")) {
     title.textContent = "Audio de la piste";
+    desc.textContent = "Sélectionnez ou glissez votre fichier audio ici.";
+    hint.textContent = "WAV, FLAC, AIFF acceptés";
     specs.style.display = "none";
+    fileInput.accept = "audio/*,.wav,.flac,.aiff,.aif";
   } else {
     title.textContent = "Pochette 1:1";
+    desc.textContent = "Sélectionnez ou glissez votre image ici.";
+    hint.textContent = "Images uniquement (JPG, PNG, WEBP…)";
     specs.style.display = "none";
+    fileInput.accept = "image/*";
   }
   
   modal.classList.add("active");
@@ -2618,6 +2775,10 @@ async function startImmediateUpload() {
       if (uploadContext.target === "cover11") {
         uploadedAssets.cover11 = url;
         document.getElementById("cover11Status").classList.remove("hidden");
+        const preview = document.getElementById("cover11Preview");
+        preview.src = url;
+        preview.classList.remove("hidden");
+        document.getElementById("btnTriggerCover11").textContent = "🔄 Remplacer la pochette";
       }
       if (uploadContext.target === "motion11") uploadedAssets.motion11 = url;
       if (uploadContext.target === "motion34") uploadedAssets.motion34 = url;
@@ -2842,20 +3003,26 @@ onAuthStateChanged(auth, async user => {
   document.getElementById("checkPreorderDate").addEventListener("change", e => document.getElementById("preorderDate").disabled = !e.target.checked);
   document.getElementById("primaryGenre").addEventListener("change", e => document.getElementById("primaryGenreOther").classList.toggle("hidden", e.target.value !== "Autre"));
   document.getElementById("secondaryGenre").addEventListener("change", e => document.getElementById("secondaryGenreOther").classList.toggle("hidden", e.target.value !== "Autre"));
-  document.getElementById("isInstrumentalRelease").addEventListener("change", e => document.getElementById("addonLyricFindRow").classList.toggle("hidden", e.target.checked));
+  document.getElementById("isInstrumentalRelease").addEventListener("change", e => {
+    const isInstru = e.target.checked;
+    document.getElementById("addonLyricFindRow").classList.toggle("hidden", isInstru);
+    if (isInstru) document.getElementById("addonLF").checked = false;
+  });
   
   // Copyright Logic
   const updateCLine = () => {
-    const rel = new Date(document.getElementById("releaseDate").value);
-    const orig = new Date(document.getElementById("originalDate").value);
-    let year = 2026;
-    if (rel < new Date("2026-01-01") && !isNaN(orig.getFullYear())) year = orig.getFullYear();
-    else if (rel < new Date("2026-01-01")) year = isNaN(rel.getFullYear()) ? 2026 : rel.getFullYear();
+    const origChecked = document.getElementById("checkOriginalDate").checked;
+    const origVal = document.getElementById("originalDate").value;
+    const relVal = document.getElementById("releaseDate").value;
+    const origYear = origChecked && origVal ? new Date(origVal).getFullYear() : NaN;
+    const relYear = relVal ? new Date(relVal).getFullYear() : NaN;
+    const year = !isNaN(origYear) ? origYear : (!isNaN(relYear) ? relYear : new Date().getFullYear());
     document.getElementById("cYear").value = year;
     document.getElementById("pYear").value = year;
   };
   document.getElementById("releaseDate").addEventListener("change", updateCLine);
   document.getElementById("originalDate").addEventListener("change", updateCLine);
+  document.getElementById("checkOriginalDate").addEventListener("change", updateCLine);
 
   // Upload Buttons
   document.getElementById("btnTriggerCover11").addEventListener("click", () => openUploadModal({target: 'cover11'}));
@@ -2867,10 +3034,17 @@ onAuthStateChanged(auth, async user => {
   
   document.getElementById("dropZone").addEventListener("click", () => document.getElementById("universalFileInput").click());
   document.getElementById("universalFileInput").addEventListener("change", e => {
-    if(e.target.files[0]) {
-      document.getElementById("confirmUploadBtn").disabled = false;
-      document.getElementById("uploadStatusText").textContent = "Fichier prêt : " + e.target.files[0].name;
+    const file = e.target.files[0];
+    if (!file) return;
+    if (uploadContext && !uploadContext.target.includes("motion") && !uploadContext.target.includes("audio") && !uploadContext.target.includes("atmos") && !uploadContext.target.includes("instru")) {
+      if (!file.type.startsWith("image/")) {
+        alert("Seules les images sont acceptées pour la pochette (JPG, PNG, WEBP…)");
+        e.target.value = "";
+        return;
+      }
     }
+    document.getElementById("confirmUploadBtn").disabled = false;
+    document.getElementById("uploadStatusText").textContent = "Fichier prêt : " + file.name;
   });
   document.getElementById("confirmUploadBtn").addEventListener("click", startImmediateUpload);
   document.getElementById("closeUploadModal").addEventListener("click", () => {
@@ -2899,6 +3073,11 @@ onAuthStateChanged(auth, async user => {
   });
   document.getElementById("modalAddWriterBtn").addEventListener("click", () => {
     document.getElementById("modalWritersContainer").appendChild(createWriterBox());
+  });
+  // Navigation onglets du modal piste
+  document.getElementById("trackModalTabs").addEventListener("click", e => {
+    const tab = e.target.closest(".track-tab");
+    if (tab) switchTrackTab(tab.dataset.tab);
   });
   document.getElementById("trackModalOverlay").addEventListener("click", e => {
     if (e.target === document.getElementById("trackModalOverlay")) closeTrackModal();

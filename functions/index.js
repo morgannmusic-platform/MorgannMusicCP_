@@ -1,5 +1,4 @@
 // --- Scraping des liens de plateformes musicales ---
-const puppeteer = require("puppeteer");
 const { onRequest, onCall, HttpsError } = require("firebase-functions/v2/https");
 
 exports.findReleaseLinks = onRequest(
@@ -12,6 +11,7 @@ exports.findReleaseLinks = onRequest(
       }
 
       async function searchSpotify() {
+        const puppeteer = require("puppeteer");
         let browser;
         try {
           browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -38,6 +38,7 @@ exports.findReleaseLinks = onRequest(
       }
 
       async function searchDeezer() {
+        const puppeteer = require("puppeteer");
         let browser;
         try {
           browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -64,6 +65,7 @@ exports.findReleaseLinks = onRequest(
       }
 
       async function searchAppleMusic() {
+        const puppeteer = require("puppeteer");
         let browser;
         try {
           browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox', '--disable-setuid-sandbox'] });
@@ -983,6 +985,54 @@ exports.sendAuthEmailNotification = onCall(
 );
 
 // --- Liste des utilisateurs Firebase pour l'admin ---
+
+// --- Webhook Stripe : mise à jour du plan après paiement ---
+exports.stripeWebhookPlan = onRequest(
+  { region: "europe-west1", secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      return res.status(405).send("Method Not Allowed");
+    }
+
+    const sig = req.headers["stripe-signature"];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!sig || !webhookSecret) {
+      return res.status(400).send("Signature ou secret manquant");
+    }
+
+    let event;
+    try {
+      const Stripe = require("stripe");
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+    } catch (err) {
+      console.error("[stripeWebhookPlan] Signature invalide:", err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object;
+      const userId = paymentIntent.metadata?.userId;
+      const planName = paymentIntent.metadata?.planName;
+
+      if (userId && planName) {
+        try {
+          await db.collection("users").doc(userId).update({
+            plan: planName,
+            planUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+          console.info(`[stripeWebhookPlan] Plan mis à jour : ${userId} → ${planName}`);
+        } catch (err) {
+          console.error("[stripeWebhookPlan] Erreur Firestore:", err);
+          return res.status(500).send("Erreur Firestore");
+        }
+      }
+    }
+
+    return res.json({ received: true });
+  }
+);
 
 exports.listUsers = onRequest(async (req, res) => {
   // Sécurité : vérifier que l'utilisateur est admin

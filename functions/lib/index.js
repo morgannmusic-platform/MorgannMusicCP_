@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getContractAudioDownloadsCallable = exports.getContractDownloadUrlCallable = exports.listContractsForAdminCallable = exports.submitSignature = exports.getSignatureRequest = exports.createSignatureRequest = exports.passwordResetCompleteV2 = exports.passwordResetVerifyTotpV2 = exports.passwordResetStartV2 = exports.email2faVerifyLoginChallenge = exports.email2faStartLoginChallenge = exports.totpVerifyLoginChallengeV2 = exports.totpDisableV2 = exports.totpConfirmEnrollmentV2 = exports.totpBeginEnrollment = exports.totpGetStatus = exports.stripeContractsWebhook = exports.verifyReleasePaymentAndCredit = exports.createReleaseCheckoutSession = exports.verifyCheckoutAndBootstrapContract = exports.createCheckoutSession = exports.adminDeleteProdWithStripe = exports.adminUpdateProdWithStripe = exports.adminCreateProdWithStripe = exports.notifyWhenReleaseDateReached = exports.notifyWhenReleaseStatusBeyondValidated = exports.emailArtistOnNotificationCreated = void 0;
+exports.stripeWebhookPlan = exports.getContractAudioDownloadsCallable = exports.getContractDownloadUrlCallable = exports.listContractsForAdminCallable = exports.submitSignature = exports.getSignatureRequest = exports.createSignatureRequest = exports.passwordResetCompleteV2 = exports.passwordResetVerifyTotpV2 = exports.passwordResetStartV2 = exports.email2faVerifyLoginChallenge = exports.email2faStartLoginChallenge = exports.totpVerifyLoginChallengeV2 = exports.totpDisableV2 = exports.totpConfirmEnrollmentV2 = exports.totpBeginEnrollment = exports.totpGetStatus = exports.stripeContractsWebhook = exports.verifyReleasePaymentAndCredit = exports.createReleaseCheckoutSession = exports.verifyCheckoutAndBootstrapContract = exports.createCheckoutSession = exports.adminDeleteProdWithStripe = exports.adminUpdateProdWithStripe = exports.adminCreateProdWithStripe = exports.notifyWhenReleaseDateReached = exports.notifyWhenReleaseStatusBeyondValidated = exports.emailArtistOnNotificationCreated = void 0;
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-functions/v2/firestore");
@@ -1260,4 +1260,47 @@ exports.getContractAudioDownloadsCallable = (0, https_1.onCall)({ region: "europ
     if (!contractId)
         throw new https_1.HttpsError("invalid-argument", "contractId requis");
     return (0, getContractAudioDownloads_1.getContractAudioDownloads)({ uid, contractId });
+});
+// --- Webhook Stripe : mise à jour du plan après payment_intent.succeeded ---
+exports.stripeWebhookPlan = (0, https_1.onRequest)({ region: "europe-west1", secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] }, async (req, res) => {
+    if (req.method !== "POST") {
+        res.status(405).send("Method Not Allowed");
+        return;
+    }
+    const sig = req.header("stripe-signature") || "";
+    const secret = process.env.STRIPE_WEBHOOK_SECRET || "";
+    if (!secret) {
+        res.status(500).send("STRIPE_WEBHOOK_SECRET manquante");
+        return;
+    }
+    let event;
+    try {
+        const stripe = (0, stripe_1.getStripeClient)(process.env.STRIPE_SECRET_KEY);
+        event = stripe.webhooks.constructEvent(req.rawBody, sig, secret);
+    }
+    catch (err) {
+        console.error("[stripeWebhookPlan] Signature invalide:", err.message);
+        res.status(400).send(`Webhook Error: ${err.message}`);
+        return;
+    }
+    if (event.type === "payment_intent.succeeded") {
+        const paymentIntent = event.data.object;
+        const userId = paymentIntent.metadata?.userId;
+        const planName = paymentIntent.metadata?.planName;
+        if (userId && planName) {
+            try {
+                await db.collection("users").doc(userId).update({
+                    plan: planName,
+                    planUpdatedAt: firebase_admin_1.default.firestore.FieldValue.serverTimestamp(),
+                });
+                console.info(`[stripeWebhookPlan] Plan mis à jour : ${userId} → ${planName}`);
+            }
+            catch (err) {
+                console.error("[stripeWebhookPlan] Erreur Firestore:", err.message);
+                res.status(500).send("Erreur Firestore");
+                return;
+            }
+        }
+    }
+    res.status(200).json({ received: true });
 });
