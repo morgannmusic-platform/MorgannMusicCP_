@@ -1,0 +1,104 @@
+:root {
+    --bg: #eaffc6;
+    --bg-rose: #FC8FB0;
+    --rose: #FC8FB0;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+    --bg: #8f4e61;
+    --bg-rose: #6C7A53;
+    --rose: #FC8FB0;  
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg);
+    font-family: 'Poppins', sans-serif;
+    color: var(--rose);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Main Background */
+.dynamic-bg-main {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: var(--bg);
+}
+
+/* Blobs Container */
+.blobs-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+
+/* Floating Blobs */
+.floating-blob {
+    position: absolute;
+    background: radial-gradient(circle, var(--bg-rose), transparent 70%);
+    border-radius: 50%;
+    filter: blur(40px);
+    /* animation disabled until placement is stable to avoid layout jitter */
+    animation: none;
+}
+
+.floating-blob.start-anim {
+    /* animation-duration set inline in JS; keep name/timing here */
+    animation-name: float;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+
+@keyframes float {
+    /* keep initial centering with translate(-50%,-50%), then apply relative motion */
+    0% {
+        transform: translate(-50%, -50%) translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(-50%, -50%) translate(80px, -80px) scale(1.1);
+    }
+    66% {
+        transform: translate(-50%, -50%) translate(-80px, 80px) scale(0.9);
+    }
+    100% {
+        transform: translate(-50%, -50%) translate(0, 0) scale(1);
+    }
+}
+
+/* Large single blob */
+.large-blob {
+    z-index: 0; /* sit above background */
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes float-large {
+    0% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+    25% { transform: translate(-50%, -50%) translate(120px, -60px) scale(1.02); }
+    50% { transform: translate(-50%, -50%) translate(0px, 120px) scale(0.98); }
+    75% { transform: translate(-50%, -50%) translate(-120px, 60px) scale(1.01); }
+    100% { transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+}
+
+.large-blob.start-anim {
+    animation-name: float-large;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}

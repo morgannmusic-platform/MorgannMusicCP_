@@ -1,0 +1,117 @@
+:root {
+    --bg-nb: rgb(252, 143, 176); /* Ton rose d'origine avec opacité style Apple */
+    --text-nb: #eaffc6;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-nb: rgb(108, 122, 83); /* Ton vert d'origine avec opacité style Apple */
+        --text-nb: rgb(252, 143, 176);
+    }
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 44px; /* Augmenté pour accueillir le logo et le bouton de 50px */
+    background-color: var(--bg-nb);
+    backdrop-filter: blur(20px); /* L'effet flou de transparence Apple */
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 0; /* Géré par GSAP au démarrage pour éviter le flash */
+}
+
+/* Container pour centrer les éléments proprement */
+.nav-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px; /* On garde un micro-espace pour ne pas toucher physiquement le bord du verre */
+}
+
+.nav-logo {
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    color: var(--text-nb);
+    letter-spacing: -0.01em;
+    opacity: 0; /* Géré par GSAP */
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo img {
+    height: 50px; /* Taille de base agrandie */
+    width: auto;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+/* En mode clair : le logo prend la couleur du background du body (#eaffc6) */
+@media (prefers-color-scheme: light) {
+    .nav-logo img {
+        background-color: var(--bg); /* Utilise la variable du body */
+        -webkit-mask: url("/assets/img/logo/logo-rose.svg") no-repeat center / contain;
+        mask: url("/assets/img/logo/logo-rose.svg") no-repeat center / contain;
+        /* On remplace l'image par un pixel transparent pour laisser passer la couleur du mask */
+        content: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+    }
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a {
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        display: none; /* Cache les liens sur mobile pour le menu */
+    }
+}
+
+.nav-item {
+    font-size: 12px;
+    text-decoration: none;
+    color: var(--text-nb);
+    opacity: 0; /* Géré par GSAP */
+    font-weight: 400;
+    transition: opacity 0.2s ease;
+}
+
+.nav-item:hover {
+    opacity: 0.6; /* Petit effet de survol soft */
+}
+
+.nav-menu {
+    font-size: 12px;
+    color: var(--text-nb);
+    cursor: pointer;
+    opacity: 0; /* Géré par GSAP */
+    height: 27px; /* Même taille que le logo */
+    padding: 0 25px; /* Largeur proportionnelle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--text-nb); /* Ajoute une bordure */
+    border-radius: 25px; /* Rayon égal à la moitié de la hauteur pour une pilule parfaite */
+    font-weight: 500; /* Rend le texte un peu plus gras */
+    transition: all 0.3s ease;
+}
+
+.nav-menu:hover {
+    background-color: var(--text-nb); /* Inverse les couleurs au survol */
+    color: var(--bg-nb); /* Texte en blanc pour le contraste bouton */
+    transform: scale(1.05);
+}
