@@ -17,7 +17,7 @@
     padding: 0;
     box-sizing: border-box;
 }
-
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 body {
     background-color: var(--bg);
     font-family: 'Poppins', sans-serif;
@@ -26,7 +26,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Main Background */
 .dynamic-bg-main {
     position: fixed;
     top: 0;
@@ -37,7 +36,6 @@ body {
     background-color: var(--bg);
 }
 
-/* Blobs Container */
 .blobs-container {
     position: fixed;
     top: 0;
@@ -48,25 +46,21 @@ body {
     overflow: hidden;
 }
 
-/* Floating Blobs */
 .floating-blob {
     position: absolute;
     background: radial-gradient(circle, var(--bg-rose), transparent 70%);
     border-radius: 50%;
     filter: blur(40px);
-    /* animation disabled until placement is stable to avoid layout jitter */
     animation: none;
 }
 
 .floating-blob.start-anim {
-    /* animation-duration set inline in JS; keep name/timing here */
     animation-name: float;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
 }
 
 @keyframes float {
-    /* keep initial centering with translate(-50%,-50%), then apply relative motion */
     0% {
         transform: translate(-50%, -50%) translate(0, 0) scale(1);
     }
@@ -81,9 +75,8 @@ body {
     }
 }
 
-/* Large single blob */
 .large-blob {
-    z-index: 0; /* sit above background */
+    z-index: 0;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
@@ -101,4 +94,38 @@ body {
     animation-name: float-large;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
+}
+
+.banner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.banner-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--rose);
+    margin-bottom: 20px;
+}
+
+.banner-title .word {
+    display: inline-block;
+    opacity: 0;
+}
+
+.banner-logo {
+    height: 1.45em; /* Taille du logo */
+    position: relative; /* Permet d'utiliser 'top' pour ajuster la position */
+    top: -4px; /* Ajustez cette valeur (ex: -5px pour monter, 5px pour descendre) */
+    vertical-align: middle; /* Maintient un alignement de base */
+    margin-left: 1px;
+    opacity: 0;
+}
+
+.banner-subtitle {
+    font-size: 1.5rem;
+    color: var(--rose);
+    opacity: 0;
 }

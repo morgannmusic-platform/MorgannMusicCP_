@@ -49,6 +49,34 @@
 </head>
 <body>
     <div id="navbar"></div>
-    
+
+    <div class="banner">
+        <h1 class="banner-title">
+            <span class="word">Morgann</span> 
+            <span class="word">Music</span> 
+            <img src="/assets/img/logo/logo-rose.svg" alt="CP" class="banner-logo">
+        </h1>
+        <p class="banner-subtitle">Distribuez, Structurez, Élevez.</p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof gsap !== "undefined") {
+                const tl = gsap.timeline({ delay: 1 }); // Attend un peu après la navbar
+                
+                // 1. Apparition du titre (mots et logo) avec le même mouvement fluide
+                tl.to([".banner-title .word", ".banner-logo"], {
+                    opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: "power4.out", startAt: { y: 30, opacity: 0 }
+                })
+                // 2. Apparition du sous-titre avec un effet "expo" pour plus d'élégance
+                .to(".banner-subtitle", {
+                    opacity: 1, y: 0, duration: 1.2, ease: "expo.out", startAt: { y: 15, opacity: 0 }
+                }, "-=0.5");
+            } else {
+                // Fallback si GSAP est bloqué
+                document.querySelectorAll(".banner-title .word, .banner-logo, .banner-subtitle").forEach(el => el.style.opacity = "1");
+            }
+        });
+    </script>
 </body>
 </html>
