@@ -1,0 +1,76 @@
+/* Style moderne pour la page artiste dashboard */
+.artist-dashboard-wrap {
+  max-width: 700px;
+  margin: 40px auto;
+  background: var(--bg2, #fff);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+  padding: 36px 28px 40px 28px;
+}
+.artist-dashboard-wrap h1 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin-bottom: 18px;
+}
+.artist-dashboard-banner {
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px;
+  object-fit: cover;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.07);
+}
+.artist-dashboard-avatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ff8fb1;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.06);
+  margin-right: 28px;
+  background: #f3f3f3;
+}
+.artist-dashboard-profiles {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+.artist-dashboard-meta {
+  color: #888;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+.artist-dashboard-form {
+  margin-top: 32px;
+  background: #f8f8fa;
+  border-radius: 12px;
+  padding: 22px 18px;
+  box-shadow: 0 1px 4px 0 rgba(0,0,0,0.03);
+}
+.artist-dashboard-form h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.artist-dashboard-form input[type="file"] {
+  margin-bottom: 10px;
+}
+.artist-dashboard-form button {
+  background: #ff8fb1;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.artist-dashboard-form button:hover {
+  background: #e06d97;
+}
+.artist-dashboard-msg {
+  margin-top: 8px;
+  color: #2f63ff;
+  font-size: 1rem;
+}

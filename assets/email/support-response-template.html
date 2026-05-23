@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Réponse support - Morgann Music CP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #d8ff97;
+      font-family: 'Poppins', Arial, Helvetica, sans-serif;
+      color: #ff8fb1;
+    }
+    .wrapper {
+      width: 100%;
+      table-layout: fixed;
+      padding: 24px 12px;
+    }
+    .content {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(216,255,151,0.08);
+    }
+    .header {
+      background: #ff8fb1;
+      color: #d8ff97;
+      padding: 22px 24px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .content-text {
+      padding: 24px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #868686;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #ff8fb1;
+      color: #d8ff97 !important;
+      text-decoration: none;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 15px;
+      margin-top: 18px;
+      border: 2px solid #e780aa;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #e780aa;
+    }
+  </style>
+</head>
+      justify-content: center;
+      text-align: center;
+    }
+    .head { border-bottom:1px solid var(--nav-border); margin: 0; padding:18px 20px; background:var(--surface); text-align:center; }
+    .logo { display:block; margin:0 auto; width:48px; max-width:100%; height:auto; }
+    .chip { display:inline-block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; color:var(--chip-txt); background:var(--chip-bg); border-radius:999px; padding:6px 10px; }
+    .content { padding:28px 20px 24px; font-size:15px; line-height:1.72; color:var(--content-txt); background:var(--surface); }
+    .hello { margin:0 0 12px; font-size:16px; font-weight:700; }
+    .message { margin:0; }
+    .ticket { margin-top:14px; padding:12px; border:1px solid var(--ticket-border); border-radius:12px; background:var(--ticket-bg); }
+    .cta-wrap { margin:22px 0 6px; }
+    .cta { display:inline-block; background:#2f63ff; color:#ffffff !important; text-decoration:none; font-weight:800; border-radius:999px; padding:12px 20px; }
+    .foot { border-top:1px solid var(--nav-border); padding:18px 20px 22px; color:var(--foot-txt); font-size:12px; line-height:1.6; background:var(--surface-soft); text-align:center; }
+    .foot a { color:var(--link); }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <img class="logo" src="{{LOGO_URL}}" alt="Morgann Music CP" />
+  </div>
+  <div class="shell">
+    <div class="head">
+      <span class="chip">Support Morgann Music CP</span>
+    </div>
+    <div class="content">
+      <p class="hello">Bonjour {{ARTIST_NAME}},</p>
+      <p class="message">Une reponse vient d'etre apportee a ton ticket support.</p>
+      <div class="ticket">
+        <strong>Ticket:</strong> {{TICKET_TITLE}}<br /><br />
+        {{SUPPORT_RESPONSE}}
+      </div>
+      <div class="cta-wrap">
+        <a class="cta" href="{{CTA_URL}}" target="_blank" rel="noopener noreferrer">Ouvrir le support</a>
+      </div>
+    </div>
+    <div class="foot">
+      <div>Morgann Music CP</div>
+      <div>Distribution, label services et accompagnement artistes.</div>
+      <div style="margin-top:6px;"><a href="{{SITE_URL}}" target="_blank" rel="noopener noreferrer">{{SITE_URL}}</a></div>
+    </div>
+  </div>
+</body>
+</html>
