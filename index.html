@@ -44,54 +44,22 @@
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <!-- GSAP pour les animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="/assets/js/background.js"></script>
-    <script type="module" src="/assets/js/navbar.js"></script>
-    <script src="/assets/footers/accueil/footer.js" defer></script>
+    <script src="/assets/js/navbar.js" defer></script>
 </head>
 <body>
     <div id="navbar"></div>
 
-    <section class="hero-section">
-        <div class="hero-content">
-            <span class="hero-pill">Distribution premium pour artistes indépendants</span>
-            <h1 class="banner-title">
-                <span class="word">Morgann</span>
-                <span class="word">Music</span>
-                <img src="/assets/img/logo/logo-rose.svg" alt="CP" class="banner-logo">
-            </h1>
-            <p class="banner-subtitle">Distribuez, Structurez, Élevez.</p>
-            <p class="hero-description">Une plateforme pensée pour piloter vos sorties, protéger votre catalogue et développer votre présence sur 478 plateformes mondiales.</p>
-            <div class="hero-actions">
-                <a href="/contact" class="cta-button hero-cta-primary">Commencer ma distribution</a>
-                <a href="/projects" class="hero-cta-secondary">Voir des projets accompagnés</a>
-            </div>
-            <div class="hero-stats">
-                <article class="hero-stat-card">
-                    <h3>478</h3>
-                    <p>Plateformes connectées</p>
-                </article>
-                <article class="hero-stat-card">
-                    <h3>24/7</h3>
-                    <p>Suivi et assistance</p>
-                </article>
-                <article class="hero-stat-card">
-                    <h3>100%</h3>
-                    <p>Catalogue propriétaire</p>
-                </article>
-            </div>
-        </div>
-        <aside class="hero-panel" aria-label="Aperçu des avantages Morgann Music CP">
-            <div class="hero-panel-badge">Nouveauté 2026</div>
-            <h2>Un cockpit clair pour chaque sortie</h2>
-            <p>Planification, visuels, formats premium et conformité réunis dans un seul flux de validation.</p>
-            <ul>
-                <li>Validation des métadonnées avant envoi</li>
-                <li>Préparation Dolby Atmos et Spatial Audio</li>
-                <li>Activation OAC, profils artiste et paroles</li>
-            </ul>
-        </aside>
-    </section>
+    <div class="banner">
+        <h1 class="banner-title">
+            <span class="word">Morgann</span> 
+            <span class="word">Music</span> 
+            <img src="/assets/img/logo/logo-rose.svg" alt="CP" class="banner-logo">
+        </h1>
+        <p class="banner-subtitle">Distribuez, Structurez, Élevez.</p>
+
+
+    </div>
 
     <section class="platforms-section">
         <h2>Morgann Music CP distribue votre musique sur 478 plateformes</h2>
@@ -180,7 +148,7 @@
     <section class="litual-section">
         <div class="litual-container">
             <div class="litual-content">
-                <img src="https://ai.morgannmusic.uk/o!§ititititt.png" alt="Litual AI" class="litual-logo">
+                <img src="/assets/img/litual/litual-logo.png" alt="Litual AI" class="litual-logo">
                 <h2>Propulsé par Litual AI</h2>
                 <p>Nous utilisons la puissance de Litual AI pour analyser les tendances du marché, optimiser vos revenus et garantir une qualité sonore exceptionnelle à chaque sortie.</p>
             </div>
@@ -214,7 +182,43 @@
         </div>
     </section>
 
-    <div id="footer"></div>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-container">
+            <h2>Prêt à élever votre musique ?</h2>
+            <p>Rejoignez Morgann Music CP dès aujourd'hui et profitez d'une distribution mondiale sur toutes les plateformes majeures avec un accompagnement sur-mesure.</p>
+            <a href="/contact" class="cta-button">Distribuer mon titre</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <a href="/" class="footer-logo">Morgann Music <img src="/assets/img/logo/logo-rose.svg" alt="CP"></a>
+                <p>Distribuez, Structurez, Élevez.</p>
+            </div>
+            <nav class="footer-nav">
+                <div class="footer-nav-col">
+                    <h4>Navigation</h4>
+                    <a href="/music">Musique</a>
+                    <a href="/label">Label</a>
+                    <a href="/projects">Projets</a>
+                    <a href="/contact">Contact</a>
+                </div>
+                <div class="footer-nav-col">
+                    <h4>Ressources</h4>
+                    <a href="/help">Aide</a>
+                    <a href="/terms">Conditions</a>
+                    <a href="/privacy">Confidentialité</a>
+                </div>
+            </nav>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Morgann Music CP. Tous droits réservés.</p>
+        </div>
+    </footer>
 
     <script>
         // Liste brute des fichiers présents dans /assets/img/plateformes
@@ -280,23 +284,16 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             if (typeof gsap !== "undefined") {
-                if (typeof ScrollTrigger !== "undefined") {
-                    gsap.registerPlugin(ScrollTrigger);
-                }
-                const tl = gsap.timeline({ delay: 1 });
-
-                tl.fromTo(".hero-pill", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" })
-                .to([".banner-title .word", ".banner-logo"], {
+                const tl = gsap.timeline({ delay: 1 }); // Attend un peu après la navbar
+                
+                // 1. Apparition du titre (mots et logo) avec le même mouvement fluide
+                tl.to([".banner-title .word", ".banner-logo"], {
                     opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: "power4.out", startAt: { y: 30, opacity: 0 }
                 })
+                // 2. Apparition du sous-titre avec un effet "expo" pour plus d'élégance
                 .to(".banner-subtitle", {
                     opacity: 1, y: 0, duration: 1.2, ease: "expo.out", startAt: { y: 15, opacity: 0 }
-                }, "-=0.45")
-                .fromTo([".hero-description", ".hero-actions", ".hero-stat-card", ".hero-panel"],
-                    { opacity: 0, y: 28 },
-                    { opacity: 1, y: 0, duration: 0.85, stagger: 0.12, ease: "power3.out" },
-                    "-=0.5"
-                );
+                }, "-=0.5");
 
                 const section = document.querySelector('.platforms-section');
                 if (section) {
@@ -319,26 +316,32 @@
                                     { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.15 },
                                     "-=0.6"
                                 );
-                                } else if (entry.target.classList.contains('cta-section') && typeof ScrollTrigger === "undefined") {
-                                    gsap.fromTo(".cta-container",
+                                } else if (entry.target.classList.contains('cta-section')) {
+                                    gsap.fromTo(".cta-container", 
                                         { opacity: 0, y: 40 },
                                         { opacity: 1, y: 0, duration: 1, ease: "power3.out" }
                                     );
                                 }
                                 else if (entry.target.classList.contains('timeline-section')) {
-                                    gsap.fromTo(".timeline-item",
+                                    gsap.fromTo(".timeline-item", 
                                         { opacity: 0, x: -20 },
                                         { opacity: 1, x: 0, duration: 0.8, stagger: 0.2, ease: "power2.out" }
                                     );
                                 }
                                 else if (entry.target.classList.contains('litual-section')) {
-                                    gsap.fromTo(".litual-container",
+                                    gsap.fromTo(".litual-container", 
                                         { opacity: 0, scale: 0.95 },
                                         { opacity: 1, scale: 1, duration: 1.2, ease: "expo.out" }
                                     );
                                 }
+                                else if (entry.target.classList.contains('pricing-section')) {
+                                    gsap.fromTo(".pricing-card", 
+                                        { opacity: 0, y: 40 },
+                                        { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" }
+                                    );
+                                }
                                 else if (entry.target.classList.contains('extra-features-section')) {
-                                    gsap.fromTo(entry.target.querySelectorAll(".feature-card"),
+                                    gsap.fromTo(entry.target.querySelectorAll(".feature-card"), 
                                         { opacity: 0, y: 30 },
                                         { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" }
                                     );
@@ -347,7 +350,7 @@
                             }
                         });
                     }, { threshold: 0.15 });
-
+                    
                     observer.observe(section);
                     const cta = document.querySelector('.cta-section');
                     if (cta) observer.observe(cta);
@@ -357,48 +360,12 @@
                     if (litual) observer.observe(litual);
                     const extras = document.querySelector('.extra-features-section');
                     if (extras) observer.observe(extras);
-                }
-
-                if (typeof ScrollTrigger !== "undefined" && window.innerWidth > 900) {
-                    const ctaTl = gsap.timeline({
-                        scrollTrigger: {
-                            trigger: ".cta-container",
-                            start: "top 82%",
-                            end: "+=165%",
-                            scrub: 1,
-                            pin: ".cta-section",
-                            anticipatePin: 1
-                        }
-                    });
-
-                    ctaTl
-                        .to(".cta-section", {
-                            padding: "0px",
-                            ease: "none"
-                        }, 0)
-                        .to(".cta-container", {
-                            width: "100vw",
-                            height: "100vh",
-                            maxWidth: "100vw",
-                            borderRadius: "0px",
-                            padding: "0px",
-                            margin: "0px",
-                            ease: "none"
-                        }, 0)
-                        .to(".cta-stage-intro", { y: -40, opacity: 0.2, ease: "none" }, 0.18)
-                        .fromTo(".cta-line",
-                            { opacity: 0, y: 38 },
-                            { opacity: 1, y: 0, stagger: 0.18, ease: "none" },
-                            0.35
-                        )
-                        .fromTo(".cta-final-button",
-                            { opacity: 0, y: 24, scale: 0.95 },
-                            { opacity: 1, y: 0, scale: 1, ease: "none" },
-                            0.72
-                        );
+                    const pricing = document.querySelector('.pricing-section');
+                    if (pricing) observer.observe(pricing);
                 }
             } else {
-                document.querySelectorAll(".hero-pill, .banner-title .word, .banner-logo, .banner-subtitle, .hero-description, .hero-actions, .hero-stat-card, .hero-panel, .platforms-section h2, .platforms-section p, .platforms-section .marquee, .feature-card, .cta-container, .cta-line, .cta-final-button").forEach(el => el.style.opacity = "1");
+                // Fallback si GSAP est bloqué
+                document.querySelectorAll(".banner-title .word, .banner-logo, .banner-subtitle, .platforms-section h2, .platforms-section p, .platforms-section .marquee, .feature-card, .cta-container").forEach(el => el.style.opacity = "1");
             }
         });
     </script>

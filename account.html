@@ -3,23 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d0a75a">
     <title>Mon Compte | Morgann Music CP</title>
     <link rel="stylesheet" href="/assets/css/account.css">
+    <link rel="stylesheet" href="/assets/navbars/accueil/navbar-login.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" src="/assets/js/navbar.js"></script>
 </head>
-<body>
+<body class="login-page">
+    <div id="navbar"></div>
+
     <main class="account-wrap">
-        <h1>Mon compte</h1>
-        <div class="meta">
-            <p>Email: <strong id="user-email">Chargement...</strong></p>
-            <p>UID: <strong id="user-uid">Chargement...</strong></p>
-        </div>
-        <div class="actions">
-            <a class="action-link secondary" href="/index.html">Retour accueil</a>
-            <button id="logout-btn" type="button">Se déconnecter</button>
-        </div>
+        <header class="account-header">
+            <p class="account-kicker">Espace membre</p>
+            <div class="account-title-row">
+                <h1>Mon compte</h1>
+                <span id="role-badge" class="role-badge role-user">User</span>
+            </div>
+            <p class="account-subtitle">Gere vos informations, vos coordonnees et la securite de votre compte.</p>
+        </header>
+
+        <nav class="tabs" role="tablist" aria-label="Sections du compte">
+            <button class="tab-btn is-active" data-tab="profile" role="tab" aria-selected="true">Profil</button>
+            <button class="tab-btn" data-tab="contact" role="tab" aria-selected="false">Coordonnees</button>
+            <button class="tab-btn" data-tab="security" role="tab" aria-selected="false">Securite</button>
+        </nav>
+
+        <form id="account-form">
+            <section class="tab-panel is-active" data-panel="profile" role="tabpanel">
+                <div class="info-grid">
+                    <article class="info-card">
+                        <label class="label" for="first-name">Prenom</label>
+                        <input id="first-name" name="first_name" class="value-input" type="text" required>
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="last-name">Nom</label>
+                        <input id="last-name" name="last_name" class="value-input" type="text" required>
+                    </article>
+                    <article class="info-card">
+                        <p class="label">Nom d'artiste</p>
+                        <p class="value" id="user-artist">Chargement...</p>
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="email">Email</label>
+                        <input id="email" name="email" class="value-input" type="email" required>
+                    </article>
+                    <article class="info-card">
+                        <p class="label">UID</p>
+                        <p class="value" id="user-uid">Chargement...</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-panel="contact" role="tabpanel">
+                <div class="info-grid">
+                    <article class="info-card">
+                        <label class="label" for="address">Adresse</label>
+                        <input id="address" name="address" class="value-input" type="text">
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="city">Ville</label>
+                        <input id="city" name="city" class="value-input" type="text">
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="postal-code">Code postal</label>
+                        <input id="postal-code" name="postal_code" class="value-input" type="text">
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="iban">IBAN</label>
+                        <input id="iban" name="iban" class="value-input" type="text" placeholder="Optionnel">
+                    </article>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-panel="security" role="tabpanel">
+                <div class="security-box">
+                    <p>Vous pouvez enregistrer vos modifications puis vous deconnecter de votre session en toute securite.</p>
+                    <div class="actions">
+                        <button type="submit" id="save-btn">Enregistrer les modifications</button>
+                        <a class="action-link secondary" href="/index.html">Retour accueil</a>
+                        <button id="logout-btn" type="button">Se deconnecter</button>
+                    </div>
+                    <p id="account-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </div>
+            </section>
+        </form>
     </main>
 
     <script type="module" src="/assets/js/account.js"></script>
