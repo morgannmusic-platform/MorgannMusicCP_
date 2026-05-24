@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription | Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/login-signin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="/assets/js/auth-ui.js" defer></script>
+</head>
+<body>
+    <main class="auth-card">
+        <a class="brand" href="/index.html">Morgann Music <img src="/assets/img/logo/logo-rose.svg" alt="CP"></a>
+        <h1>Inscription</h1>
+        <p class="subtitle">Crée ton espace Morgann Music CP.</p>
+
+        <form id="signin-form" novalidate>
+            <div>
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <div>
+                <label for="password">Mot de passe (min 6 caractères)</label>
+                 <input id="password" name="password" type="password" autocomplete="new-password" minlength="6" required>
+            </div>
+            <div>
+                <label for="password-confirm">Confirmer le mot de passe</label>
+                <input id="password-confirm" name="password_confirm" type="password" autocomplete="new-password" minlength="6" required>
+            </div>
+            <button type="submit">Créer mon compte</button>
+            <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+        </form>
+
+        <p class="helper">Déjà inscrit ? <a href="/login.html">Se connecter</a></p>
+    </main>
+
+    <script type="module" src="/assets/js/signin.js"></script>
+</body>
+</html>

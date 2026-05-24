@@ -44,37 +44,361 @@
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <!-- GSAP pour les animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="/assets/js/background.js"></script>
-    <script src="/assets/js/navbar.js" defer></script>
+    <script type="module" src="/assets/js/navbar.js"></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
 </head>
 <body>
     <div id="navbar"></div>
 
-    <div class="banner">
-        <h1 class="banner-title">
-            <span class="word">Morgann</span> 
-            <span class="word">Music</span> 
-            <img src="/assets/img/logo/logo-rose.svg" alt="CP" class="banner-logo">
-        </h1>
-        <p class="banner-subtitle">Distribuez, Structurez, Élevez.</p>
-    </div>
+    <section class="hero-section">
+        <div class="hero-content">
+            <span class="hero-pill">Distribution premium pour artistes indépendants</span>
+            <h1 class="banner-title">
+                <span class="word">Morgann</span>
+                <span class="word">Music</span>
+                <img src="/assets/img/logo/logo-rose.svg" alt="CP" class="banner-logo">
+            </h1>
+            <p class="banner-subtitle">Distribuez, Structurez, Élevez.</p>
+            <p class="hero-description">Une plateforme pensée pour piloter vos sorties, protéger votre catalogue et développer votre présence sur 478 plateformes mondiales.</p>
+            <div class="hero-actions">
+                <a href="/contact" class="cta-button hero-cta-primary">Commencer ma distribution</a>
+                <a href="/projects" class="hero-cta-secondary">Voir des projets accompagnés</a>
+            </div>
+            <div class="hero-stats">
+                <article class="hero-stat-card">
+                    <h3>478</h3>
+                    <p>Plateformes connectées</p>
+                </article>
+                <article class="hero-stat-card">
+                    <h3>24/7</h3>
+                    <p>Suivi et assistance</p>
+                </article>
+                <article class="hero-stat-card">
+                    <h3>100%</h3>
+                    <p>Catalogue propriétaire</p>
+                </article>
+            </div>
+        </div>
+        <aside class="hero-panel" aria-label="Aperçu des avantages Morgann Music CP">
+            <div class="hero-panel-badge">Nouveauté 2026</div>
+            <h2>Un cockpit clair pour chaque sortie</h2>
+            <p>Planification, visuels, formats premium et conformité réunis dans un seul flux de validation.</p>
+            <ul>
+                <li>Validation des métadonnées avant envoi</li>
+                <li>Préparation Dolby Atmos et Spatial Audio</li>
+                <li>Activation OAC, profils artiste et paroles</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="platforms-section">
+        <h2>Morgann Music CP distribue votre musique sur 478 plateformes</h2>
+        <p>Quelques-unes des plateformes :</p>
+
+        <div class="marquee" aria-hidden="true">
+            <div class="marquee-track" id="marquee1"></div>
+        </div>
+
+        <div class="marquee reverse" aria-hidden="true">
+            <div class="marquee-track" id="marquee2"></div>
+        </div>
+    </section>
+
+    <section class="feature-cards-section">
+        <h2>Boostez vos sorties avec des formats haut de gamme</h2>
+        <div class="feature-cards-grid">
+            <article class="feature-card">
+                <div class="feature-card-image feature-card-image-large">
+                    <img src="https://png.pngtree.com/png-vector/20220827/ourmid/pngtree-experience-the-movie-theater-feel-with-spatial-audio-and-dynamic-head-tracking-symbol-vector-png-image_38966290.png" alt="Dolby Atmos & Apple Spatial Audio">
+                </div>
+                <h3>Dolby Atmos & Apple Spatial Audio</h3>
+                <p>Immersion audio soutenue par les standards Dolby et Apple pour des expériences 3D puissantes.</p>
+            </article>
+            <article class="feature-card">
+                <div class="feature-card-image">
+                    <img src="https://majormixing.com/wp-content/uploads/2021/11/123.png" alt="Apple Digital Master & Morgann Lossless Codec">
+                </div>
+                <h3>Apple Digital Master & Morgann Lossless Codec</h3>
+                <p>Qualité masterisée et son lossless pour conserver chaque détail de vos productions.</p>
+            </article>
+            <article class="feature-card">
+                <div class="feature-card-image">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6304/6304788.png" alt="Apple Motion Artwork">
+                </div>
+                <h3>Apple Motion Artwork</h3>
+                <p>Visuels animés optimisés Apple pour des pochettes qui bougent et marquent les esprits.</p>
+            </article>
+            <article class="feature-card">
+                <div class="feature-card-image">
+                    <img src="https://help.toolost.com/hc/theming_assets/01HZP9RGH4X2RE2BYK34D3T2GA" alt="Distribution vidéo avec Too Lost">
+                </div>
+                <h3>Distribution vidéo avec Too Lost</h3>
+                <p>Bientôt disponible : diffusion vidéo sur les principales plateformes vidéo et clip.</p>
+                <span class="soon-badge">Bientôt</span>
+            </article>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section class="timeline-section">
+        <h2>Votre parcours vers le sommet</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>1. Préparation</h3>
+                    <p>Envoi de vos fichiers WAV, métadonnées et visuels haute définition.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>2. Optimisation</h3>
+                    <p>Mastering Spatial Audio et vérification de la conformité aux standards des plateformes.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>3. Distribution</h3>
+                    <p>Envoi vers 478 plateformes avec programmation de votre date de sortie stratégique.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <h3>4. Accompagnement</h3>
+                    <p>Gestion des profils d'artistes et mise en place des visuels animés (Motion Artwork).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Litual AI Section -->
+    <section class="litual-section">
+        <div class="litual-container">
+            <div class="litual-content">
+                <img src="https://ai.morgannmusic.uk/o!§ititititt.png" alt="Litual AI" class="litual-logo">
+                <h2>Propulsé par Litual AI</h2>
+                <p>Nous utilisons la puissance de Litual AI pour analyser les tendances du marché, optimiser vos revenus et garantir une qualité sonore exceptionnelle à chaque sortie.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Extra Features Section -->
+    <section class="extra-features-section">
+        <div class="feature-cards-grid extra-grid">
+            <article class="feature-card color-logo">
+                <div class="feature-card-image">
+                    <img src="/assets/img/fonctionnalitées/applemusicforartist.png" alt="Apple Music for Artist">
+                </div>
+                <h3>Accès Artiste complet</h3>
+                <p>Accompagnement pour obtenir vos accès officiels sur Apple Music for Artist et Spotify for Artists.</p>
+            </article>
+            <article class="feature-card color-logo">
+                <div class="feature-card-image">
+                    <img src="/assets/img/fonctionnalitées/ytmusic-oac.webp" alt="YouTube Official Artist Channel">
+                </div>
+                <h3>Chaîne d'artiste officielle YouTube</h3>
+                <p>Transformation de votre chaîne en OAC avec le badge "Note de musique" pour une crédibilité maximale.</p>
+            </article>
+            <article class="feature-card color-logo">
+                <div class="feature-card-image">
+                    <img src="/assets/img/fonctionnalitées/lyricfind-logo.png" alt="LyricFind">
+                </div>
+                <h3>Distribution des paroles</h3>
+                <p>Synchronisation de vos paroles fixes sur toutes les plateformes via nos partenaires Musixmatch et LyricFind.</p>
+            </article>
+        </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <script>
+        // Liste brute des fichiers présents dans /assets/img/plateformes
+        const logos = [
+            'Amazonmusic.logo.png',
+            'Google_Play_2022_logo.svg.png',
+            'Shazam_logo.svg.png',
+            'Spotify_logo_with_text.svg.png',
+            'TIDAL_Music_AB.png',
+            'TikTok-Logo-650x366.png',
+            'og__ckjrh2mu8b2a_image avec arrière-plan supprimé.png',
+            'Twitch-Logo.png',
+            'akazoo-logo.png',
+            'ali-baba-music-logo-1605371086.jpg.png',
+            '604203b036a4e80a5e8c1f47_Vevo Logo - Artwork.png',
+            'Tesla-Embleme.png',
+            '5563.1412784896.png',
+            '1200x680 avec arrière-plan supprimé.png'
+
+
+        ];
+
+        function addLogosTo(trackId) {
+            const track = document.getElementById(trackId);
+            if (!track) return [];
+            const imgs = [];
+            // add two copies for seamless scroll
+            for (let rep = 0; rep < 2; rep++) {
+                logos.forEach(name => {
+                    const item = document.createElement('div');
+                    item.className = 'marquee-item';
+                    const img = document.createElement('img');
+                    // encode filename for URL
+                    img.src = '/assets/img/plateformes/' + encodeURIComponent(name);
+                    img.alt = name.replace(/[-_.]/g, ' ');
+                    item.appendChild(img);
+                    track.appendChild(item);
+                    imgs.push(img);
+                });
+            }
+            return imgs;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // create images and wait for all to load before starting animation
+            const imgs1 = addLogosTo('marquee1');
+            const imgs2 = addLogosTo('marquee2');
+            const allImgs = imgs1.concat(imgs2);
+            const loadPromises = allImgs.map(img => new Promise(resolve => {
+                if (img.complete && img.naturalWidth !== 0) return resolve();
+                img.addEventListener('load', resolve);
+                img.addEventListener('error', resolve);
+            }));
+
+            Promise.all(loadPromises).then(() => {
+                // once all images are loaded (or errored), start animations
+                document.getElementById('marquee1')?.classList.add('loaded');
+                document.getElementById('marquee2')?.classList.add('loaded');
+            });
+        });
+    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             if (typeof gsap !== "undefined") {
-                const tl = gsap.timeline({ delay: 1 }); // Attend un peu après la navbar
-                
-                // 1. Apparition du titre (mots et logo) avec le même mouvement fluide
-                tl.to([".banner-title .word", ".banner-logo"], {
+                if (typeof ScrollTrigger !== "undefined") {
+                    gsap.registerPlugin(ScrollTrigger);
+                }
+                const tl = gsap.timeline({ delay: 1 });
+
+                tl.fromTo(".hero-pill", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" })
+                .to([".banner-title .word", ".banner-logo"], {
                     opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: "power4.out", startAt: { y: 30, opacity: 0 }
                 })
-                // 2. Apparition du sous-titre avec un effet "expo" pour plus d'élégance
                 .to(".banner-subtitle", {
                     opacity: 1, y: 0, duration: 1.2, ease: "expo.out", startAt: { y: 15, opacity: 0 }
-                }, "-=0.5");
+                }, "-=0.45")
+                .fromTo([".hero-description", ".hero-actions", ".hero-stat-card", ".hero-panel"],
+                    { opacity: 0, y: 28 },
+                    { opacity: 1, y: 0, duration: 0.85, stagger: 0.12, ease: "power3.out" },
+                    "-=0.5"
+                );
+
+                const section = document.querySelector('.platforms-section');
+                if (section) {
+                    const observer = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                if (entry.target.classList.contains('platforms-section')) {
+                                    const cardsTl = gsap.timeline();
+                                    cardsTl.fromTo([".platforms-section h2", ".platforms-section p"],
+                                    { opacity: 0, y: 25 },
+                                    { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.15 }
+                                )
+                                .fromTo(".platforms-section .marquee",
+                                    { opacity: 0, y: 30 },
+                                    { opacity: 1, y: 0, duration: 1, ease: "power3.out", stagger: 0.2 },
+                                    "-=0.4"
+                                )
+                                .fromTo(".feature-card",
+                                    { opacity: 0, y: 30 },
+                                    { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.15 },
+                                    "-=0.6"
+                                );
+                                } else if (entry.target.classList.contains('cta-section') && typeof ScrollTrigger === "undefined") {
+                                    gsap.fromTo(".cta-container",
+                                        { opacity: 0, y: 40 },
+                                        { opacity: 1, y: 0, duration: 1, ease: "power3.out" }
+                                    );
+                                }
+                                else if (entry.target.classList.contains('timeline-section')) {
+                                    gsap.fromTo(".timeline-item",
+                                        { opacity: 0, x: -20 },
+                                        { opacity: 1, x: 0, duration: 0.8, stagger: 0.2, ease: "power2.out" }
+                                    );
+                                }
+                                else if (entry.target.classList.contains('litual-section')) {
+                                    gsap.fromTo(".litual-container",
+                                        { opacity: 0, scale: 0.95 },
+                                        { opacity: 1, scale: 1, duration: 1.2, ease: "expo.out" }
+                                    );
+                                }
+                                else if (entry.target.classList.contains('extra-features-section')) {
+                                    gsap.fromTo(entry.target.querySelectorAll(".feature-card"),
+                                        { opacity: 0, y: 30 },
+                                        { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "power3.out" }
+                                    );
+                                }
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.15 });
+
+                    observer.observe(section);
+                    const cta = document.querySelector('.cta-section');
+                    if (cta) observer.observe(cta);
+                    const timeline = document.querySelector('.timeline-section');
+                    if (timeline) observer.observe(timeline);
+                    const litual = document.querySelector('.litual-section');
+                    if (litual) observer.observe(litual);
+                    const extras = document.querySelector('.extra-features-section');
+                    if (extras) observer.observe(extras);
+                }
+
+                if (typeof ScrollTrigger !== "undefined" && window.innerWidth > 900) {
+                    const ctaTl = gsap.timeline({
+                        scrollTrigger: {
+                            trigger: ".cta-container",
+                            start: "top 82%",
+                            end: "+=165%",
+                            scrub: 1,
+                            pin: ".cta-section",
+                            anticipatePin: 1
+                        }
+                    });
+
+                    ctaTl
+                        .to(".cta-section", {
+                            padding: "0px",
+                            ease: "none"
+                        }, 0)
+                        .to(".cta-container", {
+                            width: "100vw",
+                            height: "100vh",
+                            maxWidth: "100vw",
+                            borderRadius: "0px",
+                            padding: "0px",
+                            margin: "0px",
+                            ease: "none"
+                        }, 0)
+                        .to(".cta-stage-intro", { y: -40, opacity: 0.2, ease: "none" }, 0.18)
+                        .fromTo(".cta-line",
+                            { opacity: 0, y: 38 },
+                            { opacity: 1, y: 0, stagger: 0.18, ease: "none" },
+                            0.35
+                        )
+                        .fromTo(".cta-final-button",
+                            { opacity: 0, y: 24, scale: 0.95 },
+                            { opacity: 1, y: 0, scale: 1, ease: "none" },
+                            0.72
+                        );
+                }
             } else {
-                // Fallback si GSAP est bloqué
-                document.querySelectorAll(".banner-title .word, .banner-logo, .banner-subtitle").forEach(el => el.style.opacity = "1");
+                document.querySelectorAll(".hero-pill, .banner-title .word, .banner-logo, .banner-subtitle, .hero-description, .hero-actions, .hero-stat-card, .hero-panel, .platforms-section h2, .platforms-section p, .platforms-section .marquee, .feature-card, .cta-container, .cta-line, .cta-final-button").forEach(el => el.style.opacity = "1");
             }
         });
     </script>

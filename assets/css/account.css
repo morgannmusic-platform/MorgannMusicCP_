@@ -1,0 +1,75 @@
+:root {
+    --bg: #eaffc6;
+    --rose: #fc8fb0;
+    --text: #1a1a1a;
+    --muted: rgba(0, 0, 0, 0.62);
+    --card: rgba(255, 255, 255, 0.66);
+    --border: rgba(0, 0, 0, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: "Poppins", sans-serif;
+    background: radial-gradient(circle at 20% 10%, #ffd7e5 0%, transparent 30%), var(--bg);
+    color: var(--text);
+    padding: 1.2rem;
+}
+
+.account-wrap {
+    max-width: 800px;
+    margin: 2rem auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 1.6rem;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+h1 {
+    color: var(--rose);
+    margin-bottom: 1rem;
+}
+
+.meta {
+    display: grid;
+    gap: 0.7rem;
+    margin-bottom: 1.5rem;
+}
+
+.meta p {
+    color: var(--muted);
+}
+
+.meta strong {
+    color: var(--text);
+}
+
+.actions {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+
+button,
+.action-link {
+    border: none;
+    background: var(--rose);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.8rem 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.action-link.secondary {
+    background: rgba(0, 0, 0, 0.12);
+    color: var(--text);
+}
