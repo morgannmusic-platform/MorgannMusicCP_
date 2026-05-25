@@ -117,6 +117,27 @@
         </section>
     </main>
 
+    <!-- Interface de Chat Litual AI -->
+    <div id="litual-chat-container">
+        <button id="chat-toggle" title="Conseiller Litual AI">
+            <img src="/assets/img/litual/litual-logo.png" alt="AI">
+        </button>
+        <div id="chat-window" class="is-hidden">
+            <div class="chat-header">
+                <img src="/assets/img/litual/litual-logo.png" alt="Litual AI">
+                <span>Conseiller Litual AI</span>
+                <button id="close-chat">&times;</button>
+            </div>
+            <div id="chat-messages">
+                <div class="msg ai">Bonjour ! Je suis Litual AI. Quel projet musical souhaitez-vous distribuer ? Je peux vous aider à choisir le meilleur plan.</div>
+            </div>
+            <form id="chat-input-form">
+                <input type="text" id="user-input" placeholder="Posez votre question..." autocomplete="off">
+                <button type="submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
+
     <div id="footer"></div>
 
     <script>
@@ -124,6 +145,79 @@
             if (typeof gsap === "undefined") return;
             gsap.fromTo(".tarifs-hero > *", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out" });
             gsap.fromTo(".price-card", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.08, ease: "power2.out", delay: 0.2 });
+
+            // --- LOGIQUE CHAT LITUAL AI ---
+            const chatToggle = document.getElementById('chat-toggle');
+            const chatWindow = document.getElementById('chat-window');
+            const closeChat = document.getElementById('close-chat');
+            const chatForm = document.getElementById('chat-input-form');
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+
+            let messageHistory = [];
+            const systemInstruction = "Tu es Litual AI, l'assistant expert de Morgann Music CP. Tu conseilles les artistes sur les tarifs. \nOffres :\n1. Future légende (0,99€/mois) : Réservé aux jeunes. 1 artiste, sorties illimitées, Dolby Atmos, Spatial Audio, Master/Lossless, 478 plateformes, Litual AI Analytics, YouTube OAC, Paroles, support 24h.\n2. Starter (2,99€/mois) : 1 artiste, 5 singles, 1 album, 2 EPs, Dolby Atmos, Master/Lossless, YouTube OAC, Paroles, support 48h.\n3. Pro (3,99€/mois) : 2 artistes, sorties illimitées, toutes les fonctions Starter + Litual AI, support 24h.\n4. Label (5,99€/mois) : Artistes illimités, toutes les fonctions Starter & Pro.\nPaiement par sortie : Single 3,44€, EP/Album 7,97€.\nRéponds avec élégance, brièveté et professionnalisme.";
+
+            chatToggle.addEventListener('click', () => {
+                chatWindow.classList.toggle('is-hidden');
+                if (!chatWindow.classList.contains('is-hidden')) userInput.focus();
+            });
+
+            closeChat.addEventListener('click', () => chatWindow.classList.add('is-hidden'));
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const text = userInput.value.trim();
+                if (!text) return;
+
+                addMessage(text, 'user');
+                userInput.value = '';
+                messageHistory.push({ role: 'user', content: text });
+
+                const aiMsgDiv = addMessage('...', 'ai');
+
+                try {
+                    const response = await fetch('https://litual.ai.morgannmusic.uk', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: messageHistory,
+                            instruction: systemInstruction
+                        })
+                    });
+
+                    if (!response.ok) throw new Error();
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let aiFullText = "";
+                    aiMsgDiv.textContent = "";
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        const chunk = decoder.decode(value);
+                        aiFullText += chunk;
+                        aiMsgDiv.textContent = aiFullText;
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                    messageHistory.push({ role: 'assistant', content: aiFullText });
+                } catch (err) {
+                    aiMsgDiv.textContent = "Désolé, une erreur est survenue lors de la connexion à Litual AI.";
+                }
+            });
+
+            function addMessage(text, side) {
+                const div = document.createElement('div');
+                div.className = `msg ${side}`;
+                div.textContent = text;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                if (typeof gsap !== "undefined") {
+                    gsap.fromTo(div, { opacity: 0, scale: 0.9, y: 5 }, { opacity: 1, scale: 1, y: 0, duration: 0.3 });
+                }
+                return div;
+            }
         });
     </script>
 </body>
