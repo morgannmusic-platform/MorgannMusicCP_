@@ -5,7 +5,6 @@
     --text-secondary: rgba(0,0,0,0.6);
     --card-bg: #ffebf171;
     --border-subtle: rgba(0,0,0,0.08);
-    --footer-bg: rgba(255,255,255,0.05);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,7 +15,6 @@
     --text-secondary: rgba(255,255,255,0.7);
     --card-bg: rgba(0,0,0,0.2);
     --border-subtle: rgba(255,255,255,0.1);
-    --footer-bg: rgba(0,0,0,0.2);
     }
 }
 
@@ -450,6 +448,7 @@ body {
     border: 1px solid var(--border-subtle);
     border-radius: 28px;
     box-shadow: 0 24px 80px rgba(0,0,0,0.06);
+    opacity: 0;
 }
 
 .timeline-dot {
@@ -490,6 +489,7 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 2rem;
+    opacity: 0;
 }
 
 .litual-logo {
@@ -601,7 +601,7 @@ body {
     width: fit-content;
     max-width: min(92vw, 760px);
     box-shadow: 0 40px 100px rgba(0,0,0,0.1);
-    opacity: 1;
+    opacity: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;

@@ -1,12 +1,14 @@
 :root {
     --footer-bg: #FC8FB0;
-    --footer-border: #FC8FB0;
+    --footer-border: #ffbace;
+    --footer-text: #eaffc6;
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --footer-bg: #333;
-        --footer-border: #555;
+        --footer-bg: rgb(108, 122, 83);
+        --footer-border: rgb(159, 167, 145);
+        --footer-text: #FC8FB0;
     }
 }
 
@@ -15,11 +17,9 @@
     padding: 5rem 1rem 2rem;
     background: var(--footer-bg);
     -webkit-backdrop-filter: blur(5px);
-    border-top: 1px solid var(--border-subtle);
-    background: #FC8FB0;
     border-radius: 30px 30px 0 0;
     backdrop-filter: blur(5px);
-    border-top: 
+    border-top: 1px solid var(--footer-border);
 }
 
 .footer-container {
@@ -43,16 +43,22 @@
     font-size: 1.4rem;
     font-weight: 700;
     text-decoration: none;
-    color: var(--rose);
+    color: var(--footer-text);
     margin-bottom: 1rem;
 }
 
 .footer-logo img {
     height: 1.4em;
+    width: auto;
+    background-color: var(--footer-text);
+    -webkit-mask: url("/assets/img/logo/logo-rose.svg") no-repeat center / contain;
+    mask: url("/assets/img/logo/logo-rose.svg") no-repeat center / contain;
+    /* Remplace l'image source par un pixel transparent pour laisser voir la couleur du masque */
+    content: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
 }
 
 .footer-brand p {
-    color: var(--text-secondary);
+    color: var(--footer-text);
     font-size: 0.95rem;
 }
 
@@ -63,6 +69,8 @@
 
 .footer-nav-col h4 {
     font-size: 0.85rem;
+        color: var(--footer-text);
+
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 1.5rem;
@@ -77,7 +85,7 @@
 
 .footer-nav-col a {
     text-decoration: none;
-    color: var(--rose);
+    color: var(--footer-text);
     font-size: 0.95rem;
     transition: opacity 0.2s;
     position: relative;
@@ -110,7 +118,7 @@
     border-top: 1px solid var(--border-subtle);
     text-align: center;
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--footer-text);
     opacity: 0.6;
 }
 
