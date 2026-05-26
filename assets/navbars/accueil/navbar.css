@@ -15,14 +15,14 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 44px; /* Augmenté pour accueillir le logo et le bouton de 50px */
+    height: 60px; /* Ajusté pour laisser respirer le logo de 50px */
     background-color: var(--bg-nb);
     backdrop-filter: blur(20px); /* L'effet flou de transparence Apple */
     -webkit-backdrop-filter: blur(20px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 3100; /* Augmenté pour rester au-dessus du menu mobile si besoin */
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     opacity: 0; /* Géré par GSAP au démarrage pour éviter le flash */
 }
@@ -170,6 +170,11 @@
     position: relative;
 }
 
+.mobile-menu .profile-wrap {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
 .profile-button {
     width: 34px;
     height: 34px;
@@ -193,7 +198,7 @@
     top: calc(100% + 9px);
     right: 0;
     min-width: 220px;
-    background: rgba(0, 0, 0, 0.82);
+    background: var(--bg-nb);
     border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 16px;
     padding: 0.45rem;
@@ -228,7 +233,20 @@
 }
 
 .profile-menu .danger {
-    color: #ffc6d8;
+    color: #ffdde8;
+}
+
+/* Adaptation du menu profil pour le mobile */
+.mobile-menu .profile-menu {
+    position: relative;
+    top: 10px;
+    right: auto;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+    display: none;
+    margin-bottom: 15px;
 }
 
 @media (max-width: 768px) {
@@ -303,7 +321,7 @@
     background-color: rgba(0, 0, 0, 0.4); /* Overlay sombre semi-transparent */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    z-index: 999; /* En dessous de la navbar mais au-dessus du contenu de la page */
+    z-index: 3000; /* Positionné juste sous la navbar pour que le hamburger reste visible */
     display: none; /* Caché par défaut */
     opacity: 0; /* Pour l'animation GSAP */
 }
@@ -321,13 +339,14 @@
     padding: 60px 20px 20px; /* Padding pour le contenu, espace pour la navbar en haut */
     box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
     transform: translateX(100%); /* Hors écran à droite */
+    overflow-y: auto;
 }
 
 .mobile-nav-links, .mobile-auth-links {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 5px;
+    margin-bottom: 10px;
 }
 
 .mobile-nav-links a, .mobile-auth-links a, .mobile-auth-links button {
@@ -359,8 +378,10 @@
     .menu-toggle {
         display: block; /* Affiche le hamburger sur mobile */
     }
-    #nav-auth { /* Cache les liens d'auth desktop sur mobile */
-        display: none;
+    #nav-auth {
+        display: flex;
+        margin-left: auto;
+        margin-right: 5px;
     }
 }
-}
+

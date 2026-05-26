@@ -5,7 +5,7 @@
         <a href="/index.html" class="nav-logo"><img src="/assets/img/logo/logo-rose.svg" alt=""></a>
         
         <!-- Liens style Apple -->
-        <div class="nav-links">
+        <div class="nav-links" id="desktop-nav-links">
             <a href="/index.html" class="nav-item">Accueil</a>
             <a href="/tarifs.html" class="nav-item">Tarifs</a>
             <a href="/pourquoi-nous.html" class="nav-item">Pourquoi-nous ?</a>
@@ -17,5 +17,14 @@
         </div>
         
         <div class="nav-auth" id="nav-auth"></div>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Ouvrir le menu">
+            <span class="hamburger"></span>
+        </button>
     </div>
+</div>
+
+<div class="mobile-menu-overlay" id="mobile-menu-overlay">
+    <nav class="mobile-menu" id="mobile-menu">
+        <!-- Mobile nav links and auth links will be injected here by JS -->
+    </nav>
 </div>

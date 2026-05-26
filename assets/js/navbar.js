@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const mobileMenu = navbarContainer.querySelector("#mobile-menu");
             const menuToggle = navbarContainer.querySelector("#menu-toggle");
             const navAuth = navbarContainer.querySelector("#nav-auth");
+
             if (!navAuth) return;
 
             const animateNavbar = () => {
@@ -62,11 +63,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
+            // Préparation du contenu mobile
+            const mobileNavLinksContainer = document.createElement('div');
+            mobileNavLinksContainer.className = 'mobile-nav-links';
+            if (desktopNavLinks) mobileNavLinksContainer.innerHTML = desktopNavLinks.innerHTML;
+            mobileMenu.appendChild(mobileNavLinksContainer);
+
+            const mobileAuthLinksDiv = document.createElement('div');
+            mobileAuthLinksDiv.className = 'mobile-auth-links';
+            mobileMenu.appendChild(mobileAuthLinksDiv);
+
+            const attachMobileMenuLinkListeners = () => {
+                mobileMenu.querySelectorAll('a, button').forEach(link => {
+                    link.addEventListener('click', () => closeMobileMenu());
+                });
+            };
+
             const renderDisconnected = () => {
-                navAuth.innerHTML = `
+                const authHtml = `
                     <a class="auth-link" href="/login.html">Se connecter</a>
                     <a class="auth-link" href="/signin.html">S'inscrire</a>
                 `;
+                navAuth.innerHTML = authHtml;
+                mobileAuthLinksDiv.innerHTML = authHtml;
+                attachMobileMenuLinkListeners();
             };
 
             const renderConnected = (user, isAdmin) => {
@@ -89,27 +109,80 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 `;
 
-                const profileButton = navAuth.querySelector("#profile-button");
-                const profileMenu = navAuth.querySelector("#profile-menu");
-                const logoutButton = navAuth.querySelector("#logout-button");
+                navAuth.innerHTML = profileHtml;
+                mobileAuthLinksDiv.innerHTML = ""; // On ne l'affiche plus dans le menu toggle
 
-                profileButton?.addEventListener("click", () => {
-                    profileMenu?.classList.toggle("open");
-                });
+                // Gestion des menus de profil (Desktop et Mobile)
+                const setupProfileMenu = (container) => {
+                    const profileButton = container.querySelector(".profile-button");
+                    const profileMenu = container.querySelector(".profile-menu");
+                    const logoutButton = container.querySelector("#logout-button");
 
-                document.addEventListener("click", (event) => {
-                    const target = event.target;
-                    if (!(target instanceof Node)) return;
-                    if (!navAuth.contains(target)) {
-                        profileMenu?.classList.remove("open");
-                    }
-                });
+                    profileButton?.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        profileMenu?.classList.toggle("open");
+                    });
 
-                logoutButton?.addEventListener("click", async () => {
-                    await signOut(auth);
-                    window.location.href = "/login.html";
-                });
+                    document.addEventListener("click", (event) => {
+                        if (!container.contains(event.target)) {
+                            profileMenu?.classList.remove("open");
+                        }
+                    });
+
+                    logoutButton?.addEventListener("click", async () => {
+                        await signOut(auth);
+                        window.location.href = "/login.html";
+                    });
+                };
+
+                setupProfileMenu(navAuth);
+                attachMobileMenuLinkListeners();
             };
+
+            // Logique du Menu Toggle Mobile
+            const openMobileMenu = () => {
+                if (typeof gsap === "undefined") {
+                    mobileMenuOverlay.style.display = "block";
+                    mobileMenuOverlay.style.opacity = "1";
+                    mobileMenu.style.transform = "translateX(0)";
+                } else {
+                    gsap.set(mobileMenuOverlay, { display: 'block' });
+                    gsap.to(mobileMenuOverlay, { opacity: 1, duration: 0.3 });
+                    gsap.to(mobileMenu, { x: "0%", duration: 0.4, ease: "power2.out" });
+                    
+                    // Petit effet de cascade sur les liens
+                    gsap.fromTo(mobileMenu.querySelectorAll('a, .profile-wrap'), 
+                        { opacity: 0, x: 20 }, 
+                        { opacity: 1, x: 0, duration: 0.3, stagger: 0.05, delay: 0.1 }
+                    );
+                }
+                menuToggle?.classList.add('is-active');
+            };
+
+            const closeMobileMenu = () => {
+                if (typeof gsap === "undefined") {
+                    mobileMenuOverlay.style.display = "none";
+                    mobileMenu.style.transform = "translateX(100%)";
+                } else {
+                    gsap.to(mobileMenu, { x: "100%", duration: 0.4, ease: "power2.in" });
+                    gsap.to(mobileMenuOverlay, { 
+                        opacity: 0, 
+                        duration: 0.3, 
+                        onComplete: () => gsap.set(mobileMenuOverlay, { display: 'none' }) 
+                    });
+                }
+                menuToggle?.classList.remove('is-active');
+            };
+
+            menuToggle?.addEventListener("click", () => {
+                const isOpen = menuToggle.classList.contains('is-active');
+                if (isOpen) closeMobileMenu();
+                else openMobileMenu();
+            });
+
+            mobileMenuOverlay?.addEventListener("click", (e) => {
+                if (e.target === mobileMenuOverlay) closeMobileMenu();
+            });
 
             onAuthStateChanged(auth, async (user) => {
                 if (!user) {
