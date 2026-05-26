@@ -145,8 +145,14 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             if (typeof gsap === "undefined") return;
-            gsap.fromTo(".tarifs-hero > *", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out" });
-            gsap.fromTo(".price-card", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.08, ease: "power2.out", delay: 0.2 });
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (!reducedMotion) {
+                gsap.fromTo(".tarifs-hero > *", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out" });
+                gsap.fromTo(".price-card", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.08, ease: "power2.out", delay: 0.2 });
+            } else {
+                gsap.set([".tarifs-hero > *", ".price-card"], { opacity: 1, y: 0 });
+            }
 
             // --- LOGIQUE CHAT LITUAL AI ---
             const chatToggle = document.getElementById('chat-toggle');
@@ -194,6 +200,15 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
             const openChat = () => {
                 const tl = gsap.timeline();
                 
+                if (reducedMotion) {
+                    gsap.set(chatOverlay, { display: 'block', opacity: 1 });
+                    gsap.set(chatToggle, { scale: 0, opacity: 0 });
+                    gsap.set(chatWindow, { autoAlpha: 1, display: 'flex', scale: 1, width: 450, height: 500, borderRadius: "20px", pointerEvents: "all" });
+                    gsap.set([".chat-header", "#chat-messages", "#chat-input-form"], { opacity: 1, y: 0 });
+                    userInput.focus();
+                    return;
+                }
+                
                 // 0. Activation du flou d'arrière-plan
                 tl.set(chatOverlay, { display: 'block' });
                 tl.to(chatOverlay, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0);
@@ -240,6 +255,14 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
 
             const hideChat = () => {
                 const tl = gsap.timeline();
+                
+                if (reducedMotion) {
+                    gsap.set(chatOverlay, { display: 'none', opacity: 0 });
+                    gsap.set(chatToggle, { scale: 1, opacity: 1 });
+                    gsap.set(chatWindow, { autoAlpha: 0, display: 'none', pointerEvents: "none" });
+                    gsap.set([".chat-header", "#chat-messages", "#chat-input-form"], { opacity: 0, y: 0 });
+                    return;
+                }
                 
                 // Désactivation du flou
                 tl.to(chatOverlay, { opacity: 0, duration: 0.25, onComplete: () => gsap.set(chatOverlay, { display: 'none' }) }, 0);

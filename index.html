@@ -295,6 +295,15 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             if (typeof gsap !== "undefined") {
+                const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (reducedMotion) {
+                    gsap.set([".hero-pill", ".banner-title .word", ".banner-logo", ".banner-subtitle", ".hero-description", ".hero-actions", ".hero-stat-card", ".hero-panel"], { opacity: 1, y: 0, x: 0 });
+                    document.querySelectorAll('.platforms-section, .timeline-section, .litual-section, .extra-features-section, .cta-section').forEach(sec => {
+                         gsap.set(sec.querySelectorAll("h2, p, .marquee, .feature-card, .timeline-item, .litual-container, .cta-container"), { opacity: 1, y: 0, x: 0, scale: 1 });
+                    });
+                    return;
+                }
+
                 const tl = gsap.timeline({ delay: 0.8 }); // Attend un peu après la navbar
                 
                 // 1. Animation de la section Hero

@@ -28,9 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const navAuth = navbarContainer.querySelector("#nav-auth");
 
             if (!navAuth) return;
+            
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             const animateNavbar = () => {
-                if (typeof gsap !== "undefined") {
+                if (typeof gsap !== "undefined" && !reducedMotion) {
                     const tl = gsap.timeline();
                     tl.to(".navbar", {
                         opacity: 1,
@@ -141,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Logique du Menu Toggle Mobile
             const openMobileMenu = () => {
-                if (typeof gsap === "undefined") {
+                if (typeof gsap === "undefined" || reducedMotion) {
                     mobileMenuOverlay.style.display = "block";
                     mobileMenuOverlay.style.opacity = "1";
                     mobileMenu.style.transform = "translateX(0)";
@@ -160,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             const closeMobileMenu = () => {
-                if (typeof gsap === "undefined") {
+                if (typeof gsap === "undefined" || reducedMotion) {
                     mobileMenuOverlay.style.display = "none";
                     mobileMenu.style.transform = "translateX(100%)";
                 } else {
@@ -204,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
             animateNavbar();
 
             const logo = navbarContainer.querySelector(".nav-logo");
-            if (logo && typeof gsap !== "undefined") {
+            if (logo && typeof gsap !== "undefined" && !reducedMotion) {
                 logo.addEventListener("mouseenter", () => {
                     gsap.to(logo, { scale: 1.1, duration: 0.3, ease: "power2.out" });
                 });

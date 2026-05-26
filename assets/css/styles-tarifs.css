@@ -409,3 +409,21 @@ h1 {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(252, 143, 176, 0.2);
 }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+    .price-card:hover, 
+    .plan-button:hover, 
+    .msg.ai a[href*="paiement.html"]:hover, 
+    #chat-input-form button:hover {
+        transform: none !important;
+    }
+    #chat-toggle:hover {
+        width: 60px !important;
+        border-radius: 50% !important;
+        transform: none !important;
+    }
+}

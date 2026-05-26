@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             targetY = y;
         };
 
+        if (!reducedMotion) {
         window.addEventListener('mousemove', (e) => {
             updatePointerTarget(e.clientX, e.clientY);
         });
@@ -86,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
             requestAnimationFrame(animateCursorBlob);
         };
         requestAnimationFrame(animateCursorBlob);
+        }
 
         // Handle resize without jumping (throttle)
         let rt;
