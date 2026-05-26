@@ -21,6 +21,10 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((data) => {
             navbarContainer.innerHTML = data;
 
+            const desktopNavLinks = navbarContainer.querySelector("#desktop-nav-links");
+            const mobileMenuOverlay = navbarContainer.querySelector("#mobile-menu-overlay");
+            const mobileMenu = navbarContainer.querySelector("#mobile-menu");
+            const menuToggle = navbarContainer.querySelector("#menu-toggle");
             const navAuth = navbarContainer.querySelector("#nav-auth");
             if (!navAuth) return;
 
@@ -71,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ? `<a href="/admin.html">Tableau de bord admin</a>`
                     : "";
 
-                navAuth.innerHTML = `
+                const profileHtml = `
                     <div class="profile-wrap">
                         <button class="profile-button" id="profile-button" aria-label="Ouvrir le menu profil">
                             <img src="${photo}" alt="Photo de profil">

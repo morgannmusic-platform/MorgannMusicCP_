@@ -76,8 +76,8 @@
 }
 
 @media (max-width: 768px) {
-    .nav-links {
-        display: none; /* Cache les liens sur mobile pour le menu */
+    #desktop-nav-links { /* Cache les liens desktop sur mobile */
+        display: none;
     }
 }
 
@@ -240,4 +240,127 @@
         padding: 0.4rem 0.75rem;
         font-size: 11px;
     }
+}
+
+/* --- Mobile Menu Toggle --- */
+.menu-toggle {
+    display: none; /* Caché par défaut sur desktop */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1001; /* Au-dessus des autres éléments de la navbar */
+}
+
+.hamburger {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background-color: var(--text-nb);
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.hamburger::before,
+.hamburger::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-nb);
+    position: absolute;
+    transition: transform 0.3s ease, top 0.3s ease;
+}
+
+.hamburger::before {
+    top: -8px;
+}
+
+.hamburger::after {
+    top: 8px;
+}
+
+/* Animation pour l'icône hamburger lorsque le menu est ouvert */
+.menu-toggle.is-active .hamburger {
+    background-color: transparent;
+}
+
+.menu-toggle.is-active .hamburger::before {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.menu-toggle.is-active .hamburger::after {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* --- Mobile Menu Overlay et Conteneur --- */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Overlay sombre semi-transparent */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 999; /* En dessous de la navbar mais au-dessus du contenu de la page */
+    display: none; /* Caché par défaut */
+    opacity: 0; /* Pour l'animation GSAP */
+}
+
+.mobile-menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 75%; /* Ajuster selon les besoins, ex: 300px ou 80% */
+    max-width: 320px; /* Largeur max pour les grands écrans mobiles */
+    height: 100%;
+    background-color: var(--bg-nb); /* Même couleur que la navbar */
+    display: flex;
+    flex-direction: column;
+    padding: 60px 20px 20px; /* Padding pour le contenu, espace pour la navbar en haut */
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+    transform: translateX(100%); /* Hors écran à droite */
+}
+
+.mobile-nav-links, .mobile-auth-links {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.mobile-nav-links a, .mobile-auth-links a, .mobile-auth-links button {
+    color: var(--text-nb);
+    text-decoration: none;
+    font-size: 1.1rem;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-auth-links .auth-link { /* Style spécifique pour les liens d'auth dans le menu mobile */
+    border: 1px solid var(--text-nb);
+    border-radius: 999px;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.mobile-auth-links .auth-link:last-child {
+    background-color: var(--text-nb);
+    color: var(--bg-nb);
+}
+
+/* Ajustements pour la vue mobile */
+@media (max-width: 768px) {
+    .nav-container {
+        justify-content: space-between; /* Pousse le logo à gauche, le toggle à droite */
+    }
+    .menu-toggle {
+        display: block; /* Affiche le hamburger sur mobile */
+    }
+    #nav-auth { /* Cache les liens d'auth desktop sur mobile */
+        display: none;
+    }
+}
 }

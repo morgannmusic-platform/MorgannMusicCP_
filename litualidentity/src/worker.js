@@ -12,14 +12,14 @@ export default {
     }
 
     if (request.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Méthode non autorisée" }), { status: 405, headers });
+      return new Response(JSON.stringify({ status: "error", message: "Méthode non autorisée. Utilisez **POST**." }), { status: 405, headers });
     }
 
     try {
       const { image_base64, customer_email } = await request.json();
 
       if (!image_base64) {
-        return new Response(JSON.stringify({ error: "Image manquante" }), { status: 400, headers });
+        return new Response(JSON.stringify({ status: "error", message: "**Image manquante.** Veuillez fournir une pièce d'identité." }), { status: 400, headers });
       }
 
       // 1. Décoder l'image base64
@@ -42,7 +42,7 @@ export default {
       const dateMatch = aiText.match(/(\d{2})\/(\d{2})\/(\d{4})/);
       if (!dateMatch) {
         return new Response(
-          JSON.stringify({ error: "Impossible de lire la date de naissance sur l'image." }),
+          JSON.stringify({ status: "error", message: "### ❌ Erreur de lecture\n\nImpossible de détecter une date de naissance valide sur le document. Assurez-vous que l'image est **nette** et **bien éclairée**." }),
           { status: 422, headers }
         );
       }
@@ -66,21 +66,24 @@ export default {
         return new Response(JSON.stringify({
           status: "success",
           verified: true,
-          age: age,
-          years_until_major: 18 - age,
+          message: `### ✅ Identité vérifiée !\n\nFélicitations ! Ton âge est de **${age} ans**.\nTu as désormais accès au plan **Future légende** (**0,99€/mois**).`,
+          data: {
+            age: age,
+            years_until_major: 18 - age,
+          }
         }), { headers });
 
       } else {
         return new Response(JSON.stringify({
           status: "denied",
           verified: false,
-          message: "Désolé, cette offre est réservée aux mineurs. Tu as " + age + " ans.",
+          message: `### ❌ Offre non disponible\n\nDésolé, le plan **Future légende** est exclusivement réservé aux artistes de **moins de 18 ans**.\n\nLe système a calculé un âge de **${age} ans**. Nous t'invitons à consulter nos autres plans.`,
         }), { status: 403, headers });
       }
 
     } catch (e) {
       return new Response(
-        JSON.stringify({ error: "Erreur serveur: " + e.message }),
+        JSON.stringify({ status: "error", message: `**Erreur technique.**\nUne erreur est survenue lors du traitement : ${e.message}` }),
         { status: 500, headers }
       );
     }
