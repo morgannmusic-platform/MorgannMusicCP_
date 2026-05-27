@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribution - Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/navbars/accueil/navbar.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <main class="content-wrapper">
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-pill">Distribution Illimitée</div>
+                <h1 class="banner-title">Propulsez votre <br><span class="word">musique</span> partout.</h1>
+                <p class="hero-description">
+                    Diffusez vos morceaux sur plus de 150 plateformes de streaming mondiales. Gardez 100% de vos droits et recevez vos royalties chaque mois, sans frais cachés.
+                </p>
+                <div class="hero-actions">
+                    <a href="/signin.html" class="cta-button">Commencer maintenant</a>
+                    <a href="#features" class="hero-cta-secondary">En savoir plus</a>
+                </div>
+            </div>
+            <div class="hero-panel">
+                <div class="hero-panel-badge">Statistiques</div>
+                <h2>Suivez votre succès</h2>
+                <p>Accédez à un tableau de bord complet pour analyser vos streams en temps réel.</p>
+                <ul>
+                    <li>Rapports mensuels détaillés</li>
+                    <li>Analyses par pays et plateforme</li>
+                    <li>Paiements directs via IBAN</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="platforms-section">
+            <p class="platforms-text">Disponible sur toutes les plateformes</p>
+            <div class="marquee">
+                <div class="marquee-track loaded">
+                    <img src="/assets/img/platforms/spotify.svg" alt="Spotify">
+                    <img src="/assets/img/platforms/apple-music.svg" alt="Apple Music">
+                    <img src="/assets/img/platforms/deezer.svg" alt="Deezer">
+                    <img src="/assets/img/platforms/youtube.svg" alt="YouTube">
+                    <img src="/assets/img/platforms/tiktok.svg" alt="TikTok">
+                    <img src="/assets/img/platforms/instagram.svg" alt="Instagram">
+                    <img src="/assets/img/platforms/amazon.svg" alt="Amazon Music">
+                    <!-- Répéter pour l'effet de boucle -->
+                    <img src="/assets/img/platforms/spotify.svg" alt="Spotify">
+                    <img src="/assets/img/platforms/apple-music.svg" alt="Apple Music">
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="feature-cards-section">
+            <h2>Pourquoi nous choisir ?</h2>
+            <div class="feature-cards-grid">
+                <div class="feature-card">
+                    <h3>Vitesse Record</h3>
+                    <p>Vos morceaux sont validés en moins de 48h et disponibles rapidement sur les stores.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Support Dédié</h3>
+                    <p>Une équipe d'experts à votre écoute pour vous aider dans chaque étape de votre sortie.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Smart Links</h3>
+                    <p>Générez automatiquement des pages de promotion pour vos sorties (Pre-save).</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Multi-Artistes</h3>
+                    <p>Gérez plusieurs profils d'artistes sous un seul compte avec nos plans Pro et Label.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="cta-container">
+                <h2>Prêt à conquérir les charts ?</h2>
+                <p>Rejoignez des milliers d'artistes indépendants qui font confiance à Morgann Music CP.</p>
+                <a href="/tarifs.html" class="cta-button">Voir les tarifs</a>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer"></div>
+    <script type="module" src="/assets/js/navbar.js"></script>
+    <script src="/assets/js/background.js"></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+    <script>
+        // Simple animation d'entrée
+        gsap.from(".hero-pill, .banner-title, .hero-description, .hero-actions", { opacity: 0, y: 30, stagger: 0.1, duration: 0.8 });
+    </script>
+</body>
+</html>

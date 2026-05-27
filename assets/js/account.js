@@ -8,6 +8,8 @@ const roleBadge = document.getElementById("role-badge");
 const accountFeedback = document.getElementById("account-feedback");
 const userUid = document.getElementById("user-uid");
 const userArtist = document.getElementById("user-artist");
+const userPlan = document.getElementById("user-plan");
+const subscriptionStatus = document.getElementById("subscription-status");
 
 const firstNameInput = document.getElementById("first-name");
 const lastNameInput = document.getElementById("last-name");
@@ -64,6 +66,59 @@ onAuthStateChanged(auth, async (user) => {
         ibanInput.value = data.iban || "";
 
         userArtist.textContent = data.artistName || "Non renseigne";
+
+        // Affichage des infos d'abonnement
+        userPlan.textContent = data.planName || "Utilisateur Standard (Gratuit)";
+        subscriptionStatus.textContent = data.subscriptionStatus === "active" ? "Actif" : "Aucun abonnement actif";
+
+        // Gestion de la popup de succès après paiement Stripe
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('status') === 'success' && params.get('redirect_status') === 'succeeded') {
+            const modal = document.getElementById("success-modal");
+            const message = document.getElementById("modal-message");
+            const closeBtn = document.getElementById("modal-close-btn");
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (data.planName) {
+                message.textContent = `Merci pour votre confiance ! Votre abonnement "${data.planName}" est désormais actif. Profitez dès maintenant de toutes vos fonctionnalités.`;
+            }
+            
+            modal.classList.remove("is-hidden");
+            if (!reducedMotion && window.gsap) {
+                gsap.to(modal, { opacity: 1, duration: 0.3 });
+            }
+
+            // Lancement des confettis
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#FC8FB0', '#EAFFC6', '#FFFFFF']
+            });
+
+            // Animation GSAP pour l'apparition
+            if (!reducedMotion && window.gsap) {
+                gsap.from("#success-card", {
+                    scale: 0.8,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: "back.out(1.7)"
+                });
+            }
+
+            // Fermeture du modal
+            const closeModal = () => {
+                if (!reducedMotion && window.gsap) {
+                    gsap.to(modal, { opacity: 0, duration: 0.3, onComplete: () => modal.classList.add("is-hidden") });
+                } else {
+                    modal.classList.add("is-hidden");
+                }
+            };
+            // Ajout de l'écouteur d'événement pour le bouton de fermeture
+            closeBtn.addEventListener('click', closeModal);
+            // Nettoyage de l'URL pour éviter que la popup ne réapparaisse au refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
 
         const role = (data.role || "user").toLowerCase();
         const safe = roleClassMap[role] ? role : "user";
