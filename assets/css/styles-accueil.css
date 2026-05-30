@@ -909,6 +909,8 @@ body {
 }
 
 .content-wrapper {
-    margin: 0 20px 0 20px;
-
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 1rem;
+    max-width: 1400px;
 }
