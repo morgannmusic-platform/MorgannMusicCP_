@@ -74,7 +74,7 @@ h1 {
 
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.75rem;
 }
 
@@ -186,6 +186,12 @@ h1 {
     margin-left: auto; /* Centre la grille horizontalement */
     margin-right: auto; /* Centre la grille horizontalement */
     justify-content: center; /* Centre les éléments à l'intérieur de la grille si l'espace le permet */
+}
+
+@media (max-width: 1200px) {
+    .pricing-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
 }
 
 .pay-per-release {
