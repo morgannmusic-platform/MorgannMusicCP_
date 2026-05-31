@@ -119,7 +119,7 @@ async function handleSubmit(e) {
         elements,
         confirmParams: {
             // Page de retour après validation 3DSecure
-            return_url: window.location.origin + "/account.html?status=success",
+            return_url: `${window.location.origin}/account.html?status=success&plan=${planId}`,
         },
     });
 

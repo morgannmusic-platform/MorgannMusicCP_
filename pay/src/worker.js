@@ -61,19 +61,13 @@ export default {
       }
 
       if (event.type === "payment_intent.succeeded") {
-        const session = event.data.object;
-        const userId = session.metadata.userId;
-        const planId = session.metadata.planId;
-        const planName = session.metadata.planName;
-
-
+        // Le plan est maintenant mis à jour côté client dans account.js après redirection.
+        // On se contente de valider la réception du webhook pour Stripe.
         try {
-          // On loggue en interne du worker pour le débuggage via `wrangler tail`
-          console.log(`Paiement réussi pour l'utilisateur ${userId} - Plan: ${planName}`);
-          await updateFirestoreUser(env, userId, planId, planName);
+          const session = event.data.object;
+          console.log(`Paiement réussi pour le PaymentIntent: ${session.id}`);
         } catch (dbError) {
-          // Si Firestore échoue, on renvoie une erreur pour que Stripe réessaie plus tard
-          console.error("Firestore Update Error:", dbError.message);
+          console.error("Webhook Log Error:", dbError.message);
         }
       }
 
@@ -83,44 +77,3 @@ export default {
     return new Response("Not Found", { status: 404 });
   },
 };
-
-/**
- * Met à jour le rôle de l'utilisateur dans Firestore via l'API REST
- */
-async function updateFirestoreUser(env, userId, planId, planName) {
-  const projectId = env.FIREBASE_PROJECT_ID;
-  // On mappe le plan payé au rôle souhaité dans Firestore
-  const planToRole = {
-    "under18": "artiste",
-    "starter": "artiste",
-    "pro": "vip",
-    "label": "vip"
-  };
-  
-  const role = planToRole[planId] || "artiste";
-  
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/users/${userId}?updateMask.fieldPaths=role&updateMask.fieldPaths=subscriptionStatus&updateMask.fieldPaths=planName`;
-
-  const body = {
-    fields: {
-      role: { stringValue: role },
-      subscriptionStatus: { stringValue: "active" },
-      planName: { stringValue: planName },
-      updatedAt: { timestampValue: new Date().toISOString() }
-    }
-  };
-
-  const response = await fetch(url, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-
-  if (!response.ok) {
-    const errorData = await response.text();
-    // Log l'erreur complète de Firestore pour le débogage
-    console.error(`Firestore REST API failed for user ${userId}: ${response.status} - ${errorData}`);
-    // Relance l'erreur pour que le bloc catch du webhook puisse la gérer
-    throw new Error(`Firestore update failed: ${response.status} - ${errorData}`);
-  }
-}

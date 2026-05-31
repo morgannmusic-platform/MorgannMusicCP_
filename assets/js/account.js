@@ -79,8 +79,37 @@ onAuthStateChanged(auth, async (user) => {
             const closeBtn = document.getElementById("modal-close-btn");
             const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            if (data.planName) {
-                message.textContent = `Merci pour votre confiance ! Votre abonnement "${data.planName}" est désormais actif. Profitez dès maintenant de toutes vos fonctionnalités.`;
+            const planMapping = {
+                "under18": { name: "Future Légende", role: "artiste" },
+                "starter": { name: "Starter", role: "artiste" },
+                "pro": { name: "Pro", role: "vip" },
+                "label": { name: "Label", role: "vip" }
+            };
+
+            const planIdFromUrl = params.get('plan');
+            if (planIdFromUrl && planMapping[planIdFromUrl]) {
+                const planInfo = planMapping[planIdFromUrl];
+                try {
+                    await updateDoc(userRef, {
+                        role: planInfo.role,
+                        subscriptionStatus: "active",
+                        planName: planInfo.name,
+                        updatedAt: serverTimestamp()
+                    });
+                    // Mise à jour immédiate de l'interface
+                    userPlan.textContent = planInfo.name;
+                    subscriptionStatus.textContent = "Actif";
+                    const safeRole = planInfo.role;
+                    roleBadge.textContent = roleLabelMap[safeRole] || "Artiste";
+                    roleBadge.className = `role-badge ${roleClassMap[safeRole] || "role-user"}`;
+                } catch (e) {
+                    console.error("Erreur lors de la mise à jour du plan :", e);
+                }
+            }
+
+            const displayPlanName = (planIdFromUrl && planMapping[planIdFromUrl]) ? planMapping[planIdFromUrl].name : data.planName;
+            if (displayPlanName) {
+                message.textContent = `Merci pour votre confiance ! Votre abonnement "${displayPlanName}" est désormais actif. Profitez dès maintenant de toutes vos fonctionnalités.`;
             }
             
             modal.classList.remove("is-hidden");
