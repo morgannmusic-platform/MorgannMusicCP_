@@ -7,28 +7,31 @@
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <script src="https://js.stripe.com/v3/"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <style>
+        body { margin-top: 0 !important; padding-top: 60px; } /* Fait de la place pour la navbar fixe de 60px de haut */
         .auth-container {
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 20px;
+            padding: 40px 20px;
         }
         .payment-card {
             background: linear-gradient(145deg, var(--container1), var(--container2));
             border: 1px solid var(--border-subtle);
             border-radius: 32px;
-            padding: 2.5rem;
+            padding: 1rem 2.5rem;
             width: 100%;
-            max-width: 500px;
+            max-width: min(1100px, calc(100vw - 40px)); /* Largeur étendue */
             box-shadow: 0 26px 70px rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
-        #payment-element { margin-bottom: 24px; min-height: 200px; }
-        .payment-info { margin-bottom: 24px; text-align: center; }
-        .payment-info h2 { color: var(--rose); margin-bottom: 8px; font-size: 1.8rem; }
+        #payment-element { margin-bottom: 8px; min-height: 200px; }
+        .payment-info { margin-bottom: 8px; text-align: center; }
+        .payment-info h2 { color: var(--rose); margin-bottom: 4px; font-size: 1.8rem; }
         .payment-info p { color: var(--text-secondary); font-weight: 500; }
         #payment-message { margin-top: 15px; color: #df1b41; font-size: 0.9rem; text-align: center; }
         .is-hidden { display: none; }
@@ -57,30 +60,105 @@
         }
         .plan-choice-item:hover span { color: white; }
         .plan-choice-item span { font-weight: 600; color: var(--rose); }
+
+        .payment-layout {
+            display: flex;
+            gap: 2.5rem;
+            align-items: flex-start;
+            width: 100%;
+        }
+        
+        @media (max-width: 800px) {
+            .payment-layout { flex-direction: column; gap: 1.5rem; }
+            .payment-card { padding: 1.5rem; }
+        }
+        /* Ajustement du padding pour les écrans intermédiaires (entre 801px et 900px) */
+        @media (max-width: 900px) and (min-width: 801px) {
+            .payment-card { padding: 2rem; }
+        }
+
+        .is-hidden { display: none !important; }
     </style>
 </head>
 <body>
+    <div id="navbar"></div>
     <div class="auth-container">
         <div class="payment-card" id="main-card">
-            <div class="payment-info">
-                <h2 id="page-title">Finaliser l'abonnement</h2>
-                <p id="plan-display">Chargement des offres...</p>
-            </div>
+            <div class="payment-layout">
+                <!-- Colonne Gauche : Recapitulatif -->
+                <div style="flex: 1; width: 100%;">
+                    <div class="payment-info" style="text-align: left; margin-bottom: 0.5rem;">
+                        <h2 id="page-title">Paiement sécurisé</h2>
+                        <p id="plan-display" style="font-weight: 500; font-size: 1.1rem; color: var(--rose); margin-top: 5px;"></p>
+                    </div>
 
-            <div id="plan-selection" class="is-hidden">
-                <div class="plans-selection-grid" id="plans-list"></div>
-            </div>
+                    <div id="plan-selection" class="is-hidden">
+                        <div class="plans-selection-grid" id="plans-list" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));"></div>
+                    </div>
 
-            <form id="payment-form" class="is-hidden">
-                <div id="payment-element"></div>
-                <button id="submit" class="cta-button" style="width: 100%; border: none; cursor: pointer;">
-                    <span id="button-text">Payer maintenant</span>
-                </button>
-                <div id="payment-message" class="is-hidden"></div>
-            </form>
+                    <div id="payment-recap" style="margin-top: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
+                        <p style="font-size: 0.85rem; color: var(--muted); line-height: 1.6;">
+                            En validant votre paiement, vous acceptez nos conditions générales de vente. 
+                            Votre abonnement sera débité mensuellement jusqu'à résiliation.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Colonne Droite : Action (ID ou Stripe) -->
+                <div id="payment-actions" style="flex: 1.2; width: 100%;">
+                    <!-- Section de vérification d'identité -->
+                    <div id="identity-verification-section" class="is-hidden">
+                        <h3 style="margin-bottom: 0.5rem; color: var(--rose);">Vérification de sécurité</h3>
+                        
+                        <div id="image-preview" style="width: 100%; height: 120px; border: 2px dashed var(--border-subtle); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem; overflow: hidden; background: rgba(255,255,255,0.2);">
+                            <span id="image-preview-placeholder" style="color: var(--muted); font-size: 0.85rem;">Justificatif d'identité</span>
+                        </div>
+                        
+                        <input type="file" id="id-upload-input" accept="image/png, image/jpeg, image/heic" class="is-hidden">
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <label for="id-upload-input" class="cta-button" style="flex: 1; cursor: pointer; background-color: var(--rose); color: white; border: none; font-size: 0.9rem; text-align: center; margin-bottom: 0; padding: 0.6rem 1rem;">
+                                Fichier
+                            </label>
+                            <button id="open-camera-btn" type="button" class="cta-button" style="flex: 1; cursor: pointer; background-color: var(--rose); color: white; border: none; font-size: 0.9rem; text-align: center; padding: 0.6rem 1rem;">
+                                Caméra
+                            </button>
+                        </div>
+
+                        <div id="camera-ui" class="is-hidden" style="margin-bottom: 0.5rem;">
+                            <video id="camera-stream" autoplay playsinline style="width: 100%; height: 150px; border-radius: 20px; background: #000; object-fit: cover;"></video>
+                            <button id="capture-photo-btn" type="button" class="cta-button" style="width: 100%; margin-top: 5px; border: none; padding: 0.6rem 1rem;">Prendre la photo</button>
+                        </div>
+
+                        <div id="verification-steps" class="verification-steps" style="display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.5rem;">
+                            <div class="step" data-step="conversion"><span></span> Conversion</div>
+                            <div class="step" data-step="compression"><span></span> Optimisation</div>
+                            <div class="step" data-step="upload"><span></span> Envoi</div>
+                            <div class="step" data-step="verification"><span></span> Analyse IA</div>
+                            <div class="step" data-step="deletion"><span></span> Suppression</div>
+                        </div>
+
+                        <button id="verify-id-button" class="cta-button" style="width: 100%; border: none; cursor: pointer;" disabled>
+                            <span id="verify-button-text">Vérifier mon identité</span>
+                            <div id="verify-spinner" class="spinner is-hidden"></div>
+                        </button>
+                        
+                        <div id="id-verification-message" style="margin-top: 1rem; font-size: 0.85rem;"></div>
+                    </div>
+
+                    <!-- Formulaire Stripe -->
+                    <form id="payment-form" class="is-hidden">
+                        <div id="payment-element"></div>
+                        <button id="submit" class="cta-button" style="width: 100%; border: none; cursor: pointer;">
+                            <span id="button-text">Payer maintenant</span>
+                        </button>
+                        <div id="payment-message" class="is-hidden"></div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     <script type="module" src="/assets/js/background.js"></script>
+    <script type="module" src="/assets/js/navbar.js"></script>
     <script type="module" src="/assets/js/paiement.js"></script>
 </body>
 </html>
