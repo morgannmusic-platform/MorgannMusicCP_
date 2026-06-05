@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajout au Calendrier - End of an era</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+        }
+        .loader {
+            border: 4px solid #333;
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        a {
+            color: #007aff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>End of an era</h1>
+        <p>Ajout à votre calendrier en cours...</p>
+        <div class="loader"></div>
+        <p style="font-size: 0.9em; color: #888;">Si le téléchargement ne se lance pas, <a id="fallback-link" href="#">cliquez ici</a>.</p>
+    </div>
+
+    <script>
+        function generateCalendar() {
+            // Configuration des détails de l'événement
+            const event = {
+                title: "Sortie de 'End of an era'",
+                description: "Ne ratez pas la sortie officielle du nouveau projet de Morgann Music !",
+                location: "Toutes les plateformes de streaming",
+                startDate: "20260624T000000", // 24 Juin 2026 à 00h00
+                endDate: "20260624T235959"
+            };
+
+            // Construction du contenu du fichier .ics
+            const icsContent = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//Morgann Music//NONSGML Event//FR",
+                "BEGIN:VEVENT",
+                `UID:${Date.now()}@morgannmusic.cp`,
+                `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z`,
+                `DTSTART;TZID=Europe/Paris:${event.startDate}`,
+                `DTEND;TZID=Europe/Paris:${event.endDate}`,
+                `SUMMARY:${event.title}`,
+                `DESCRIPTION:${event.description}`,
+                `LOCATION:${event.location}`,
+                "END:VEVENT",
+                "END:VCALENDAR"
+            ].join("\r\n");
+
+            // Création du blob et de l'URL de téléchargement
+            const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            
+            // Attribution du lien au bouton de secours (fallback)
+            const fallbackLink = document.getElementById("fallback-link");
+            fallbackLink.href = url;
+            fallbackLink.setAttribute("download", "end-of-an-era.ics");
+
+            // Simulation du clic automatique pour lancer le script au chargement
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", "end-of-an-era.ics");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Lancement auto dès que la page est chargée
+        window.onload = generateCalendar;
+    </script>
+
+</body>
+</html>

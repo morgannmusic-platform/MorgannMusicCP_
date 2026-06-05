@@ -23,6 +23,40 @@
     }
 }
 
+/* --- Surcharges de Thèmes --- */
+
+/* Normal Clair (Forcé) */
+body[data-theme="normal-clair"] {
+    --bg: #eaffc6;
+    --container1: #dcefb9;
+    --container2: #aebd93bd;
+}
+
+/* Normal Sombre (Forcé) */
+body[data-theme="normal-sombre"] {
+    --bg: #8f4e61;
+    --container1: #798278a7;
+    --container2: #36522bd0;
+}
+
+/* Blanc Pimp */
+body[data-theme="blanc-pimp"] {
+    --bg: #ffffff;
+    --rose: #FF0055;
+    --container1: #f0f0f0;
+    --container2: #e0e0e0;
+    --border-subtle: rgba(255, 0, 85, 0.2);
+}
+
+/* Noir Pimp */
+body[data-theme="noir-pimp"] {
+    --bg: #000000;
+    --rose: #00FFCC; /* Un turquoise/cyan pimp */
+    --container1: #1a1a1a;
+    --container2: #0d0d0d;
+    --border-subtle: rgba(0, 255, 204, 0.3);
+}
+
 * {
     margin: 0;
     padding: 0;

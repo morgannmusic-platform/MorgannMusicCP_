@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <img src="${photo}" alt="Photo de profil">
                         </button>
                         <div class="profile-menu" id="profile-menu">
-                            <a href="/dashboard.html">Tableau de bord</a>
+                            <a href="/portail/index.html">Portail Utilisateur</a>
                             <a href="/account.html">Espace compte</a>
                             ${adminItem}
                             <button type="button" class="danger" id="logout-button">Se deconnecter</button>

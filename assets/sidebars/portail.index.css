@@ -1,0 +1,36 @@
+.portal-sidebar {
+    width: 250px;
+    height: calc(100vh - 60px);
+    position: fixed;
+    left: 0;
+    top: 60px;
+    background: #FC8FB0;
+    border-right: 1px solid #ffd9e5;
+    padding: 20px 0;
+}
+
+/* Thèmes Sidebar */
+body[data-theme="noir-pimp"] .portal-sidebar {
+    background: #1a1a1a;
+    border-right: 1px solid var(--rose);
+}
+
+body[data-theme="noir-pimp"] .sidebar-links li a { color: var(--rose); }
+
+body[data-theme="blanc-pimp"] .portal-sidebar {
+    background: #f0f0f0;
+    border-right: 1px solid var(--rose);
+}
+
+body[data-theme="normal-sombre"] .portal-sidebar {
+    background: #798278a7;
+}
+
+.sidebar-links { list-style: none; padding: 0; }
+
+.sidebar-links li a {
+    display: block;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: #E8FBC5
+}

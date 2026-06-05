@@ -1,0 +1,34 @@
+.portal-navbar {
+    height: 60px;
+    background: #FC8FB0;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #ffe3ec;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+/* Thèmes Navbar */
+body[data-theme="noir-pimp"] .portal-navbar {
+    background: rgba(0, 0, 0, 0.8);
+    border-bottom: 1px solid var(--rose);
+    color: var(--rose);
+}
+
+body[data-theme="blanc-pimp"] .portal-navbar {
+    background: rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid var(--rose);
+    color: var(--rose);
+}
+
+body[data-theme="normal-sombre"] .portal-navbar {
+    background: #36522bd0;
+    color: #FC8FB0;
+}
+
+.nav-brand { font-weight: 700; }
