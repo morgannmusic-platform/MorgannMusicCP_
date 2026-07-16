@@ -1,0 +1,39 @@
+{
+  "name": "purple-violet-76f9",
+  "main": "src/worker.js",
+  "workers_dev": false,
+  "preview_urls": false,
+  "compatibility_date": "2026-07-15",
+  "routes": [
+    {
+      "pattern": "*.mm-cp.uk/liaison-artiste",
+      "zone_name": "mm-cp.uk"
+    },
+    {
+      "pattern": "api.distribution.mm-cp.uk",
+      "zone_name": "mm-cp.uk",
+      "custom_domain": true,
+      "enabled": true,
+      "previews_enabled": false
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  },
+  "vars": {
+    "FIREBASE_PROJECT_ID": "morgann-music-cp",
+    "TOOLOST_CLIENT_ID": "a2446b2e-61c2-437c-bdfe-8b2921c2a8e7"
+  }
+}
