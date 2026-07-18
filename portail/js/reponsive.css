@@ -1,0 +1,16 @@
+/* Par défaut sur mobile : on ajoute de l'espace en bas pour ne pas que la barre cache le contenu */
+.main-content {
+    padding: 20px;
+    padding-bottom: 100px;
+}
+
+/* Sur PC : on pousse le contenu vers la droite pour laisser la place à la sidebar */
+@media (min-width: 768px) {
+    .main-content {
+        margin-left: 210px;
+        /* Plus grand que la largeur de la sidebar (80px + marges) */
+        padding-bottom: 20px;
+
+        margin-right: 20px;
+    }
+}

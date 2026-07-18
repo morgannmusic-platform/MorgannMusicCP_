@@ -1,0 +1,8 @@
+name = "mm-cp-uploader"
+main = "src/worker.js" # ou index.js selon ton arborescence
+compatibility_date = "2026-07-18"
+
+# Liaison du bucket R2 (Le binding utilisé dans le code JS)
+[[r2_buckets]]
+binding = "ARTIST_IMAGES_BUCKET"
+bucket_name = "mm-cp-artworks"

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Artistes - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .artist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .artist-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .artist-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ddd;
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 650px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-section {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-section h3 {
+            margin-top: 0;
+            color: #495057;
+            font-size: 16px;
+            border-left: 4px solid #007bff;
+            padding-left: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:disabled {
+            background: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        .dynamic-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+    <script src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class=" container">
+        <div class="header-actions">
+            <h2>Mes Artistes <span id="artist-count" style="font-size: 14px; color: #6c757d;"></span></h2>
+            <button class="btn btn-primary" onclick="ouvrirModalAjout()">+ Ajouter un artiste</button>
+        </div>
+
+        <div id="artist-list" class="artist-grid"></div>
+    </div>
+
+    <div id="artist-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Ajouter un Artiste</h2>
+            <form id="artist-form" onsubmit="soumettreFormulaire(event)">
+                <input type="hidden" id="artist-id">
+
+                <div class="form-section">
+                    <h3>Informations Principales</h3>
+                    <div class="form-group">
+                        <label>Nom de l'artiste *</label>
+                        <input type="text" id="artist-name" required placeholder="Ex: Morgann Music">
+                    </div>
+                    <div class="form-group">
+                        <label>Photo de profil</label>
+                        <input type="file" id="artist-photo-file" accept="image/*" onchange="gererTeleversementR2()">
+                        <input type="hidden" id="artist-photo">
+                        <div id="upload-status" style="font-size: 12px; margin-top: 5px; color: #555;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Option du téléverseur</label>
+                        <input type="text" id="artist-uploader-option" placeholder="Note ou option interne">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Écrivains par défaut</h3>
+                    <div id="writers-container"></div>
+                    <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;"
+                        onclick="ajouterEcrivainRow()">+ Ajouter un écrivain</button>
+                </div>
+
+                <div class="form-section">
+                    <h3>Crédits par défaut</h3>
+                    <div id="credits-container"></div>
+                    <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;"
+                        onclick="ajouterCreditRow()">+ Ajouter un crédit</button>
+                </div>
+
+                <div class="form-section">
+                    <h3>Distribution & Timing</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group"><label>Genre Primaire</label><input type="text" id="genre-primary">
+                        </div>
+                        <div class="form-group"><label>Genre Secondaire</label><input type="text" id="genre-secondary">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Langage par défaut</label>
+                        <input type="text" id="default-language" placeholder="Français, Anglais...">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group"><label>Fuseau horaire</label><input type="text" id="timezone"
+                                placeholder="Europe/Paris"></div>
+                        <div class="form-group"><label>Heure de sortie</label><input type="time" id="release-time">
+                        </div>
+                    </div>
+                    <div class="form-group"><label>Sélection manuelle des plateformes</label><input type="text"
+                            id="manual-platforms" placeholder="Séparées par des virgules"></div>
+                    <div class="form-group"><label>Sélection manuelle des territoires</label><input type="text"
+                            id="manual-territories" placeholder="Monde, Europe..."></div>
+                </div>
+
+                <div id="label-fields" class="form-section" style="display:none;">
+                    <h3>Options Label / Édition</h3>
+                    <div id="wl-only-fields" style="display:none;">
+                        <div class="form-group"><label>Nom du Label</label><input type="text" id="label-name"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group"><label>Ligne Copyright (C)</label><input type="text"
+                                id="line-copyright"></div>
+                        <div class="form-group"><label>Ligne Phonographe (P)</label><input type="text"
+                                id="line-phonogram"></div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Livraisons Additionnelles</h3>
+                    <div id="delivery-checkboxes" class="checkbox-group"></div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Profil, Plateformes & Réseaux</h3>
+                    <div class="form-group"><label>Description de l'artiste</label><textarea id="artist-desc"
+                            rows="3"></textarea></div>
+
+                    <h4 style="margin: 10px 0 5px 0; font-size:13px; color:#555;">Plateformes :</h4>
+                    <div class="form-group"><input type="url" id="link-yt-chan" placeholder="Lien chaîne YouTube"></div>
+                    <div class="form-group"><input type="url" id="link-yt-music" placeholder="Lien YouTube Music"></div>
+                    <div class="form-group"><input type="url" id="link-apple" placeholder="Lien Apple Music"></div>
+                    <div class="form-group"><input type="url" id="link-spotify" placeholder="Lien Spotify"></div>
+                    <div class="form-group"><input type="url" id="link-amazon" placeholder="Lien Amazon Music"></div>
+                    <div class="form-group"><input type="url" id="link-soundcloud" placeholder="Lien SoundCloud"></div>
+                    <div class="form-group"><input type="url" id="link-website" placeholder="Lien site web"></div>
+
+                    <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Réseaux Sociaux :</h4>
+                    <div class="form-group"><input type="url" id="link-fb" placeholder="Lien Facebook"></div>
+                    <div class="form-group"><input type="url" id="link-insta" placeholder="Lien Instagram"></div>
+                    <div class="form-group"><input type="url" id="link-x" placeholder="Lien X (Twitter)"></div>
+                    <div class="form-group"><input type="url" id="link-yt-social" placeholder="Lien YouTube (Social)">
+                    </div>
+
+                    <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Identifiants & Métadonnées Externes :
+                    </h4>
+                    <div class="form-group"><input type="url" id="link-wiki" placeholder="Lien Wikipédia"></div>
+                    <div class="form-group"><input type="text" id="id-ddex" placeholder="Lien/ID DDEX"></div>
+                    <div class="form-group"><input type="text" id="id-musicbrainz" placeholder="Lien/ID MusicBrainz">
+                    </div>
+                    <div class="form-group"><input type="text" id="id-allmusic" placeholder="Lien/ID AllMusic"></div>
+                    <div class="form-group"><input type="text" id="id-isni" placeholder="ISNI"></div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="fermerModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-form">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, setDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+            measurementId: "G-FKSSXYEZF0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userPlan = "starter";
+        let maxArtistsAllowed = 1;
+
+        const allDeliveries = ["Beatport", "YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Tracklib", "Hook", "LyricFind", "EVEN"];
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await verifierPlanEtLimites(user.uid);
+                chargerArtistes(user.uid);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function verifierPlanEtLimites(uid) {
+            const userDoc = await getDoc(doc(db, "users", uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                // Le champ Firestore est "planName" (ex: "Future Légende", "Starter", "Pro", "Label")
+                // Il est écrit par account.js après paiement Stripe
+                const planName = (data.planName || "").toLowerCase().trim();
+
+                if (planName === "future légende" || planName === "future legende") {
+                    userPlan = "future-legende";
+                } else if (planName === "starter") {
+                    userPlan = "starter";
+                } else if (planName === "pro") {
+                    userPlan = "pro";
+                } else if (planName === "label") {
+                    userPlan = "label";
+                } else if (planName === "white-label") {
+                    userPlan = "white-label";
+                } else {
+                    userPlan = "starter"; // plan par défaut
+                }
+            }
+
+            // Limites selon les tarifs réels sur tarifs.html
+            if (userPlan === "future-legende") {
+                maxArtistsAllowed = 1;       // "Future Légende" : 1 artiste
+            } else if (userPlan === "starter") {
+                maxArtistsAllowed = 1;       // "Starter" : 1 artiste
+            } else if (userPlan === "pro") {
+                maxArtistsAllowed = 2;       // "Pro" : 2 artistes
+            } else if (userPlan === "label") {
+                maxArtistsAllowed = Infinity; // "Label" : Artistes illimités
+            } else if (userPlan === "white-label") {
+                maxArtistsAllowed = Infinity; // "White-Label" : Artistes illimités
+            } else {
+                maxArtistsAllowed = 1;
+            }
+        }
+
+        // Fonction unique et corrigée pour charger la grille d'artistes avec l'image
+        async function chargerArtistes(uid) {
+            const listContainer = document.getElementById("artist-list");
+            listContainer.innerHTML = "";
+
+            const q = collection(db, "users", uid, "artists");
+            const querySnapshot = await getDocs(q);
+
+            document.getElementById("artist-count").innerText = `(${querySnapshot.size} / ${maxArtistsAllowed === Infinity ? 'Illimité' : maxArtistsAllowed})`;
+
+            querySnapshot.forEach((documentSnap) => {
+                const artist = documentSnap.data();
+                const card = document.createElement("div");
+                card.className = "artist-card";
+
+                // Utilise l'URL Cloudflare R2 ou un avatar par défaut si vide
+                const photoUrl = artist.photo || "https://mm-cp.uk/assets/img/photodeprofil/default-avatar.png";
+
+                card.innerHTML = `
+                    <img src="${photoUrl}" alt="${artist.name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: #ddd; margin-bottom: 10px;">
+                        <h3>${artist.name}</h3>
+                        <p style="font-size:12px; color:#777;">${artist.primaryGenre || 'Aucun genre'}</p>
+                        <button type="button" class="btn btn-secondary" style="width:100%; margin-top:10px;" onclick="ouvrirModalDetails('${documentSnap.id}')">Voir les détails</button>
+                        `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        window.ajouterEcrivainRow = function (valeurs = { nom: "", type: "les deux" }) {
+            const container = document.getElementById("writers-container");
+            const div = document.createElement("div");
+            div.className = "dynamic-row";
+            div.innerHTML = `
+                        <input type="text" class="writer-name" placeholder="Nom de l'écrivain" style="flex:2;" value="${valeurs.nom}">
+                            <select class="writer-type" style="flex:1;">
+                                <option value="ecrivan" ${valeurs.type === 'ecrivan' ? 'selected' : ''}>Écrivain</option>
+                                <option value="parolier" ${valeurs.type === 'parolier' ? 'selected' : ''}>Parolier</option>
+                                <option value="les deux" ${valeurs.type === 'les deux' ? 'selected' : ''}>Les Deux</option>
+                            </select>
+                            <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
+                            `;
+            container.appendChild(div);
+        }
+
+        window.ajouterCreditRow = function (valeurs = { nom: "", instrument: "", voix: "", utilite: "" }) {
+            const container = document.getElementById("credits-container");
+            const div = document.createElement("div");
+            div.className = "dynamic-row";
+            div.innerHTML = `
+                            <input type="text" class="credit-name" placeholder="Nom complet" style="flex:1.5;" value="${valeurs.nom}">
+                                <input type="text" class="credit-instrument" placeholder="Instrument" style="flex:1;" value="${valeurs.instrument}">
+                                    <input type="text" class="credit-voice" placeholder="Voix" style="flex:1;" value="${valeurs.voix}">
+                                        <input type="text" class="credit-utility" placeholder="Utilité" style="flex:1;" value="${valeurs.utilite}">
+                                            <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
+                                            `;
+            container.appendChild(div);
+        }
+
+        function injecterStructureSelonPlan() {
+            const labelFields = document.getElementById("label-fields");
+            const wlOnlyFields = document.getElementById("wl-only-fields");
+            const deliveryContainer = document.getElementById("delivery-checkboxes");
+
+            deliveryContainer.innerHTML = "";
+
+            let allowedDeliveries = [];
+            if (userPlan === "starter" || userPlan === "pro") {
+                allowedDeliveries = ["YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Hook", "LyricFind", "EVEN"];
+                labelFields.style.display = "none";
+            } else if (userPlan === "label") {
+                allowedDeliveries = allDeliveries;
+                labelFields.style.display = "block";
+                wlOnlyFields.style.display = "none";
+            } else if (userPlan === "white-label") {
+                allowedDeliveries = allDeliveries;
+                labelFields.style.display = "block";
+                wlOnlyFields.style.display = "block";
+            }
+
+            allowedDeliveries.forEach(del => {
+                deliveryContainer.innerHTML += `
+                <label><input type="checkbox" class="delivery-cb" value="${del}"> ${del}</label>
+            `;
+            });
+        }
+
+        window.ouvrirModalAjout = async function () {
+            const currentUserId = auth.currentUser.uid;
+            const q = collection(db, "users", currentUserId, "artists");
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.size >= maxArtistsAllowed) {
+                alert(`Limite atteinte ! Votre plan (${userPlan.toUpperCase()}) ne vous permet pas d'avoir plus de ${maxArtistsAllowed} artiste(s). Rendez-vous sur mm-cp.uk/tarifs pour évoluer.`);
+                return;
+            }
+
+            document.getElementById("artist-form").reset();
+            document.getElementById("artist-id").value = "";
+            document.getElementById("artist-photo").value = "";
+            document.getElementById("artist-name").disabled = false;
+            document.getElementById("modal-title").innerText = "Ajouter un Artiste";
+            document.getElementById("writers-container").innerHTML = "";
+            document.getElementById("credits-container").innerHTML = "";
+
+            // Cacher la prévisualisation de l'image
+            const previewImg = document.getElementById("artist-photo-preview");
+            if (previewImg) previewImg.style.display = "none";
+
+            injecterStructureSelonPlan();
+            document.getElementById("artist-modal").style.display = "flex";
+        }
+
+        window.ouvrirModalDetails = async function (artistId) {
+            document.getElementById("artist-form").reset();
+            document.getElementById("modal-title").innerText = "Détails de l'Artiste";
+            document.getElementById("artist-name").disabled = true;
+
+            injecterStructureSelonPlan();
+
+            const artistDoc = await getDoc(doc(db, "users", auth.currentUser.uid, "artists", artistId));
+            if (artistDoc.exists()) {
+                const data = artistDoc.data();
+
+                document.getElementById("artist-id").value = artistId;
+                document.getElementById("artist-name").value = data.name || "";
+                document.getElementById("artist-photo").value = data.photo || "";
+                document.getElementById("artist-uploader-option").value = data.uploaderOption || "";
+                document.getElementById("genre-primary").value = data.primaryGenre || "";
+                document.getElementById("genre-secondary").value = data.secondaryGenre || "";
+                document.getElementById("default-language").value = data.defaultLanguage || "";
+                document.getElementById("timezone").value = data.timezone || "";
+                document.getElementById("release-time").value = data.releaseTime || "";
+                document.getElementById("manual-platforms").value = data.manualPlatforms || "";
+                document.getElementById("manual-territories").value = data.manualTerritories || "";
+
+                // Affichage de l'aperçu de l'image dans le modal si elle existe
+                const previewImg = document.getElementById("artist-photo-preview");
+                if (previewImg) {
+                    if (data.photo) {
+                        previewImg.src = data.photo;
+                        previewImg.style.display = "block";
+                    } else {
+                        previewImg.style.display = "none";
+                    }
+                }
+
+                if (userPlan === "label" || userPlan === "white-label") {
+                    document.getElementById("line-copyright").value = data.lineCopyright || "";
+                    document.getElementById("line-phonogram").value = data.linePhonogram || "";
+                    if (userPlan === "white-label") {
+                        document.getElementById("label-name").value = data.labelName || "";
+                    }
+                }
+
+                document.getElementById("writers-container").innerHTML = "";
+                if (data.writers) data.writers.forEach(w => ajouterEcrivainRow(w));
+
+                document.getElementById("credits-container").innerHTML = "";
+                if (data.credits) data.credits.forEach(c => ajouterCreditRow(c));
+
+                const checkboxes = document.querySelectorAll(".delivery-cb");
+                checkboxes.forEach(cb => {
+                    if (data.deliveries && data.deliveries.includes(cb.value)) cb.checked = true;
+                });
+
+                document.getElementById("artist-desc").value = data.description || "";
+                document.getElementById("link-yt-chan").value = data.linkYtChan || "";
+                document.getElementById("link-yt-music").value = data.linkYtMusic || "";
+                document.getElementById("link-apple").value = data.linkApple || "";
+                document.getElementById("link-spotify").value = data.linkSpotify || "";
+                document.getElementById("link-amazon").value = data.linkAmazon || "";
+                document.getElementById("link-soundcloud").value = data.linkSoundcloud || "";
+                document.getElementById("link-website").value = data.linkWebsite || "";
+                document.getElementById("link-fb").value = data.linkFb || "";
+                document.getElementById("link-insta").value = data.linkInsta || "";
+                document.getElementById("link-x").value = data.linkX || "";
+                document.getElementById("link-yt-social").value = data.linkYtSocial || "";
+                document.getElementById("link-wiki").value = data.linkWiki || "";
+                document.getElementById("id-ddex").value = data.idDdex || "";
+                document.getElementById("id-musicbrainz").value = data.idMusicbrainz || "";
+                document.getElementById("id-allmusic").value = data.idAllmusic || "";
+                document.getElementById("id-isni").value = data.idIsni || "";
+
+                document.getElementById("artist-modal").style.display = "flex";
+            }
+        }
+
+        window.soumettreFormulaire = async function (e) {
+            e.preventDefault();
+            const uid = auth.currentUser.uid;
+            const artistId = document.getElementById("artist-id").value;
+
+            const writers = [];
+            const writerNames = document.querySelectorAll(".writer-name");
+            const writerTypes = document.querySelectorAll(".writer-type");
+            writerNames.forEach((el, index) => {
+                if (el.value.trim() !== "") {
+                    writers.push({ nom: el.value.trim(), type: writerTypes[index].value });
+                }
+            });
+
+            const credits = [];
+            const creditNames = document.querySelectorAll(".credit-name");
+            const creditInstruments = document.querySelectorAll(".credit-instrument");
+            const creditVoices = document.querySelectorAll(".credit-voice");
+            const creditUtilities = document.querySelectorAll(".credit-utility");
+            creditNames.forEach((el, index) => {
+                if (el.value.trim() !== "") {
+                    credits.push({
+                        nom: el.value.trim(),
+                        instrument: creditInstruments[index].value.trim(),
+                        voix: creditVoices[index].value.trim(),
+                        utilite: creditUtilities[index].value.trim()
+                    });
+                }
+            });
+
+            const deliveries = [];
+            document.querySelectorAll(".delivery-cb:checked").forEach(cb => deliveries.push(cb.value));
+
+            const artistPayload = {
+                name: document.getElementById("artist-name").value.trim(),
+                photo: document.getElementById("artist-photo").value.trim(),
+                uploaderOption: document.getElementById("artist-uploader-option").value.trim(),
+                writers: writers,
+                credits: credits,
+                primaryGenre: document.getElementById("genre-primary").value.trim(),
+                secondaryGenre: document.getElementById("genre-secondary").value.trim(),
+                defaultLanguage: document.getElementById("default-language").value.trim(),
+                timezone: document.getElementById("timezone").value.trim(),
+                releaseTime: document.getElementById("release-time").value,
+                manualPlatforms: document.getElementById("manual-platforms").value.trim(),
+                manualTerritories: document.getElementById("manual-territories").value.trim(),
+                deliveries: deliveries,
+                description: document.getElementById("artist-desc").value.trim(),
+                linkYtChan: document.getElementById("link-yt-chan").value.trim(),
+                linkYtMusic: document.getElementById("link-yt-music").value.trim(),
+                linkApple: document.getElementById("link-apple").value.trim(),
+                linkSpotify: document.getElementById("link-spotify").value.trim(),
+                linkAmazon: document.getElementById("link-amazon").value.trim(),
+                linkSoundcloud: document.getElementById("link-soundcloud").value.trim(),
+                linkWebsite: document.getElementById("link-website").value.trim(),
+                linkFb: document.getElementById("link-fb").value.trim(),
+                linkInsta: document.getElementById("link-insta").value.trim(),
+                linkX: document.getElementById("link-x").value.trim(),
+                linkYtSocial: document.getElementById("link-yt-social").value.trim(),
+                linkWiki: document.getElementById("link-wiki").value.trim(),
+                idDdex: document.getElementById("id-ddex").value.trim(),
+                idMusicbrainz: document.getElementById("id-musicbrainz").value.trim(),
+                idAllmusic: document.getElementById("id-allmusic").value.trim(),
+                idIsni: document.getElementById("id-isni").value.trim(),
+                updatedAt: new Date().toISOString()
+            };
+
+            if (userPlan === "label" || userPlan === "white-label") {
+                artistPayload.lineCopyright = document.getElementById("line-copyright").value.trim();
+                artistPayload.linePhonogram = document.getElementById("line-phonogram").value.trim();
+                if (userPlan === "white-label") {
+                    artistPayload.labelName = document.getElementById("label-name").value.trim();
+                }
+            }
+
+            try {
+                if (artistId) {
+                    await setDoc(doc(db, "users", uid, "artists", artistId), artistPayload, { merge: true });
+                    alert("Artiste mis à jour avec succès !");
+                } else {
+                    artistPayload.createdAt = new Date().toISOString();
+                    await addDoc(collection(db, "users", uid, "artists"), artistPayload);
+                    alert("Artiste créé avec succès !");
+                }
+                fermerModal();
+                chargerArtistes(uid);
+            } catch (error) {
+                alert("Erreur lors de la sauvegarde : " + error.message);
+            }
+        }
+
+        window.fermerModal = function () {
+            document.getElementById("artist-modal").style.display = "none";
+        }
+
+        window.gererTeleversementR2 = async function () {
+            const fileInput = document.getElementById("artist-photo-file");
+            const statusDiv = document.getElementById("upload-status");
+            const hiddenUrlInput = document.getElementById("artist-photo");
+            const previewImg = document.getElementById("artist-photo-preview");
+            const artistId = document.getElementById("artist-id").value || "new-artist";
+
+            if (!fileInput.files || fileInput.files.length === 0) return;
+
+            const file = fileInput.files[0];
+            statusDiv.innerText = "Téléversement vers Cloudflare R2 en cours...";
+            statusDiv.style.color = "#007bff";
+
+            try {
+                const response = await fetch(`https://pdp-media.api.mm-cp.uk?artistId=${artistId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": file.type
+                    },
+                    body: file
+                });
+
+                if (!response.ok) throw new Error("Échec de la réponse du serveur R2");
+
+                const data = await response.json();
+
+                // Stocker l'URL finale dans l'input masqué
+                hiddenUrlInput.value = data.url;
+
+                // Mettre à jour l'aperçu visuel dans le modal en direct
+                if (previewImg) {
+                    previewImg.src = data.url;
+                    previewImg.style.display = "block";
+                }
+
+                statusDiv.innerText = "✓ Image sauvegardée sur R2 avec succès !";
+                statusDiv.style.color = "#2ecc71";
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerText = "✕ Erreur lors du téléversement : " + error.message;
+                statusDiv.style.color = "#dc3545";
+            }
+        }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. On récupère le nom de la page actuelle (ex: "sorties.html")
+            const currentPath = window.location.pathname.split("/").pop();
+
+            // 2. On sélectionne tous les liens de la navbar
+            const navLinks = document.querySelectorAll(".responsive-nav a");
+
+            navLinks.forEach(link => {
+                // 3. On récupère l'attribut href du lien (ex: "sorties.html")
+                const linkPath = link.getAttribute("href").split("/").pop();
+
+                // 4. Si ça correspond, on ajoute "active", sinon on l'enlève
+                if (currentPath === linkPath) {
+                    link.classList.add("active");
+                } else {
+                    link.classList.remove("active");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

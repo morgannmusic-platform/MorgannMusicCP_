@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribution - Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/navbars/accueil/navbar.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <!-- Arrière-plan dynamique -->
+    <div class="dynamic-bg-main"></div>
+    <div class="blobs-container">
+        <div class="floating-blob start-anim large-blob"></div>
+    </div>
+
+    <main class="content-wrapper">
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-pill">Processus de Distribution</div>
+                <h1 class="banner-title">
+                    <span class="word">Distribuez</span>
+                    <span class="word">votre</span>
+                    <span class="word">musique</span>
+                    <span class="word">en</span>
+                    <span class="word">4</span>
+                    <span class="word">étapes.</span>
+                </h1>
+                <p class="hero-description">
+                    De la création de votre compte à la réception de vos royalties, nous vous guidons à chaque étape pour propulser votre musique sur les plateformes mondiales.
+                </p>
+                <div class="hero-actions">
+                    <a href="/signin.html" class="cta-button">Commencer maintenant</a>
+                    <a href="#process" class="hero-cta-secondary">Voir le processus</a>
+                </div>
+            </div>
+            <!-- Le hero-panel a été retiré car il parlait de Litual AI -->
+        </section>
+
+        <section class="platforms-section">
+            <h2>Votre musique sur toutes les plateformes majeures</h2>
+            <p class="platforms-text">Nous distribuons sur plus de 470 services de streaming et de téléchargement.</p>
+            <div class="marquee" aria-hidden="true">
+                <div class="marquee-track" id="marquee-distrib"></div>
+            </div>
+        </section>
+
+        <section id="process" class="timeline-section">
+            <h2>Comment ça marche ?</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>1. Créez votre compte et profil artiste</h3>
+                        <p>Inscrivez-vous en quelques minutes. Créez votre profil artiste et préparez-vous à importer vos œuvres.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>2. Téléversez votre musique et vos visuels</h3>
+                        <p>Importez vos fichiers audio (WAV recommandé) et votre pochette. Renseignez les métadonnées (titres, artistes, crédits) via notre interface intuitive.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>3. Validation et livraison aux plateformes</h3>
+                        <p>Notre équipe vérifie la conformité de votre sortie et l'optimise (Dolby Atmos, Lossless si applicable). Nous livrons ensuite votre musique aux plateformes de votre choix.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>4. Suivi des performances et paiement des royalties</h3>
+                        <p>Accédez à votre tableau de bord pour suivre vos streams et vos revenus. Recevez 100% de vos royalties chaque mois, directement sur votre compte bancaire.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="cta-container">
+                <h2>Prêt à distribuer votre musique ?</h2>
+                <p>Rejoignez Morgann Music CP et faites entendre votre voix partout dans le monde.</p>
+                <a href="/signin.html" class="cta-button">Commencer ma distribution</a>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer"></div>
+    <script type="module" src="/assets/js/navbar.js"></script>
+    <script src="/assets/js/background.js"></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+    <script>
+        // Logique du Marquee (similaire à l'index)
+        const logos = [
+            'Amazonmusic.logo.png', 'Google_Play_2022_logo.svg.png', 'Shazam_logo.svg.png',
+            'Spotify_logo_with_text.svg.png', 'TIDAL_Music_AB.png', 'TikTok-Logo-650x366.png',
+            'Twitch-Logo.png', 'akazoo-logo.png', 'Tesla-Embleme.png'
+        ];
+
+        function initMarquee() {
+            const track = document.getElementById('marquee-distrib');
+            if (!track) return;
+            
+            // On duplique pour le défilement infini
+            [...logos, ...logos].forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'marquee-item';
+                const img = document.createElement('img');
+                img.src = '/assets/img/plateformes/' + encodeURIComponent(name);
+                img.style.height = "35px";
+                item.appendChild(img);
+                track.appendChild(item);
+            });
+            track.classList.add('loaded');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMarquee();
+            
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reducedMotion) return;
+
+            // Animation d'entrée
+            const tl = gsap.timeline({ delay: 0.5 });
+            tl.to(".hero-pill", { opacity: 1, y: 0, duration: 0.6, startAt: { y: -20, opacity: 0 } }) // Animation du pill
+              .to(".banner-title .word", { opacity: 1, y: 0, stagger: 0.1, duration: 0.8, ease: "power4.out", startAt: { y: 30, opacity: 0 } }, "-=0.4") // Animation du titre mot par mot
+              .to(".hero-description, .hero-actions", { opacity: 1, y: 0, duration: 0.7, startAt: { y: 20, opacity: 0 } }, "-=0.5"); // Animation de la description et des actions
+            // Le hero-panel a été retiré, donc son animation est supprimée
+
+            // Scroll animations pour les autres sections
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.id === 'process') { // Animation pour la nouvelle section timeline
+                            gsap.to(entry.target.querySelectorAll(".timeline-item"), {
+                                opacity: 1, x: 0, stagger: 0.15, duration: 0.8, ease: "power3.out", startAt: { x: -40, opacity: 0 } // Animation des items de la timeline
+                            });
+                        } else if (entry.target.classList.contains('cta-section')) {
+                            gsap.to(entry.target.querySelector(".cta-container"), {
+                                opacity: 1, scale: 1, duration: 1, startAt: { opacity: 0, scale: 0.9 }
+                            });
+                        }
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.2 });
+
+            document.querySelectorAll('#process, .cta-section').forEach(s => observer.observe(s));
+        });
+    </script>
+</body>
+</html>

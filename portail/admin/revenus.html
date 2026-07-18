@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Revenus - MM-CP Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Structure Layout globale (Tableau strict) */
+        .layout-table {
+            display: table;
+            width: 100%;
+            border-spacing: 20px 0px;
+        }
+
+        .layout-row {
+            display: table-row;
+        }
+
+        .layout-sidebar-cell {
+            display: table-cell;
+            width: 260px;
+            vertical-align: top;
+        }
+
+        .layout-main-cell {
+            display: table-cell;
+            vertical-align: top;
+        }
+
+        .navbar-container {
+            margin-bottom: 20px;
+        }
+
+        /* Blocs Décollés/Arrondis */
+        .admin-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #38bdf8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        /* Formulaires stylisés */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        input,
+        select {
+            background: #151f32;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #d01159;
+        }
+
+        .btn-submit {
+            background: #d01159;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #ff1e7b;
+        }
+
+        /* Tableaux */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+
+        th {
+            background: #151f32;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        tr:hover {
+            background: #24334a;
+        }
+
+        .btn-action-sm {
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-action-sm:hover {
+            background: #7dd3fc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout-table">
+        <div class="layout-row">
+
+            <div id="sidebar-injector" class="layout-sidebar-cell"></div>
+
+            <div class="layout-main-cell">
+
+                <div id="navbar-injector" class="navbar-container"></div>
+
+                <div id="section-selection-compte" class="admin-card" style="display: none;">
+                    <div class="card-title">Sélectionner un compte utilisateur pour attribuer des revenus</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nom / Entreprise</th>
+                                <th>Email</th>
+                                <th>UID Client</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-users-body">
+                            <tr>
+                                <td colspan="4" style="color: #94a3b8; text-align:center;">Chargement de la liste des
+                                    comptes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="section-gestion-revenus" style="display: none;">
+                    <div class="admin-card">
+                        <div class="card-title">Injecter un nouveau revenu sur le compte : <span id="client-name"
+                                style="color: white;">...</span></div>
+
+                        <form id="form-revenue" onsubmit="enregistrerRevenu(event)">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="rev-amount">Montant du revenu (€)</label>
+                                    <input type="number" id="rev-amount" step="0.01" placeholder="ex: 1450.42" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="rev-month">Mois d'activité (Période)</label>
+                                    <select id="rev-month" required>
+                                        <option value="Janvier 2026">Janvier 2026</option>
+                                        <option value="Février 2026">Février 2026</option>
+                                        <option value="Mars 2026">Mars 2026</option>
+                                        <option value="Avril 2026">Avril 2026</option>
+                                        <option value="Mai 2026">Mai 2026</option>
+                                        <option value="Juin 2026">Juin 2026</option>
+                                        <option value="Juillet 2026" selected>Juillet 2026</option>
+                                        <option value="Août 2026">Août 2026</option>
+                                        <option value="Septembre 2026">Septembre 2026</option>
+                                        <option value="Octobre 2026">Octobre 2026</option>
+                                        <option value="Novembre 2026">Novembre 2026</option>
+                                        <option value="Décembre 2026">Décembre 2026</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="rev-release">Quelle Sortie (Catalogue de l'utilisateur)</label>
+                                    <select id="rev-release" onchange="synchroniserArtisteDepuisSortie()" required>
+                                        <option value="">Sélectionnez d'abord un projet...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="rev-artist">Artiste associé (Rempli automatiquement)</label>
+                                    <input type="text" id="rev-artist" readonly
+                                        placeholder="Artiste principal de la sortie">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-submit">Valider et injecter au solde client</button>
+                            <a href="revenus.html"
+                                style="color: #94a3b8; font-size: 13px; margin-left: 15px; text-decoration: none;">←
+                                Changer de compte</a>
+                        </form>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="card-title">Historique des lignes de revenus créditées</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Période</th>
+                                    <th>Sortie / Album</th>
+                                    <th>Artiste</th>
+                                    <th>Montant injecté</th>
+                                    <th>Date d'opération</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-history-body">
+                                <tr>
+                                    <td colspan="5" style="color: #94a3b8; text-align:center;">Aucun versement
+                                        enregistré.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Ajout indispensable de Firebase Auth pour envoyer ton token d'administration aux règles
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+            measurementId: "G-FKSSXYEZF0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); // Initialisation de l'instance d'authentification
+
+        let catalogueSortiesArtistes = {};
+
+        // 1. INJECTION SIDEBAR / NAVBAR
+        async function injecterComposants() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+            } catch (e) { console.error(e); }
+        }
+
+        // 2. SÉCURISATION DU ROUTEUR ET VÉRIFICATION DU RÔLE ADMIN
+        // On n'exécute plus initPageRevenus() dans le vide, on attend la validation de la session
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                // Pas connecté -> Redirection vers le login de la plateforme
+                window.location.href = "login.html";
+                return;
+            }
+
+            try {
+                // Double vérification côté client du document utilisateur pour valider le rôle
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists() && userDocSnap.data().role === "admin") {
+                    // L'utilisateur est authentifié ET a le rôle admin : on lance l'application
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const accountUid = urlParams.get('compte');
+
+                    if (!accountUid) {
+                        document.getElementById("section-selection-compte").style.display = "block";
+                        await chargerListeComptes();
+                    } else {
+                        document.getElementById("section-gestion-revenus").style.display = "block";
+                        await chargerInterfaceCompteUnique(accountUid);
+                    }
+                } else {
+                    // Connecté mais pas admin -> Blocage immédiat
+                    document.body.innerHTML = `<div style="padding:40px; text-align:center; color:#f43f5e; font-weight:bold; font-family:sans-serif;">
+                    ⚠️ Accès Refusé : Vous devez être administrateur pour accéder à ce module.
+                </div>`;
+                }
+            } catch (err) {
+                console.error("Erreur lors de la vérification des droits :", err);
+                document.body.innerHTML = `<div style="padding:40px; text-align:center; color:#f43f5e; font-family:sans-serif;">
+                Erreur d'initialisation des privilèges : ${err.message}
+            </div>`;
+            }
+        });
+
+        // 3. CHARGEMENT DE TOUS LES UTILISATEURS
+        async function chargerListeComptes() {
+            const tbody = document.getElementById("table-users-body");
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                tbody.innerHTML = "";
+
+                snap.forEach((userDoc) => {
+                    const u = userDoc.data();
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                    <td style="font-weight: 700;">${u.displayName || u.email.split('@')[0]}</td>
+                    <td>${u.email}</td>
+                    <td style="font-family: monospace; color:#64748b;">${userDoc.id}</td>
+                    <td><a href="revenus.html?compte=${userDoc.id}" class="btn-action-sm">Gérer les revenus</a></td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color: #f43f5e;">Erreur de chargement : ${err.message}</td></tr>`;
+            }
+        }
+
+        // 4. PRE-REMPLISSAGE DU FORMULAIRE ET CORRÉLATION DE SON CATALOGUE
+        async function chargerInterfaceCompteUnique(uid) {
+            try {
+                const uDoc = await getDoc(doc(db, "users", uid));
+                if (uDoc.exists()) {
+                    document.getElementById("client-name").innerText = uDoc.data().displayName || uDoc.data().email;
+                }
+
+                const sortiesSnap = await getDocs(collection(db, "users", uid, "releases"));
+                const selectRelease = document.getElementById("rev-release");
+                selectRelease.innerHTML = '<option value="">-- Choisir la sortie ciblée --</option>';
+
+                sortiesSnap.forEach((rDoc) => {
+                    const r = rDoc.data();
+                    catalogueSortiesArtistes[rDoc.id] = r.artistName || "Artiste Inconnu";
+
+                    const opt = document.createElement("option");
+                    opt.value = rDoc.id;
+                    opt.innerText = `${r.title} (${r.type || 'Single'})`;
+                    selectRelease.appendChild(opt);
+                });
+
+                await chargerHistoriqueFinancier(uid);
+
+            } catch (err) { console.error(err); }
+        }
+
+        window.synchroniserArtisteDepuisSortie = function () {
+            const releaseId = document.getElementById("rev-release").value;
+            const inputArtist = document.getElementById("rev-artist");
+            inputArtist.value = catalogueSortiesArtistes[releaseId] || "";
+        };
+
+        // 5. ENREGISTREMENT DE LA SOUMISSION DANS LA SOUS-COLLECTION "FINANCES" DE L'USER
+        window.enregistrerRevenu = async function (e) {
+            e.preventDefault();
+            const urlParams = new URLSearchParams(window.location.search);
+            const uid = urlParams.get('compte');
+
+            const selectRel = document.getElementById("rev-release");
+            const payload = {
+                amount: parseFloat(document.getElementById("rev-amount").value),
+                period: document.getElementById("rev-month").value,
+                releaseId: selectRel.value,
+                releaseTitle: selectRel.options[selectRel.selectedIndex].text,
+                artistName: document.getElementById("rev-artist").value,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await addDoc(collection(db, "users", uid, "finances"), payload);
+                alert("Ligne de revenus ajoutée et créditée avec succès !");
+
+                document.getElementById("form-revenue").reset();
+                await chargerHistoriqueFinancier(uid);
+            } catch (err) {
+                alert("Erreur lors de l'injection : " + err.message);
+            }
+        };
+
+        // 6. CHARGER L'HISTORIQUE DE CRÉDIT
+        async function chargerHistoriqueFinancier(uid) {
+            const tbody = document.getElementById("table-history-body");
+            try {
+                const finSnap = await getDocs(collection(db, "users", uid, "finances"));
+                if (finSnap.empty) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="color: #94a3b8; text-align:center;">Aucune transaction enregistrée pour ce compte.</td></tr>`;
+                    return;
+                }
+                tbody.innerHTML = "";
+                finSnap.forEach((fDoc) => {
+                    const f = fDoc.data();
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                    <td style="font-weight:600;">${f.period}</td>
+                    <td>${f.releaseTitle}</td>
+                    <td>${f.artistName}</td>
+                    <td style="color:#22c55e; font-weight:700;">+ ${f.amount.toFixed(2)} €</td>
+                    <td style="font-size:12px; color:#64748b;">${f.createdAt.split('T')[0]}</td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        injecterComposants();
+    </script>
+</body>
+
+</html>

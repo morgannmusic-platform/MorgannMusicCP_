@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin Principal - MM-CP</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Structure en Table pour la mise en page globale */
+        .layout-table {
+            display: table;
+            width: 100%;
+            border-spacing: 20px 0px;
+        }
+
+        .layout-row {
+            display: table-row;
+        }
+
+        .layout-sidebar-cell {
+            display: table-cell;
+            width: 260px;
+            vertical-align: top;
+        }
+
+        .layout-main-cell {
+            display: table-cell;
+            vertical-align: top;
+        }
+
+        /* Espacement pour la Navbar injectée */
+        .navbar-container {
+            margin-bottom: 20px;
+        }
+
+        /* Conteneur des blocs IA en ligne */
+        .ai-grid-table {
+            display: table;
+            width: 100%;
+            border-spacing: 20px;
+            margin-left: -20px;
+            margin-right: -20px;
+        }
+
+        .ai-card-cell {
+            display: table-cell;
+            width: 33.33%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            vertical-align: top;
+            box-sizing: border-box;
+        }
+
+        .ai-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-card-title span.badge {
+            font-size: 11px;
+            background: #d01159;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Zone de texte générée par l'IA */
+        .ai-summary-box {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #cbd5e1;
+            background: #151f32;
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 120px;
+            white-space: pre-line;
+            border-left: 3px solid #38bdf8;
+        }
+
+        .loader {
+            color: #64748b;
+            font-style: italic;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout-table">
+        <div class="layout-row">
+
+            <div id="sidebar-injector" class="layout-sidebar-cell"></div>
+
+            <div class="layout-main-cell">
+
+                <div id="navbar-injector" class="navbar-container"></div>
+
+                <h2 style="margin-top: 10px; font-size: 22px;">Analyses Prédictives & Actions Requises (Cloudflare
+                    Worker AI)</h2>
+
+                <div class="ai-grid-table">
+                    <div class="layout-row">
+
+                        <div class="ai-card-cell">
+                            <div class="ai-card-title">
+                                <span>Vérification Comptes</span>
+                                <span class="badge">Sécurité</span>
+                            </div>
+                            <div id="ai-comptes-box" class="ai-summary-box">
+                                <span class="loader">Analyse Cloudflare Worker AI en cours...</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-card-cell">
+                            <div class="ai-card-title">
+                                <span>Validation Catalogues</span>
+                                <span class="badge">Distribution</span>
+                            </div>
+                            <div id="ai-sorties-box" class="ai-summary-box">
+                                <span class="loader">Calcul des priorités de distribution...</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-card-cell">
+                            <div class="ai-card-title">
+                                <span>Urgences Support</span>
+                                <span class="badge">Tickets</span>
+                            </div>
+                            <div id="ai-support-box" class="ai-summary-box">
+                                <span class="loader">Lecture des files d'attente...</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collectionGroup, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+            measurementId: "G-FKSSXYEZF0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. INJECTION DYNAMIQUE DE LA SIDEBAR ET NAVBAR VIA FETCH
+        async function injecterComposants() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+            } catch (e) {
+                console.error("Erreur lors de l'injection des composants HTML : ", e);
+            }
+        }
+
+        // 2. EXTRACTION ET COMPILATION DES DONNÉES POUR L'IA
+        async function collecterDonneesEtLancerIA() {
+            // Collecte des sorties
+            const sortiesSnapshot = await getDocs(collectionGroup(db, "releases"));
+            let countMmcp = 0, countPlat = 0, listeProjets = [];
+
+            sortiesSnapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.status === "verification mmcp") countMmcp++;
+                if (data.status === "verification plate-formes") countPlat++;
+                listeProjets.push(`${data.title} par ${data.artistName} (${data.status})`);
+            });
+
+            // Simuler les volumes des collections comptes et tickets
+            const totalComptesAValider = 3;
+            const ticketsUrgents = 2;
+
+            // Appels vers ton API Cloudflare Worker AI dédiée
+            executerRequeteAI("comptes", `Tu es l'assistant de Morgann Music CP. Résume en 3 lignes max et liste les actions prioritaires pour ${totalComptesAValider} demandes de passage au plan Label en attente.`);
+            executerRequeteAI("sorties", `Tu es le gestionnaire de catalogue. Il y a ${countMmcp} projets en attente de vérification MMCP et ${countPlat} chez les plateformes. Voici les derniers projets : ${listeProjets.slice(0, 3).join(', ')}. Génère un topo strict d'actions.`);
+            executerRequeteAI("support", `Analyse urgente du support : ${ticketsUrgents} tickets de serveurs R2 ou conflits ISRC non résolus. Donne les 2 actions clés à réaliser.`);
+        }
+
+        // 3. INTERROGATION DE TON ROUTEUR CLOUDFLARE WORKER AI
+        async function executerRequeteAI(systemeCle, promptText) {
+            const box = document.getElementById(`ai-${systemeCle}-box`);
+            try {
+                // Remplacer par l'URL de ton point de terminaison Cloudflare Worker AI (@cf/meta/llama-3-8b-instruct ou similaire)
+                const response = await fetch(`https://api.litual.admin.mm-cp.uk/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: promptText })
+                });
+
+                if (!response.ok) throw new Error("Erreur Worker AI");
+                const data = await response.json();
+
+                box.innerText = data.result || data.response || "Aucun résumé généré par le modèle.";
+            } catch (err) {
+                // Fallback d'affichage si le worker AI local n'est pas encore déployé
+                box.innerHTML = `<span style="color:#f43f5e;">⚠️ Échec Worker AI. Action manuelle requise.</span>`;
+            }
+        }
+
+        // Lancement global au montage du DOM
+        injecterComposants();
+        collecterDonneesEtLancerIA();
+    </script>
+</body>
+
+</html>

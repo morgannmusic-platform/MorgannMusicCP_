@@ -1,0 +1,7 @@
+name = "mm-cp-pochettes-worker"
+main = "src/worker.js"
+compatibility_date = "2026-07-18"
+
+[[r2_buckets]]
+binding = "POCHETTES_BUCKET"
+bucket_name = "mm-cp-pochettes"

@@ -1,0 +1,70 @@
+<div class="sidebar-inner">
+    <div class="sidebar-brand">MM-CP ADMIN</div>
+    <nav class="sidebar-nav">
+        <a href="admin.html" class="sidebar-link active">Tableau de bord</a>
+        <a href="admin-sorties.html" class="sidebar-link">Gestion des Sorties</a>
+        <a href="admin-comptes.html" class="sidebar-link">Utilisateurs & Plans</a>
+        <a href="admin-support.html" class="sidebar-link">Tickets Support</a>
+        <a href="admin-configuration.html" class="sidebar-link">Configuration</a>
+    </nav>
+    <div class="sidebar-footer">
+        <span>Version 2.4.0</span>
+    </div>
+</div>
+
+<style>
+    .sidebar-inner {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 16px;
+        height: calc(100vh - 40px);
+        padding: 24px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar-brand {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: #d01159;
+        margin-bottom: 32px;
+        text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .sidebar-link {
+        display: block;
+        padding: 12px 16px;
+        color: #94a3b8;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-link:hover {
+        background: #273549;
+        color: #f8fafc;
+    }
+
+    .sidebar-link.active {
+        background: #d01159;
+        color: white;
+    }
+
+    .sidebar-footer {
+        font-size: 11px;
+        color: #64748b;
+        text-align: center;
+    }
+</style>

@@ -1,0 +1,7 @@
+name = "mm-cp-ai-worker"
+main = "src/index.js"
+compatibility_date = "2026-07-18"
+
+# Liaison cruciale pour activer Cloudflare Worker AI
+[ai]
+binding = "AI"

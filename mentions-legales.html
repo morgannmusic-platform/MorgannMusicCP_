@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentions Légales - Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/navbars/accueil/navbar.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        .legal-content { max-width: 800px; margin: 40px auto; padding: 2.5rem; background: var(--container1); border-radius: 32px; color: var(--text-secondary); box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+        h1, h2 { color: var(--rose); margin-bottom: 1rem; }
+        p { margin-bottom: 1.2rem; line-height: 1.7; }
+
+        @media (max-width: 768px) {
+            .legal-content { margin: 20px 15px; padding: 1.5rem; border-radius: 24px; }
+            h1 { font-size: 1.8rem; }
+            h2 { font-size: 1.4rem; margin-top: 2rem; }
+            p { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar"></div>
+    <main class="content-wrapper">
+        <div class="legal-content">
+            <h1>Mentions Légales</h1>
+            
+            <h2>1. Éditeur du site</h2>
+            <p>Le site Morgann Music CP est édité par Morgann Rachedi, dont le siège social est situé à Chemin De Zonas, immatriculée au RCS de Condrieu sous le numéro 50798773300023.</p>
+            <p>Email : contact@mm-cp.uk</p>
+
+            <h2>2. Hébergement</h2>
+            <p>Le site est hébergé par CloudFlare Pages avec comme base de donnéesFirebase (Google Cloud Platform) et les fonctions serveurs sont opérées par Cloudflare Workers.</p>
+
+            <h2>3. Propriété intellectuelle</h2>
+            <p>L'ensemble du contenu de ce site (textes, images, logos) est la propriété exclusive de Morgann Music CP, sauf mention contraire.</p>
+
+            <h2>4. Données personnelles</h2>
+            <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour plus d'informations, consultez notre Politique de Confidentialité.</p>
+        </div>
+    </main>
+    <script type="module" src="/assets/js/navbar.js"></script>
+    <div id="footer"></div>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+</body>
+</html>

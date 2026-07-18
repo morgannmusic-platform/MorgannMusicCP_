@@ -1,0 +1,127 @@
+[debug] [2026-05-24T13:29:48.720Z] ----------------------------------------------------------------------
+[debug] [2026-05-24T13:29:48.735Z] Command:       /usr/local/bin/node /usr/local/bin/firebase deploy --only firestore:rules --project morgann-music-cp
+[debug] [2026-05-24T13:29:48.736Z] CLI Version:   15.5.1
+[debug] [2026-05-24T13:29:48.737Z] Platform:      darwin
+[debug] [2026-05-24T13:29:48.737Z] Node Version:  v20.20.2
+[debug] [2026-05-24T13:29:48.737Z] Time:          Sun May 24 2026 15:29:48 GMT+0200 (Central European Summer Time)
+[debug] [2026-05-24T13:29:48.738Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-24T13:29:51.638Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-24T13:29:51.646Z] > authorizing via signed-in user (rachedi.morgann13@gmail.com)
+[debug] [2026-05-24T13:29:51.647Z] [iam] checking project morgann-music-cp for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-05-24T13:29:51.650Z] Checked if tokens are valid: false, expires at: 1779630246036
+[debug] [2026-05-24T13:29:51.651Z] Checked if tokens are valid: false, expires at: 1779630246036
+[debug] [2026-05-24T13:29:51.651Z] > refreshing access token with scopes: []
+[debug] [2026-05-24T13:29:51.660Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-05-24T13:29:51.661Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-05-24T13:29:52.047Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-05-24T13:29:52.047Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-05-24T13:29:52.071Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions [none]
+[debug] [2026-05-24T13:29:52.072Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions  x-goog-user-project=morgann-music-cp
+[debug] [2026-05-24T13:29:52.073Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-05-24T13:29:52.805Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions 200
+[debug] [2026-05-24T13:29:52.805Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'morgann-music-cp'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-24T13:29:52.816Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:52.816Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:52.816Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/morgann-music-cp/databases/(default) [none]
+[debug] [2026-05-24T13:29:53.811Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/morgann-music-cp/databases/(default) 200
+[debug] [2026-05-24T13:29:53.811Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/morgann-music-cp/databases/(default) {"name":"projects/morgann-music-cp/databases/(default)","uid":"da0218ff-2fc3-4bfb-bacb-067cb8643f9f","createTime":"2026-02-11T17:21:25.128588Z","updateTime":"2026-02-11T17:21:25.128588Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-05-24T12:29:53.703176Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IJHe346E0pQDMP6Ducif5pID"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-05-24T13:29:53.813Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:53.813Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:53.815Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp:test [none]
+[debug] [2026-05-24T13:29:53.815Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp:test [omitted]
+[debug] [2026-05-24T13:29:54.779Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp:test 200
+[debug] [2026-05-24T13:29:54.780Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-05-24T13:29:54.785Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:54.785Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:54.789Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases pageSize=10&pageToken=
+[debug] [2026-05-24T13:29:55.469Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases 200
+[debug] [2026-05-24T13:29:55.469Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases {"releases":[{"name":"projects/morgann-music-cp/releases/cloud.firestore","rulesetName":"projects/morgann-music-cp/rulesets/dbf65a31-0c5d-4c19-8b60-02ec63d82afa","createTime":"2026-02-11T17:21:28.702653Z","updateTime":"2026-05-24T13:20:40.019460Z"},{"name":"projects/morgann-music-cp/releases/firebase.storage/morgann-music-cp","rulesetName":"projects/morgann-music-cp/rulesets/0a9bce60-95c3-47fc-a633-cb57aa4cad4e","createTime":"2026-02-12T20:01:51.942068Z","updateTime":"2026-02-12T20:01:51.942068Z"},{"name":"projects/morgann-music-cp/releases/firebase.storage/morgann-music-cp.firebasestorage.app","rulesetName":"projects/morgann-music-cp/rulesets/877c509e-218b-489f-87ba-91c5bd925572","createTime":"2026-02-11T19:52:05.875980Z","updateTime":"2026-05-02T12:19:49.641920Z"}]}
+[debug] [2026-05-24T13:29:55.529Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:55.530Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:55.533Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets/dbf65a31-0c5d-4c19-8b60-02ec63d82afa [none]
+[debug] [2026-05-24T13:29:56.173Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets/dbf65a31-0c5d-4c19-8b60-02ec63d82afa 200
+[debug] [2026-05-24T13:29:56.174Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets/dbf65a31-0c5d-4c19-8b60-02ec63d82afa [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-05-24T13:29:56.179Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:56.179Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:56.180Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets [none]
+[debug] [2026-05-24T13:29:56.180Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets [omitted]
+[debug] [2026-05-24T13:29:56.962Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets 200
+[debug] [2026-05-24T13:29:56.963Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets {"name":"projects/morgann-music-cp/rulesets/6b662473-0feb-4e8f-86bd-96bb32a41c5b","source":{"files":[{"content":"rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /users/{userId} {\n      allow create: if request.auth != null && request.auth.uid == userId;\n      allow read, delete: if request.auth != null && request.auth.uid == userId;\n\n      // L'utilisateur peut modifier son document, mais pas le nom d'artiste.\n      allow update: if request.auth != null\n        && request.auth.uid == userId\n        && request.resource.data.artistName == resource.data.artistName;\n    }\n\n    // Demandes de changement de nom d'artiste\n    match /artistNameChangeRequests/{requestId} {\n      allow create: if request.auth != null\n        && request.resource.data.userId == request.auth.uid\n        && request.resource.data.newArtistName is string\n        && request.resource.data.newArtistName.size() > 0\n        && request.resource.data.consent15Days == true;\n\n      allow read: if request.auth != null && resource.data.userId == request.auth.uid;\n      allow update, delete: if false;\n    }\n\n    match /{document=**} {\n      allow read, write: if false;\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-05-24T13:29:56.988383Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-05-24T13:29:56.963Z] [rules] created ruleset projects/morgann-music-cp/rulesets/6b662473-0feb-4e8f-86bd-96bb32a41c5b
+[debug] [2026-05-24T13:29:56.964Z] [rules] releasing cloud.firestore/(default) with ruleset projects/morgann-music-cp/rulesets/6b662473-0feb-4e8f-86bd-96bb32a41c5b
+[debug] [2026-05-24T13:29:56.965Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:56.965Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:29:56.966Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases/cloud.firestore/(default) [none]
+[debug] [2026-05-24T13:29:56.966Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases/cloud.firestore/(default) {"release":{"name":"projects/morgann-music-cp/releases/cloud.firestore/(default)","rulesetName":"projects/morgann-music-cp/rulesets/6b662473-0feb-4e8f-86bd-96bb32a41c5b"}}
+[debug] [2026-05-24T13:29:57.811Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases/cloud.firestore/(default) 200
+[debug] [2026-05-24T13:31:40.997Z] ----------------------------------------------------------------------
+[debug] [2026-05-24T13:31:41.014Z] Command:       /usr/local/bin/node /usr/local/bin/firebase deploy --only firestore:rules --project morgann-music-cp
+[debug] [2026-05-24T13:31:41.014Z] CLI Version:   15.5.1
+[debug] [2026-05-24T13:31:41.015Z] Platform:      darwin
+[debug] [2026-05-24T13:31:41.015Z] Node Version:  v20.20.2
+[debug] [2026-05-24T13:31:41.015Z] Time:          Sun May 24 2026 15:31:41 GMT+0200 (Central European Summer Time)
+[debug] [2026-05-24T13:31:41.015Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-24T13:31:43.763Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-24T13:31:43.768Z] > authorizing via signed-in user (rachedi.morgann13@gmail.com)
+[debug] [2026-05-24T13:31:43.770Z] [iam] checking project morgann-music-cp for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-05-24T13:31:43.773Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:43.774Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:43.778Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions [none]
+[debug] [2026-05-24T13:31:43.778Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions  x-goog-user-project=morgann-music-cp
+[debug] [2026-05-24T13:31:43.780Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-05-24T13:31:44.730Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions 200
+[debug] [2026-05-24T13:31:44.731Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/morgann-music-cp:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'morgann-music-cp'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-24T13:31:44.740Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:44.741Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:44.741Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/morgann-music-cp/databases/(default) [none]
+[debug] [2026-05-24T13:31:45.734Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/morgann-music-cp/databases/(default) 200
+[debug] [2026-05-24T13:31:45.734Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/morgann-music-cp/databases/(default) {"name":"projects/morgann-music-cp/databases/(default)","uid":"da0218ff-2fc3-4bfb-bacb-067cb8643f9f","createTime":"2026-02-11T17:21:25.128588Z","updateTime":"2026-02-11T17:21:25.128588Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-05-24T12:31:45.711191Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IJyUlMSE0pQDMP6Ducif5pID"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-05-24T13:31:45.738Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:45.739Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:45.741Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp:test [none]
+[debug] [2026-05-24T13:31:45.741Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp:test [omitted]
+[debug] [2026-05-24T13:31:46.355Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp:test 200
+[debug] [2026-05-24T13:31:46.355Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-05-24T13:31:46.358Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:46.358Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:46.361Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases pageSize=10&pageToken=
+[debug] [2026-05-24T13:31:47.013Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases 200
+[debug] [2026-05-24T13:31:47.014Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases {"releases":[{"name":"projects/morgann-music-cp/releases/cloud.firestore","rulesetName":"projects/morgann-music-cp/rulesets/6b662473-0feb-4e8f-86bd-96bb32a41c5b","createTime":"2026-02-11T17:21:28.702653Z","updateTime":"2026-05-24T13:29:57.801953Z"},{"name":"projects/morgann-music-cp/releases/firebase.storage/morgann-music-cp","rulesetName":"projects/morgann-music-cp/rulesets/0a9bce60-95c3-47fc-a633-cb57aa4cad4e","createTime":"2026-02-12T20:01:51.942068Z","updateTime":"2026-02-12T20:01:51.942068Z"},{"name":"projects/morgann-music-cp/releases/firebase.storage/morgann-music-cp.firebasestorage.app","rulesetName":"projects/morgann-music-cp/rulesets/877c509e-218b-489f-87ba-91c5bd925572","createTime":"2026-02-11T19:52:05.875980Z","updateTime":"2026-05-02T12:19:49.641920Z"}]}
+[debug] [2026-05-24T13:31:47.169Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:47.169Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:47.172Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets/6b662473-0feb-4e8f-86bd-96bb32a41c5b [none]
+[debug] [2026-05-24T13:31:47.824Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets/6b662473-0feb-4e8f-86bd-96bb32a41c5b 200
+[debug] [2026-05-24T13:31:47.824Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets/6b662473-0feb-4e8f-86bd-96bb32a41c5b [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-05-24T13:31:47.830Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:47.830Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:47.831Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets [none]
+[debug] [2026-05-24T13:31:47.832Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets [omitted]
+[debug] [2026-05-24T13:31:48.758Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets 200
+[debug] [2026-05-24T13:31:48.758Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/rulesets {"name":"projects/morgann-music-cp/rulesets/e993743b-8e33-4547-981b-ce102ad1d3b4","source":{"files":[{"content":"rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /users/{userId} {\n      allow create: if request.auth != null && request.auth.uid == userId;\n      allow read, delete: if request.auth != null && request.auth.uid == userId;\n\n      // Le nom d'artiste ne peut pas etre modifie par l'utilisateur.\n      allow update: if request.auth != null\n        && request.auth.uid == userId\n        && request.resource.data.artistName == resource.data.artistName;\n    }\n\n    match /{document=**} {\n      allow read, write: if false;\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-05-24T13:31:48.625631Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-05-24T13:31:48.758Z] [rules] created ruleset projects/morgann-music-cp/rulesets/e993743b-8e33-4547-981b-ce102ad1d3b4
+[debug] [2026-05-24T13:31:48.759Z] [rules] releasing cloud.firestore/(default) with ruleset projects/morgann-music-cp/rulesets/e993743b-8e33-4547-981b-ce102ad1d3b4
+[debug] [2026-05-24T13:31:48.760Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:48.760Z] Checked if tokens are valid: true, expires at: 1779632991048
+[debug] [2026-05-24T13:31:48.760Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases/cloud.firestore/(default) [none]
+[debug] [2026-05-24T13:31:48.760Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases/cloud.firestore/(default) {"release":{"name":"projects/morgann-music-cp/releases/cloud.firestore/(default)","rulesetName":"projects/morgann-music-cp/rulesets/e993743b-8e33-4547-981b-ce102ad1d3b4"}}
+[debug] [2026-05-24T13:31:49.621Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/morgann-music-cp/releases/cloud.firestore/(default) 200

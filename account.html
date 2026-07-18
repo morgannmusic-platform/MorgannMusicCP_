@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d0a75a">
+    <title>Mon Compte | Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/account.css">
+    <link rel="stylesheet" href="/assets/navbars/accueil/navbar-login.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script type="module" src="/assets/js/navbar.js"></script>
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            opacity: 0; /* Géré par GSAP */
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10000;
+        }
+        .modal-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            border: 1px solid rgba(252, 143, 176, 0.2);
+        }
+        .modal-icon { font-size: 4.5rem; margin-bottom: 1.5rem; display: block; }
+        .modal-card h2 { color: #FC8FB0; margin-bottom: 1rem; font-size: 2rem; font-weight: 700; }
+        .modal-card p { color: #555; line-height: 1.6; margin-bottom: 2.5rem; font-size: 1.1rem; }
+        .modal-card .actions {
+            display: flex;
+            justify-content: center; /* Centre le bouton */
+            width: 100%;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: #aaa;
+            cursor: pointer;
+            background: none; border: none;
+        }
+        .modal-btn {
+            display: inline-block;
+            padding: 1.1rem 2.5rem;
+            background: #FC8FB0;
+            color: white;
+            text-decoration: none;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: none;
+            cursor: pointer;
+        }
+        .modal-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(252, 143, 176, 0.4);
+        }
+        .is-hidden { display: none !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .modal-btn:hover { transform: none; }
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div id="navbar"></div>
+
+    <main class="account-wrap">
+        <header class="account-header">
+            <p class="account-kicker">Espace membre</p>
+            <div class="account-title-row">
+                <h1>Mon compte</h1>
+                <span id="role-badge" class="role-badge role-user">User</span>
+            </div>
+            <p class="account-subtitle">Gere vos informations, vos coordonnees et la securite de votre compte.</p>
+        </header>
+
+        <nav class="tabs" role="tablist" aria-label="Sections du compte">
+            <button class="tab-btn is-active" data-tab="profile" role="tab" aria-selected="true">Profil</button>
+            <button class="tab-btn" data-tab="contact" role="tab" aria-selected="false">Coordonnees</button>
+            <button class="tab-btn" data-tab="subscription" role="tab" aria-selected="false">Abonnement</button>
+            <button class="tab-btn" data-tab="security" role="tab" aria-selected="false">Securite</button>
+        </nav>
+
+        <form id="account-form">
+            <section class="tab-panel is-active" data-panel="profile" role="tabpanel">
+                <div class="info-grid">
+                    <article class="info-card">
+                        <label class="label" for="first-name">Prenom</label>
+                        <input id="first-name" name="first_name" class="value-input" type="text" required>
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="last-name">Nom</label>
+                        <input id="last-name" name="last_name" class="value-input" type="text" required>
+                    </article>
+                    <article class="info-card">
+                        <p class="label">Nom d'artiste</p>
+                        <p class="value" id="user-artist">Chargement...</p>
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="email">Email</label>
+                        <input id="email" name="email" class="value-input" type="email" required>
+                    </article>
+                    <article class="info-card">
+                        <p class="label">UID</p>
+                        <p class="value" id="user-uid">Chargement...</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-panel="contact" role="tabpanel">
+                <div class="info-grid">
+                    <article class="info-card">
+                        <label class="label" for="address">Adresse</label>
+                        <input id="address" name="address" class="value-input" type="text">
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="city">Ville</label>
+                        <input id="city" name="city" class="value-input" type="text">
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="postal-code">Code postal</label>
+                        <input id="postal-code" name="postal_code" class="value-input" type="text">
+                    </article>
+                    <article class="info-card">
+                        <label class="label" for="iban">IBAN</label>
+                        <input id="iban" name="iban" class="value-input" type="text" placeholder="Optionnel">
+                    </article>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-panel="subscription" role="tabpanel">
+                <div class="info-grid">
+                    <article class="info-card">
+                        <p class="label">Plan actuel</p>
+                        <p class="value" id="user-plan">Chargement...</p>
+                    </article>
+                    <article class="info-card">
+                        <p class="label">Statut</p>
+                        <p class="value" id="subscription-status">Vérification...</p>
+                    </article>
+                </div>
+                <div class="security-box" style="margin-top: 2rem;">
+                    <p>Gérez vos factures, changez de plan ou résiliez votre abonnement en toute sécurité via le portail Stripe.</p>
+                    <div class="actions">
+                        <a href="#" id="manage-billing-btn" class="action-link" target="_blank">Gérer mon abonnement</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-panel="security" role="tabpanel">
+                <div class="security-box">
+                    <p>Vous pouvez enregistrer vos modifications puis vous deconnecter de votre session en toute securite.</p>
+                    <div class="actions">
+                        <button type="submit" id="save-btn">Enregistrer les modifications</button>
+                        <a class="action-link secondary" href="/index.html">Retour accueil</a>
+                        <button id="logout-btn" type="button">Se deconnecter</button>
+                    </div>
+                    <p id="account-feedback" class="feedback" role="status" aria-live="polite"></p>
+                </div>
+            </section>
+        </form>
+    </main>
+
+    <div id="success-modal" class="modal-overlay is-hidden">
+        <div class="modal-card" id="success-card">
+            <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+            <span class="modal-icon">🎉</span>
+            <h2>Merci !</h2>
+            <p id="modal-message">Votre paiement a été validé. Votre abonnement est maintenant activé sur votre compte Morgann Music CP.</p>
+            <div class="actions"> 
+                <a href="/dash/index.html" class="modal-btn">Accéder au Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/assets/js/account.js"></script>
+</body>
+</html>

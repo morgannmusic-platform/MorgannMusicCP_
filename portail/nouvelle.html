@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Créer une Nouvelle Sortie - MM-CP</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #222;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .type-card {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            background: #fafafa;
+        }
+
+        .type-card:hover {
+            border-color: #007bff;
+            background: #f0f7ff;
+        }
+
+        .type-card.selected {
+            border-color: #007bff;
+            background: #007bff;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="modal-overlay">
+        <div class="modal-content">
+
+            <div id="step-1" class="step active">
+                <h2>Quel est le format de cette sortie ?</h2>
+                <div class="type-grid">
+                    <div class="type-card" onclick="selectionnerType('Album', this)">Album</div>
+                    <div class="type-card" onclick="selectionnerType('EP', this)">EP</div>
+                    <div class="type-card" onclick="selectionnerType('Single', this)">Single</div>
+                    <div class="type-card" onclick="selectionnerType('Compilation', this)">Compilation</div>
+                </div>
+                <button id="btn-next-1" class="btn" onclick="passerEtape(2)" disabled>Suivant</button>
+            </div>
+
+            <div id="step-2" class="step">
+                <h2>Quel est le titre de la sortie ?</h2>
+                <div class="form-group">
+                    <label for="release-title">Titre du projet</label>
+                    <input type="text" id="release-title" class="form-control" placeholder="Ex: My Beautiful World"
+                        oninput="validerEtape2()">
+                </div>
+                <button id="btn-next-2" class="btn" onclick="passerEtape(3)" disabled>Suivant</button>
+                <button class="btn btn-secondary" onclick="passerEtape(1)">Retour</button>
+            </div>
+
+            <div id="step-3" class="step">
+                <h2>Qui est l'artiste principal ?</h2>
+                <div class="form-group">
+                    <label for="release-artist">Sélectionner un artiste</label>
+                    <select id="release-artist" class="form-control" onchange="validerEtape3()">
+                        <option value="">-- Charger les artistes... --</option>
+                    </select>
+                </div>
+                <button id="btn-submit" class="btn" onclick="creerNouvelleSortie()" disabled>Créer la sortie</button>
+                <button class="btn btn-secondary" onclick="passerEtape(2)">Retour</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+            measurementId: "G-FKSSXYEZF0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let uidConnecte = null;
+        let donneesSortie = {
+            type: "",
+            title: "",
+            artistName: "",
+            status: "verification mmcp"
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                uidConnecte = user.uid;
+                chargerListeArtistes();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        window.selectionnerType = function (type, element) {
+            document.querySelectorAll('.type-card').forEach(card => card.classList.remove('selected'));
+            element.classList.add('selected');
+
+            donneesSortie.type = type;
+            document.getElementById('btn-next-1').disabled = false;
+        };
+
+        window.passerEtape = function (numEtape) {
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            document.getElementById(`step-${numEtape}`).classList.add('active');
+        };
+
+        window.validerEtape2 = function () {
+            const titreInput = document.getElementById('release-title').value.trim();
+            donneesSortie.title = titreInput;
+            document.getElementById('btn-next-2').disabled = (titreInput.length === 0);
+        };
+
+        async function chargerListeArtistes() {
+            try {
+                const selectArtist = document.getElementById("release-artist");
+                const q = query(collection(db, "users", uidConnecte, "artists"), orderBy("name", "asc"));
+                const querySnapshot = await getDocs(q);
+
+                selectArtist.innerHTML = '<option value="">-- Choisir un artiste --</option>';
+
+                querySnapshot.forEach((doc) => {
+                    const artist = doc.data();
+                    selectArtist.innerHTML += `<option value="${artist.name}">${artist.name}</option>`;
+                });
+
+                if (querySnapshot.empty) {
+                    selectArtist.innerHTML = '<option value="">Aucun artiste trouvé. Créez-en un d\'abord.</option>';
+                }
+            } catch (error) {
+                console.error("Erreur de récupération des artistes : ", error);
+            }
+        }
+
+        window.validerEtape3 = function () {
+            const artisteSelectionne = document.getElementById('release-artist').value;
+            donneesSortie.artistName = artisteSelectionne;
+            document.getElementById('btn-submit').disabled = (artisteSelectionne === "");
+        };
+
+        window.creerNouvelleSortie = async function () {
+            const btnSubmit = document.getElementById('btn-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Création en cours...";
+
+            donneesSortie.createdAt = new Date().toISOString();
+            donneesSortie.coverUrl = "";
+
+            try {
+                const docRef = await addDoc(collection(db, "users", uidConnecte, "releases"), donneesSortie);
+                window.location.href = `edition.html?sortie=${docRef.id}`;
+            } catch (error) {
+                alert("Erreur lors de la création de la sortie : " + error.message);
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Créer la sortie";
+            }
+        };
+    </script>
+</body>
+
+</html>

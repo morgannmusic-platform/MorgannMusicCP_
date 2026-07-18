@@ -1,0 +1,142 @@
+<nav class="responsive-nav">
+    <ul>
+        <li>
+            <a href="index.html">
+                <img src="/assets/img/icon/Home-2--Streamline-Flex.svg" alt="" class="icon">
+                <span class="text">Accueil</span>
+            </a>
+        </li>
+        <li>
+            <a href="sorties.html">
+                <img src="/assets/img/icon/music-album-song.svg" alt="icon sorties" class="icon">
+                <span class="text">Mes Sorties</span>
+            </a>
+        </li>
+        <li>
+            <a href="artistes.html">
+                <img src="/assets/img/icon/Artist-Song--Streamline-Flex.svg" alt="" class="icon">
+                <span class="text">Mes Artistes</span>
+            </a>
+        </li>
+        <li>
+            <a href="/support/index.html">
+                <img src="/assets/img/icon/Information-Circle--Streamline-Flex.svg" alt="" class="icon">
+                <span class="text">Support</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<style>
+    /* --- STYLE DE BASE & RESPONSIVE MOBILE (Bas de l'écran) --- */
+    .responsive-nav {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 450px;
+
+        background-color: rgba(232, 232, 232, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(189, 189, 189, 0.438);
+
+        border-radius: 54px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+        padding: 12px 16px;
+        z-index: 1000;
+        box-sizing: border-box;
+    }
+
+    .responsive-nav ul {
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        margin: 0;
+        padding: 0;
+    }
+
+    .responsive-nav li {
+        flex: 1;
+    }
+
+    .responsive-nav a {
+        display: flex;
+        flex-direction: column;
+        /* Icône au-dessus du texte sur mobile */
+        align-items: center;
+        justify-content: center;
+        color: #6e6e6e;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 500;
+        gap: 6px;
+        transition: all 0.2s ease;
+        padding: 8px 0;
+        border-radius: 16px;
+    }
+
+    /* Icône SVG/Image adaptative */
+    .responsive-nav .icon {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        transition: transform 0.2s ease;
+    }
+
+    /* --- EFFETS HOVER & ACTIVE --- */
+    .responsive-nav a:hover,
+    .responsive-nav a.active {
+        color: #555555;
+        background-color: rgb(255, 255, 255);
+    }
+
+    .responsive-nav a:hover .icon {
+        transform: translateY(-2px);
+    }
+
+    /* --- VERSION ORDINATEUR (Menu Dock Vertical à Gauche) --- */
+    @media (min-width: 768px) {
+        .responsive-nav {
+            bottom: auto;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+
+            width: 170px;
+            /* Légèrement élargi pour éviter que le texte long ne coupe */
+            max-width: none;
+            height: auto;
+            padding: 24px 12px;
+            border-radius: 28px;
+        }
+
+        .responsive-nav ul {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .responsive-nav a {
+            flex-direction: row;
+            /* Icône et texte côte à côte sur PC */
+            justify-content: flex-start;
+            /* Aligné à gauche du bouton */
+            padding: 12px 16px;
+            gap: 12px;
+            /* Espace entre l'icône et le texte */
+            font-size: 13px;
+            /* Texte un poil plus grand sur PC */
+        }
+
+        .responsive-nav .icon {
+            width: 22px;
+            height: 22px;
+        }
+
+        .responsive-nav a:hover .icon {
+            transform: translateX(2px);
+            /* Sur PC, l'icône bouge vers la droite plutôt que vers le haut */
+        }
+    }
+</style>

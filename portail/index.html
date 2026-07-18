@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Portail Admin Global - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #ffffff;
+            color: #1e293b;
+            /* Correction : texte sombre car le fond du body est blanc */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .cards {
+            display: flex;
+            margin-top: 3rem;
+            gap: 1rem;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(232, 232, 232, 0.75);
+            width: 250px;
+            height: 150px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.207);
+            padding: 20px;
+        }
+
+        .card p {
+            font-size: 21px;
+            font-weight: 500;
+            color: #3e2837;
+            margin: 0px;
+        }
+
+        .card h1 {
+            font-size: 41px;
+            font-weight: 800;
+            color: #FC8FB0;
+            margin: 0px;
+        }
+
+        .card a {
+            font-size: 21px;
+            font-weight: 500;
+            color: #ffffff;
+            margin: 0px;
+            text-decoration: none;
+            background: #FC8FB0;
+            width: max-content;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 40px;
+        }
+
+        /* Styles de la carte de revenus */
+        .revenus-card {
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(232, 232, 232, 0.75);
+            width: 555px;
+            height: 252px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.207);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .revenus-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #3e2837;
+            /* Texte lisible */
+        }
+
+        .revenus-title-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .revenus-icon {
+            font-size: 24px;
+        }
+
+        .revenus-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .revenus-amount {
+            font-size: 38px;
+            font-weight: 800;
+            color: #2563eb;
+            /* Bleu plus contrasté sur fond clair */
+            letter-spacing: -0.5px;
+        }
+
+        .revenus-trend {
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 4px;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(34, 197, 94, 0.15);
+            color: #16a34a;
+        }
+
+        .revenus-divider {
+            border: 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            margin: 16px 0;
+        }
+
+        .revenus-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .revenus-meta {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .btn-revenus-action {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: rgba(208, 17, 89, 0.1);
+            color: #d01159;
+            border: 1px solid rgba(208, 17, 89, 0.2);
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        .btn-revenus-action:hover {
+            background: #d01159;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+    <script src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class="main-content">
+        <div class="revenus-card">
+            <div class="revenus-header">
+                <div class="revenus-title-block">
+                    <span class="revenus-icon">💰</span>
+                    <span class="revenus-title">Mes Revenus</span>
+                </div>
+            </div>
+
+            <div class="revenus-main">
+                <div class="revenus-amount-wrapper">
+                    <div id="user-revenus-total" class="revenus-amount">0,00 €</div>
+                    <div class="revenus-trend up">Solde disponible à la demande</div>
+                </div>
+            </div>
+
+            <hr class="revenus-divider">
+
+            <div class="revenus-footer">
+                <div class="revenus-meta">
+                    <span>Prochain versement automatique : <strong>Le 15 du mois</strong></span>
+                </div>
+                <a href="mes-revenus.html" class="btn-revenus-action">Voir les détails & graphiques ➔</a>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <p>Plan</p>
+                <h1>Pro</h1>
+                <a href="https://billing.stripe.com/p/login/dRmbJ1gpx2cB3uQ9se9EI00" target="_blank">Gérer</a>
+            </div>
+
+            <div class="card">
+                <p>Compte</p>
+                <h1>Standard</h1>
+                <a href="https://support.mm-cp.uk/type-de-compte">En savoir plus</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collectionGroup, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 1. Configuration et Initialisation de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+            measurementId: "G-FKSSXYEZF0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 2. Gestion de la carte des revenus de l'utilisateur connecté
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const querySnapshot = await getDocs(collection(db, "users", user.uid, "finances"));
+                    let totalGains = 0;
+                    querySnapshot.forEach((doc) => {
+                        totalGains += doc.data().amount || 0;
+                    });
+                    document.getElementById("user-revenus-total").innerText = totalGains.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+                } catch (err) {
+                    console.error("Erreur widget finances:", err);
+                }
+            }
+        });
+
+        // 3. Récupération et comptage des données des compteurs globaux
+        async function chargerDonneesCompteurs() {
+            try {
+                const sortiesSnapshot = await getDocs(collectionGroup(db, "releases"));
+
+                const elSorties = document.getElementById("count-sorties");
+                if (elSorties) elSorties.innerText = sortiesSnapshot.size;
+
+                const usersSnapshot = await getDocs(collection(db, "users"));
+                const elPlans = document.getElementById("count-plans");
+                if (elPlans) elPlans.innerText = usersSnapshot.size;
+
+                let artistesSet = new Set();
+                sortiesSnapshot.forEach((doc) => {
+                    const r = doc.data();
+                    if (r.artistName) artistesSet.add(r.artistName.trim().toLowerCase());
+
+                    if (r.tracks && Array.isArray(r.tracks)) {
+                        r.tracks.forEach(track => {
+                            if (track.artists && Array.isArray(track.artists)) {
+                                track.artists.forEach(a => { if (a.name) artistesSet.add(a.name.trim().toLowerCase()); });
+                            }
+                        });
+                    }
+                });
+
+                const elArtistes = document.getElementById("count-artistes");
+                if (elArtistes) elArtistes.innerText = artistesSet.size;
+
+            } catch (error) {
+                console.error("Erreur d'accès à la base de données :", error);
+                if (document.getElementById("count-sorties")) document.getElementById("count-sorties").innerText = "⚠️";
+                if (document.getElementById("count-artistes")) document.getElementById("count-artistes").innerText = "⚠️";
+                if (document.getElementById("count-plans")) document.getElementById("count-plans").innerText = "⚠️";
+            }
+        }
+
+        // Lancement global
+        chargerDonneesCompteurs();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Sorties - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* Grille des sorties */
+        .releases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .release-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .cover-wrapper {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: #ddd;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .release-cover {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .release-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 8px 0 4px 0;
+            color: #222;
+        }
+
+        .release-artist {
+            font-size: 14px;
+            color: #666;
+            margin: 0 0 12px 0;
+        }
+
+        /* Badges de statut */
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            align-self: center;
+        }
+
+        .status-verification-mmcp {
+            background: #ffc0cb;
+            color: #d01159;
+        }
+
+        /* Rose */
+        .status-verification-plateformes {
+            background: #007bff;
+            color: white;
+        }
+
+        /* Bleu */
+        .status-livree {
+            background: #6f42c1;
+            color: white;
+        }
+
+        /* Violet */
+        .status-direct {
+            background: #28a745;
+            color: white;
+        }
+
+        /* Vert */
+        .status-licence {
+            background: #fd7e14;
+            color: white;
+        }
+
+        /* Orange */
+        .status-retrait {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Rouge */
+        .status-retire {
+            background: #212529;
+            color: white;
+        }
+
+        /* Noir */
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: auto;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 14px;
+            border: 1px solid #dee2e6;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .page-btn:disabled {
+            background: #e9ecef;
+            cursor: not-allowed;
+            color: #6c757d;
+        }
+
+        .page-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+    <script src="js/navbar.js"></script>
+
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class="container">
+        <div class="header-actions">
+            <h2>Mes Sorties</h2>
+            <div>
+                <a href="nouvelle.html" class="btn btn-primary">Créer une sortie</a>
+                <button class="btn btn-success" onclick="creerSortieTest()">Créer une sortie test</button>
+            </div>
+        </div>
+
+        <div id="releases-list" class="releases-grid"></div>
+
+        <div class="pagination">
+            <button id="btn-prev" class="page-btn" onclick="pagePrecedente()">&lt; Précédent</button>
+            <span id="page-indicator" style="font-weight: bold; color: #555;">Page 1</span>
+            <button id="btn-next" class="page-btn" onclick="pageSuivante()">Suivant &gt;</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, startAfter, endBefore, limitToLast, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
+            measurementId: "G-FKSSXYEZF0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const PAGE_SIZE = 8;
+        let pageActuelle = 1;
+        let premierDocVisible = null;
+        let dernierDocVisible = null;
+        let uidConnecte = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                uidConnecte = user.uid;
+                chargerSorties();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // Mappage des designs des badges
+        const configurationsBadges = {
+            "verification mmcp": { texte: "Vérification MMCP", classe: "status-verification-mmcp" },
+            "verification plate-formes": { texte: "Vérification Plate-formes", classe: "status-verification-plateformes" },
+            "livrée": { texte: "Livrée", classe: "status-livree" },
+            "direct": { texte: "Direct", classe: "status-direct" },
+            "licence": { texte: "Licence", classe: "status-licence" },
+            "retrait": { texte: "Retrait", classe: "status-retrait" },
+            "retiré": { texte: "Retiré", classe: "status-retire" }
+        };
+
+        // Chargement dynamique des données (8 par 8)
+        async function chargerSorties(direction = "init") {
+            const listContainer = document.getElementById("releases-list");
+            listContainer.innerHTML = "<p>Chargement des sorties...</p>";
+
+            let q;
+            const baseRef = collection(db, "users", uidConnecte, "releases");
+
+            if (direction === "next" && dernierDocVisible) {
+                q = query(baseRef, orderBy("createdAt", "desc"), startAfter(dernierDocVisible), limit(PAGE_SIZE));
+            } else if (direction === "prev" && premierDocVisible) {
+                q = query(baseRef, orderBy("createdAt", "desc"), endBefore(premierDocVisible), limitToLast(PAGE_SIZE));
+            } else {
+                // Initialisation ou retour à la première page
+                q = query(baseRef, orderBy("createdAt", "desc"), limit(PAGE_SIZE));
+                pageActuelle = 1;
+            }
+
+            try {
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    if (direction === "next") {
+                        pageActuelle--; // Bloquer l'avance si c'est vide
+                        alert("Vous êtes sur la dernière page.");
+                    } else {
+                        listContainer.innerHTML = "<p>Aucune sortie disponible pour le moment.</p>";
+                    }
+                    ajusterBoutonsPagination(true);
+                    return;
+                }
+
+                listContainer.innerHTML = ""; // Vider le squelette
+
+                // Enregistrer les pointeurs pour la pagination
+                premierDocVisible = querySnapshot.docs[0];
+                dernierDocVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
+
+                querySnapshot.forEach((documentSnap) => {
+                    const release = documentSnap.data();
+                    const id = documentSnap.id;
+
+                    // Traitement du Badge de Statut
+                    const statutBrut = (release.status || "verification mmcp").toLowerCase();
+                    const configBadge = configurationsBadges[statutBrut] || { texte: statutBrut, classe: "status-verification-mmcp" };
+
+                    // Gestion de l'image (Ne charge QUE les éléments de la page actuelle)
+                    const imageSrc = release.coverUrl || "https://img.icons8.com/windows/150/000000/album.png";
+
+                    const card = document.createElement("div");
+                    card.className = "release-card";
+                    card.innerHTML = `
+                    <div>
+                        <div class="cover-wrapper">
+                            <img src="${imageSrc}" class="release-cover" alt="Pochette">
+                        </div>
+                        <div class="release-title">${release.title}</div>
+                        <div class="release-artist">${release.artistName}</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span class="badge ${configBadge.classe}">${configBadge.texte}</span>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary" onclick="modifierSortie('${id}')">Modifier</button>
+                            <button class="btn btn-danger" onclick="demanderRetrait('${id}')" ${statutBrut === 'retrait' || statutBrut === 'retiré' ? 'disabled' : ''}>Supprimer</button>
+                        </div>
+                    </div>
+                `;
+                    listContainer.appendChild(card);
+                });
+
+                document.getElementById("page-indicator").innerText = `Page ${pageActuelle}`;
+                ajusterBoutonsPagination(false, querySnapshot.size < PAGE_SIZE);
+
+            } catch (error) {
+                console.error("Erreur lors du traitement :", error);
+                listContainer.innerHTML = `<p style="color:red;">Erreur lors du chargement : ${error.message}</p>`;
+            }
+        }
+
+        // Gestion de l'état des boutons Précédent / Suivant
+        function ajusterBoutonsPagination(finAtteinte = false, moinsDeHuit = false) {
+            document.getElementById("btn-prev").disabled = (pageActuelle === 1);
+            document.getElementById("btn-next").disabled = (finAtteinte || moinsDeHuit);
+        }
+
+        window.pageSuivante = function () {
+            pageActuelle++;
+            chargerSorties("next");
+        }
+
+        window.pagePrecedente = function () {
+            if (pageActuelle > 1) {
+                pageActuelle--;
+                chargerSorties("prev");
+            }
+        }
+
+        // Bouton de redirection vers l'édition
+        window.modifierSortie = function (id) {
+            window.location.href = `edition.html?sortie=${id}`;
+        }
+
+        // Action de suppression (Bascule le statut en "retrait")
+        window.demanderRetrait = async function (id) {
+            if (confirm("Êtes-vous sûr de vouloir demander le retrait de cette sortie ?")) {
+                try {
+                    const releaseRef = doc(db, "users", uidConnecte, "releases", id);
+                    await updateDoc(releaseRef, {
+                        status: "retrait"
+                    });
+                    alert("Demande de retrait prise en compte.");
+                    chargerSorties(); // Rafraîchit uniquement la page en cours
+                } catch (error) {
+                    alert("Erreur lors du traitement du retrait : " + error.message);
+                }
+            }
+        }
+
+        // Insertion d'un jeu de données fictives (Sortie Test)
+        window.creerSortieTest = async function () {
+            if (!uidConnecte) return;
+
+            const fauxTitres = ["Cyber Dreams", "Midnight Coffee", "Summer Vibe", "Echoes of Tomorrow", "Neon Lights"];
+            const fauxArtistes = ["Alex Parker", "Luna Cloud", "The Synthesizers", "DJ Shadow", "Emma Stone"];
+            const faussesPochettes = [
+                "https://picsum.photos/id/10/500/500",
+                "https://picsum.photos/id/26/500/500",
+                "https://picsum.photos/id/37/500/500",
+                "https://picsum.photos/id/49/500/500"
+            ];
+
+            const randomTitre = fauxTitres[Math.floor(Math.random() * fauxTitres.length)];
+            const randomArtiste = fauxArtistes[Math.floor(Math.random() * fauxArtistes.length)];
+            const randomPochette = faussesPochettes[Math.floor(Math.random() * faussesPochettes.length)];
+
+            const nouvelleSortieTest = {
+                title: randomTitre,
+                artistName: randomArtiste,
+                coverUrl: randomPochette,
+                status: "verification mmcp", // Statut automatique initial rose
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await addDoc(collection(db, "users", uidConnecte, "releases"), nouvelleSortieTest);
+                alert(`Sortie test "${randomTitre}" créée avec succès !`);
+                chargerSorties(); // Retour page 1 pour voir la nouvelle insertion
+            } catch (error) {
+                alert("Erreur création test : " + error.message);
+            }
+        }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. On récupère le nom de la page actuelle (ex: "sorties.html")
+            const currentPath = window.location.pathname.split("/").pop();
+
+            // 2. On sélectionne tous les liens de la navbar
+            const navLinks = document.querySelectorAll(".responsive-nav a");
+
+            navLinks.forEach(link => {
+                // 3. On récupère l'attribut href du lien (ex: "sorties.html")
+                const linkPath = link.getAttribute("href").split("/").pop();
+
+                // 4. Si ça correspond, on ajoute "active", sinon on l'enlève
+                if (currentPath === linkPath) {
+                    link.classList.add("active");
+                } else {
+                    link.classList.remove("active");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
