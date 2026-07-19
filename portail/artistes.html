@@ -19,6 +19,8 @@
             margin: 0 auto;
         }
 
+
+
         .header-actions {
             display: flex;
             justify-content: space-between;
@@ -29,19 +31,20 @@
         .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
         }
 
         .btn-primary {
-            background: #007bff;
+            background: #FC8FB0;
             color: white;
         }
 
         .btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: #fff7fa;
+            color: #FC8FB0;
+            border: 2px solid #FC8FB0;
         }
 
         .btn-danger {
@@ -58,10 +61,14 @@
         }
 
         .artist-card {
-            background: white;
+            background-color: rgba(232, 232, 232, 0.50);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 22px rgba(0, 0, 0, 0.385);
+
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             text-align: center;
         }
 
@@ -81,24 +88,30 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.119);
             justify-content: center;
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
             align-items: center;
-            z-index: 1000;
+            z-index: 9999;
         }
 
         .modal-content {
-            background: white;
             padding: 30px;
-            border-radius: 12px;
             width: 650px;
             max-height: 85vh;
             overflow-y: auto;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            background-color: rgba(232, 232, 232, 0.993);
+            backdrop-filter: blur(42px);
+            -webkit-backdrop-filter: blur(42px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 22px rgba(0, 0, 0, 0.385);
+
         }
 
         .form-section {
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #FC8FB0;
             padding-bottom: 15px;
             margin-bottom: 15px;
         }
@@ -107,8 +120,9 @@
             margin-top: 0;
             color: #495057;
             font-size: 16px;
-            border-left: 4px solid #007bff;
+            border-left: 4px solid #FC8FB0;
             padding-left: 8px;
+            border-radius: 3px;
         }
 
         .form-group {
@@ -128,13 +142,13 @@
         .form-group select,
         .form-group textarea {
             padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 1px solid #FC8FB0;
+            border-radius: 50px;
             font-size: 14px;
         }
 
         .form-group input:disabled {
-            background: #e9ecef;
+            background: #ffeef2;
             cursor: not-allowed;
         }
 
@@ -151,6 +165,68 @@
             gap: 8px;
             font-size: 13px;
         }
+
+        /* Animation de rotation du logo Litual */
+        @keyframes litualRotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .litual-spinner {
+            animation: litualRotate 2s linear infinite;
+        }
+
+        /* Animation du texte "..." clignotant point par point */
+        .dots::after {
+            content: '';
+            animation: blinkDots 1.5s infinite steps(4);
+        }
+
+        @keyframes blinkDots {
+            0% {
+                content: '';
+            }
+
+            25% {
+                content: '.';
+            }
+
+            50% {
+                content: '..';
+            }
+
+            75% {
+                content: '...';
+            }
+
+            100% {
+                content: '';
+            }
+        }
+
+        /* Style des pilules de noms d'artistes */
+        .artist-pill {
+            background: #f0f2f5;
+            border: 1px solid #ddd;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .artist-pill:hover {
+            background: #E8FDC4;
+            border-color: #FC8FB0;
+            color: #333;
+            transform: scale(1.03);
+        }
     </style>
 </head>
 
@@ -160,136 +236,180 @@
     <script src="js/navbar.js"></script>
     <div id="sidebar-container"></div>
     <script src="js/sidebar.js"></script>
+    <div class="main-content">
 
-    <div class=" container">
-        <div class="header-actions">
-            <h2>Mes Artistes <span id="artist-count" style="font-size: 14px; color: #6c757d;"></span></h2>
-            <button class="btn btn-primary" onclick="ouvrirModalAjout()">+ Ajouter un artiste</button>
+        <div class=" container">
+            <div class="header-actions">
+                <h2>Mes Artistes <span id="artist-count" style="font-size: 14px; color: #6c757d;"></span></h2>
+                <button class="btn btn-primary" onclick="ouvrirModalAjout()">+ Ajouter un artiste</button>
+            </div>
+
+            <div id="artist-list" class="artist-grid"></div>
         </div>
 
-        <div id="artist-list" class="artist-grid"></div>
-    </div>
+        <div id="artist-modal" class="modal">
+            <div class="modal-content">
+                <h2 id="modal-title">Ajouter un Artiste</h2>
+                <form id="artist-form" onsubmit="soumettreFormulaire(event)">
+                    <input type="hidden" id="artist-id">
 
-    <div id="artist-modal" class="modal">
-        <div class="modal-content">
-            <h2 id="modal-title">Ajouter un Artiste</h2>
-            <form id="artist-form" onsubmit="soumettreFormulaire(event)">
-                <input type="hidden" id="artist-id">
-
-                <div class="form-section">
-                    <h3>Informations Principales</h3>
-                    <div class="form-group">
-                        <label>Nom de l'artiste *</label>
-                        <input type="text" id="artist-name" required placeholder="Ex: Morgann Music">
-                    </div>
-                    <div class="form-group">
-                        <label>Photo de profil</label>
-                        <input type="file" id="artist-photo-file" accept="image/*" onchange="gererTeleversementR2()">
-                        <input type="hidden" id="artist-photo">
-                        <div id="upload-status" style="font-size: 12px; margin-top: 5px; color: #555;"></div>
-                    </div>
-                    <div class="form-group">
-                        <label>Option du téléverseur</label>
-                        <input type="text" id="artist-uploader-option" placeholder="Note ou option interne">
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Écrivains par défaut</h3>
-                    <div id="writers-container"></div>
-                    <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;"
-                        onclick="ajouterEcrivainRow()">+ Ajouter un écrivain</button>
-                </div>
-
-                <div class="form-section">
-                    <h3>Crédits par défaut</h3>
-                    <div id="credits-container"></div>
-                    <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;"
-                        onclick="ajouterCreditRow()">+ Ajouter un crédit</button>
-                </div>
-
-                <div class="form-section">
-                    <h3>Distribution & Timing</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="form-group"><label>Genre Primaire</label><input type="text" id="genre-primary">
+                    <div class="form-section">
+                        <h3>Informations Principales</h3>
+                        <div class="form-group">
+                            <label>Nom de l'artiste *</label>
+                            <input type="text" id="artist-name" required placeholder="Ex: Morgann Music">
                         </div>
-                        <div class="form-group"><label>Genre Secondaire</label><input type="text" id="genre-secondary">
+                        <div class="litual-ai-section"
+                            style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+                            <label style="font-weight: bold; font-size: 13px; display: block; margin-bottom: 8px;">
+                                <img src="/assets/img/litual/litual-logo.png" alt="Litual"
+                                    style="height: 16px; vertical-align: middle; margin-right: 5px;">
+                                Générateur de nom d'artiste
+                            </label>
+
+                            <div style="display: flex; gap: 15px; margin-bottom: 10px; font-size: 13px;">
+                                <label><input type="radio" name="ai-mode" value="classic" checked> Style libre</label>
+                                <label><input type="radio" name="ai-mode" value="with-name"> Inclure mon prénom</label>
+                                <label><input type="radio" name="ai-mode" value="derive-name"> Variantes de mon
+                                    prénom</label>
+                            </div>
+
+                            <button type="button" id="btn-generate-ai" class="btn btn-primary"
+                                style="background: linear-gradient(135deg, #FC8FB0, #be63ff); width: 100%;">
+                                Générer des propositions
+                            </button>
+
+                            <div id="litual-loading"
+                                style="display: none; text-align: center; margin-top: 15px; align-items: center; justify-content: center; gap: 10px;">
+                                <img src="/assets/img/litual/litual-logo.png" class="litual-spinner" alt="Logo Litual"
+                                    style="width: 24px; height: 24px;">
+                                <span style="font-size: 14px; font-weight: 500;">Litual réfléchit<span
+                                        class="dots"></span></span>
+                            </div>
+
+                            <div id="litual-results"
+                                style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;"></div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Langage par défaut</label>
-                        <input type="text" id="default-language" placeholder="Français, Anglais...">
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="form-group"><label>Fuseau horaire</label><input type="text" id="timezone"
-                                placeholder="Europe/Paris"></div>
-                        <div class="form-group"><label>Heure de sortie</label><input type="time" id="release-time">
+                        <div class="form-group">
+                            <label>Photo de profil</label>
+                            <input type="file" id="artist-photo-file" accept="image/*"
+                                onchange="gererTeleversementR2()">
+                            <input type="hidden" id="artist-photo">
+                            <div id="upload-status" style="font-size: 12px; margin-top: 5px; color: #555;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Option du téléverseur</label>
+                            <input type="text" id="artist-uploader-option" placeholder="Note ou option interne">
                         </div>
                     </div>
-                    <div class="form-group"><label>Sélection manuelle des plateformes</label><input type="text"
-                            id="manual-platforms" placeholder="Séparées par des virgules"></div>
-                    <div class="form-group"><label>Sélection manuelle des territoires</label><input type="text"
-                            id="manual-territories" placeholder="Monde, Europe..."></div>
-                </div>
 
-                <div id="label-fields" class="form-section" style="display:none;">
-                    <h3>Options Label / Édition</h3>
-                    <div id="wl-only-fields" style="display:none;">
-                        <div class="form-group"><label>Nom du Label</label><input type="text" id="label-name"></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="form-group"><label>Ligne Copyright (C)</label><input type="text"
-                                id="line-copyright"></div>
-                        <div class="form-group"><label>Ligne Phonographe (P)</label><input type="text"
-                                id="line-phonogram"></div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Livraisons Additionnelles</h3>
-                    <div id="delivery-checkboxes" class="checkbox-group"></div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Profil, Plateformes & Réseaux</h3>
-                    <div class="form-group"><label>Description de l'artiste</label><textarea id="artist-desc"
-                            rows="3"></textarea></div>
-
-                    <h4 style="margin: 10px 0 5px 0; font-size:13px; color:#555;">Plateformes :</h4>
-                    <div class="form-group"><input type="url" id="link-yt-chan" placeholder="Lien chaîne YouTube"></div>
-                    <div class="form-group"><input type="url" id="link-yt-music" placeholder="Lien YouTube Music"></div>
-                    <div class="form-group"><input type="url" id="link-apple" placeholder="Lien Apple Music"></div>
-                    <div class="form-group"><input type="url" id="link-spotify" placeholder="Lien Spotify"></div>
-                    <div class="form-group"><input type="url" id="link-amazon" placeholder="Lien Amazon Music"></div>
-                    <div class="form-group"><input type="url" id="link-soundcloud" placeholder="Lien SoundCloud"></div>
-                    <div class="form-group"><input type="url" id="link-website" placeholder="Lien site web"></div>
-
-                    <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Réseaux Sociaux :</h4>
-                    <div class="form-group"><input type="url" id="link-fb" placeholder="Lien Facebook"></div>
-                    <div class="form-group"><input type="url" id="link-insta" placeholder="Lien Instagram"></div>
-                    <div class="form-group"><input type="url" id="link-x" placeholder="Lien X (Twitter)"></div>
-                    <div class="form-group"><input type="url" id="link-yt-social" placeholder="Lien YouTube (Social)">
+                    <div class="form-section">
+                        <h3>Écrivains par défaut</h3>
+                        <div id="writers-container"></div>
+                        <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;"
+                            onclick="ajouterEcrivainRow()">+ Ajouter un écrivain</button>
                     </div>
 
-                    <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Identifiants & Métadonnées Externes :
-                    </h4>
-                    <div class="form-group"><input type="url" id="link-wiki" placeholder="Lien Wikipédia"></div>
-                    <div class="form-group"><input type="text" id="id-ddex" placeholder="Lien/ID DDEX"></div>
-                    <div class="form-group"><input type="text" id="id-musicbrainz" placeholder="Lien/ID MusicBrainz">
+                    <div class="form-section">
+                        <h3>Crédits par défaut</h3>
+                        <div id="credits-container"></div>
+                        <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;"
+                            onclick="ajouterCreditRow()">+ Ajouter un crédit</button>
                     </div>
-                    <div class="form-group"><input type="text" id="id-allmusic" placeholder="Lien/ID AllMusic"></div>
-                    <div class="form-group"><input type="text" id="id-isni" placeholder="ISNI"></div>
-                </div>
 
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                    <button type="button" class="btn btn-secondary" onclick="fermerModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary" id="btn-submit-form">Enregistrer</button>
-                </div>
-            </form>
+                    <div class="form-section">
+                        <h3>Distribution & Timing</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group"><label>Genre Primaire</label><input type="text" id="genre-primary">
+                            </div>
+                            <div class="form-group"><label>Genre Secondaire</label><input type="text"
+                                    id="genre-secondary">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Langage par défaut</label>
+                            <input type="text" id="default-language" placeholder="Français, Anglais...">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group"><label>Fuseau horaire</label><input type="text" id="timezone"
+                                    placeholder="Europe/Paris"></div>
+                            <div class="form-group"><label>Heure de sortie</label><input type="time" id="release-time">
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Sélection manuelle des plateformes</label><input type="text"
+                                id="manual-platforms" placeholder="Séparées par des virgules"></div>
+                        <div class="form-group"><label>Sélection manuelle des territoires</label><input type="text"
+                                id="manual-territories" placeholder="Monde, Europe..."></div>
+                    </div>
+
+                    <div id="label-fields" class="form-section" style="display:none;">
+                        <h3>Options Label / Édition</h3>
+                        <div id="wl-only-fields" style="display:none;">
+                            <div class="form-group"><label>Nom du Label</label><input type="text" id="label-name"></div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group"><label>Ligne Copyright (C)</label><input type="text"
+                                    id="line-copyright"></div>
+                            <div class="form-group"><label>Ligne Phonographe (P)</label><input type="text"
+                                    id="line-phonogram"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Livraisons Additionnelles</h3>
+                        <div id="delivery-checkboxes" class="checkbox-group"></div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Profil, Plateformes & Réseaux</h3>
+                        <div class="form-group"><label>Description de l'artiste</label><textarea id="artist-desc"
+                                rows="3"></textarea></div>
+
+                        <h4 style="margin: 10px 0 5px 0; font-size:13px; color:#555;">Plateformes :</h4>
+                        <div class="form-group"><input type="url" id="link-yt-chan" placeholder="Lien chaîne YouTube">
+                        </div>
+                        <div class="form-group"><input type="url" id="link-yt-music" placeholder="Lien YouTube Music">
+                        </div>
+                        <div class="form-group"><input type="url" id="link-apple" placeholder="Lien Apple Music"></div>
+                        <div class="form-group"><input type="url" id="link-spotify" placeholder="Lien Spotify"></div>
+                        <div class="form-group"><input type="url" id="link-amazon" placeholder="Lien Amazon Music">
+                        </div>
+                        <div class="form-group"><input type="url" id="link-soundcloud" placeholder="Lien SoundCloud">
+                        </div>
+                        <div class="form-group"><input type="url" id="link-website" placeholder="Lien site web"></div>
+
+                        <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Réseaux Sociaux :</h4>
+                        <div class="form-group"><input type="url" id="link-fb" placeholder="Lien Facebook"></div>
+                        <div class="form-group"><input type="url" id="link-insta" placeholder="Lien Instagram"></div>
+                        <div class="form-group"><input type="url" id="link-x" placeholder="Lien X (Twitter)"></div>
+                        <div class="form-group"><input type="url" id="link-yt-social"
+                                placeholder="Lien YouTube (Social)">
+                        </div>
+
+                        <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Identifiants & Métadonnées
+                            Externes :
+                        </h4>
+                        <div class="form-group"><input type="url" id="link-wiki" placeholder="Lien Wikipédia"></div>
+                        <div class="form-group"><input type="text" id="id-ddex" placeholder="Lien/ID DDEX"></div>
+                        <div class="form-group"><input type="text" id="id-musicbrainz"
+                                placeholder="Lien/ID MusicBrainz">
+                        </div>
+                        <div class="form-group"><input type="text" id="id-allmusic" placeholder="Lien/ID AllMusic">
+                        </div>
+                        <div class="form-group"><input type="text" id="id-isni" placeholder="ISNI"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="fermerModal()">Annuler</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit-form">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <script type="module">
+        // artistes.html
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, addDoc, setDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -308,13 +428,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        let uidConnecte = null;
         let userPlan = "starter";
         let maxArtistsAllowed = 1;
 
         const allDeliveries = ["Beatport", "YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Tracklib", "Hook", "LyricFind", "EVEN"];
 
+        // --- FIREBASE AUTHENTICATION ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                uidConnecte = user.uid;
                 await verifierPlanEtLimites(user.uid);
                 chargerArtistes(user.uid);
             } else {
@@ -322,12 +445,129 @@
             }
         });
 
+        // --- ÉVÉNEMENT BOUTON IA LITUAL ---
+        document.getElementById('btn-generate-ai').addEventListener('click', async () => {
+            const loadingDiv = document.getElementById('litual-loading');
+            const resultsDiv = document.getElementById('litual-results');
+            const btnGenerate = document.getElementById('btn-generate-ai');
+
+            let firstName = "";
+            try {
+                if (uidConnecte) {
+                    const userDoc = await getDoc(doc(db, "users", uidConnecte));
+                    if (userDoc.exists()) {
+                        firstName = userDoc.data().firstName || "";
+                    }
+                }
+            } catch (e) {
+                console.error("Erreur récupération prénom:", e);
+            }
+
+            const mode = document.querySelector('input[name="ai-mode"]:checked').value;
+            let prompt = "Génère exactement 10 propositions de noms d'artistes musicaux originaux. Ne met pas de vrai prenom de personne dans tes proposition, invente les.";
+
+            if (mode === "with-name" && firstName) {
+                prompt += `Inclus obligatoirement le prénom "${firstName}" tel quel dans toutes tes propositions. `;
+            } else if (mode === "derive-name" && firstName) {
+                prompt += `Crée des variantes, anagrammes ou jeux de mots originaux à partir du prénom "${firstName}". `;
+            }
+
+            prompt += "Réponds UNIQUEMENT sous la forme d'une liste brute séparée par des virgules, sans numérotation, sans texte avant ou après, et sans guillemets. Exemple: Nom Un, Nom Deux, Nom Trois";
+
+            resultsDiv.innerHTML = "";
+            loadingDiv.style.display = "flex";
+            btnGenerate.disabled = true;
+
+            try {
+                const response = await fetch("https://api.ia.litual.dev.mm-cp.uk/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                if (!response.ok) throw new Error("Erreur serveur IA");
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let completeText = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split("\n");
+
+                    for (let line of lines) {
+                        let cleanLine = line.trim();
+                        if (cleanLine.startsWith("data: ")) {
+                            cleanLine = cleanLine.replace("data: ", "").trim();
+                        }
+
+                        if (cleanLine && cleanLine !== "[DONE]") {
+                            try {
+                                const parsed = JSON.parse(cleanLine);
+                                if (parsed.response) completeText += parsed.response;
+                                else if (parsed.text) completeText += parsed.text;
+                                else if (parsed.token) completeText += parsed.token;
+                            } catch {
+                                if (!cleanLine.startsWith("{") && !cleanLine.includes('"usage"')) {
+                                    completeText += " " + cleanLine;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const names = completeText
+                    .replace(/[\n\r]/g, ' ')
+                    .split(',')
+                    .map(name => {
+                        let clean = name.split('{')[0];
+                        return clean.trim().replace(/^["'-]|["'-]$/g, '');
+                    })
+                    .filter(name => {
+                        const lower = name.toLowerCase();
+                        return (
+                            name.length > 1 &&
+                            !name.includes(':') &&
+                            !lower.includes('token') &&
+                            !lower.includes('prompt')
+                        );
+                    });
+
+                resultsDiv.innerHTML = "";
+                if (names.length === 0) {
+                    resultsDiv.innerHTML = `<span style="color:orange; font-size:12px;">L'IA a répondu dans un format instable. Réessayez.</span>`;
+                } else {
+                    names.forEach(name => {
+                        const pill = document.createElement('div');
+                        pill.className = 'artist-pill';
+                        pill.textContent = name;
+
+                        pill.addEventListener('click', () => {
+                            const inputName = document.getElementById('artist-name') || document.querySelector('input[name="artistName"]');
+                            if (inputName) {
+                                inputName.value = name;
+                            }
+                        });
+                        resultsDiv.appendChild(pill);
+                    });
+                }
+            } catch (error) {
+                console.error("Erreur IA:", error);
+                resultsDiv.innerHTML = `<span style="color:red; font-size:12px;">Erreur lors de la génération.</span>`;
+            } finally {
+                loadingDiv.style.display = "none";
+                btnGenerate.disabled = false;
+            }
+        });
+
+        // --- FONCTIONS GLOBALEMENT ACCESSIBLES ---
         async function verifierPlanEtLimites(uid) {
             const userDoc = await getDoc(doc(db, "users", uid));
             if (userDoc.exists()) {
                 const data = userDoc.data();
-                // Le champ Firestore est "planName" (ex: "Future Légende", "Starter", "Pro", "Label")
-                // Il est écrit par account.js après paiement Stripe
                 const planName = (data.planName || "").toLowerCase().trim();
 
                 if (planName === "future légende" || planName === "future legende") {
@@ -341,27 +581,21 @@
                 } else if (planName === "white-label") {
                     userPlan = "white-label";
                 } else {
-                    userPlan = "starter"; // plan par défaut
+                    userPlan = "starter";
                 }
             }
 
-            // Limites selon les tarifs réels sur tarifs.html
-            if (userPlan === "future-legende") {
-                maxArtistsAllowed = 1;       // "Future Légende" : 1 artiste
-            } else if (userPlan === "starter") {
-                maxArtistsAllowed = 1;       // "Starter" : 1 artiste
+            if (userPlan === "future-legende" || userPlan === "starter") {
+                maxArtistsAllowed = 1;
             } else if (userPlan === "pro") {
-                maxArtistsAllowed = 2;       // "Pro" : 2 artistes
-            } else if (userPlan === "label") {
-                maxArtistsAllowed = Infinity; // "Label" : Artistes illimités
-            } else if (userPlan === "white-label") {
-                maxArtistsAllowed = Infinity; // "White-Label" : Artistes illimités
+                maxArtistsAllowed = 2;
+            } else if (userPlan === "label" || userPlan === "white-label") {
+                maxArtistsAllowed = Infinity;
             } else {
                 maxArtistsAllowed = 1;
             }
         }
 
-        // Fonction unique et corrigée pour charger la grille d'artistes avec l'image
         async function chargerArtistes(uid) {
             const listContainer = document.getElementById("artist-list");
             listContainer.innerHTML = "";
@@ -376,15 +610,14 @@
                 const card = document.createElement("div");
                 card.className = "artist-card";
 
-                // Utilise l'URL Cloudflare R2 ou un avatar par défaut si vide
                 const photoUrl = artist.photo || "https://mm-cp.uk/assets/img/photodeprofil/default-avatar.png";
 
                 card.innerHTML = `
-                    <img src="${photoUrl}" alt="${artist.name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: #ddd; margin-bottom: 10px;">
-                        <h3>${artist.name}</h3>
-                        <p style="font-size:12px; color:#777;">${artist.primaryGenre || 'Aucun genre'}</p>
-                        <button type="button" class="btn btn-secondary" style="width:100%; margin-top:10px;" onclick="ouvrirModalDetails('${documentSnap.id}')">Voir les détails</button>
-                        `;
+            <img src="${photoUrl}" alt="${artist.name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: #ddd; margin-bottom: 10px;">
+            <h3>${artist.name}</h3>
+            <p style="font-size:12px; color:#777;">${artist.primaryGenre || 'Aucun genre'}</p>
+            <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="ouvrirModalDetails('${documentSnap.id}')">Voir les détails</button>
+        `;
                 listContainer.appendChild(card);
             });
         }
@@ -394,14 +627,14 @@
             const div = document.createElement("div");
             div.className = "dynamic-row";
             div.innerHTML = `
-                        <input type="text" class="writer-name" placeholder="Nom de l'écrivain" style="flex:2;" value="${valeurs.nom}">
-                            <select class="writer-type" style="flex:1;">
-                                <option value="ecrivan" ${valeurs.type === 'ecrivan' ? 'selected' : ''}>Écrivain</option>
-                                <option value="parolier" ${valeurs.type === 'parolier' ? 'selected' : ''}>Parolier</option>
-                                <option value="les deux" ${valeurs.type === 'les deux' ? 'selected' : ''}>Les Deux</option>
-                            </select>
-                            <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
-                            `;
+        <input type="text" class="writer-name" placeholder="Nom de l'écrivain" style="flex:2;" value="${valeurs.nom}">
+        <select class="writer-type" style="flex:1;">
+            <option value="ecrivan" ${valeurs.type === 'ecrivan' ? 'selected' : ''}>Écrivain</option>
+            <option value="parolier" ${valeurs.type === 'parolier' ? 'selected' : ''}>Parolier</option>
+            <option value="les deux" ${valeurs.type === 'les deux' ? 'selected' : ''}>Les Deux</option>
+        </select>
+        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
+    `;
             container.appendChild(div);
         }
 
@@ -410,12 +643,12 @@
             const div = document.createElement("div");
             div.className = "dynamic-row";
             div.innerHTML = `
-                            <input type="text" class="credit-name" placeholder="Nom complet" style="flex:1.5;" value="${valeurs.nom}">
-                                <input type="text" class="credit-instrument" placeholder="Instrument" style="flex:1;" value="${valeurs.instrument}">
-                                    <input type="text" class="credit-voice" placeholder="Voix" style="flex:1;" value="${valeurs.voix}">
-                                        <input type="text" class="credit-utility" placeholder="Utilité" style="flex:1;" value="${valeurs.utilite}">
-                                            <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
-                                            `;
+        <input type="text" class="credit-name" placeholder="Nom complet" style="flex:1.5;" value="${valeurs.nom}">
+        <input type="text" class="credit-instrument" placeholder="Instrument" style="flex:1;" value="${valeurs.instrument}">
+        <input type="text" class="credit-voice" placeholder="Voix" style="flex:1;" value="${valeurs.voix}">
+        <input type="text" class="credit-utility" placeholder="Utilité" style="flex:1;" value="${valeurs.utilite}">
+        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
+    `;
             container.appendChild(div);
         }
 
@@ -429,21 +662,21 @@
             let allowedDeliveries = [];
             if (userPlan === "starter" || userPlan === "pro") {
                 allowedDeliveries = ["YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Hook", "LyricFind", "EVEN"];
-                labelFields.style.display = "none";
+                if (labelFields) labelFields.style.display = "none";
             } else if (userPlan === "label") {
                 allowedDeliveries = allDeliveries;
-                labelFields.style.display = "block";
-                wlOnlyFields.style.display = "none";
+                if (labelFields) labelFields.style.display = "block";
+                if (wlOnlyFields) wlOnlyFields.style.display = "none";
             } else if (userPlan === "white-label") {
                 allowedDeliveries = allDeliveries;
-                labelFields.style.display = "block";
-                wlOnlyFields.style.display = "block";
+                if (labelFields) labelFields.style.display = "block";
+                if (wlOnlyFields) wlOnlyFields.style.display = "block";
             }
 
             allowedDeliveries.forEach(del => {
                 deliveryContainer.innerHTML += `
-                <label><input type="checkbox" class="delivery-cb" value="${del}"> ${del}</label>
-            `;
+            <label><input type="checkbox" class="delivery-cb" value="${del}"> ${del}</label>
+        `;
             });
         }
 
@@ -452,10 +685,7 @@
             const q = collection(db, "users", currentUserId, "artists");
             const querySnapshot = await getDocs(q);
 
-            if (querySnapshot.size >= maxArtistsAllowed) {
-                alert(`Limite atteinte ! Votre plan (${userPlan.toUpperCase()}) ne vous permet pas d'avoir plus de ${maxArtistsAllowed} artiste(s). Rendez-vous sur mm-cp.uk/tarifs pour évoluer.`);
-                return;
-            }
+            if (querySnapshot.size >= maxArtistsAllowed) return;
 
             document.getElementById("artist-form").reset();
             document.getElementById("artist-id").value = "";
@@ -465,7 +695,6 @@
             document.getElementById("writers-container").innerHTML = "";
             document.getElementById("credits-container").innerHTML = "";
 
-            // Cacher la prévisualisation de l'image
             const previewImg = document.getElementById("artist-photo-preview");
             if (previewImg) previewImg.style.display = "none";
 
@@ -496,7 +725,6 @@
                 document.getElementById("manual-platforms").value = data.manualPlatforms || "";
                 document.getElementById("manual-territories").value = data.manualTerritories || "";
 
-                // Affichage de l'aperçu de l'image dans le modal si elle existe
                 const previewImg = document.getElementById("artist-photo-preview");
                 if (previewImg) {
                     if (data.photo) {
@@ -626,16 +854,14 @@
             try {
                 if (artistId) {
                     await setDoc(doc(db, "users", uid, "artists", artistId), artistPayload, { merge: true });
-                    alert("Artiste mis à jour avec succès !");
                 } else {
                     artistPayload.createdAt = new Date().toISOString();
                     await addDoc(collection(db, "users", uid, "artists"), artistPayload);
-                    alert("Artiste créé avec succès !");
                 }
                 fermerModal();
                 chargerArtistes(uid);
             } catch (error) {
-                alert("Erreur lors de la sauvegarde : " + error.message);
+                console.error(error);
             }
         }
 
@@ -659,20 +885,15 @@
             try {
                 const response = await fetch(`https://pdp-media.api.mm-cp.uk?artistId=${artistId}`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": file.type
-                    },
+                    headers: { "Content-Type": file.type },
                     body: file
                 });
 
                 if (!response.ok) throw new Error("Échec de la réponse du serveur R2");
 
                 const data = await response.json();
-
-                // Stocker l'URL finale dans l'input masqué
                 hiddenUrlInput.value = data.url;
 
-                // Mettre à jour l'aperçu visuel dans le modal en direct
                 if (previewImg) {
                     previewImg.src = data.url;
                     previewImg.style.display = "block";
@@ -685,8 +906,7 @@
                 statusDiv.innerText = "✕ Erreur lors du téléversement : " + error.message;
                 statusDiv.style.color = "#dc3545";
             }
-        }
-    </script>
+        }    </script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             // 1. On récupère le nom de la page actuelle (ex: "sorties.html")

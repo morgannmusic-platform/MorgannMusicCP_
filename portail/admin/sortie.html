@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Console Admin - Édition Totale Sortie - MM-CP</title>
+    <link rel="stylesheet" href="../js/reponsive.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .main-content {
+            margin-top: 5rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-top: 0;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f4f6f9;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #444;
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #FC8FB0;
+        }
+
+        .track-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .btn-save {
+            background: #FC8FB0;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 25px;
+        }
+
+        .btn-save:hover {
+            background: #d01159;
+        }
+
+        .audio-preview {
+            margin-top: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+    <script src="../js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="../js/sidebar.js"></script>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="admin-card" id="admin-panel" style="display:none;">
+                <h1>Édition Complète (Mode Admin)</h1>
+
+                <h2>Métadonnées de la Release</h2>
+                <div class="form-grid">
+                    <div class="form-group"><label>Titre</label><input type="text" id="edit-title"></div>
+                    <div class="form-group"><label>Version (Version Line)</label><input type="text"
+                            id="edit-versionLine"></div>
+                    <div class="form-group"><label>Artiste Principal</label><input type="text" id="edit-artistName">
+                    </div>
+                    <div class="form-group"><label>Type (Single/Album...)</label><input type="text" id="edit-type">
+                    </div>
+                    <div class="form-group"><label>Format</label><input type="text" id="edit-format"></div>
+                    <div class="form-group"><label>Statut</label>
+                        <select id="edit-status">
+                            <option value="verification mmcp">Vérification MMCP</option>
+                            <option value="verification plate-formes">Vérification Plate-formes</option>
+                            <option value="livrée">Livrée</option>
+                            <option value="direct">Direct</option>
+                            <option value="licence">Licence</option>
+                            <option value="retrait">Retrait</option>
+                            <option value="retiré">Retiré</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Code UPC</label><input type="text" id="edit-upc"
+                            oninput="verifierEtGenererCatalog()"></div>
+                    <div class="form-group"><label>Code Catalogue MMCP</label><input type="text" id="edit-catalogNumber"
+                            readonly style="background:#f1f5f9; font-weight:bold; color:#d01159;"></div>
+                    <div class="form-group"><label>Label</label><input type="text" id="edit-label"></div>
+                    <div class="form-group"><label>Nom du Label (LabelName)</label><input type="text"
+                            id="edit-labelName"></div>
+                    <div class="form-group"><label>Genre Principal</label><input type="text" id="edit-primaryGenre">
+                    </div>
+                    <div class="form-group"><label>Genre Secondaire</label><input type="text" id="edit-secondaryGenre">
+                    </div>
+                    <div class="form-group"><label>Langue</label><input type="text" id="edit-language"></div>
+                    <div class="form-group"><label>Type de Licence</label><input type="text" id="edit-licenceType">
+                    </div>
+                    <div class="form-group"><label>Copyright Standard</label><input type="text" id="edit-stdCopyright">
+                    </div>
+                    <div class="form-group"><label>Ligne de Copyright C</label><input type="text"
+                            id="edit-copyrightLineC"></div>
+                    <div class="form-group"><label>Ligne de Copyright P</label><input type="text"
+                            id="edit-copyrightLineP"></div>
+                    <div class="form-group"><label>Date de Sortie</label><input type="date" id="edit-releaseDate"></div>
+                    <div class="form-group"><label>Date de Sortie Originale</label><input type="text"
+                            id="edit-originalReleaseDate"></div>
+                    <div class="form-group"><label>Date de Pré-commande</label><input type="text"
+                            id="edit-preorderDate"></div>
+                    <div class="form-group"><label>Heure exacte</label><input type="text" id="edit-exactTime"></div>
+                    <div class="form-group"><label>Fuseau Horaire</label><input type="text" id="edit-timezone"></div>
+                    <div class="form-group"><label>Spotify URL</label><input type="text" id="edit-spotifyUrl"></div>
+                    <div class="form-group"><label>Apple Music URL</label><input type="text" id="edit-appleUrl"></div>
+                    <div class="form-group"><label>Territoires</label><input type="text" id="edit-territories"></div>
+                    <div class="form-group"><label>Plateformes manuelles</label>
+                        <select id="edit-manualPlatforms">
+                            <option value="true">Oui</option>
+                            <option value="false">Non</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width"><label>Plateformes Sélectionnées (séparées par des
+                            virgules)</label><input type="text" id="edit-selectedPlatforms"></div>
+                    <div class="form-group full-width"><label>Livraisons Additionnelles (séparées par des
+                            virgules)</label><input type="text" id="edit-additionalDeliveries"></div>
+                </div>
+
+                <h2>Édition Complète des Pistes</h2>
+                <div id="admin-tracks-list"></div>
+
+                <button class="btn-save" onclick="sauvegarderSortieAdmin()">Enregistrer et synchroniser sur
+                    Firestore</button>
+            </div>
+            <div id="loading-message">
+                <p>Analyse de la base de données...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collectionGroup, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
+        const urlParams = new URLSearchParams(window.location.search); const releaseId = urlParams.get('id');
+        let detectUserId = null; let pistesActuelles = [];
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "../login.html"; return; }
+            try {
+                const userRef = doc(db, "users", user.uid); const userSnap = await getDoc(userRef);
+                if (!userSnap.exists() || userSnap.data().role !== "admin") {
+                    alert("Accès interdit."); window.location.href = "../sorties.html"; return;
+                }
+                if (releaseId) { await chercherEtChargerSortie(); }
+            } catch (err) { console.error(err); }
+        });
+
+        window.verifierEtGenererCatalog = function () {
+            const upcVal = document.getElementById("edit-upc").value.trim();
+            const catEl = document.getElementById("edit-catalogNumber");
+            if (upcVal.length > 0 && (!catEl.value || catEl.value === "-")) {
+                let rands = "";
+                for (let i = 0; i < 10; i++) rands += Math.floor(Math.random() * 10);
+                catEl.value = "MMCP" + rands;
+            }
+        };
+
+        async function chercherEtChargerSortie() {
+            const groupRef = collectionGroup(db, "releases");
+            const querySnapshot = await getDocs(groupRef);
+            let cibleDoc = null;
+            querySnapshot.forEach(d => { if (d.id === releaseId) cibleDoc = d; });
+
+            if (cibleDoc) {
+                const data = cibleDoc.data(); detectUserId = cibleDoc.ref.parent.parent.id;
+
+                const simples = ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "spotifyUrl", "appleUrl", "territories", "status"];
+                simples.forEach(f => {
+                    document.getElementById(`edit-${f}`).value = data[f] || "";
+                });
+                document.getElementById("edit-manualPlatforms").value = data.manualPlatforms !== undefined ? String(data.manualPlatforms) : "false";
+                document.getElementById("edit-selectedPlatforms").value = Array.isArray(data.selectedPlatforms) ? data.selectedPlatforms.join(", ") : "";
+                document.getElementById("edit-additionalDeliveries").value = Array.isArray(data.additionalDeliveries) ? data.additionalDeliveries.join(", ") : "";
+
+                pistesActuelles = data.tracks || [];
+                const container = document.getElementById("admin-tracks-list"); container.innerHTML = "";
+
+                pistesActuelles.forEach((t, i) => {
+                    const box = document.createElement("div"); box.className = "track-box";
+                    box.innerHTML = `
+        <div style="font-weight:bold; margin-bottom:12px; color:#FC8FB0;">Piste ${i + 1} : ${t.title || 'Sans titre'}</div>
+        <div class="form-grid">
+            <div class="form-group"><label>Titre Piste</label><input type="text" id="t-title-${i}" value="${t.title || ''}"></div>
+            <div class="form-group"><label>Version</label><input type="text" id="t-version-${i}" value="${t.version || ''}"></div>
+            <div class="form-group"><label>Code ISRC</label><input type="text" id="t-isrc-${i}" value="${t.isrc || ''}" style="font-weight:bold; color:#d01159;"></div>
+            <div class="form-group"><label>Code ISWC</label><input type="text" id="t-iswc-${i}" value="${t.iswc || ''}"></div>
+            <div class="form-group"><label>Artistes principaux & rôles (JSON stringified)</label><input type="text" id="t-artists-${i}" value='${JSON.stringify(t.artists || [])}'></div>
+            <div class="form-group"><label>Writers (Crédits)</label><input type="text" id="t-writers-${i}" value="${t.writers || ''}"></div>
+            <div class="form-group"><label>Apple Credits</label><input type="text" id="t-appleCredits-${i}" value="${t.appleCredits || ''}"></div>
+            <div class="form-group"><label>Langue</label><input type="text" id="t-language-${i}" value="${t.language || ''}"></div>
+            <div class="form-group"><label>Type de paroles (Clean/Explicit...)</label><input type="text" id="t-lyricType-${i}" value="${t.lyricType || ''}"></div>
+            <div class="form-group"><label>IA Générée</label><select id="t-ai-${i}"><option value="true" ${t.isAiGenerated ? 'selected' : ''}>Oui</option><option value="false" ${!t.isAiGenerated ? 'selected' : ''}>Non</option></select></div>
+            <div class="form-group"><label>TikTok Start (Min)</label><input type="number" id="t-tk-m-${i}" value="${t.tiktokStart?.minute || 0}"></div>
+            <div class="form-group"><label>TikTok Start (Sec)</label><input type="number" id="t-tk-s-${i}" value="${t.tiktokStart?.second || 0}"></div>
+            <div class="form-group full-width"><label>Texte des Paroles</label><textarea id="t-lyrics-${i}" rows="2">${t.lyricsText || ''}</textarea></div>
+            
+            <div class="form-group full-width"><label>Audio URL (Stéréo Principal)</label><input type="text" id="t-audio-${i}" value="${t.audioUrl || ''}"><div class="audio-preview">${t.audioUrl ? `<audio controls src="${t.audioUrl}"></audio>` : 'Aucun'}</div></div>
+            <div class="form-group full-width"><label>Instrumental Audio URL (Stéréo)</label><input type="text" id="t-inst-${i}" value="${t.instrumentalAudioUrl || ''}"><div class="audio-preview">${t.instrumentalAudioUrl ? `<audio controls src="${t.instrumentalAudioUrl}"></audio>` : 'Aucun'}</div></div>
+            
+            <div class="form-group full-width"><label style="color:#007bff;">Dolby Atmos Audio URL (Principal)</label><input type="text" id="t-atmos-${i}" value="${t.atmosAudioUrl || ''}" placeholder="Lien vers le fichier .wav / .caf ou dossier Atmos master"><div class="audio-preview">${t.atmosAudioUrl ? `<span style="color:#28a745; font-weight:bold;">✓ Master Atmos configuré</span>` : 'Aucun'}</div></div>
+            <div class="form-group full-width"><label style="color:#007bff;">Dolby Atmos Instrumental Audio URL</label><input type="text" id="t-atmos-inst-${i}" value="${t.atmosInstrumentalAudioUrl || ''}" placeholder="Lien vers le fichier instrumental Atmos master"><div class="audio-preview">${t.atmosInstrumentalAudioUrl ? `<span style="color:#28a745; font-weight:bold;">✓ Master Atmos Instrumental configuré</span>` : 'Aucun'}</div></div>
+        </div>
+    `;
+                    container.appendChild(box);
+                });
+                document.getElementById("loading-message").style.display = "none";
+                document.getElementById("admin-panel").style.display = "block";
+            }
+        }
+
+        window.sauvegarderSortieAdmin = async function () {
+            pistesActuelles.forEach((t, i) => {
+                pistesActuelles[i].title = document.getElementById(`t-title-${i}`).value;
+                pistesActuelles[i].version = document.getElementById(`t-version-${i}`).value;
+                pistesActuelles[i].isrc = document.getElementById(`t-isrc-${i}`).value.trim();
+                pistesActuelles[i].iswc = document.getElementById(`t-iswc-${i}`).value.trim();
+                pistesActuelles[i].writers = document.getElementById(`t-writers-${i}`).value;
+                pistesActuelles[i].appleCredits = document.getElementById(`t-appleCredits-${i}`).value;
+                pistesActuelles[i].language = document.getElementById(`t-language-${i}`).value;
+                pistesActuelles[i].lyricType = document.getElementById(`t-lyricType-${i}`).value;
+                pistesActuelles[i].isAiGenerated = document.getElementById(`t-ai-${i}`).value === "true";
+                pistesActuelles[i].audioUrl = document.getElementById(`t-audio-${i}`).value;
+                pistesActuelles[i].instrumentalAudioUrl = document.getElementById(`t-inst-${i}`).value;
+
+                // Sauvegarde des nouveaux champs Dolby Atmos dans l'objet map de la piste
+                pistesActuelles[i].atmosAudioUrl = document.getElementById(`t-atmos-${i}`).value.trim();
+                pistesActuelles[i].atmosInstrumentalAudioUrl = document.getElementById(`t-atmos-inst-${i}`).value.trim();
+
+                pistesActuelles[i].tiktokStart = {
+                    minute: parseInt(document.getElementById(`t-tk-m-${i}`).value) || 0,
+                    second: parseInt(document.getElementById(`t-tk-s-${i}`).value) || 0
+                };
+                try { pistesActuelles[i].artists = JSON.parse(document.getElementById(`t-artists-${i}`).value); } catch (e) { }
+            });
+
+            const selPlat = document.getElementById("edit-selectedPlatforms").value;
+            const addDel = document.getElementById("edit-additionalDeliveries").value;
+
+            const updateData = {
+                manualPlatforms: document.getElementById("edit-manualPlatforms").value === "true",
+                selectedPlatforms: selPlat ? selPlat.split(",").map(s => s.trim()) : [],
+                additionalDeliveries: addDel ? addDel.split(",").map(s => s.trim()) : [],
+                tracks: pistesActuelles
+            };
+            ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "spotifyUrl", "appleUrl", "territories", "status"].forEach(f => {
+                updateData[f] = document.getElementById("edit-" + f).value;
+            });
+
+            try {
+                await updateDoc(doc(db, "users", detectUserId, "releases", releaseId), updateData);
+                alert("Firestore synchronisé intégralement avec succès !");
+            } catch (err) { alert(err.message); }
+        }
+    </script>
+</body>
+
+</html>

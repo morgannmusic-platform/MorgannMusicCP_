@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
     <script type="module" src="/assets/js/navbar.js"></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
 </head>
+
 <body>
     <div id="navbar"></div>
 
@@ -59,7 +61,7 @@
                         <li>LyricFind & Morgann Music Lyrics</li>
                         <li>Support 48h</li>
                         <li>5 singles, 1 albums, 2 EPs</li>
-                    </ul> 
+                    </ul>
                     <a href="/paiement.html?plan=starter" class="plan-button">Choisir Starter</a>
                 </article>
 
@@ -74,7 +76,7 @@
                         <li>Sorties illimitées</li>
                         <li>Support 24h</li>
                         <li>2 artistes</li>
-                    </ul> 
+                    </ul>
                     <a href="/paiement.html?plan=pro" class="plan-button">Passer Pro</a>
                 </article>
 
@@ -85,7 +87,7 @@
                     <ul class="plan-features">
                         <li>Toutes les fonctionnalités Starter & Pro</li>
                         <li>Artistes illimités</li>
-                    </ul> 
+                    </ul>
                     <a href="/paiement.html?plan=label" class="plan-button">Contacter le Label</a>
                 </article>
 
@@ -100,37 +102,12 @@
                         <li>Copyright & Branding à votre nom</li>
                         <li>Support prioritaire 24h</li>
                     </ul>
-                    <a href="mailto:contact@mm-cp.uk?subject=Demande%20White-Label" class="plan-button">Demander un devis</a>
+                    <a href="mailto:contact@mm-cp.uk?subject=Demande%20White-Label" class="plan-button">Demander un
+                        devis</a>
                 </article>
             </div>
 
-            <div class="pay-per-release">
-                <p>Vous préférez ne pas vous abonner ? 
-                    <span>Single (1-3 titres) : <strong>3,44€</strong></span> | 
-                    <span>EP/Album : <strong>7,97€</strong></span>
-                </p>
-            </div>
-        </section>
 
-        <section class="pricing-section alt">
-            <h2>Le paiement par sortie (Single / Album)</h2>
-            <p class="section-intro">Si un artiste préfère payer à la prod sans abonnement :</p>
-            <div class="pricing-grid two-cols">
-                <article class="price-card">
-                    <h3>Single (1-3 titres)</h3>
-                    <div class="price">3,44 €<span>/sortie</span></div>
-                    <ul class="plan-features"><li>Distribution sur 478 plateformes</li><li>Dolby Atmos & Spatial Audio</li></ul> 
-                    <a href="/paiement.html?plan=single" class="plan-button">Commander un Single</a>
-                </article>
-
-                <article class="price-card">
-                    <h3>EP / Album</h3>
-                    <div class="price">7,97 €<span>/sortie</span></div>
-                    <ul class="plan-features"><li>Distribution sur 478 plateformes</li><li>Dolby Atmos & Spatial Audio</li></ul> 
-                    <a href="/paiement.html?plan=ep-album" class="plan-button">Commander un EP/Album</a>
-                </article>
-            </div>
-        </section>
     </main>
 
     <!-- Interface de Chat Litual AI -->
@@ -205,7 +182,7 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
                 }
                 chatMessages.appendChild(div);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-                
+
                 if (typeof gsap !== "undefined") {
                     gsap.fromTo(div, { opacity: 0, scale: 0.9, y: 5 }, { opacity: 1, scale: 1, y: 0, duration: 0.3 });
                 }
@@ -214,7 +191,7 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
 
             const openChat = () => {
                 const tl = gsap.timeline();
-                
+
                 if (reducedMotion) {
                     gsap.set(chatOverlay, { display: 'block', opacity: 1 });
                     gsap.set(chatToggle, { scale: 0, opacity: 0 });
@@ -223,7 +200,7 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
                     userInput.focus();
                     return;
                 }
-                
+
                 // 0. Activation du flou d'arrière-plan
                 tl.set(chatOverlay, { display: 'block' });
                 tl.to(chatOverlay, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0);
@@ -232,16 +209,16 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
                 tl.to(chatToggle, { scale: 0, opacity: 0, duration: 0.2, ease: "back.in(1.7)" });
 
                 // 2. Expansion dynamique de la fenêtre (Pop-out)
-                tl.fromTo(chatWindow, 
-                    { 
+                tl.fromTo(chatWindow,
+                    {
                         autoAlpha: 0,
                         scale: 0.2,
                         width: 60,
                         height: 60,
                         borderRadius: "50%",
                         pointerEvents: "none"
-                    }, 
-                    { 
+                    },
+                    {
                         autoAlpha: 1,
                         display: 'flex',
                         scale: 1,
@@ -256,21 +233,21 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
                 );
 
                 // 3. Apparition des éléments internes avec effet de cascade (Stagger)
-                tl.fromTo([".chat-header", "#chat-messages", "#chat-input-form"], 
-                    { opacity: 0, y: 20 }, 
-                    { 
-                        opacity: 1, 
-                        y: 0, 
-                        duration: 0.25, 
-                        stagger: 0.05, 
-                        ease: "power3.out" 
+                tl.fromTo([".chat-header", "#chat-messages", "#chat-input-form"],
+                    { opacity: 0, y: 20 },
+                    {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.25,
+                        stagger: 0.05,
+                        ease: "power3.out"
                     }, "-=0.25"
                 );
             };
 
             const hideChat = () => {
                 const tl = gsap.timeline();
-                
+
                 if (reducedMotion) {
                     gsap.set(chatOverlay, { display: 'none', opacity: 0 });
                     gsap.set(chatToggle, { scale: 1, opacity: 1 });
@@ -278,37 +255,37 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
                     gsap.set([".chat-header", "#chat-messages", "#chat-input-form"], { opacity: 0, y: 0 });
                     return;
                 }
-                
+
                 // Désactivation du flou
                 tl.to(chatOverlay, { opacity: 0, duration: 0.25, onComplete: () => gsap.set(chatOverlay, { display: 'none' }) }, 0);
 
                 // 1. Les éléments internes s'envolent légèrement en s'effaçant de bas en haut
-                tl.to(["#chat-input-form", "#chat-messages", ".chat-header"], { 
-                    opacity: 0, 
-                    y: -20, 
-                    duration: 0.15, 
-                    stagger: 0.03, 
-                    ease: "power2.in" 
+                tl.to(["#chat-input-form", "#chat-messages", ".chat-header"], {
+                    opacity: 0,
+                    y: -20,
+                    duration: 0.15,
+                    stagger: 0.03,
+                    ease: "power2.in"
                 });
 
                 // 2. La fenêtre se replie avec un effet d'aspiration vers le bouton
-                tl.to(chatWindow, { 
-                    autoAlpha: 0, 
-                    scale: 0.3, 
-                    width: 60, 
-                    height: 60, 
-                    borderRadius: "50%", 
-                    duration: 0.3, 
-                    ease: "back.in(1.5)", 
+                tl.to(chatWindow, {
+                    autoAlpha: 0,
+                    scale: 0.3,
+                    width: 60,
+                    height: 60,
+                    borderRadius: "50%",
+                    duration: 0.3,
+                    ease: "back.in(1.5)",
                     pointerEvents: "none"
                 }, "-=0.1");
 
                 // 3. Réapparition dynamique du bouton avec un effet élastique
-                tl.to(chatToggle, { 
-                    scale: 1, 
-                    opacity: 1, 
-                    duration: 0.4, 
-                    ease: "elastic.out(1.2, 0.6)" 
+                tl.to(chatToggle, {
+                    scale: 1,
+                    opacity: 1,
+                    duration: 0.4,
+                    ease: "elastic.out(1.2, 0.6)"
                 }, "-=0.15");
 
                 tl.set(chatWindow, { display: 'none' });
@@ -350,7 +327,7 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
                         const { done, value } = await reader.read();
                         if (done) break;
                         const chunkString = decoder.decode(value, { stream: true });
-                        
+
                         // Split by 'data: ' to handle multiple JSON objects in one chunk
                         const dataChunks = chunkString.split('data: ').filter(s => s.trim() !== '' && s.trim() !== '[DONE]');
 
@@ -385,5 +362,5 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
         });
     </script>
 </body>
+
 </html>
-  

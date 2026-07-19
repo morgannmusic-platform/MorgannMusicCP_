@@ -71,9 +71,9 @@
         transform: translateX(-50%);
         width: 90%;
         max-width: 450px;
-        background-color: rgba(232, 232, 232, 0.75);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background-color: rgba(232, 232, 232, 0.349);
+        backdrop-filter: blur(62px);
+        -webkit-backdrop-filter: blur(62px);
         border: 1px solid rgba(189, 189, 189, 0.438);
         border-radius: 54px;
         box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
@@ -94,7 +94,6 @@
     .responsive-nav li {
         flex: 1;
         display: flex;
-        /* Aligne le li verticalement */
         align-items: center;
         justify-content: center;
     }
@@ -111,11 +110,9 @@
         transition: all 0.2s ease;
         padding: 8px 0;
         width: 100%;
-        /* Force la pastille rose à prendre toute la place du li */
         border-radius: 50px;
     }
 
-    /* Icône SVG/Image adaptative */
     .responsive-nav .icon {
         width: 20px;
         height: 20px;
@@ -123,7 +120,7 @@
         transition: transform 0.2s ease;
     }
 
-    /* FIX 1 : On cache le texte proprement sur mobile sans casser l'alignement vertical */
+    /* Masque le texte de la navbar principale sur mobile */
     .responsive-nav li .text {
         display: none !important;
     }
@@ -171,40 +168,37 @@
 
     .btn-more-trigger .plus-icon {
         display: inline-block;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .more-dropdown-wrapper.open .btn-more-trigger .plus-icon {
-        transform: rotate(135deg);
+        transform: rotate(45deg);
         color: #FC8FB0;
     }
 
-    /* --- LE DROPDOWN DROIT & PROPRE --- */
+    /* --- LE DROPDOWN DROIT & PROPRE (MOBILE PAR DÉFAUT) --- */
     .more-menu {
         position: absolute;
         bottom: 75px;
         left: 50%;
         transform: translateX(-50%) translateY(15px);
 
-        width: 50px;
-        /* Moins large sur mobile car il n'y a que l'icône */
+        width: 52px;
+        /* Largeur mini pour l'icône seule sur mobile */
 
         background-color: rgba(240, 240, 240, 0.85);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(189, 189, 189, 0.5);
-
         border-radius: 24px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         padding: 8px;
         display: flex;
         flex-direction: column;
         gap: 6px;
-
-        /* Animations */
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
         z-index: 5000;
     }
 
@@ -214,32 +208,27 @@
         transform: translateX(-50%) translateY(0);
     }
 
-    /* --- STYLE DES LIENS DU DROPDOWN --- */
     .more-menu a {
         display: flex;
         align-items: center;
-        /* Aligne l'icône et le texte sur la même ligne */
-        justify-content: flex-start;
-        gap: 12px;
-        /* Espace entre l'icône et le texte */
+        justify-content: center;
+        /* Centré sur mobile */
         width: 100%;
-        padding: 10px 14px;
+        padding: 10px;
         box-sizing: border-box;
         color: #333333;
         text-decoration: none;
         font-size: 13px;
         font-weight: 600;
         border-radius: 16px;
-        /* Belles billes arrondies */
         transition: background 0.2s, color 0.2s;
     }
 
-    /* Le texte reste visible partout (il ne subit pas le display: none du mobile) */
+    /* FIX 1 : Masque le texte du dropdown uniquement sur mobile */
     .more-menu .text-dropdown {
-        display: inline-block !important;
+        display: none !important;
     }
 
-    /* Même comportement au survol que ta navbar principale */
     .more-menu a:hover,
     .more-menu a.active {
         background-color: #FC8FB0;
@@ -249,37 +238,9 @@
     .more-menu a:hover .icon,
     .more-menu a.active .icon {
         filter: brightness(100) invert(1);
-        /* Icône blanche au survol */
-        transform: translateX(2px);
-        /* Petit effet de glissement sympa */
     }
 
-    /* --- ADAPTATION VERSION ORDINATEUR (DOCK GAUCHE) --- */
-    @media (min-width: 768px) {
-        .more-menu {
-            bottom: auto;
-            left: 185px;
-            /* S'ouvre sur la droite du bloc PC */
-            top: 0;
-            transform: translateX(-15px) translateY(0);
-        }
-
-        .more-dropdown-wrapper.open .more-menu {
-            transform: translateX(0) translateY(0) !important;
-        }
-
-        .btn-more-trigger {
-            font-size: 32px;
-            padding: 12px 0;
-        }
-    }
-
-    /* Le texte est caché par défaut sur mobile */
-    .more-menu .text-dropdown {
-        display: none !important;
-    }
-
-    /* --- VERSION ORDINATEUR (Menu Dock Vertical à Gauche) --- */
+    /* --- UNIQUE BLOC VERSION ORDINATEUR (DOCK GAUCHE) --- */
     @media (min-width: 768px) {
         .responsive-nav {
             bottom: auto;
@@ -316,16 +277,22 @@
             transform: translateX(2px);
         }
 
-        /* FIX 2 : On force le texte à réapparaître sur ordinateur */
+        /* Affiche le texte de la navbar principale sur PC */
         .responsive-nav li .text {
             display: flex !important;
         }
 
-        /* FIX 3 : Correction de la trajectoire d'ouverture du "+" sur PC */
+        .btn-more-trigger {
+            font-size: 28px;
+        }
+
+        /* --- CONFIG DROPDOWN POUR PC --- */
         .more-menu {
             bottom: auto;
             left: 185px;
             top: 0;
+            width: 160px;
+            /* Reprend sa largeur confortable */
             transform: translateX(-15px) translateY(0);
         }
 
@@ -333,8 +300,21 @@
             transform: translateX(0) translateY(0) !important;
         }
 
-        .btn-more-trigger {
-            font-size: 28px;
+        .more-menu a {
+            justify-content: flex-start;
+            /* Aligne l'icône à gauche sur PC */
+            gap: 12px;
+            padding: 10px 14px;
+        }
+
+        .more-menu a:hover .icon,
+        .more-menu a.active .icon {
+            transform: translateX(2px);
+        }
+
+        /* FIX 2 : Force le texte du dropdown à réapparaître sur PC */
+        .more-menu .text-dropdown {
+            display: inline-block !important;
         }
     }
 </style>

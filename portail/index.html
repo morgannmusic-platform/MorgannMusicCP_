@@ -11,7 +11,6 @@
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: #ffffff;
             color: #1e293b;
-            /* Correction : texte sombre car le fond du body est blanc */
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
@@ -21,7 +20,6 @@
         .cards {
             display: flex;
             flex-wrap: wrap;
-            /* Permet aux cartes de passer en dessous si l'écran est trop petit */
             margin-top: 3rem;
             gap: 1rem;
             align-items: center;
@@ -34,8 +32,7 @@
             background-color: rgba(232, 232, 232, 0.75);
             width: 250px;
             max-width: 100%;
-            /* Empêche la carte de dépasser de l'écran du téléphone */
-            height: 150px;
+            height: 200px;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(189, 189, 189, 0.438);
@@ -43,7 +40,6 @@
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.207);
             padding: 20px;
             box-sizing: border-box;
-            /* Évite que le padding élargisse la carte au-delà de sa taille */
         }
 
         .card p {
@@ -54,10 +50,12 @@
         }
 
         .card h1 {
-            font-size: 41px;
+            font-size: 32px;
+            /* Légèrement réduit pour éviter les débordements de texte long */
             font-weight: 800;
             color: #FC8FB0;
             margin: 0px;
+            word-wrap: break-word;
         }
 
         .card a {
@@ -69,23 +67,9 @@
             background: #FC8FB0;
             width: max-content;
             padding: 10px;
-            margin-top: 10px;
+            margin-top: auto;
+            /* Pousse le bouton vers le bas de la carte proprement */
             border-radius: 40px;
-        }
-
-        /* Styles de la carte de revenus */
-        .revenus-card {
-            display: flex;
-            flex-direction: column;
-            background-color: rgba(232, 232, 232, 0.75);
-            width: 250px;
-            height: 150px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
-            border-radius: 34px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.207);
-            padding: 20px;
         }
 
         .revenus-header {
@@ -94,7 +78,6 @@
             align-items: center;
             margin-bottom: 20px;
             color: #3e2837;
-            /* Texte lisible */
         }
 
         .revenus-title-block {
@@ -116,57 +99,175 @@
             font-size: 38px;
             font-weight: 800;
             color: #FC8FB0;
-            /* Bleu plus contrasté sur fond clair */
             letter-spacing: -0.5px;
         }
 
-        .revenus-trend {
-            font-size: 12px;
-            font-weight: 700;
-            margin-top: 4px;
+        /* --- STYLE DU POP-UP --- */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Fond sombre transparent */
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Classe CSS activée par le JavaScript si aucun artiste n'existe */
+        .popup-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 34px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-sizing: border-box;
+            border: 1px solid rgba(189, 189, 189, 0.438);
+        }
+
+        .popup-content h2 {
+            margin-top: 0;
+            color: #3e2837;
+            font-size: 24px;
+        }
+
+        .popup-content p {
+            color: #64748b;
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .btn-popup {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 6px;
+            background-color: #FC8FB0;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-popup:hover {
+            background-color: #d01159;
+        }
+
+        /* --- DESIGN DE LA SECTION DES SORTIES --- */
+        .releases-section {
+            margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            max-width: 1060px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .releases-block h2 {
+            font-size: 20px;
+            color: #3e2837;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .releases-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        /* Ligne de sortie unique */
+        .release-item {
+            display: flex;
+            align-items: center;
+            background-color: rgba(232, 232, 232, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(189, 189, 189, 0.3);
+            border-radius: 20px;
+            padding: 12px 20px;
+            gap: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .release-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Image de la pochette (coverUrl) */
+        .release-cover {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            background-color: #e2e8f0;
+        }
+
+        .release-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .release-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .release-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Pastille de Statut dynamique */
+        .release-status {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .status-brouillon {
+            background: rgba(100, 116, 139, 0.15);
+            color: #64748b;
+        }
+
+        .status-verification {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+        }
+
+        .status-valide {
             background: rgba(34, 197, 94, 0.15);
             color: #16a34a;
         }
 
-        .revenus-divider {
-            border: 0;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-            margin: 16px 0;
-        }
-
-        .revenus-footer {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .revenus-meta {
-            font-size: 12px;
+        .loading-text,
+        .empty-text {
+            font-size: 14px;
             color: #64748b;
-        }
-
-        .btn-revenus-action {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background: rgba(208, 17, 89, 0.1);
-            color: #d01159;
-            border: 1px solid rgba(208, 17, 89, 0.2);
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 13px;
-            text-align: center;
-            text-decoration: none;
-            box-sizing: border-box;
-            transition: all 0.2s;
-        }
-
-        .btn-revenus-action:hover {
-            background: #d01159;
-            color: white;
+            font-style: italic;
+            margin: 10px 0;
         }
     </style>
 </head>
@@ -197,26 +298,57 @@
             </div>
 
             <div class="card">
+                <p>Artiste principal</p>
+                <h1 id="user-artist-name">Chargement...</h1>
+                <a href="artistes.html">Gérer les artistes</a>
+            </div>
+
+            <div class="card">
                 <p>Plan</p>
-                <h1>Pro</h1>
+                <h1 id="plan">Chargement...</h1>
                 <a href="https://billing.stripe.com/p/login/dRmbJ1gpx2cB3uQ9se9EI00" target="_blank">Gérer</a>
             </div>
 
             <div class="card">
                 <p>Compte</p>
-                <h1>Standard</h1>
+                <h1 id="compte">Chargement...</h1>
                 <a href="https://support.mm-cp.uk/type-de-compte">En savoir plus</a>
             </div>
 
+        </div>
+        <div class="releases-section">
+
+            <div class="releases-block">
+                <h2>Dernières sorties ajoutées</h2>
+                <div id="recent-releases-list" class="releases-grid">
+                    <p class="loading-text">Chargement des sorties...</p>
+                </div>
+            </div>
+
+            <div class="releases-block">
+                <h2>Sorties en cours de vérification MMCP</h2>
+                <div id="verification-releases-list" class="releases-grid">
+                    <p class="loading-text">Chargement des vérifications...</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="artist-popup-overlay" class="popup-overlay">
+        <div class="popup-content">
+            <h2>Aucun artiste trouvé</h2>
+            <p>Vous devez configurer un profil artiste pour commencer à utiliser pleinement votre portail.</p>
+            <a href="artistes.html" class="btn-popup">Créer mon premier artiste</a>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collectionGroup, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 1. Configuration et Initialisation de Firebase
+        // 1. Configuration de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
             authDomain: "morgann-music-cp.firebaseapp.com",
@@ -231,9 +363,11 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 2. Gestion de la carte des revenus de l'utilisateur connecté
+        // 2. Écoute unique de l'état d'authentification
+        // 2. Écoute unique de l'état d'authentification
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // PARTIE A : Récupérer et calculer les finances de l'utilisateur
                 try {
                     const querySnapshot = await getDocs(collection(db, "users", user.uid, "finances"));
                     let totalGains = 0;
@@ -244,48 +378,144 @@
                 } catch (err) {
                     console.error("Erreur widget finances:", err);
                 }
+
+                // PARTIE B : Vérifier la collection d'artistes de l'utilisateur
+                try {
+                    const artistsSnapshot = await getDocs(collection(db, "users", user.uid, "artists"));
+                    const elArtistName = document.getElementById("user-artist-name");
+
+                    if (artistsSnapshot.empty) {
+                        // Aucun document dans "artists" -> On affiche le pop-up
+                        document.getElementById("artist-popup-overlay").classList.add("show");
+                        if (elArtistName) elArtistName.innerText = "Aucun";
+                    } else {
+                        // Des artistes existent -> On prend le premier de la liste pour l'afficher sur la carte
+                        let premierArtiste = "";
+                        artistsSnapshot.forEach((doc) => {
+                            if (!premierArtiste) {
+                                premierArtiste = doc.data().name || doc.data().artistName || "Nom inconnu";
+                            }
+                        });
+                        if (elArtistName) elArtistName.innerText = premierArtiste;
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la vérification des artistes:", error);
+                    if (document.getElementById("user-artist-name")) {
+                        document.getElementById("user-artist-name").innerText = "Erreur";
+                    }
+                }
+
+                // PARTIE C : Récupérer le plan et le rôle de l'utilisateur
+                try {
+                    const userDocRef = doc(db, "users", user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+
+                    if (userDocSnap.exists()) {
+                        const userData = userDocSnap.data();
+                        const userPlan = userData.planName || "Aucun plan";
+                        const userRole = userData.role || "Utilisateur";
+
+                        adapterLesCartes(userPlan, userRole);
+                    } else {
+                        document.getElementById("plan").innerText = "Non trouvé";
+                        document.getElementById("compte").innerText = "Non trouvé";
+                    }
+                } catch (error) {
+                    console.error("Erreur récupération profil user:", error);
+                    document.getElementById("plan").innerText = "Erreur";
+                    document.getElementById("compte").innerText = "Erreur";
+                }
+
+                // PARTIE D : Récupérer et lister les sorties (Releases)
+                try {
+                    // On récupère toutes les releases de l'utilisateur
+                    const releasesSnapshot = await getDocs(collection(db, "users", user.uid, "releases"));
+
+                    let allReleases = [];
+                    releasesSnapshot.forEach((doc) => {
+                        allReleases.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // 1. GESTION DES 6 DERNIÈRES SORTIES
+                    // On trie par date "createdAt" décroissante
+                    const latestReleases = [...allReleases]
+                        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+                        .slice(0, 6); // On ne garde que les 6 premières
+
+                    afficherSorties(latestReleases, "recent-releases-list");
+
+                    // 2. GESTION DES SORTIES "verification mmcp"
+                    const verificationReleases = allReleases.filter(r => r.status === "verification mmcp");
+
+                    afficherSorties(verificationReleases, "verification-releases-list", "Aucune sortie en cours de vérification.");
+
+                } catch (error) {
+                    console.error("Erreur lors de la récupération des releases:", error);
+                    document.getElementById("recent-releases-list").innerHTML = "<p class='empty-text'>Erreur de chargement.</p>";
+                    document.getElementById("verification-releases-list").innerHTML = "<p class='empty-text'>Erreur de chargement.</p>";
+                }
+            }
+
+            else {
+                console.log("Utilisateur déconnecté");
             }
         });
 
-        // 3. Récupération et comptage des données des compteurs globaux
-        async function chargerDonneesCompteurs() {
-            try {
-                const sortiesSnapshot = await getDocs(collectionGroup(db, "releases"));
+        // 3. Fonction pour appliquer dynamiquement les textes dans le HTML
+        function adapterLesCartes(plan, role) {
+            const elPlan = document.getElementById("plan");
+            const elCompte = document.getElementById("compte");
 
-                const elSorties = document.getElementById("count-sorties");
-                if (elSorties) elSorties.innerText = sortiesSnapshot.size;
+            if (elPlan) {
+                elPlan.innerText = plan;
+            }
 
-                const usersSnapshot = await getDocs(collection(db, "users"));
-                const elPlans = document.getElementById("count-plans");
-                if (elPlans) elPlans.innerText = usersSnapshot.size;
-
-                let artistesSet = new Set();
-                sortiesSnapshot.forEach((doc) => {
-                    const r = doc.data();
-                    if (r.artistName) artistesSet.add(r.artistName.trim().toLowerCase());
-
-                    if (r.tracks && Array.isArray(r.tracks)) {
-                        r.tracks.forEach(track => {
-                            if (track.artists && Array.isArray(track.artists)) {
-                                track.artists.forEach(a => { if (a.name) artistesSet.add(a.name.trim().toLowerCase()); });
-                            }
-                        });
-                    }
-                });
-
-                const elArtistes = document.getElementById("count-artistes");
-                if (elArtistes) elArtistes.innerText = artistesSet.size;
-
-            } catch (error) {
-                console.error("Erreur d'accès à la base de données :", error);
-                if (document.getElementById("count-sorties")) document.getElementById("count-sorties").innerText = "⚠️";
-                if (document.getElementById("count-artistes")) document.getElementById("count-artistes").innerText = "⚠️";
-                if (document.getElementById("count-plans")) document.getElementById("count-plans").innerText = "⚠️";
+            if (elCompte) {
+                // Optionnel : Mettre une majuscule au rôle s'il est en minuscules dans la bdd
+                elCompte.innerText = role.charAt(0).toUpperCase() + role.slice(1);
             }
         }
 
-        // Lancement global
-        chargerDonneesCompteurs();
+        // Fonction globale pour générer le code HTML des listes de sorties
+        function afficherSorties(liste, targetId, messageVide = "Aucune sortie trouvée.") {
+            const container = document.getElementById(targetId);
+            if (!container) return;
+
+            if (liste.length === 0) {
+                container.innerHTML = `<p class="empty-text">${messageVide}</p>`;
+                return;
+            }
+
+            container.innerHTML = ""; // On vide le texte de chargement
+
+            liste.forEach(release => {
+                const title = release.title || "Sans titre";
+                const artist = release.artistName || "Artiste inconnu";
+                const type = release.type || "Single";
+                const cover = release.coverUrl || "https://via.placeholder.com/150"; // Image par défaut si vide
+                const status = release.status || "brouillon";
+
+                // Adapte la couleur de la pastille selon le statut bdd
+                let statusClass = "status-brouillon";
+                if (status === "verification mmcp") statusClass = "status-verification";
+                if (status === "publié" || status === "validé") statusClass = "status-valide";
+
+                // Dans ta fonction afficherSorties() :
+                const itemHTML = `
+    <a href="sortie.html?id=${release.id}" style="text-decoration: none; color: inherit; display: block;">
+        <div class="release-item">
+            <img src="${cover}" alt="Pochette de ${title}" class="release-cover">
+            <div class="release-info">
+                <h3 class="release-title">${title}</h3>
+                <p class="release-meta">${artist} • ${type}</p>
+            </div>
+            <span class="release-status ${statusClass}">${status}</span>
+        </div>
+    </a>
+`;
+                container.insertAdjacentHTML("beforeend", itemHTML);
+            });
+        }
     </script>
 </body>
 

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Gestion des Sorties - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body {
@@ -13,7 +14,9 @@
             color: #333;
             margin: 0;
             padding: 20px;
+            box-sizing: border-box;
         }
+
 
         .container {
             max-width: 1200px;
@@ -30,7 +33,7 @@
         .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
             font-size: 14px;
@@ -39,25 +42,26 @@
         }
 
         .btn-primary {
-            background: #007bff;
+            background: #FC8FB0;
             color: white;
         }
 
         .btn-success {
-            background: #28a745;
-            color: white;
+            background: #E8FDC4;
+            color: #FC8FB0;
+            border: 1px solid #FC8FB0;
             margin-left: 10px;
         }
 
         .btn-secondary {
-            background: #6c757d;
+            background: #000000;
             color: white;
             padding: 6px 12px;
             font-size: 13px;
         }
 
         .btn-danger {
-            background: #dc3545;
+            background: #dc3562;
             color: white;
             padding: 6px 12px;
             font-size: 13px;
@@ -72,10 +76,14 @@
         }
 
         .release-card {
-            background: white;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+
             padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             text-align: center;
             position: relative;
             display: flex;
@@ -87,7 +95,7 @@
             width: 100%;
             aspect-ratio: 1/1;
             background: #ddd;
-            border-radius: 6px;
+            border-radius: 24px;
             margin-bottom: 12px;
             overflow: hidden;
             display: flex;
@@ -127,47 +135,39 @@
         }
 
         .status-verification-mmcp {
-            background: #ffc0cb;
-            color: #d01159;
+            background: #FC8FB0;
+            color: #ffffff;
         }
 
-        /* Rose */
         .status-verification-plateformes {
-            background: #007bff;
+            background: #5dabff;
             color: white;
         }
 
-        /* Bleu */
         .status-livree {
-            background: #6f42c1;
+            background: #be63ff;
             color: white;
         }
 
-        /* Violet */
         .status-direct {
-            background: #28a745;
+            background: #4aed70;
             color: white;
         }
 
-        /* Vert */
         .status-licence {
-            background: #fd7e14;
+            background: #ff933a;
             color: white;
         }
 
-        /* Orange */
         .status-retrait {
-            background: #dc3545;
+            background: #d7172a;
             color: white;
         }
 
-        /* Rouge */
         .status-retire {
-            background: #212529;
+            background: #000000;
             color: white;
         }
-
-        /* Noir */
 
         .card-actions {
             display: flex;
@@ -187,7 +187,7 @@
 
         .page-btn {
             padding: 8px 14px;
-            border: 1px solid #dee2e6;
+            border: 1px solid #FC8FB0;
             background: white;
             cursor: pointer;
             border-radius: 4px;
@@ -195,15 +195,14 @@
         }
 
         .page-btn:disabled {
-            background: #e9ecef;
+            background: #e8c9d3;
             cursor: not-allowed;
-            color: #6c757d;
+            color: #ffffff;
         }
 
         .page-btn.active {
-            background: #007bff;
+            background: #FC8FB0;
             color: white;
-            border-color: #007bff;
         }
     </style>
 </head>
@@ -215,28 +214,30 @@
     <div id="sidebar-container"></div>
     <script src="js/sidebar.js"></script>
 
-    <div class="container">
-        <div class="header-actions">
-            <h2>Mes Sorties</h2>
-            <div>
-                <a href="nouvelle.html" class="btn btn-primary">Créer une sortie</a>
-                <button class="btn btn-success" onclick="creerSortieTest()">Créer une sortie test</button>
+    <div class="main-content">
+        <div class="container">
+            <div class="header-actions">
+                <h2>Mes Sorties</h2>
+                <div>
+                    <a href="nouvelle.html" class="btn btn-primary">Créer une sortie</a>
+                    <button class="btn btn-success" onclick="creerSortieTest()">Créer une sortie test</button>
+                </div>
             </div>
-        </div>
 
-        <div id="releases-list" class="releases-grid"></div>
+            <div id="releases-list" class="releases-grid"></div>
 
-        <div class="pagination">
-            <button id="btn-prev" class="page-btn" onclick="pagePrecedente()">&lt; Précédent</button>
-            <span id="page-indicator" style="font-weight: bold; color: #555;">Page 1</span>
-            <button id="btn-next" class="page-btn" onclick="pageSuivante()">Suivant &gt;</button>
+            <div class="pagination">
+                <button id="btn-prev" class="page-btn" onclick="pagePrecedente()">&lt;</button>
+                <div id="page-numbers" style="display: flex; gap: 5px;"></div>
+                <button id="btn-next" class="page-btn" onclick="pageSuivante()">&gt;</button>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, startAfter, endBefore, limitToLast, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
@@ -254,20 +255,18 @@
 
         const PAGE_SIZE = 8;
         let pageActuelle = 1;
-        let premierDocVisible = null;
-        let dernierDocVisible = null;
         let uidConnecte = null;
+        let toutesLesSorties = []; // Stocke la liste complète localement pour la pagination en dur
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 uidConnecte = user.uid;
-                chargerSorties();
+                await recupererToutesLesSorties();
             } else {
                 window.location.href = "login.html";
             }
         });
 
-        // Mappage des designs des badges
         const configurationsBadges = {
             "verification mmcp": { texte: "Vérification MMCP", classe: "status-verification-mmcp" },
             "verification plate-formes": { texte: "Vérification Plate-formes", classe: "status-verification-plateformes" },
@@ -278,125 +277,129 @@
             "retiré": { texte: "Retiré", classe: "status-retire" }
         };
 
-        // Chargement dynamique des données (8 par 8)
-        async function chargerSorties(direction = "init") {
+        // 1. Charge toutes les données une seule fois
+        async function recupererToutesLesSorties() {
             const listContainer = document.getElementById("releases-list");
             listContainer.innerHTML = "<p>Chargement des sorties...</p>";
 
-            let q;
-            const baseRef = collection(db, "users", uidConnecte, "releases");
-
-            if (direction === "next" && dernierDocVisible) {
-                q = query(baseRef, orderBy("createdAt", "desc"), startAfter(dernierDocVisible), limit(PAGE_SIZE));
-            } else if (direction === "prev" && premierDocVisible) {
-                q = query(baseRef, orderBy("createdAt", "desc"), endBefore(premierDocVisible), limitToLast(PAGE_SIZE));
-            } else {
-                // Initialisation ou retour à la première page
-                q = query(baseRef, orderBy("createdAt", "desc"), limit(PAGE_SIZE));
-                pageActuelle = 1;
-            }
-
             try {
+                const q = query(collection(db, "users", uidConnecte, "releases"), orderBy("createdAt", "desc"));
                 const querySnapshot = await getDocs(q);
 
-                if (querySnapshot.empty) {
-                    if (direction === "next") {
-                        pageActuelle--; // Bloquer l'avance si c'est vide
-                        alert("Vous êtes sur la dernière page.");
-                    } else {
-                        listContainer.innerHTML = "<p>Aucune sortie disponible pour le moment.</p>";
-                    }
-                    ajusterBoutonsPagination(true);
-                    return;
-                }
-
-                listContainer.innerHTML = ""; // Vider le squelette
-
-                // Enregistrer les pointeurs pour la pagination
-                premierDocVisible = querySnapshot.docs[0];
-                dernierDocVisible = querySnapshot.docs[querySnapshot.docs.length - 1];
-
-                querySnapshot.forEach((documentSnap) => {
-                    const release = documentSnap.data();
-                    const id = documentSnap.id;
-
-                    // Traitement du Badge de Statut
-                    const statutBrut = (release.status || "verification mmcp").toLowerCase();
-                    const configBadge = configurationsBadges[statutBrut] || { texte: statutBrut, classe: "status-verification-mmcp" };
-
-                    // Gestion de l'image (Ne charge QUE les éléments de la page actuelle)
-                    const imageSrc = release.coverUrl || "https://img.icons8.com/windows/150/000000/album.png";
-
-                    const card = document.createElement("div");
-                    card.className = "release-card";
-                    card.innerHTML = `
-                    <div>
-                        <div class="cover-wrapper">
-                            <img src="${imageSrc}" class="release-cover" alt="Pochette">
-                        </div>
-                        <div class="release-title">${release.title}</div>
-                        <div class="release-artist">${release.artistName}</div>
-                    </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <span class="badge ${configBadge.classe}">${configBadge.texte}</span>
-                        <div class="card-actions">
-                            <button class="btn btn-secondary" onclick="modifierSortie('${id}')">Modifier</button>
-                            <button class="btn btn-danger" onclick="demanderRetrait('${id}')" ${statutBrut === 'retrait' || statutBrut === 'retiré' ? 'disabled' : ''}>Supprimer</button>
-                        </div>
-                    </div>
-                `;
-                    listContainer.appendChild(card);
+                toutesLesSorties = [];
+                querySnapshot.forEach((docSnap) => {
+                    toutesLesSorties.push({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    });
                 });
 
-                document.getElementById("page-indicator").innerText = `Page ${pageActuelle}`;
-                ajusterBoutonsPagination(false, querySnapshot.size < PAGE_SIZE);
+                afficherPage(1);
 
             } catch (error) {
-                console.error("Erreur lors du traitement :", error);
+                console.error("Erreur initialisation :", error);
                 listContainer.innerHTML = `<p style="color:red;">Erreur lors du chargement : ${error.message}</p>`;
             }
         }
 
-        // Gestion de l'état des boutons Précédent / Suivant
-        function ajusterBoutonsPagination(finAtteinte = false, moinsDeHuit = false) {
+        // 2. Affiche uniquement les éléments de la page demandée
+        function afficherPage(numeroPage) {
+            pageActuelle = numeroPage;
+            const listContainer = document.getElementById("releases-list");
+            listContainer.innerHTML = "";
+
+            if (toutesLesSorties.length === 0) {
+                listContainer.innerHTML = "<p>Aucune sortie disponible pour le moment.</p>";
+                genererNumerosPage(0);
+                return;
+            }
+
+            // Calcul des index de découpage (Slice)
+            const indexDebut = (pageActuelle - 1) * PAGE_SIZE;
+            const indexFin = indexDebut + PAGE_SIZE;
+            const sortiesPage = toutesLesSorties.slice(indexDebut, indexFin);
+
+            sortiesPage.forEach((release) => {
+                const id = release.id;
+                const statutBrut = (release.status || "verification mmcp").toLowerCase();
+                const configBadge = configurationsBadges[statutBrut] || { texte: statutBrut, classe: "status-verification-mmcp" };
+                const imageSrc = release.coverUrl || "https://img.icons8.com/windows/150/000000/album.png";
+
+                const card = document.createElement("div");
+                card.className = "release-card";
+                card.style.cursor = "pointer";
+
+                card.onclick = function (event) {
+                    if (event.target.tagName === 'BUTTON' || event.target.closest('.card-actions')) {
+                        return;
+                    }
+                    window.location.href = `sortie.html?id=${id}`;
+                };
+
+                card.innerHTML = `
+            <div>
+                <div class="cover-wrapper">
+                    <img src="${imageSrc}" class="release-cover" alt="Pochette">
+                </div>
+                <div class="release-title">${release.title || 'Sans titre'}</div>
+                <div class="release-artist">${release.artistName || 'Artiste inconnu'}</div>
+            </div>
+            <div style="display: flex; flex-direction: column;" onclick="event.stopPropagation();">
+                <span class="badge ${configBadge.classe}">${configBadge.texte}</span>
+                <div class="card-actions">
+                    <button class="btn btn-secondary" onclick="modifierSortie('${id}')">Modifier</button>
+                    <button class="btn btn-danger" onclick="demanderRetrait('${id}')" ${statutBrut === 'retrait' || statutBrut === 'retiré' ? 'disabled' : ''}>Supprimer</button>
+                </div>
+            </div>
+        `;
+                listContainer.appendChild(card);
+            });
+
+            const totalPages = Math.ceil(toutesLesSorties.length / PAGE_SIZE);
+            genererNumerosPage(totalPages);
+        }
+
+        // 3. Construit dynamiquement la liste des numéros [1, 2, 3...]
+        function genererNumerosPage(totalPages) {
+            const container = document.getElementById("page-numbers");
+            container.innerHTML = "";
+
             document.getElementById("btn-prev").disabled = (pageActuelle === 1);
-            document.getElementById("btn-next").disabled = (finAtteinte || moinsDeHuit);
-        }
+            document.getElementById("btn-next").disabled = (pageActuelle === totalPages || totalPages === 0);
 
-        window.pageSuivante = function () {
-            pageActuelle++;
-            chargerSorties("next");
-        }
-
-        window.pagePrecedente = function () {
-            if (pageActuelle > 1) {
-                pageActuelle--;
-                chargerSorties("prev");
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement("button");
+                btn.className = `page-btn ${i === pageActuelle ? 'active' : ''}`;
+                btn.innerText = i;
+                btn.onclick = () => afficherPage(i);
+                container.appendChild(btn);
             }
         }
 
-        // Bouton de redirection vers l'édition
-        window.modifierSortie = function (id) {
-            window.location.href = `edition.html?sortie=${id}`;
+        window.pageSuivante = function () {
+            const totalPages = Math.ceil(toutesLesSorties.length / PAGE_SIZE);
+            if (pageActuelle < totalPages) afficherPage(pageActuelle + 1);
         }
 
-        // Action de suppression (Bascule le statut en "retrait")
+        window.pagePrecedente = function () {
+            if (pageActuelle > 1) afficherPage(pageActuelle - 1);
+        }
+
+        window.modifierSortie = function (id) { window.location.href = `edition.html?sortie=${id}`; }
+
         window.demanderRetrait = async function (id) {
             if (confirm("Êtes-vous sûr de vouloir demander le retrait de cette sortie ?")) {
                 try {
                     const releaseRef = doc(db, "users", uidConnecte, "releases", id);
-                    await updateDoc(releaseRef, {
-                        status: "retrait"
-                    });
-                    alert("Demande de retrait prise en compte.");
-                    chargerSorties(); // Rafraîchit uniquement la page en cours
+                    await updateDoc(releaseRef, { status: "retrait" });
+                    // Recharge les données pour mettre à jour la liste locale
+                    await recupererToutesLesSorties();
                 } catch (error) {
                     alert("Erreur lors du traitement du retrait : " + error.message);
                 }
             }
         }
 
-        // Insertion d'un jeu de données fictives (Sortie Test)
         window.creerSortieTest = async function () {
             if (!uidConnecte) return;
 
@@ -405,26 +408,20 @@
             const faussesPochettes = [
                 "https://picsum.photos/id/10/500/500",
                 "https://picsum.photos/id/26/500/500",
-                "https://picsum.photos/id/37/500/500",
-                "https://picsum.photos/id/49/500/500"
+                "https://picsum.photos/id/37/500/500"
             ];
 
-            const randomTitre = fauxTitres[Math.floor(Math.random() * fauxTitres.length)];
-            const randomArtiste = fauxArtistes[Math.floor(Math.random() * fauxArtistes.length)];
-            const randomPochette = faussesPochettes[Math.floor(Math.random() * faussesPochettes.length)];
-
             const nouvelleSortieTest = {
-                title: randomTitre,
-                artistName: randomArtiste,
-                coverUrl: randomPochette,
-                status: "verification mmcp", // Statut automatique initial rose
+                title: fauxTitres[Math.floor(Math.random() * fauxTitres.length)],
+                artistName: fauxArtistes[Math.floor(Math.random() * fauxArtistes.length)],
+                coverUrl: faussesPochettes[Math.floor(Math.random() * faussesPochettes.length)],
+                status: "verification mmcp",
                 createdAt: new Date().toISOString()
             };
 
             try {
                 await addDoc(collection(db, "users", uidConnecte, "releases"), nouvelleSortieTest);
-                alert(`Sortie test "${randomTitre}" créée avec succès !`);
-                chargerSorties(); // Retour page 1 pour voir la nouvelle insertion
+                await recupererToutesLesSorties();
             } catch (error) {
                 alert("Erreur création test : " + error.message);
             }
@@ -432,17 +429,11 @@
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // 1. On récupère le nom de la page actuelle (ex: "sorties.html")
             const currentPath = window.location.pathname.split("/").pop();
-
-            // 2. On sélectionne tous les liens de la navbar
             const navLinks = document.querySelectorAll(".responsive-nav a");
 
             navLinks.forEach(link => {
-                // 3. On récupère l'attribut href du lien (ex: "sorties.html")
                 const linkPath = link.getAttribute("href").split("/").pop();
-
-                // 4. Si ça correspond, on ajoute "active", sinon on l'enlève
                 if (currentPath === linkPath) {
                     link.classList.add("active");
                 } else {

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Détails de la Sortie - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .main-content {
+            margin-top: 5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .release-header-block {
+            padding: 30px;
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+
+        }
+
+        .cover-container {
+            width: 250px;
+            height: 250px;
+            border-radius: 29px;
+            overflow: hidden;
+            background: #ddd;
+        }
+
+        .cover-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .release-main-info {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .release-title-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .release-title-row h1 {
+            font-size: 28px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-verification-mmcp {
+            background: #FC8FB0;
+            color: #ffffff;
+        }
+
+        .status-verification-plateformes {
+            background: #007bff;
+            color: white;
+        }
+
+        .status-livree {
+            background: #6f42c1;
+            color: white;
+        }
+
+        .status-direct {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-licence {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .status-retrait {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-retire {
+            background: #212529;
+            color: white;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            margin-top: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .meta-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #999;
+        }
+
+        .meta-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .tracks-section {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            padding: 30px;
+        }
+
+        .track-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.877);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            transition: all 0.3s ease;
+
+        }
+
+        .track-row:hover {
+            background: #fff3f7;
+            border-color: #FC8FB0;
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.105);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            background-color: rgba(255, 255, 255, 0.877);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #FC8FB0;
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            color: rgb(255, 255, 255);
+        }
+
+        .btmodif {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            display: none;
+            background: #FC8FB0;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+    <script src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="release-header-block">
+                <div class="cover-container"><img id="release-cover" src="" alt="Pochette"></div>
+                <div class="release-main-info">
+                    <div class="release-title-row">
+                        <h1 id="release-title">-</h1>
+                        <span id="release-status" class="badge">-</span>
+                    </div>
+                    <div id="release-artist" style="color:#666; margin: 5px 0 15px 0;">-</div>
+
+                    <div class="metadata-grid" id="global-metadata">
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-modifier-sortie" class="btmodif">
+                Modifier la sortie
+            </button>
+
+
+
+            <div class="tracks-section">
+                <h2>Pistes de la Sortie</h2>
+                <div id="tracks-list"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="track-popup" class="popup-overlay">
+        <div class="popup-content">
+            <button class="popup-close" onclick="fermerPopup()">✕</button>
+            <h2 id="pop-title" style="margin:0; color:#222;">-</h2>
+            <div class="metadata-grid" id="popup-metadata" style="border:none; margin-top:20px;"></div>
+            <h3 style="margin-top:20px; font-size:14px; color:#666; text-transform:uppercase;">Écoute Audio</h3>
+            <div id="pop-audio-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
+        const urlParams = new URLSearchParams(window.location.search); const releaseId = urlParams.get('id');
+        let listePistesGlobal = [];
+
+        const configurationsBadges = {
+            "verification mmcp": { texte: "Vérification MMCP", classe: "status-verification-mmcp" },
+            "verification plate-formes": { texte: "Vérification Plate-formes", classe: "status-verification-plateformes" },
+            "livrée": { texte: "Livrée", classe: "status-livree" },
+            "direct": { texte: "Direct", classe: "status-direct" },
+            "licence": { texte: "Licence", classe: "status-licence" },
+            "retrait": { texte: "Retrait", classe: "status-retrait" },
+            "retiré": { texte: "Retiré", classe: "status-retire" }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user && releaseId) {
+                const docSnap = await getDoc(doc(db, "users", user.uid, "releases", releaseId));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+
+                    // --- TON CODE EXISTANT DE REMPLISSAGE ---
+                    document.getElementById("release-title").innerText = data.title || "Sans titre";
+                    document.getElementById("release-artist").innerText = `${data.artistName || 'Artiste'} • ${data.type || 'Single'}`;
+                    document.getElementById("release-cover").src = data.coverUrl || "https://img.icons8.com/windows/150/000000/album.png";
+
+                    const sb = (data.status || "verification mmcp").toLowerCase();
+                    const conf = configurationsBadges[sb] || { texte: sb, classe: "status-verification-mmcp" };
+                    document.getElementById("release-status").innerText = conf.texte;
+                    document.getElementById("release-status").className = `badge ${conf.classe}`;
+
+                    const grid = document.getElementById("global-metadata");
+                    const mapFields = [
+                        { l: "Code UPC", v: data.upc }, { l: "Code Catalogue", v: data.catalogNumber }, { l: "Format", v: data.format }, { l: "Label", v: data.label },
+                        { l: "Nom du Label", v: data.labelName }, { l: "Date de Sortie", v: data.releaseDate }, { l: "Date Originale", v: data.originalReleaseDate },
+                        { l: "Genre Principal", v: data.primaryGenre }, { l: "Genre Secondaire", v: data.secondaryGenre }, { l: "Langue", v: data.language },
+                        { l: "Type de Licence", v: data.licenceType }, { l: "Copyright Standard", v: data.stdCopyright }, { l: "Copyright C", v: data.copyrightLineC },
+                        { l: "Copyright P", v: data.copyrightLineP }, { l: "Heure Exacte", v: data.exactTime }, { l: "Fuseau Horaire", v: data.timezone },
+                        { l: "Territoires", v: data.territories }, { l: "Spotify URL", v: data.spotifyUrl }, { l: "Apple URL", v: data.appleUrl },
+                        { l: "Plateformes Sélectionnées", v: data.selectedPlatforms?.join(", ") }, { l: "Livraisons Additionnelles", v: data.additionalDeliveries?.join(", ") }
+                    ];
+                    grid.innerHTML = mapFields.map(f => f.v ? `<div class="meta-item"><span class="meta-label">${f.l}</span><span class="meta-value">${f.v}</span></div>` : '').join('');
+
+                    const tList = document.getElementById("tracks-list"); tList.innerHTML = "";
+                    listePistesGlobal = data.tracks || [];
+                    listePistesGlobal.forEach((t, i) => {
+                        const r = document.createElement("div"); r.className = "track-row"; r.onclick = () => ouvrirPopup(i);
+                        r.innerHTML = `<div style="font-weight:bold;"><span style="color:#bbb; margin-right:15px;">${String(i + 1).padStart(2, '0')}</span>${t.title || 'Sans titre'}</div><button class="badge status-verification-mmcp" style="border:none; cursor:pointer;">Détails</button>`;
+                        tList.appendChild(r);
+                    });
+                    // --- FIN DE TON CODE EXISTANT ---
+
+
+                    // ==========================================
+                    // LOGIQUE DU BOUTON EN DUR :
+                    // ==========================================
+                    const btnModifier = document.getElementById("btn-modifier-sortie");
+                    if (btnModifier) {
+                        // On affiche le bouton maintenant que l'ID est prêt
+                        btnModifier.style.display = "inline-block";
+
+                        // Au clic, on applique la redirection vers la page d'édition
+                        btnModifier.onclick = function () {
+                            window.location.href = `edition.html?sortie=${releaseId}`;
+                        };
+                    }
+                    // ==========================================
+
+                }
+            }
+        });
+        window.ouvrirPopup = function (i) {
+            const t = listePistesGlobal[i]; if (!t) return;
+            document.getElementById("pop-title").innerText = t.title || "Piste";
+            const pGrid = document.getElementById("popup-metadata");
+            const artStr = Array.isArray(t.artists) ? t.artists.map(a => `${a.name} (${a.role})`).join(", ") : '';
+
+            const fields = [
+                { l: "Version", v: t.version }, { l: "Code ISRC", v: t.isrc }, { l: "Code ISWC", v: t.iswc }, { l: "Artistes & Rôles", v: artStr },
+                { l: "Writers", v: t.writers }, { l: "Apple Credits", v: t.appleCredits }, { l: "Langue", v: t.language }, { l: "Type de paroles", v: t.lyricType },
+                { l: "Généré par IA", v: t.isAiGenerated ? "Oui" : "Non" }, { l: "Début TikTok", v: `${t.tiktokStart?.minute || 0}m ${t.tiktokStart?.second || 0}s` },
+                { l: "Paroles", v: t.lyricsText }
+            ];
+            pGrid.innerHTML = fields.map(f => f.v ? `<div class="meta-item" style="grid-column:${f.l === 'Paroles' ? '1/-1' : 'auto'}"><span class="meta-label">${f.l}</span><span class="meta-value" style="white-space:pre-wrap;">${f.v}</span></div>` : '').join('');
+
+            // Audio players (Gestion Stéréo standard + Dolby Atmos spatialisés)
+            let audioHTML = '';
+
+            // Lecteurs Stéréo Standards
+            if (t.audioUrl) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Principal</span><br><audio controls src="${t.audioUrl}" style="width:100%; margin-top:4px;"></audio></div>`;
+            if (t.instrumentalAudioUrl) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Instrumental</span><br><audio controls src="${t.instrumentalAudioUrl}" style="width:100%; margin-top:4px;"></audio></div>`;
+
+            // Affichage des Liens Dolby Atmos
+            if (t.atmosAudioUrl) {
+                audioHTML += `<div style="margin-bottom:12px; padding:10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd;">
+                    <span class="meta-label" style="color:#0369a1;">🔊 Master Dolby Atmos (Principal)</span><br>
+                    <a href="${t.atmosAudioUrl}" target="_blank" style="display:inline-block; margin-top:6px; font-size:13px; color:#0284c7; font-weight:bold; text-decoration:none;">🔗 Ouvrir / Télécharger le Master Atmos</a>
+                  </div>`;
+            }
+            if (t.atmosInstrumentalAudioUrl) {
+                audioHTML += `<div style="margin-bottom:12px; padding:10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd;">
+                    <span class="meta-label" style="color:#0369a1;">🔊 Master Dolby Atmos (Instrumental)</span><br>
+                    <a href="${t.atmosInstrumentalAudioUrl}" target="_blank" style="display:inline-block; margin-top:6px; font-size:13px; color:#0284c7; font-weight:bold; text-decoration:none;">🔗 Ouvrir / Télécharger l'Instrumental Atmos</a>
+                  </div>`;
+            }
+
+            document.getElementById("pop-audio-container").innerHTML = audioHTML || '<p style="font-size:13px; color:#999;">Aucun fichier audio disponible</p>';
+            document.getElementById("track-popup").classList.add("show");
+        };
+
+        window.fermerPopup = function () {
+            document.getElementById("track-popup").classList.remove("show");
+        };
+
+
+    </script>
+
+    <script>
+
+
+    </script>
+</body>
+
+</html>

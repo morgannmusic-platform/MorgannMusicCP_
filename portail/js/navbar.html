@@ -6,9 +6,10 @@
                 onerror="this.src='default.png'">
         </div>
         <div id="dropdown-profile" class="nav-dropdown">
-            <a href="index.html">Accueil du site</a>
-            <a href="compte.html">Espace Compte</a>
-            <a href="admin.html" id="nav-admin-link" style="display: none; color: #d01159; font-weight: bold;">Portail
+            <a href="/index.html">Accueil du site</a>
+            <a href="/account.html">Espace Compte</a>
+            <a href="/index/index.html" id="nav-admin-link"
+                style="display: none; color: #d01159; font-weight: bold;">Portail
                 Admin</a>
             <hr class="dropdown-divider">
             <button type="button" class="dropdown-btn-logout">Déconnexion</button>
@@ -46,9 +47,9 @@
 
 <style>
     .navbar-inner {
-        background-color: rgba(232, 232, 232, 0.75);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background-color: rgba(232, 232, 232, 0.50);
+        backdrop-filter: blur(62px);
+        -webkit-backdrop-filter: blur(62px);
         border: 1px solid rgba(189, 189, 189, 0.438);
         border-radius: 24px;
         box-shadow: 0 0 22px rgba(0, 0, 0, 0.385);
@@ -59,7 +60,7 @@
         justify-content: space-between;
         box-sizing: border-box;
         position: relative;
-        z-index: 5000;
+        z-index: 0;
     }
 
     .nav-dropdown-wrapper {
@@ -233,6 +234,11 @@
             border-radius: 50px;
             box-shadow: 0 0 7px rgba(0, 0, 0, 0.262);
         }
+
+        .btn-create-trigger {
+            border-radius: 50px;
+        }
+
     }
 </style>
 
