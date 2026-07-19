@@ -334,9 +334,11 @@
 
                     // --- TON CODE EXISTANT DE REMPLISSAGE ---
                     document.getElementById("release-title").innerText = data.title || "Sans titre";
-                    document.getElementById("release-artist").innerText = `${data.artistName || 'Artiste'} • ${data.type || 'Single'}`;
-                    document.getElementById("release-cover").src = data.coverUrl || "https://img.icons8.com/windows/150/000000/album.png";
+                    // On récupère la chaîne formatée des featurings (ex: " & Nom" ou ", Nom & Nom")
+                    const chaineFeats = formaterLesFeaturings(data.feats);
 
+                    // On affiche l'artiste principal, suivi des featurings s'il y en a, puis le type de sortie
+                    document.getElementById("release-artist").innerText = `${data.artistName || 'Artiste'}${chaineFeats} • ${data.type || 'Single'}`;
                     const sb = (data.status || "verification mmcp").toLowerCase();
                     const conf = configurationsBadges[sb] || { texte: sb, classe: "status-verification-mmcp" };
                     document.getElementById("release-status").innerText = conf.texte;
@@ -424,6 +426,25 @@
         window.fermerPopup = function () {
             document.getElementById("track-popup").classList.remove("show");
         };
+
+
+        // Fonction pour formater proprement les featurings (ex: "Artiste A, Artiste B & Artiste C")
+        function formaterLesFeaturings(listeFeats) {
+            if (!listeFeats || !Array.isArray(listeFeats) || listeFeats.length === 0) {
+                return "";
+            }
+
+            // On extrait juste les noms des artistes
+            const noms = listeFeats.map(f => typeof f === 'object' ? f.name : f);
+
+            if (noms.length === 1) {
+                return ` & ${noms[0]}`;
+            }
+
+            // S'il y en a plusieurs : on joint tout par des virgules sauf le dernier qu'on sépare par " & "
+            const dernierArtiste = noms.pop();
+            return `, ${noms.join(", ")} & ${dernierArtiste}`;
+        }
 
 
     </script>

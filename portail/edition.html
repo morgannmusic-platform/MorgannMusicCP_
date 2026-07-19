@@ -4,18 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Éditeur de Sortie - MM-CP</title>
+    <meta name="theme-color" content="#FFEFF4">
     <style>
-        :root {
-            --primary: #d01159;
-            --primary-light: #ffc0cb;
-            --dark: #212529;
-            --bg: #f4f6f9;
-            --border: #dee2e6;
-        }
-
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
+            background: #FC8FB0;
             color: var(--dark);
             margin: 0;
             padding: 0;
@@ -27,8 +20,11 @@
 
         .navbar {
             height: 60px;
-            background: white;
-            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.855);
+            border-bottom: 1px solid #ffe4ec;
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -41,11 +37,11 @@
         }
 
         .btn-nav-exit {
-            background: #6c757d;
+            background: #FC8FB0;
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 6px;
+            border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
         }
@@ -59,12 +55,14 @@
 
         .sidebar-main {
             width: 240px;
-            background: white;
-            border-right: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.855);
+            border-right: 1px solid #ffe4ec;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 20px 0;
+            z-index: 1;
             box-sizing: border-box;
         }
 
@@ -80,46 +78,64 @@
             text-align: left;
             padding: 12px 20px;
             font-size: 14px;
+            margin: 0 5px 0 0;
             font-weight: 600;
+            border-radius: 0 50px 50px 0;
             cursor: pointer;
             color: #555;
             border-left: 4px solid transparent;
         }
 
         .nav-btn:hover {
-            background: #fafafa;
+            color: #000000;
+            background: #ffbed1;
+            border-left-color: #000000;
+
         }
 
         .nav-btn.active {
-            color: var(--primary);
-            background: #fff0f3;
-            border-left-color: var(--primary);
+            color: #000000;
+            background: #FC8FB0;
+            border-left-color: #000000;
         }
 
         .sidebar-sub {
             width: 200px;
-            background: #fdfdfd;
-            border-right: 1px solid var(--border);
             display: none;
+            background: rgba(255, 255, 255, 0.855);
+            border-right: 1px solid #ffe4ec;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+
             flex-direction: column;
             padding: 20px 0;
             box-sizing: border-box;
+            z-index: 0;
         }
 
         .sub-btn {
             background: none;
             border: none;
             text-align: left;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: 500;
+            padding: 12px 20px;
+            font-size: 14px;
+            margin: 0 5px 0 0;
+            font-weight: 600;
+            border-radius: 0 50px 50px 0;
             cursor: pointer;
-            color: #666;
+            color: #555;
+            border-left: 4px solid transparent;
         }
 
         .sub-btn.active {
-            color: var(--primary);
-            font-weight: bold;
+            color: #000000;
+            background: #FC8FB0;
+            border-left-color: #000000;
+        }
+
+        .sub-btn:hover {
+            color: #000000;
+            background: #ffbed1;
+            border-left-color: #000000;
         }
 
         .content-area {
@@ -127,10 +143,14 @@
             padding: 30px;
             overflow-y: auto;
             box-sizing: border-box;
-            background: white;
             margin: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+            background: rgba(255, 255, 255, 0.855);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+
         }
 
         .section-panel {
@@ -152,15 +172,15 @@
         .console-box {
             margin: 0 15px;
             padding: 12px;
-            background: #fff5f6;
+            background: #ffffff;
             border: 1px solid #fcc;
-            border-radius: 6px;
+            border-radius: 30px;
             font-size: 12px;
         }
 
         .console-header {
             font-weight: bold;
-            color: #c00;
+            color: #FC8FB0;
             margin-bottom: 5px;
             cursor: pointer;
             display: flex;
@@ -384,7 +404,7 @@
 
     <div class="navbar">
         <img src="/assets/img/logo/logo-rose.svg" alt="MM-CP">
-        <button type="button" class="btn-nav-exit" onclick="quitterEditeur()">Sortir</button>
+        <button type="button" class="btn-nav-exit" onclick="quitterEditeur()">Quitter</button>
     </div>
 
     <div class="main-layout">
@@ -433,7 +453,6 @@
         </div>
 
         <div class="content-area">
-
             <div id="sec-basique" class="section-panel active">
                 <h2>Information basique</h2>
                 <div class="form-group">
@@ -454,17 +473,118 @@
                     <input type="text" id="rel-artist" class="form-control" readonly>
                 </div>
 
-                <h3 style="margin-top:25px;">Profils Plateformes de l'Artiste</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>URL Profil Spotify (Optionnel)</label>
-                        <input type="url" id="artist-spotify" class="form-control"
-                            placeholder="Si vide, un nouveau profil sera généré par Morgann Music CP">
+                <h3 style="margin-top:25px;">Artistes en Feature (Feat)</h3>
+                <div id="selected-feats-list" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="ouvrirPopupFeatExistant()">+ Ajouter un
+                        artiste existant</button>
+                    <button type="button" class="btn btn-primary" onclick="ouvrirPopupNouveauFeat()">+ Nouvel/Nouvelle
+                        artiste</button>
+                </div>
+            </div>
+
+            <div id="modal-nouveau-feat"
+                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+                <div
+                    style="background:#fff; color:#333; padding:25px; border-radius:8px; width:90%; max-width:500px; max-height:90vh; overflow-y:auto;">
+                    <h3>Créer un nouvel Artiste (Feat)</h3>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label>Nom de l'artiste *</label>
+                        <input type="text" id="feat-new-name" class="form-control">
                     </div>
-                    <div class="form-group">
-                        <label>URL Profil Apple Music (Optionnel)</label>
-                        <input type="url" id="artist-apple" class="form-control"
-                            placeholder="Si vide, un nouveau profil sera généré par Morgann Music CP">
+
+                    <h4>Profils Plateformes</h4>
+
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Apple Music</span>
+                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('apple')">Lier un
+                                profil</button>
+                        </div>
+                        <div id="div-feat-apple" style="display:none; margin-top:5px;">
+                            <input type="text" id="url-feat-apple" class="form-control"
+                                placeholder="music.apple.com/...">
+                            <small class="err-msg" id="err-feat-apple" style="color:red; display:none;">Il faut un lien
+                                valide de la plateforme (music.apple.com)</small>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Spotify</span>
+                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('spotify')">Lier un
+                                profil</button>
+                        </div>
+                        <div id="div-feat-spotify" style="display:none; margin-top:5px;">
+                            <input type="text" id="url-feat-spotify" class="form-control"
+                                placeholder="open.spotify.uk/...">
+                            <small class="err-msg" id="err-feat-spotify" style="color:red; display:none;">Il faut un
+                                lien valide de la plateforme (open.spotify.uk)</small>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Amazon Music</span>
+                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('amazon')">Lier un
+                                profil</button>
+                        </div>
+                        <div id="div-feat-amazon" style="display:none; margin-top:5px;">
+                            <input type="text" id="url-feat-amazon" class="form-control" placeholder="music.amazon/...">
+                            <small class="err-msg" id="err-feat-amazon" style="color:red; display:none;">Il faut un lien
+                                valide de la plateforme (music.amazon)</small>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>SoundCloud</span>
+                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('soundcloud')">Lier un
+                                profil</button>
+                        </div>
+                        <div id="div-feat-soundcloud" style="display:none; margin-top:5px;">
+                            <input type="text" id="url-feat-soundcloud" class="form-control"
+                                placeholder="soundcloud.com/...">
+                            <small class="err-msg" id="err-feat-soundcloud" style="color:red; display:none;">Il faut un
+                                lien valide de la plateforme (soundcloud.com)</small>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Meta</span>
+                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('meta')">Lier un
+                                profil</button>
+                        </div>
+                        <div id="div-feat-meta" style="display:none; margin-top:5px;">
+                            <input type="text" id="url-feat-meta" class="form-control"
+                                placeholder="instagram.com/... ou facebook.com/...">
+                            <small class="err-msg" id="err-feat-meta" style="color:red; display:none;">Il faut un lien
+                                valide de la plateforme (instagram.com ou facebook.com)</small>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn btn-light"
+                            onclick="fermerPopupFeat('nouveau')">Annuler</button>
+                        <button type="button" class="btn btn-success"
+                            onclick="sauvegarderNouveauFeat()">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="modal-existant-feat"
+                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+                <div style="background:#fff; color:#333; padding:25px; border-radius:8px; width:90%; max-width:500px;">
+                    <h3>Sélectionner un Artiste existant</h3>
+                    <div id="liste-feat-existants"
+                        style="max-height:300px; overflow-y:auto; margin:15px 0; border:1px solid #eee; padding:10px; border-radius:5px;">
+                        <p style="color:#777; font-size:14px;">Chargement des artistes...</p>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px;">
+                        <button type="button" class="btn btn-light"
+                            onclick="fermerPopupFeat('existant')">Fermer</button>
                     </div>
                 </div>
             </div>
@@ -847,11 +967,33 @@
         </div>
     </div>
 
+
+    <div id="popup-quitter"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
+        <div
+            style="background-color: rgba(255, 255, 255, 0.95); border: 1px solid rgba(189, 189, 189, 0.5); border-radius: 34px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); padding: 35px; width: 90%; max-width: 400px; text-align: center; font-family: 'Segoe UI', sans-serif;">
+            <h2 style="margin: 0 0 15px 0; color: #222; font-size: 22px; font-weight: bold;">Attention !</h2>
+            <p style="color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 30px;">
+                Êtes-vous sûr de vouloir quitter ? Toutes vos modifications non enregistrées seront définitivement
+                perdues.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button type="button" onclick="fermerPopupQuitter()"
+                    style="padding: 12px 24px; border: 1px solid rgba(189, 189, 189, 0.8); background: transparent; color: #333; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 14px; transition: all 0.2s;">
+                    Rester ici
+                </button>
+                <button type="button" onclick="confirmerQuitter()"
+                    style="padding: 12px 24px; border: none; background: #dc3545; color: white; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);">
+                    Quitter
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+        import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
             authDomain: "morgann-music-cp.firebaseapp.com",
@@ -944,9 +1086,12 @@
                 document.getElementById("rel-type").value = objetSortie.type;
                 document.getElementById("rel-title").value = objetSortie.title;
                 document.getElementById("rel-artist").value = objetSortie.artistName;
-                document.getElementById("artist-spotify").value = objetSortie.spotifyUrl || "";
-                document.getElementById("artist-apple").value = objetSortie.appleUrl || "";
-
+                if (document.getElementById("artist-spotify")) {
+                    document.getElementById("artist-spotify").value = objetSortie.spotifyUrl || "";
+                }
+                if (document.getElementById("artist-apple")) {
+                    document.getElementById("artist-apple").value = objetSortie.appleUrl || "";
+                }
                 document.getElementById("date-release").value = objetSortie.releaseDate || "";
 
                 if (objetSortie.originalReleaseDate) {
@@ -1003,6 +1148,26 @@
                 }
 
                 renouvelerAffichageListePistes();
+            }
+
+            if (objetSortie.feats && Array.isArray(objetSortie.feats)) {
+                fetsSelectionnes = objetSortie.feats;
+                setTimeout(() => {
+                    mettreAJourVueFeats();
+                }, 1000);
+            }
+
+            if (objetSortie.feats && Array.isArray(objetSortie.feats)) {
+                fetsSelectionnes = objetSortie.feats;
+
+                setTimeout(() => {
+                    mettreAJourVueFeats();
+                }, 500);
+            } else {
+                fetsSelectionnes = [];
+                setTimeout(() => {
+                    mettreAJourVueFeats();
+                }, 500);
             }
         }
 
@@ -1133,6 +1298,173 @@
             });
         }
 
+        let fetsSelectionnes = [];
+
+        window.ouvrirPopupNouveauFeat = function () {
+            document.getElementById('modal-nouveau-feat').style.display = 'flex';
+        };
+
+        window.ouvrirPopupFeatExistant = async function () {
+            document.getElementById('modal-existant-feat').style.display = 'flex';
+            const container = document.getElementById('liste-feat-existants');
+            container.innerHTML = "Chargement...";
+
+            if (!uidConnecte) return;
+
+            try {
+                const qArtists = collection(db, "users", uidConnecte, "artists");
+                const snapArtists = await getDocs(qArtists);
+
+                const qFeats = collection(db, "users", uidConnecte, "feats");
+                const snapFeats = await getDocs(qFeats);
+
+                container.innerHTML = "";
+                let globalList = [];
+
+                snapArtists.forEach(docSnap => {
+                    if (docSnap.data().name) {
+                        globalList.push({ id: docSnap.id, name: docSnap.data().name, source: 'principal' });
+                    }
+                });
+                snapFeats.forEach(docSnap => {
+                    if (docSnap.data().name && !globalList.some(a => a.name.toLowerCase() === docSnap.data().name.toLowerCase())) {
+                        globalList.push({ id: docSnap.id, name: docSnap.data().name, source: 'feat' });
+                    }
+                });
+
+                if (globalList.length === 0) {
+                    container.innerHTML = "<p style='color:#777; font-size:13px;'>Aucun artiste enregistré trouvé.</p>";
+                    return;
+                }
+
+                globalList.forEach(artist => {
+                    const row = document.createElement('div');
+                    row.style = "padding:8px; border-bottom:1px solid #f9f9f9; display:flex; justify-content:space-between; align-items:center; cursor:pointer;";
+                    row.innerHTML = `
+                <div style="flex:1;"><strong>${artist.name}</strong> <small style="color:#aaa;">(${artist.source})</small></div>
+                <button type="button" class="btn btn-sm btn-primary">Sélectionner</button>
+            `;
+                    row.addEventListener('click', () => {
+                        ajouterFeatALaSortie(artist.name);
+                        fermerPopupFeat('existant');
+                    });
+                    container.appendChild(row);
+                });
+
+            } catch (err) {
+                console.error("Erreur chargement artistes existants:", err);
+                container.innerHTML = "Erreur au chargement.";
+            }
+        };
+
+        window.sauvegarderNouveauFeat = async function () {
+            const name = document.getElementById('feat-new-name').value.trim();
+            if (!name) {
+                alert("Le nom de l'artiste est obligatoire.");
+                return;
+            }
+
+            const urlApple = document.getElementById('url-feat-apple').value.trim();
+            const urlSpotify = document.getElementById('url-feat-spotify').value.trim();
+            const urlAmazon = document.getElementById('url-feat-amazon').value.trim();
+            const urlSoundcloud = document.getElementById('url-feat-soundcloud').value.trim();
+            const urlMeta = document.getElementById('url-feat-meta').value.trim();
+
+            let aUneErreur = false;
+            ['apple', 'spotify', 'amazon', 'soundcloud', 'meta'].forEach(p => {
+                document.getElementById(`err-feat-${p}`).style.display = 'none';
+            });
+
+            if (urlApple && !urlApple.includes('music.apple.com')) {
+                document.getElementById('err-feat-apple').style.display = 'block';
+                aUneErreur = true;
+            }
+            if (urlSpotify && !urlSpotify.includes('open.spotify.uk')) {
+                document.getElementById('err-feat-spotify').style.display = 'block';
+                aUneErreur = true;
+            }
+            if (urlAmazon && !urlAmazon.includes('music.amazon')) {
+                document.getElementById('err-feat-amazon').style.display = 'block';
+                aUneErreur = true;
+            }
+            if (urlSoundcloud && !urlSoundcloud.includes('soundcloud.com')) {
+                document.getElementById('err-feat-soundcloud').style.display = 'block';
+                aUneErreur = true;
+            }
+            if (urlMeta && !urlMeta.includes('instagram.com') && !urlMeta.includes('facebook.com')) {
+                document.getElementById('err-feat-meta').style.display = 'block';
+                aUneErreur = true;
+            }
+
+            if (aUneErreur) return;
+
+            const payload = {
+                name: name,
+                links: {
+                    apple: urlApple,
+                    spotify: urlSpotify,
+                    amazon: urlAmazon,
+                    soundcloud: urlSoundcloud,
+                    meta: urlMeta
+                },
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                if (uidConnecte) {
+                    await addDoc(collection(db, "users", uidConnecte, "feats"), payload);
+                    ajouterFeatALaSortie(name);
+                    fermerPopupFeat('nouveau');
+                } else {
+                    alert("Erreur: Vous devez être connecté.");
+                }
+            } catch (err) {
+                console.error("Erreur lors de l'enregistrement de l'artiste feat:", err);
+                alert("Erreur durant la sauvegarde en base.");
+            }
+        };
+
+        function ajouterFeatALaSortie(artistName) {
+            if (!fetsSelectionnes.includes(artistName)) {
+                fetsSelectionnes.push(artistName);
+                mettreAJourVueFeats();
+            }
+        }
+
+        window.fermerPopupFeat = function (type) {
+            if (type === 'nouveau') {
+                document.getElementById('modal-nouveau-feat').style.display = 'none';
+                document.getElementById('feat-new-name').value = "";
+                ['apple', 'spotify', 'amazon', 'soundcloud', 'meta'].forEach(p => {
+                    document.getElementById(`div-feat-${p}`).style.display = 'none';
+                    document.getElementById(`url-feat-${p}`).value = "";
+                    document.getElementById(`err-feat-${p}`).style.display = 'none';
+                });
+            } else {
+                document.getElementById('modal-existant-feat').style.display = 'none';
+            }
+        };
+
+        function mettreAJourVueFeats() {
+            const container = document.getElementById('selected-feats-list');
+            container.innerHTML = "";
+
+            fetsSelectionnes.forEach(name => {
+                const pill = document.createElement('div');
+                pill.style = "background:#eee; color:#333; padding:5px 10px; border-radius:15px; font-size:13px; display:flex; align-items:center; gap:8px;";
+                pill.innerHTML = `
+            <span>${name}</span>
+            <span style="cursor:pointer; font-weight:bold; color:red;" onclick="retirerFeatDeLaSortie('${name}')">×</span>
+        `;
+                container.appendChild(pill);
+            });
+        }
+
+        window.retirerFeatDeLaSortie = function (name) {
+            fetsSelectionnes = fetsSelectionnes.filter(a => a !== name);
+            mettreAJourVueFeats();
+        };
+
         async function executerUploadPochetteR2(file) {
             const fill = document.getElementById("progress-cover-fill");
             document.getElementById("progress-cover-container").style.display = "block";
@@ -1153,7 +1485,7 @@
                 analyserConsole();
                 setTimeout(() => { document.getElementById("progress-cover-container").style.display = "none"; }, 1000);
             } catch (err) {
-                showToast("Échec du téléversement R2 : " + err.message, "error");
+                showToast("Échec du téléversement sur MMCP R2 : " + err.message, "error");
                 document.getElementById("progress-cover-container").style.display = "none";
             }
         }
@@ -1203,7 +1535,7 @@
                         headers: { "Content-Type": mimeType, "X-Audio-Type": "main" },
                         body: file
                     });
-                    if (!res.ok) throw new Error("R2 Rejection");
+                    if (!res.ok) throw new Error("MMCP R2 Rejection");
                     const data = await res.json();
 
                     const titrePisteInitiale = (objetSortie.tracks.length === 0 && objetSortie.title)
@@ -1249,7 +1581,7 @@
             const ext = file.name.split('.').pop().toLowerCase() || "wav";
             const statusDiv = document.getElementById("status-atmos");
             statusDiv.style.display = "block";
-            statusDiv.innerText = "Téléversement Atmos vers R2...";
+            statusDiv.innerText = "Téléversement Atmos vers MMCP R2...";
             statusDiv.style.color = "var(--primary)";
 
             try {
@@ -1259,7 +1591,7 @@
                     headers: { "Content-Type": file.type || "audio/wav", "X-Audio-Type": "atmos" },
                     body: file
                 });
-                if (!res.ok) throw new Error("R2 Rejection");
+                if (!res.ok) throw new Error("MMCP R2 Rejection");
                 const data = await res.json();
 
                 track.atmosAudioUrl = data.url;
@@ -1280,7 +1612,7 @@
             const ext = file.name.split('.').pop().toLowerCase() || "wav";
             const statusDiv = document.getElementById("status-inst");
             statusDiv.style.display = "block";
-            statusDiv.innerText = "Téléversement de l'instrumental vers R2...";
+            statusDiv.innerText = "Téléversement de l'instrumental vers MMCP R2...";
             statusDiv.style.color = "var(--primary)";
 
             try {
@@ -1290,7 +1622,7 @@
                     headers: { "Content-Type": file.type || "audio/wav", "X-Audio-Type": "instrumental" },
                     body: file
                 });
-                if (!res.ok) throw new Error("R2 Rejection");
+                if (!res.ok) throw new Error("MMCP R2 Rejection");
                 const data = await res.json();
 
                 track.instrumentalAudioUrl = data.url;
@@ -1311,7 +1643,7 @@
             const ext = file.name.split('.').pop().toLowerCase() || "wav";
             const statusDiv = document.getElementById("status-adm");
             statusDiv.style.display = "block";
-            statusDiv.innerText = "Téléversement Apple Digital Master...";
+            statusDiv.innerText = "Téléversement Apple Digital Master sur MMCP R2...";
             statusDiv.style.color = "var(--primary)";
 
             try {
@@ -1321,7 +1653,7 @@
                     headers: { "Content-Type": file.type || "audio/wav", "X-Audio-Type": "adm" },
                     body: file
                 });
-                if (!res.ok) throw new Error("R2 Rejection");
+                if (!res.ok) throw new Error("MMCP R2 Rejection");
                 const data = await res.json();
 
                 track.admAudioUrl = data.url;
@@ -1510,7 +1842,7 @@
             }
 
             if (!objetSortie.title) erreurs.push("Nom de la sortie obligatoire.");
-            if (!objetSortie.coverUrl) erreurs.push("Pochette d'art manquante ou non téléversée sur R2.");
+            if (!objetSortie.coverUrl) erreurs.push("Pochette d'art manquante ou non téléversée sur MMCP R2.");
             if (!objetSortie.releaseDate) erreurs.push("Date de libération principale non spécifiée.");
 
             if (userPlan === "label" || userPlan === "white-label") {
@@ -1542,9 +1874,11 @@
             objetSortie.type = document.getElementById("rel-type").value;
             objetSortie.title = document.getElementById("rel-title").value.trim();
             objetSortie.artistName = document.getElementById("rel-artist").value.trim();
-            objetSortie.spotifyUrl = document.getElementById("artist-spotify").value.trim();
-            objetSortie.appleUrl = document.getElementById("artist-apple").value.trim();
+            const inputSpotify = document.getElementById("artist-spotify");
+            objetSortie.spotifyUrl = inputSpotify ? inputSpotify.value : "";
 
+            const inputApple = document.getElementById("artist-apple");
+            objetSortie.appleUrl = inputApple ? inputApple.value : "";
             objetSortie.releaseDate = document.getElementById("date-release").value;
 
             const chkOriginal = document.getElementById("chk-original-date").checked;
@@ -1597,11 +1931,16 @@
 
             const ref = doc(db, "users", uidConnecte, "releases", currentReleaseId);
             await updateDoc(ref, objetSortie);
+
+            objetSortie.feats = fetsSelectionnes || [];
+
+            const docRef = doc(db, "users", uidConnecte, "releases", currentReleaseId);
+            await updateDoc(docRef, objetSortie);
         }
 
         window.sauvegarderEtQuitter = async function () {
             await collecterEtPousserDonneesFirestore();
-            window.location.href = `sorties.html?sortie=${currentReleaseId}`;
+            window.location.href = `sortie.html?id=${currentReleaseId}`;
         };
 
         window.publierSortie = async function () {
@@ -1649,8 +1988,103 @@
                 onConfirm();
                 closeConfirm();
             };
+
+
+        };
+
+        window.toggleConsoleDetail = function () {
+            let modalErreur = document.getElementById('modal-details-erreurs');
+
+            if (!modalErreur) {
+                modalErreur = document.createElement('div');
+                modalErreur.id = 'modal-details-erreurs';
+                modalErreur.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;";
+                modalErreur.innerHTML = `
+            <div style="background:#fff; color:#333; padding:25px; border-radius:8px; width:90%; max-width:500px;">
+                <h3>Détails des validations de la sortie</h3>
+                <div id="contenu-details-erreurs" style="margin: 15px 0; max-height: 300px; overflow-y: auto; font-size: 14px; line-height: 1.5;">
+                    </div>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-details-erreurs').style.display='none'">Fermer</button>
+                </div>
+            </div>
+        `;
+                document.body.appendChild(modalErreur);
+            }
+
+            if (modalErreur.style.display === 'none' || modalErreur.style.display === '') {
+                const zoneContenu = document.getElementById('contenu-details-erreurs');
+                zoneContenu.innerHTML = genererRapportErreursHtml();
+
+                modalErreur.style.display = 'flex';
+            } else {
+                modalErreur.style.display = 'none';
+            }
+        };
+
+        function genererRapportErreursHtml() {
+            let html = "";
+            let listErreurs = [];
+
+            if (!objetSortie.title) listErreurs.push("Le <strong>Nom de la sortie</strong> est obligatoire.");
+            if (!objetSortie.artistName) listErreurs.push("L'<strong>Artiste principal</strong> est manquant.");
+            if (!objetSortie.releaseDate) listErreurs.push("La <strong>Date de sortie</strong> n'a pas été définie.");
+            if (!objetSortie.coverUrl) listErreurs.push("La <strong>Pochette (Cover)</strong> de la sortie est obligatoire.");
+            if (!objetSortie.tracks || objetSortie.tracks.length === 0) listErreurs.push("Votre sortie doit contenir au moins <strong>1 piste audio</strong>.");
+
+            if (listErreurs.length === 0) {
+                return "<p style='color:green; font-weight:bold;'>✓ Tout est en ordre ! Votre sortie est prête à être envoyée.</p>";
+            }
+
+            html += "<ul style='color:#c0392b; padding-left:20px;'>";
+            listErreurs.forEach(err => {
+                html += `<li style='margin-bottom:8px;'>${err}</li>`;
+            });
+            html += "</ul>";
+
+            return html;
+        }
+
+        window.toggleFeatInput = function () {
+            const conteneurFeat = document.getElementById("formulaire-ajout-feat");
+
+            if (conteneurFeat) {
+                if (conteneurFeat.style.display === "none" || conteneurFeat.style.display === "") {
+                    conteneurFeat.style.display = "block";
+                } else {
+                    conteneurFeat.style.display = "none";
+                }
+            } else {
+                console.error("Impossible de trouver l'élément HTML pour ajouter un feat.");
+            }
+        };
+
+        window.quitterEditeur = function () {
+            const popup = document.getElementById("popup-quitter");
+            if (popup) {
+                popup.style.display = "flex";
+            }
+        };
+
+        window.fermerPopupQuitter = function () {
+            const popup = document.getElementById("popup-quitter");
+            if (popup) {
+                popup.style.display = "none";
+            }
+        };
+
+        window.confirmerQuitter = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idSortie = urlParams.get('sortie') || (typeof currentReleaseId !== 'undefined' ? currentReleaseId : releaseId);
+
+            if (idSortie) {
+                window.location.href = `sortie.html?id=${idSortie}`;
+            } else {
+                window.location.href = "index.html";
+            }
         };
     </script>
+
 </body>
 
 </html>
