@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portail Admin Global - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
     <style>
@@ -14,12 +15,17 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            justify-content: center;
         }
 
         .cards {
             display: flex;
+            flex-wrap: wrap;
+            /* Permet aux cartes de passer en dessous si l'écran est trop petit */
             margin-top: 3rem;
             gap: 1rem;
+            align-items: center;
+            justify-content: center;
         }
 
         .card {
@@ -27,6 +33,8 @@
             flex-direction: column;
             background-color: rgba(232, 232, 232, 0.75);
             width: 250px;
+            max-width: 100%;
+            /* Empêche la carte de dépasser de l'écran du téléphone */
             height: 150px;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -34,6 +42,8 @@
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.207);
             padding: 20px;
+            box-sizing: border-box;
+            /* Évite que le padding élargisse la carte au-delà de sa taille */
         }
 
         .card p {
@@ -68,15 +78,14 @@
             display: flex;
             flex-direction: column;
             background-color: rgba(232, 232, 232, 0.75);
-            width: 555px;
-            height: 252px;
+            width: 250px;
+            height: 150px;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(189, 189, 189, 0.438);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.207);
             padding: 20px;
-            box-sizing: border-box;
         }
 
         .revenus-header {
@@ -106,7 +115,7 @@
         .revenus-amount {
             font-size: 38px;
             font-weight: 800;
-            color: #2563eb;
+            color: #FC8FB0;
             /* Bleu plus contrasté sur fond clair */
             letter-spacing: -0.5px;
         }
@@ -170,32 +179,23 @@
     <script src="js/sidebar.js"></script>
 
     <div class="main-content">
-        <div class="revenus-card">
-            <div class="revenus-header">
-                <div class="revenus-title-block">
-                    <span class="revenus-icon">💰</span>
-                    <span class="revenus-title">Mes Revenus</span>
-                </div>
-            </div>
-
-            <div class="revenus-main">
-                <div class="revenus-amount-wrapper">
-                    <div id="user-revenus-total" class="revenus-amount">0,00 €</div>
-                    <div class="revenus-trend up">Solde disponible à la demande</div>
-                </div>
-            </div>
-
-            <hr class="revenus-divider">
-
-            <div class="revenus-footer">
-                <div class="revenus-meta">
-                    <span>Prochain versement automatique : <strong>Le 15 du mois</strong></span>
-                </div>
-                <a href="mes-revenus.html" class="btn-revenus-action">Voir les détails & graphiques ➔</a>
-            </div>
-        </div>
-
         <div class="cards">
+
+            <div class="card">
+                <div class="revenus-header">
+                    <div class="revenus-title-block">
+                        <span class="revenus-icon">💰</span>
+                        <span class="revenus-title">Mes Revenus</span>
+                    </div>
+                </div>
+                <div class="revenus-main">
+                    <div class="revenus-amount-wrapper">
+                        <div id="user-revenus-total" class="revenus-amount">0,00 €</div>
+                    </div>
+                </div>
+                <a href="https://support.mm-cp.uk/type-de-compte">En savoir plus</a>
+            </div>
+
             <div class="card">
                 <p>Plan</p>
                 <h1>Pro</h1>
@@ -207,6 +207,7 @@
                 <h1>Standard</h1>
                 <a href="https://support.mm-cp.uk/type-de-compte">En savoir plus</a>
             </div>
+
         </div>
     </div>
 

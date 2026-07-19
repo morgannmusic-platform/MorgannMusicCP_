@@ -1,7 +1,7 @@
 <div class="navbar-inner">
 
     <div class="nav-dropdown-wrapper">
-        <div class="profile-trigger" onclick="toggleDropdown('dropdown-profile')">
+        <div class="profile-trigger">
             <img id="nav-avatar" src="/assets/img/photodeprofil/default-avatar.png" alt="Profil"
                 onerror="this.src='default.png'">
         </div>
@@ -11,12 +11,12 @@
             <a href="admin.html" id="nav-admin-link" style="display: none; color: #d01159; font-weight: bold;">Portail
                 Admin</a>
             <hr class="dropdown-divider">
-            <button type="button" class="dropdown-btn-logout" onclick="deconnexionNavbar()">Déconnexion</button>
+            <button type="button" class="dropdown-btn-logout">Déconnexion</button>
         </div>
     </div>
 
     <div class="nav-dropdown-wrapper">
-        <button type="button" class="btn-create-trigger" onclick="toggleDropdown('dropdown-create')">
+        <button type="button" class="btn-create-trigger">
             Actions Catalogue ▾
         </button>
         <div id="dropdown-create" class="nav-dropdown dropdown-center">
@@ -26,7 +26,7 @@
     </div>
 
     <div class="nav-dropdown-wrapper">
-        <div class="notification-trigger" onclick="toggleDropdown('dropdown-notifications')">
+        <div class="notification-trigger">
             <span class="notification-icon">🔔</span>
             <span id="nav-notif-badge" class="notif-badge" style="display: none;">0</span>
         </div>
@@ -42,8 +42,9 @@
 
 </div>
 
+
+
 <style>
-    /* Design Global Décollé et Arrondi */
     .navbar-inner {
         background-color: rgba(232, 232, 232, 0.75);
         backdrop-filter: blur(12px);
@@ -58,15 +59,14 @@
         justify-content: space-between;
         box-sizing: border-box;
         position: relative;
+        z-index: 5000;
     }
 
-    /* Positionnement des menus */
     .nav-dropdown-wrapper {
         position: relative;
         display: inline-block;
     }
 
-    /* Trigger Gauche : Profil */
     .profile-trigger {
         width: 42px;
         height: 42px;
@@ -87,7 +87,6 @@
         object-fit: cover;
     }
 
-    /* Trigger Centre : Bouton d'action */
     .btn-create-trigger {
         background: #FC8FB0;
         color: white;
@@ -105,7 +104,6 @@
         background: #FC8FB0;
     }
 
-    /* Trigger Droite : Cloche */
     .notification-trigger {
         font-size: 22px;
         cursor: pointer;
@@ -126,19 +124,30 @@
         border: 2px solid #1e293b;
     }
 
-    /* Style Standardisé des Fenêtres Déroulantes (Dropdowns) */
+    #navbar-container {
+        position: relative;
+        z-index: 9999;
+    }
+
     .nav-dropdown {
         display: none;
         position: absolute;
         top: 55px;
-        background: #151f32;
-        border: 1px solid #334155;
-        border-radius: 12px;
         width: 220px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        z-index: 1000;
+        z-index: 6000;
         padding: 8px 0;
         box-sizing: border-box;
+
+        background-color: #EEEEEE;
+
+        transform: translateZ(0);
+
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+
+        border: 1px solid rgba(189, 189, 189, 0.6);
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     }
 
     .nav-dropdown.dropdown-center {
@@ -151,27 +160,38 @@
         width: 280px;
     }
 
-    /* Liens et Boutons des Dropdowns */
     .nav-dropdown a,
     .nav-dropdown button {
         display: block;
-        width: 100%;
+        width: 90%;
+        /* Prend 90% de la largeur du dropdown */
         padding: 10px 16px;
+        margin: 4px auto;
+        /* Le 'auto' centre parfaitement le bloc et son hover */
         box-sizing: border-box;
         color: #000000;
         text-decoration: none;
         font-size: 13px;
         font-weight: 600;
-        text-align: left;
+        text-align: center;
+        /* Centre le texte à l'intérieur du bloc */
         background: none;
         border: none;
+        border-radius: 12px;
+        /* Optionnel : arrondit les angles du background au hover pour aller avec ton design */
         cursor: pointer;
         transition: background 0.15s, color 0.15s;
     }
 
     .nav-dropdown a:hover,
     .nav-dropdown button:hover {
-        background: #1e293b;
+        background: #FC8FB0;
+        color: #f8fafc;
+    }
+
+    .nav-dropdown a:hover,
+    .nav-dropdown button:hover {
+        background: #FC8FB0;
         color: #f8fafc;
     }
 
@@ -182,10 +202,9 @@
     }
 
     .dropdown-btn-logout {
-        color: #FC8FB0 !important;
+        color: #000000 !important;
     }
 
-    /* Section Interne Notifications */
     .dropdown-header {
         padding: 6px 16px;
         font-size: 11px;
@@ -204,7 +223,7 @@
 
     .dropdown-footer-link {
         text-align: center !important;
-        color: #38bdf8 !important;
+        color: #000000 !important;
         font-size: 12px !important;
     }
 
@@ -218,17 +237,13 @@
 </style>
 
 <script>
-    // 1. GESTION DES AFFICHAGES DES MENUS DÉROULANTS
     function toggleDropdown(id) {
         const target = document.getElementById(id);
 
-        // Correction : On utilise getComputedStyle pour connaître la réalité du CSS
         const isCurrentlyOpen = window.getComputedStyle(target).display === "block";
 
-        // Ferme tous les autres menus ouverts avant d'ouvrir le bon
         fermerTousLesDropdowns();
 
-        // Si le menu était fermé, on l'ouvre
         if (!isCurrentlyOpen) {
             target.style.display = "block";
         }
@@ -240,14 +255,12 @@
         });
     }
 
-    // Fermeture automatique si on clique en dehors d'un menu
     window.addEventListener('click', function (e) {
         if (!e.target.closest('.nav-dropdown-wrapper')) {
             fermerTousLesDropdowns();
         }
     });
 
-    // 2. DISPATCHER DE DÉCONNEXION FONCTIONNELLE
     function deconnexionNavbar() {
         if (typeof auth !== 'undefined') {
             auth.signOut().then(() => { window.location.href = "login.html"; });
@@ -255,4 +268,18 @@
             alert("Action simulée : Déconnexion de l'espace de distribution MM-CP.");
         }
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const currentPage = window.location.pathname.split("/").pop();
+
+        const navLinks = document.querySelectorAll(".nav-dropdown a");
+
+        navLinks.forEach(link => {
+            const linkPage = link.getAttribute("href");
+
+            if (currentPage === linkPage) {
+                link.classList.add("active");
+            }
+        });
+    });
 </script>

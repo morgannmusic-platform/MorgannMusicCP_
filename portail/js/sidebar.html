@@ -1,3 +1,25 @@
+<head>
+    <script>
+        // Écoute globale : fonctionne à tous les coups, même en injection dynamique
+        document.addEventListener("click", (e) => {
+            // Regarde si on a cliqué sur le bouton "+" ou un de ses enfants (.plus-icon)
+            const btnMore = e.target.closest("#btn-more");
+            const moreWrapper = document.querySelector(".more-dropdown-wrapper");
+
+            if (btnMore && moreWrapper) {
+                e.stopPropagation(); // Empêche le clic de fermer immédiatement le menu
+                moreWrapper.classList.toggle("open");
+                return;
+            }
+
+            // Si le menu est ouvert et qu'on clique n'importe où ailleurs, on le ferme
+            if (moreWrapper && moreWrapper.classList.contains("open") && !e.target.closest(".more-dropdown-wrapper")) {
+                moreWrapper.classList.remove("open");
+            }
+        });
+    </script>
+</head>
+
 <nav class="responsive-nav">
     <ul>
         <li>
@@ -18,15 +40,28 @@
                 <span class="text">Mes Artistes</span>
             </a>
         </li>
-        <li>
-            <a href="/support/index.html">
-                <img src="/assets/img/icon/Information-Circle--Streamline-Flex.svg" alt="" class="icon">
-                <span class="text">Support</span>
-            </a>
+
+        <li class="more-dropdown-wrapper">
+            <button type="button" class="btn-more-trigger" id="btn-more">
+                <span class="plus-icon">+</span>
+            </button>
+            <div class="more-menu" id="more-links-menu">
+                <a href="/support/index.html">
+                    <img src="/assets/img/icon/Information-Circle--Streamline-Flex.svg" alt="" class="icon">
+                    <span class="text-dropdown">Support</span>
+                </a>
+                <a href="reglages.html">
+                    <img src="/assets/img/icon/Home-2--Streamline-Flex.svg" alt="" class="icon">
+                    <span class="text-dropdown">Réglages</span>
+                </a>
+                <a href="profil.html">
+                    <img src="/assets/img/icon/Artist-Song--Streamline-Flex.svg" alt="" class="icon">
+                    <span class="text-dropdown">Mon Profil</span>
+                </a>
+            </div>
         </li>
     </ul>
 </nav>
-
 <style>
     /* --- STYLE DE BASE & RESPONSIVE MOBILE (Bas de l'écran) --- */
     .responsive-nav {
@@ -36,12 +71,10 @@
         transform: translateX(-50%);
         width: 90%;
         max-width: 450px;
-
         background-color: rgba(232, 232, 232, 0.75);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(189, 189, 189, 0.438);
-
         border-radius: 54px;
         box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
         padding: 12px 16px;
@@ -55,26 +88,31 @@
         justify-content: space-between;
         margin: 0;
         padding: 0;
+        gap: 10px;
     }
 
     .responsive-nav li {
         flex: 1;
+        display: flex;
+        /* Aligne le li verticalement */
+        align-items: center;
+        justify-content: center;
     }
 
     .responsive-nav a {
         display: flex;
         flex-direction: column;
-        /* Icône au-dessus du texte sur mobile */
         align-items: center;
         justify-content: center;
         color: #6e6e6e;
         text-decoration: none;
         font-size: 11px;
         font-weight: 500;
-        gap: 6px;
         transition: all 0.2s ease;
         padding: 8px 0;
-        border-radius: 16px;
+        width: 100%;
+        /* Force la pastille rose à prendre toute la place du li */
+        border-radius: 50px;
     }
 
     /* Icône SVG/Image adaptative */
@@ -85,15 +123,160 @@
         transition: transform 0.2s ease;
     }
 
+    /* FIX 1 : On cache le texte proprement sur mobile sans casser l'alignement vertical */
+    .responsive-nav li .text {
+        display: none !important;
+    }
+
     /* --- EFFETS HOVER & ACTIVE --- */
     .responsive-nav a:hover,
     .responsive-nav a.active {
-        color: #555555;
-        background-color: rgb(255, 255, 255);
+        color: #ffffff;
+        background-color: #FC8FB0;
     }
 
     .responsive-nav a:hover .icon {
         transform: translateY(-2px);
+        filter: invert(1);
+    }
+
+    .responsive-nav img:hover,
+    .responsive-nav .active img {
+        filter: brightness(100) invert(1);
+    }
+
+    /* --- GESTION DU BOUTON PLUS --- */
+    .more-dropdown-wrapper {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .btn-more-trigger {
+        background: none;
+        border: none;
+        color: #6e6e6e;
+        font-size: 26px;
+        font-weight: 300;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s, transform 0.2s;
+    }
+
+    .btn-more-trigger .plus-icon {
+        display: inline-block;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .more-dropdown-wrapper.open .btn-more-trigger .plus-icon {
+        transform: rotate(135deg);
+        color: #FC8FB0;
+    }
+
+    /* --- LE DROPDOWN DROIT & PROPRE --- */
+    .more-menu {
+        position: absolute;
+        bottom: 75px;
+        left: 50%;
+        transform: translateX(-50%) translateY(15px);
+
+        width: 50px;
+        /* Moins large sur mobile car il n'y a que l'icône */
+
+        background-color: rgba(240, 240, 240, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(189, 189, 189, 0.5);
+
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        /* Animations */
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 5000;
+    }
+
+    .more-dropdown-wrapper.open .more-menu {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* --- STYLE DES LIENS DU DROPDOWN --- */
+    .more-menu a {
+        display: flex;
+        align-items: center;
+        /* Aligne l'icône et le texte sur la même ligne */
+        justify-content: flex-start;
+        gap: 12px;
+        /* Espace entre l'icône et le texte */
+        width: 100%;
+        padding: 10px 14px;
+        box-sizing: border-box;
+        color: #333333;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 16px;
+        /* Belles billes arrondies */
+        transition: background 0.2s, color 0.2s;
+    }
+
+    /* Le texte reste visible partout (il ne subit pas le display: none du mobile) */
+    .more-menu .text-dropdown {
+        display: inline-block !important;
+    }
+
+    /* Même comportement au survol que ta navbar principale */
+    .more-menu a:hover,
+    .more-menu a.active {
+        background-color: #FC8FB0;
+        color: #ffffff;
+    }
+
+    .more-menu a:hover .icon,
+    .more-menu a.active .icon {
+        filter: brightness(100) invert(1);
+        /* Icône blanche au survol */
+        transform: translateX(2px);
+        /* Petit effet de glissement sympa */
+    }
+
+    /* --- ADAPTATION VERSION ORDINATEUR (DOCK GAUCHE) --- */
+    @media (min-width: 768px) {
+        .more-menu {
+            bottom: auto;
+            left: 185px;
+            /* S'ouvre sur la droite du bloc PC */
+            top: 0;
+            transform: translateX(-15px) translateY(0);
+        }
+
+        .more-dropdown-wrapper.open .more-menu {
+            transform: translateX(0) translateY(0) !important;
+        }
+
+        .btn-more-trigger {
+            font-size: 32px;
+            padding: 12px 0;
+        }
+    }
+
+    /* Le texte est caché par défaut sur mobile */
+    .more-menu .text-dropdown {
+        display: none !important;
     }
 
     /* --- VERSION ORDINATEUR (Menu Dock Vertical à Gauche) --- */
@@ -103,9 +286,7 @@
             left: 20px;
             top: 50%;
             transform: translateY(-50%);
-
             width: 170px;
-            /* Légèrement élargi pour éviter que le texte long ne coupe */
             max-width: none;
             height: auto;
             padding: 24px 12px;
@@ -119,14 +300,11 @@
 
         .responsive-nav a {
             flex-direction: row;
-            /* Icône et texte côte à côte sur PC */
             justify-content: flex-start;
-            /* Aligné à gauche du bouton */
             padding: 12px 16px;
             gap: 12px;
-            /* Espace entre l'icône et le texte */
             font-size: 13px;
-            /* Texte un poil plus grand sur PC */
+            border-radius: 15px;
         }
 
         .responsive-nav .icon {
@@ -136,7 +314,27 @@
 
         .responsive-nav a:hover .icon {
             transform: translateX(2px);
-            /* Sur PC, l'icône bouge vers la droite plutôt que vers le haut */
+        }
+
+        /* FIX 2 : On force le texte à réapparaître sur ordinateur */
+        .responsive-nav li .text {
+            display: flex !important;
+        }
+
+        /* FIX 3 : Correction de la trajectoire d'ouverture du "+" sur PC */
+        .more-menu {
+            bottom: auto;
+            left: 185px;
+            top: 0;
+            transform: translateX(-15px) translateY(0);
+        }
+
+        .more-dropdown-wrapper.open .more-menu {
+            transform: translateX(0) translateY(0) !important;
+        }
+
+        .btn-more-trigger {
+            font-size: 28px;
         }
     }
 </style>
