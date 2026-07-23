@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Retraits (Admin) - MM-CP</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 20px auto;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #482732;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #FC8FB0;
+            color: white;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-demande {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-envoye {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-refuse {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Gestion des demandes de retrait</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Montant</th>
+                    <th>IBAN</th>
+                    <th>Statut actuel</th>
+                    <th>Changer le statut</th>
+                </tr>
+            </thead>
+            <tbody id="withdrawals-body">
+                <tr>
+                    <td colspan="5" style="text-align:center; color:#999;">Chargement des demandes...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                chargerDemandes();
+            } else {
+                window.location.href = "../login.html";
+            }
+        });
+
+        async function chargerDemandes() {
+            const tbody = document.getElementById("withdrawals-body");
+            tbody.innerHTML = "";
+
+            try {
+                const snap = await getDocs(collection(db, "withdrawals"));
+                if (snap.empty) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Aucune demande de retrait enregistrée.</td></tr>`;
+                    return;
+                }
+
+                snap.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+
+                    const tr = document.createElement("tr");
+
+                    let badgeClass = "badge-demande";
+                    if (data.status === "envoyé") badgeClass = "badge-envoye";
+                    if (data.status === "refusé") badgeClass = "badge-refuse";
+
+                    tr.innerHTML = `
+                        <td>${data.userEmail || data.userId}</td>
+                        <td><strong>${(data.amount || 0).toFixed(2)} €</strong></td>
+                        <td style="font-family: monospace;">${data.iban || "-"}</td>
+                        <td><span class="badge ${badgeClass}">${data.status}</span></td>
+                        <td>
+                            <select onchange="modifierStatut('${id}', '${data.userId}', ${data.amount}, this.value)">
+                                <option value="demandé" ${data.status === "demandé" ? "selected" : ""}>demandé</option>
+                                <option value="envoyé" ${data.status === "envoyé" ? "selected" : ""}>envoyé</option>
+                                <option value="refusé" ${data.status === "refusé" ? "selected" : ""}>refusé</option>
+                            </select>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Erreur : ${err.message}</td></tr>`;
+            }
+        }
+
+        window.modifierStatut = async function (withdrawId, userId, amount, nouveauStatut) {
+            try {
+                // 1. Mettre à jour le statut du retrait
+                await updateDoc(doc(db, "withdrawals", withdrawId), {
+                    status: nouveauStatut
+                });
+
+                // 2. Créer une notification pour l'utilisateur
+                let titre = "Mise à jour de votre retrait";
+                let messageNotif = `Le statut de votre demande de retrait de ${amount.toFixed(2)} € est désormais : ${nouveauStatut}.`;
+
+                await addDoc(collection(db, "users", userId, "notifications"), {
+                    titre: titre,
+                    notif: messageNotif,
+                    createdAt: serverTimestamp()
+                });
+
+                alert("Statut mis à jour et notification envoyée !");
+                chargerDemandes();
+            } catch (err) {
+                alert("Erreur lors de la modification : " + err.message);
+            }
+        };
+    </script>
+</body>
+
+</html>

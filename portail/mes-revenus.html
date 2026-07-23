@@ -3,13 +3,16 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Mes Rapports Financiers - MM-CP</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
             margin: 0;
             padding: 20px;
         }
@@ -40,21 +43,81 @@
         }
 
         .client-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             padding: 24px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
+        }
+
+        .card-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #482732;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .card-title {
             font-size: 18px;
             font-weight: 700;
+            color: #000000;
+            margin: 0;
+        }
+
+        /* Message d'information sur les délais de versement */
+        .info-notice {
+            background-color: #ffceda;
+            border-left: 4px solid #FC8FB0;
+            color: #482732;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
             margin-bottom: 20px;
-            color: #f8fafc;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Bouton de retrait */
+        .btn-withdraw {
+            background: #FC8FB0;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background 0.2s, transform 0.1s;
+            display: inline-block;
+        }
+
+        .btn-withdraw:hover {
+            background: #e07495;
+            transform: translateY(-1px);
+        }
+
+        /* Selecteur d'année stylisé */
+        .year-select {
+            background: #ffffff;
+            border: 1px solid #FC8FB0;
+            color: #333;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .year-select:focus {
+            box-shadow: 0 0 5px rgba(252, 143, 176, 0.5);
         }
 
         /* Conteneur de graphique */
@@ -76,65 +139,98 @@
         td {
             padding: 14px 16px;
             text-align: left;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid #553342;
         }
 
         th {
-            background: #151f32;
-            color: #94a3b8;
+            background: #FC8FB0;
+            color: #ffffff;
             font-weight: 600;
             font-size: 11px;
             text-transform: uppercase;
+            border-radius: 20px 20px 0 0;
         }
 
         tr:hover {
-            background: #24334a;
+            background: #ffbed2;
+        }
+
+        tr:hover .text-green {
+            color: #553342;
         }
 
         .text-green {
-            color: #22c55e;
+            color: #FC8FB0;
             font-weight: 700;
         }
     </style>
 </head>
 
 <body>
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
 
-    <div class="layout-table">
-        <div class="layout-row">
+    <div class="main-content">
+        <div class="layout-table">
+            <div class="layout-row">
+                <div class="layout-main-cell">
+                    <div id="navbar-injector" class="navbar-container"></div>
 
-            <div id="sidebar-injector" class="layout-sidebar-cell"></div>
-
-            <div class="layout-main-cell">
-                <div id="navbar-injector" class="navbar-container"></div>
-
-                <div class="client-card">
-                    <div class="card-title">Évolution de mes Royalties</div>
-                    <div class="chart-container">
-                        <canvas id="analyticsChart"></canvas>
+                    <div class="info-notice">
+                        <span><img src="/assets/img/icon/Information-Circle--Streamline-Flex.svg" alt="">
+                        </span>
+                        <span><strong>Information importante :</strong> Les revenus générés par les écoutes apparaissent
+                            généralement avec un décalage de <strong>3 à 6 mois</strong>, correspondant aux délais
+                            d'analyse et de paiement des différentes plateformes de streaming ( Apple Music, Spotify,
+                            Deezer, etc.).</span>
                     </div>
-                </div>
 
-                <div class="client-card">
-                    <div class="card-title">Détails des gains par projet</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Période</th>
-                                <th>Projet Musical / Sortie</th>
-                                <th>Artiste</th>
-                                <th>Montant perçu</th>
-                            </tr>
-                        </thead>
-                        <tbody id="client-history-body">
-                            <tr>
-                                <td colspan="4" style="color: #94a3b8; text-align:center;">Analyse des données
-                                    financières en cours...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                    <div class="client-card">
+                        <div class="card-header-actions">
+                            <h2 class="card-title">Évolution de mes Royalties</h2>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <a href="retraits.html" class="btn-withdraw">💰 Retirer mes revenus</a>
+                                <div>
+                                    <label for="select-year"
+                                        style="font-size: 13px; font-weight: 600; margin-right: 8px;">Année :</label>
+                                    <select id="select-year" class="year-select">
+                                        <option value="">Chargement...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="analyticsChart"></canvas>
+                        </div>
+                    </div>
 
+                    <div class="client-card">
+                        <div class="card-title"
+                            style="border-bottom: 1px solid #482732; padding-bottom: 10px; margin-bottom: 20px;">
+                            Détails des gains par projet
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Période</th>
+                                    <th>Projet Musical / Sortie</th>
+                                    <th>Artiste</th>
+                                    <th>Montant perçu</th>
+                                </tr>
+                            </thead>
+                            <tbody id="client-history-body">
+                                <tr>
+                                    <td colspan="4" style="color: #94a3b8; text-align:center;">
+                                        Analyse des données financières en cours...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
@@ -144,7 +240,6 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Ta configuration Firebase identique
         const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
             authDomain: "morgann-music-cp.firebaseapp.com",
@@ -158,15 +253,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Initialisation globale de l'injection des composants structurels
-        async function injecterComposants() {
-            try {
-                const resSidebar = await fetch('sidebar.html');
-                if (resSidebar.ok) document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
-                const resNavbar = await fetch('navbar.html');
-                if (resNavbar.ok) document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
-            } catch (e) { console.error(e); }
-        }
+        let chartInstance = null;
+        let toutesLesFinances = [];
+
+        const ORDRE_MOIS = {
+            "Janvier": 1, "Février": 2, "Mars": 3, "Avril": 4,
+            "Mai": 5, "Juin": 6, "Juillet": 7, "Août": 8,
+            "Septembre": 9, "Octobre": 10, "Novembre": 11, "Décembre": 12
+        };
+
+        // La fonction injecterComposants() a été retirée pour supprimer l'erreur 404
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -183,54 +279,109 @@
                 const snap = await getDocs(collection(db, "users", uid, "finances"));
                 if (snap.empty) {
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Aucun relevé financier n'a encore été publié pour votre compte.</td></tr>`;
-                    genererGraphique({}, []);
+                    document.getElementById("select-year").innerHTML = `<option value="">Aucune donnée</option>`;
+                    genererGraphique([], []);
                     return;
                 }
 
-                tbody.innerHTML = "";
-                let donneesMensuelles = {};
+                toutesLesFinances = [];
+                const anneesTrouvees = new Set();
 
-                snap.forEach((doc) => {
-                    const f = doc.data();
+                snap.forEach((docSnap) => {
+                    const f = docSnap.data();
+                    const periodStr = f.period || "";
 
-                    // Agrégation des montants par mois pour le graphique
-                    const periode = f.period || "Inconnu";
-                    donneesMensuelles[periode] = (donneesMensuelles[periode] || 0) + (f.amount || 0);
+                    const parts = periodStr.trim().split(" ");
+                    const mois = parts[0] || "Inconnu";
+                    const annee = parts[1] || "Inconnue";
 
-                    // Remplissage du tableau
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                    <td style="font-weight:600;">${periode}</td>
-                    <td>${f.releaseTitle || "Vente directe catalogue"}</td>
-                    <td>${f.artistName || "-"}</td>
-                    <td class="text-green">+ ${(f.amount || 0).toFixed(2)} €</td>
-                `;
-                    tbody.appendChild(tr);
+                    if (parts[1]) anneesTrouvees.add(annee);
+
+                    toutesLesFinances.push({
+                        ...f,
+                        mois: mois,
+                        annee: annee,
+                        moisIndex: ORDRE_MOIS[mois] || 99
+                    });
                 });
 
-                // Préparation des axes pour le graphique
-                const moisLabels = Object.keys(donneesMensuelles);
-                const valeursGains = Object.values(donneesMensuelles);
+                const selectYear = document.getElementById("select-year");
+                selectYear.innerHTML = "";
 
-                genererGraphique(moisLabels, valeursGains);
+                const anneesTriees = Array.from(anneesTrouvees).sort((a, b) => b - a);
+
+                if (anneesTriees.length === 0) {
+                    selectYear.innerHTML = `<option value="all">Toutes</option>`;
+                } else {
+                    anneesTriees.forEach(annee => {
+                        const opt = document.createElement("option");
+                        opt.value = annee;
+                        opt.textContent = annee;
+                        selectYear.appendChild(opt);
+                    });
+                }
+
+                selectYear.onchange = () => afficherDonneesPourAnnee(selectYear.value);
+
+                afficherDonneesPourAnnee(anneesTriees[0] || "all");
 
             } catch (err) {
                 tbody.innerHTML = `<tr><td colspan="4" style="color:#f43f5e; text-align:center;">Erreur de lecture : ${err.message}</td></tr>`;
             }
         }
 
-        // Fonction de rendu du graphique Chart.js
+        function afficherDonneesPourAnnee(anneeCible) {
+            const tbody = document.getElementById("client-history-body");
+            tbody.innerHTML = "";
+
+            let financesFiltrees = toutesLesFinances.filter(item => anneeCible === "all" || item.annee === anneeCible);
+
+            financesFiltrees.sort((a, b) => a.moisIndex - b.moisIndex);
+
+            if (financesFiltrees.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Aucune donnée pour l'année ${anneeCible}.</td></tr>`;
+                genererGraphique([], []);
+                return;
+            }
+
+            let donneesGraphique = {};
+
+            financesFiltrees.forEach((f) => {
+                const totalMoisKey = `${f.mois}`;
+                donneesGraphique[totalMoisKey] = (donneesGraphique[totalMoisKey] || 0) + (f.amount || 0);
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                <td style="font-weight:600;">${f.period}</td>
+                <td>${f.releaseTitle || "Vente directe catalogue"}</td>
+                <td>${f.artistName || "-"}</td>
+                <td class="text-green">+ ${(f.amount || 0).toFixed(2)} €</td>
+            `;
+                tbody.appendChild(tr);
+            });
+
+            const labelsGraphique = Object.keys(donneesGraphique).sort((a, b) => (ORDRE_MOIS[a] || 99) - (ORDRE_MOIS[b] || 99));
+            const valeursGraphique = labelsGraphique.map(m => donneesGraphique[m]);
+
+            genererGraphique(labelsGraphique, valeursGraphique);
+        }
+
         function genererGraphique(labels, data) {
             const ctx = document.getElementById('analyticsChart').getContext('2d');
-            new Chart(ctx, {
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Royalties Net (€)',
                         data: data,
-                        borderColor: '#38bdf8', // Cyan
-                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderColor: '#FC8FB0',
+                        backgroundColor: '#fc8fb052',
                         borderWidth: 3,
                         tension: 0.3,
                         fill: true
@@ -244,19 +395,17 @@
                     },
                     scales: {
                         y: {
-                            grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8' }
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: { color: '#666' }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#94a3b8' }
+                            ticks: { color: '#666' }
                         }
                     }
                 }
             });
         }
-
-        injecterComposants();
     </script>
 </body>
 

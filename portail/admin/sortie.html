@@ -181,6 +181,14 @@
                     <div class="form-group"><label>Spotify URL</label><input type="text" id="edit-spotifyUrl"></div>
                     <div class="form-group"><label>Apple Music URL</label><input type="text" id="edit-appleUrl"></div>
                     <div class="form-group"><label>Territoires</label><input type="text" id="edit-territories"></div>
+
+                    <div class="form-group"><label>Afficher sur le catalogue MMCP</label>
+                        <select id="edit-showOnMmcpCatalog">
+                            <option value="true">Oui (Activé par défaut)</option>
+                            <option value="false">Non (Masqué)</option>
+                        </select>
+                    </div>
+
                     <div class="form-group"><label>Plateformes manuelles</label>
                         <select id="edit-manualPlatforms">
                             <option value="true">Oui</option>
@@ -208,7 +216,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collectionGroup, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, collectionGroup, getDocs, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
@@ -219,14 +227,21 @@
             appId: "1:666812685196:web:fe3df6749ae768d68494a9"
         };
 
-        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
-        const urlParams = new URLSearchParams(window.location.search); const releaseId = urlParams.get('id');
-        let detectUserId = null; let pistesActuelles = [];
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const releaseId = urlParams.get('id');
+        let detectUserId = null;
+        let pistesActuelles = [];
+        let ancienStatut = "";
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = "../login.html"; return; }
             try {
-                const userRef = doc(db, "users", user.uid); const userSnap = await getDoc(userRef);
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
                 if (!userSnap.exists() || userSnap.data().role !== "admin") {
                     alert("Accès interdit."); window.location.href = "../sorties.html"; return;
                 }
@@ -251,18 +266,25 @@
             querySnapshot.forEach(d => { if (d.id === releaseId) cibleDoc = d; });
 
             if (cibleDoc) {
-                const data = cibleDoc.data(); detectUserId = cibleDoc.ref.parent.parent.id;
+                const data = cibleDoc.data();
+                detectUserId = cibleDoc.ref.parent.parent.id;
+                ancienStatut = data.status || "";
 
                 const simples = ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "spotifyUrl", "appleUrl", "territories", "status"];
                 simples.forEach(f => {
                     document.getElementById(`edit-${f}`).value = data[f] || "";
                 });
+
+                // Chargement de l'option Catalogue MMCP (True par défaut)
+                document.getElementById("edit-showOnMmcpCatalog").value = data.showOnMmcpCatalog !== undefined ? String(data.showOnMmcpCatalog) : "true";
+
                 document.getElementById("edit-manualPlatforms").value = data.manualPlatforms !== undefined ? String(data.manualPlatforms) : "false";
                 document.getElementById("edit-selectedPlatforms").value = Array.isArray(data.selectedPlatforms) ? data.selectedPlatforms.join(", ") : "";
                 document.getElementById("edit-additionalDeliveries").value = Array.isArray(data.additionalDeliveries) ? data.additionalDeliveries.join(", ") : "";
 
                 pistesActuelles = data.tracks || [];
-                const container = document.getElementById("admin-tracks-list"); container.innerHTML = "";
+                const container = document.getElementById("admin-tracks-list");
+                container.innerHTML = "";
 
                 pistesActuelles.forEach((t, i) => {
                     const box = document.createElement("div"); box.className = "track-box";
@@ -297,6 +319,47 @@
             }
         }
 
+        // Fonction d'envoi de notification automatique
+        async function envoyerNotificationStatut(userId, titleRelease, nouveauStatut) {
+            let message = "";
+
+            switch (nouveauStatut) {
+                case "verification mmcp":
+                    message = `Votre sortie "${titleRelease}" est en cours de vérification par Morgann Music CP.`;
+                    break;
+                case "verification plate-formes":
+                    message = `Votre sortie "${titleRelease}" est en cours de vérification par les plateformes.`;
+                    break;
+                case "livrée":
+                    message = `Votre sortie "${titleRelease}" a été livrée aux plateformes en attente de la date de sortie.`;
+                    break;
+                case "direct":
+                    message = `Votre sortie "${titleRelease}" est en direct sur les plateformes, félicitations !`;
+                    break;
+                case "retrait":
+                    message = `Nous avons reçu votre demande de retrait pour la sortie "${titleRelease}".`;
+                    break;
+                case "retiré":
+                    message = `Votre sortie "${titleRelease}" a bien été retirée des plateformes.`;
+                    break;
+                default:
+                    message = `Le statut de votre sortie "${titleRelease}" a été mis à jour vers "${nouveauStatut}".`;
+                    break;
+            }
+
+            try {
+                const notifRef = collection(db, "users", userId, "notifications");
+                await addDoc(notifRef, {
+                    titre: "Mise à jour de votre sortie",
+                    notif: message,
+                    read: false,
+                    createdAt: serverTimestamp()
+                });
+            } catch (err) {
+                console.error("Erreur d'envoi de la notification :", err);
+            }
+        }
+
         window.sauvegarderSortieAdmin = async function () {
             pistesActuelles.forEach((t, i) => {
                 pistesActuelles[i].title = document.getElementById(`t-title-${i}`).value;
@@ -311,7 +374,6 @@
                 pistesActuelles[i].audioUrl = document.getElementById(`t-audio-${i}`).value;
                 pistesActuelles[i].instrumentalAudioUrl = document.getElementById(`t-inst-${i}`).value;
 
-                // Sauvegarde des nouveaux champs Dolby Atmos dans l'objet map de la piste
                 pistesActuelles[i].atmosAudioUrl = document.getElementById(`t-atmos-${i}`).value.trim();
                 pistesActuelles[i].atmosInstrumentalAudioUrl = document.getElementById(`t-atmos-inst-${i}`).value.trim();
 
@@ -324,19 +386,42 @@
 
             const selPlat = document.getElementById("edit-selectedPlatforms").value;
             const addDel = document.getElementById("edit-additionalDeliveries").value;
+            let nouveauStatut = document.getElementById("edit-status").value;
+            const releaseTitle = document.getElementById("edit-title").value || "Sans titre";
+            const releaseDateVal = document.getElementById("edit-releaseDate").value;
+
+            // VÉRIFICATION AUTOMATIQUE : Si la date de sortie est atteinte/dépassée, le statut bascule à "direct"
+            if (releaseDateVal) {
+                const today = new Date().toISOString().split('T')[0];
+                if (today >= releaseDateVal && nouveauStatut !== "retrait" && nouveauStatut !== "retiré") {
+                    nouveauStatut = "direct";
+                    document.getElementById("edit-status").value = "direct";
+                }
+            }
 
             const updateData = {
+                showOnMmcpCatalog: document.getElementById("edit-showOnMmcpCatalog").value === "true",
                 manualPlatforms: document.getElementById("edit-manualPlatforms").value === "true",
                 selectedPlatforms: selPlat ? selPlat.split(",").map(s => s.trim()) : [],
                 additionalDeliveries: addDel ? addDel.split(",").map(s => s.trim()) : [],
                 tracks: pistesActuelles
             };
-            ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "spotifyUrl", "appleUrl", "territories", "status"].forEach(f => {
+
+            ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "spotifyUrl", "appleUrl", "territories"].forEach(f => {
                 updateData[f] = document.getElementById("edit-" + f).value;
             });
 
+            updateData["status"] = nouveauStatut;
+
             try {
                 await updateDoc(doc(db, "users", detectUserId, "releases", releaseId), updateData);
+
+                // Si le statut a changé, on envoie la notification personnalisée
+                if (nouveauStatut !== ancienStatut) {
+                    await envoyerNotificationStatut(detectUserId, releaseTitle, nouveauStatut);
+                    ancienStatut = nouveauStatut; // Mise à jour de l'ancien statut localement
+                }
+
                 alert("Firestore synchronisé intégralement avec succès !");
             } catch (err) { alert(err.message); }
         }

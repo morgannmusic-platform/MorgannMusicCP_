@@ -233,7 +233,7 @@
 <body>
 
     <div id="navbar-container"></div>
-    <script src="js/navbar.js"></script>
+    <script type="module" src="js/navbar.js"></script>
     <div id="sidebar-container"></div>
     <script src="js/sidebar.js"></script>
     <div class="main-content">
@@ -409,11 +409,9 @@
     </div>
 
     <script type="module">
-        // artistes.html
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, addDoc, setDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
             authDomain: "morgann-music-cp.firebaseapp.com",
@@ -424,7 +422,8 @@
             measurementId: "G-FKSSXYEZF0"
         };
 
-        const app = initializeApp(firebaseConfig);
+        // Vérifie si l'application est déjà initialisée
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
         const db = getFirestore(app);
 

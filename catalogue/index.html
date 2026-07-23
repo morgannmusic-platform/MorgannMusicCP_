@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Catalogue MM-CP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="/assets/js/navbar.js" defer></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            margin-top: 80px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pill-nav-container {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(189, 189, 189, 0.4);
+            border-radius: 35px;
+            padding: 20px 25px;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+            gap: 15px;
+            box-sizing: border-box;
+        }
+
+        .pill-tabs {
+            display: inline-flex;
+            gap: 8px;
+            background: rgba(235, 238, 242, 0.7);
+            padding: 6px;
+            border-radius: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pill-link {
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .pill-link:hover,
+        .pill-link.active {
+            background: #FC8FB0;
+            color: white;
+        }
+
+        .pill-search-bar {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pill-search-bar input {
+            width: 100%;
+            padding: 12px 22px;
+            border-radius: 25px;
+            border: 1px solid #ddd;
+            outline: none;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: #ffffff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .pill-search-bar input:focus {
+            border-color: #FC8FB0;
+            box-shadow: 0 0 8px rgba(252, 143, 176, 0.3);
+        }
+
+        .stats-banner {
+            background-color: rgba(232, 232, 232, 0.35);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-item h3 {
+            margin: 0;
+            font-size: 32px;
+            color: #FC8FB0;
+            font-weight: 800;
+        }
+
+        .stat-item p {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #888;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .btn-see-more {
+            background: #FC8FB0;
+            color: white;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+
+        .btn-see-more:hover {
+            opacity: 0.85;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 25px;
+            padding: 15px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: #FC8FB0;
+        }
+
+        .card-img {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 18px;
+            object-fit: cover;
+            background: #eee;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 15px;
+            margin: 0 0 4px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: #777;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar"></div>
+
+    <div class="container">
+
+        <div class="pill-nav-container">
+            <div class="pill-tabs">
+                <a href="index.html" class="pill-link active">Accueil</a>
+                <a href="sorties.html" class="pill-link">Sorties</a>
+                <a href="artistes.html" class="pill-link">Artistes</a>
+                <a href="prochainement.html" class="pill-link">Prochainement</a>
+                <a href="dernierement.html" class="pill-link">Dernièrement</a>
+            </div>
+            <div class="pill-search-bar">
+                <input type="text" id="global-search" placeholder="Rechercher une sortie, un artiste...">
+            </div>
+        </div>
+
+        <div class="stats-banner">
+            <div class="stat-item">
+                <h3 id="stat-sorties">-</h3>
+                <p>Sorties</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="stat-artistes">-</h3>
+                <p>Artistes</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="stat-pistes">-</h3>
+                <p>Pistes</p>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2 class="section-title">Dernières Sorties</h2>
+            <a href="sorties.html" class="btn-see-more">Voir toutes les sorties</a>
+        </div>
+        <div class="cards-grid" id="grid-releases"></div>
+
+        <div class="section-header">
+            <h2 class="section-title">Artistes Récents</h2>
+            <a href="artistes.html" class="btn-see-more">Voir tous les artistes</a>
+        </div>
+        <div class="cards-grid" id="grid-artists"></div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import {
+            getFirestore,
+            collectionGroup,
+            getDocs,
+            query,
+            where
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function initCatalogHome() {
+            try {
+                const catalogQuery = query(collectionGroup(db, "releases"));
+                const snapshot = await getDocs(catalogQuery);
+                const allReleases = [];
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+
+                    const isCatalogVisible = data.showOnMmcpCatalog === true || data.showOnMmcpCatalog === "true";
+                    const isDirectStatus = data.status === "direct";
+
+                    if (isCatalogVisible && isDirectStatus) {
+                        allReleases.push({
+                            id: docSnap.id,
+                            ...data
+                        });
+                    }
+                });
+
+                allReleases.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
+
+                let totalPistes = 0;
+                const setArtistesUniques = new Set();
+
+                allReleases.forEach(rel => {
+                    if (Array.isArray(rel.tracks)) {
+                        totalPistes += rel.tracks.length;
+                    }
+                    if (rel.artistName) {
+                        setArtistesUniques.add(rel.artistName.trim());
+                    }
+                });
+
+                document.getElementById("stat-sorties").innerText = allReleases.length;
+                document.getElementById("stat-artistes").innerText = setArtistesUniques.size;
+                document.getElementById("stat-pistes").innerText = totalPistes;
+
+                const artistDocsSnapshot = await getDocs(query(collectionGroup(db, "artists")));
+                const profilePhotosByName = new Map();
+
+                artistDocsSnapshot.forEach(docSnap => {
+                    const artistData = docSnap.data();
+                    if (artistData.name && artistData.photo) {
+                        profilePhotosByName.set(artistData.name.trim().toLowerCase(), artistData.photo);
+                    }
+                });
+
+                const recentArtistsMap = new Map();
+                for (const rel of allReleases) {
+                    if (rel.artistName && !recentArtistsMap.has(rel.artistName)) {
+                        recentArtistsMap.set(rel.artistName, {
+                            name: rel.artistName,
+                            fallbackCover: rel.coverUrl || "https://via.placeholder.com/300?text=Artiste"
+                        });
+                    }
+                }
+
+
+                function renderReleases(releasesList) {
+                    const gridReleases = document.getElementById("grid-releases");
+                    gridReleases.innerHTML = "";
+
+                    if (releasesList.length === 0) {
+                        gridReleases.innerHTML = "<p style='color:#888;'>Aucune sortie trouvée.</p>";
+                        return;
+                    }
+
+                    releasesList.forEach(rel => {
+                        const card = document.createElement("div");
+                        card.className = "card";
+                        card.onclick = () => window.location.href = `sortie.html?id=${rel.id}`;
+
+                        const cover = rel.coverUrl || "https://via.placeholder.com/300?text=No+Cover";
+                        card.innerHTML = `
+                    <img src="${cover}" class="card-img" alt="${rel.title}">
+                    <p class="card-title">${rel.title || 'Sans titre'}</p>
+                    <p class="card-subtitle">${rel.artistName || 'Artiste inconnu'}</p>
+                `;
+                        gridReleases.appendChild(card);
+                    });
+                }
+
+                function renderArtists(artistsList) {
+                    const gridArtists = document.getElementById("grid-artists");
+                    gridArtists.innerHTML = "";
+
+                    if (artistsList.length === 0) {
+                        gridArtists.innerHTML = "<p style='color:#888;'>Aucun artiste trouvé.</p>";
+                        return;
+                    }
+
+                    artistsList.forEach(artist => {
+                        const normalizedName = artist.name.trim().toLowerCase();
+                        const finalPhoto = profilePhotosByName.get(normalizedName) || artist.fallbackCover;
+
+                        const card = document.createElement("div");
+                        card.className = "card";
+                        card.onclick = () => window.location.href = `artiste.html?name=${encodeURIComponent(artist.name)}`;
+
+                        card.innerHTML = `
+                    <img src="${finalPhoto}" class="card-img" style="border-radius: 50%;" alt="${artist.name}">
+                    <p class="card-title" style="text-align: center;">${artist.name}</p>
+                    <p class="card-subtitle" style="text-align: center;">Artiste</p>
+                `;
+                        gridArtists.appendChild(card);
+                    });
+                }
+
+                renderReleases(allReleases.slice(0, 5));
+                renderArtists(Array.from(recentArtistsMap.values()).slice(0, 5));
+
+                const searchInput = document.getElementById("global-search");
+
+                searchInput.addEventListener("input", (e) => {
+                    const queryText = e.target.value.trim().toLowerCase();
+
+                    if (queryText === "") {
+                        renderReleases(allReleases.slice(0, 5));
+                        renderArtists(Array.from(recentArtistsMap.values()).slice(0, 5));
+                    } else {
+                        const filteredReleases = allReleases.filter(rel =>
+                            (rel.title && rel.title.toLowerCase().includes(queryText)) ||
+                            (rel.artistName && rel.artistName.toLowerCase().includes(queryText))
+                        );
+
+                        const filteredArtists = Array.from(recentArtistsMap.values()).filter(artist =>
+                            artist.name.toLowerCase().includes(queryText)
+                        );
+
+                        renderReleases(filteredReleases);
+                        renderArtists(filteredArtists);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Erreur lors du chargement des données du catalogue :", error);
+            }
+        }
+
+        initCatalogHome();
+
+    </script>
+</body>
+
+</html>

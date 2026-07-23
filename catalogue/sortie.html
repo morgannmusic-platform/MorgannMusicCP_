@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Détail de la Sortie - Catalogue MMCP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="/assets/js/navbar.js" defer></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin-top: 80px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            min-height: calc(100vh - 200px);
+            padding: 20px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #555;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 25px;
+            padding: 8px 16px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid rgba(189, 189, 189, 0.4);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: #FC8FB0;
+            color: #ffffff;
+            border-color: #FC8FB0;
+        }
+
+        .release-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(189, 189, 189, 0.4);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .release-header {
+            display: flex;
+            gap: 35px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .release-cover {
+            width: 260px;
+            height: 260px;
+            border-radius: 24px;
+            object-fit: cover;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            background: #eee;
+            flex-shrink: 0;
+        }
+
+        .release-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 280px;
+        }
+
+        .badge-status {
+            align-self: flex-start;
+            background: rgba(252, 143, 176, 0.15);
+            color: #FC8FB0;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 14px;
+            border-radius: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-status.direct {
+            background: rgba(76, 175, 80, 0.15);
+            color: #2E7D32;
+        }
+
+        .release-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0;
+            color: #111;
+            line-height: 1.2;
+        }
+
+        .release-artist {
+            font-size: 20px;
+            color: #FC8FB0;
+            font-weight: 700;
+            margin: 0;
+            text-decoration: none;
+            display: inline-block;
+            transition: color 0.2s ease;
+        }
+
+        .release-artist:hover {
+            color: #d6688a;
+            text-decoration: underline;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 12px;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .meta-value {
+            font-size: 15px;
+            color: #222;
+            font-weight: 700;
+        }
+
+        .tracks-section {
+            border-top: 1px dashed rgba(189, 189, 189, 0.6);
+            padding-top: 25px;
+        }
+
+        .tracks-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+
+        .tracks-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .track-item {
+            background: rgba(244, 246, 249, 0.8);
+            padding: 14px 20px;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .track-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .track-num {
+            color: #FC8FB0;
+            font-weight: 800;
+            width: 25px;
+        }
+
+        .track-audio-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        audio {
+            height: 36px;
+            outline: none;
+            max-width: 280px;
+        }
+
+        .audio-unavailable {
+            font-size: 13px;
+            color: #888;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .loading-state,
+        .error-state {
+            text-align: center;
+            padding: 80px 0;
+            color: #777;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 650px) {
+            .release-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .badge-status {
+                align-self: center;
+            }
+
+            .meta-grid {
+                text-align: left;
+            }
+
+            .track-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            audio {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar"></div>
+
+    <div class="container">
+        <a href="javascript:history.back()" class="back-btn">← Retour</a>
+
+        <div id="content-area">
+            <div class="loading-state">Chargement des informations du projet...</div>
+        </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import {
+            getFirestore,
+            collectionGroup,
+            getDocs,
+            query
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const releaseId = urlParams.get('id');
+
+        async function loadReleaseDetails() {
+            const contentArea = document.getElementById("content-area");
+
+            if (!releaseId) {
+                contentArea.innerHTML = `<div class="error-state">Aucun identifiant de sortie spécifié.</div>`;
+                return;
+            }
+
+            try {
+                const catalogQuery = query(collectionGroup(db, "releases"));
+                const snapshot = await getDocs(catalogQuery);
+
+                let releaseData = null;
+
+                snapshot.forEach(docSnap => {
+                    if (docSnap.id === releaseId) {
+                        const artistUserId = docSnap.ref.parent.parent ? docSnap.ref.parent.parent.id : null;
+
+                        releaseData = {
+                            id: docSnap.id,
+                            artistUserId: artistUserId,
+                            ...docSnap.data()
+                        };
+                    }
+                });
+
+                if (!releaseData) {
+                    contentArea.innerHTML = `<div class="error-state">Sortie introuvable dans le catalogue.</div>`;
+                    return;
+                }
+
+                renderRelease(releaseData);
+
+            } catch (error) {
+                console.error("Erreur lors de la récupération de la sortie :", error);
+                contentArea.innerHTML = `<div class="error-state">Erreur de chargement des données.</div>`;
+            }
+        }
+
+        function renderRelease(data) {
+            const contentArea = document.getElementById("content-area");
+
+            const cover = data.coverUrl || "https://via.placeholder.com/300?text=Pochette";
+            const title = data.title || "Sans titre";
+            const artistName = data.artistName || "Artiste inconnu";
+            const artistId = data.artistUserId || data.artistId || "";
+            const type = data.type || "Non spécifié";
+            const genre = data.genre || data.primaryGenre || "Non renseigné";
+            const upc = data.upc || data.barcode || "N/A";
+
+            // Vérification du statut "livree"
+            const statusRaw = (data.status || "Inconnu").trim();
+            const normalizedStatus = statusRaw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const isLivree = normalizedStatus === "livree";
+            const isDirect = normalizedStatus === "direct";
+
+            const badgeClass = isDirect ? "badge-status direct" : "badge-status";
+
+            const artistHtml = artistId
+                ? `<a href="artiste.html?id=${artistId}" class="release-artist">${artistName}</a>`
+                : `<span class="release-artist" style="color:#666; cursor:default;">${artistName}</span>`;
+
+            const releaseDateRaw = data.originalReleaseDate || data.releaseDate;
+            let formattedDate = "Non précisée";
+            if (releaseDateRaw) {
+                const dateObj = new Date(releaseDateRaw);
+                formattedDate = dateObj.toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                });
+            }
+
+            // Génération de la tracklist
+            let tracksHtml = "";
+            if (Array.isArray(data.tracks) && data.tracks.length > 0) {
+                const itemsHtml = data.tracks.map((track, index) => {
+                    let trackTitle = "Piste " + (index + 1);
+                    let audioUrl = null;
+
+                    if (typeof track === 'string') {
+                        trackTitle = track;
+                    } else if (typeof track === 'object' && track !== null) {
+                        trackTitle = track.title || (track.artists && track.artists[0] ? track.artists[0].name : 'Piste ' + (index + 1));
+                        // Priorité au fichier MP3 s'il existe, sinon repli sur d'autres formats audio
+                        audioUrl = track.mp3Url || track.fileUrl || track.audioUrl || track.previewUrl || null;
+                    }
+
+                    let playerHtml = "";
+
+                    if (isLivree) {
+                        playerHtml = `<span class="audio-unavailable">Extrait indisponible (en préparation)</span>`;
+                    } else if (audioUrl) {
+                        playerHtml = `
+                            <audio controls controlsList="nodownload" preload="metadata">
+                                <source src="${audioUrl}" type="audio/mpeg">
+                                <source src="${audioUrl}" type="audio/wav">
+                                Votre navigateur ne supporte pas la lecture audio.
+                            </audio>
+                        `;
+                    } else {
+                        playerHtml = `<span class="audio-unavailable">Aucun fichier audio lié</span>`;
+                    }
+
+                    return `
+                        <li class="track-item">
+                            <div class="track-left">
+                                <span class="track-num">${String(index + 1).padStart(2, '0')}</span>
+                                <span>${trackTitle}</span>
+                            </div>
+                            <div class="track-audio-container">
+                                ${playerHtml}
+                            </div>
+                        </li>
+                    `;
+                }).join("");
+
+                tracksHtml = `
+                    <div class="tracks-section">
+                        <h3 class="tracks-title">Pistes (${data.tracks.length})</h3>
+                        <ul class="tracks-list">
+                            ${itemsHtml}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            contentArea.innerHTML = `
+                <article class="release-card">
+                    <div class="release-header">
+                        <img src="${cover}" alt="${title}" class="release-cover">
+                        <div class="release-info">
+                            <span class="${badgeClass}">${statusRaw}</span>
+                            <h1 class="release-title">${title}</h1>
+                            ${artistHtml}
+
+                            <div class="meta-grid">
+                                <div class="meta-item">
+                                    <span class="meta-label">Date de Sortie</span>
+                                    <span class="meta-value">${formattedDate}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Format / Type</span>
+                                    <span class="meta-value">${type}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">Genre</span>
+                                    <span class="meta-value">${genre}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">UPC / Barcode</span>
+                                    <span class="meta-value">${upc}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ${tracksHtml}
+                </article>
+            `;
+        }
+
+        loadReleaseDetails();
+    </script>
+</body>
+
+</html>

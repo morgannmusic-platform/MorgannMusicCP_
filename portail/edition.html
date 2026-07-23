@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Éditeur de Sortie - MM-CP</title>
     <meta name="theme-color" content="#FFEFF4">
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -991,9 +992,43 @@
     </div>
 
     <script type="module">
+        // À placer tout en haut dans votre <script type="module">
+        window.analyserConsole = function () {
+            const listElem = document.getElementById("console-items");
+            const countElem = document.getElementById("console-count");
+            if (!listElem || !countElem) return;
+
+            let erreurs = [];
+
+            // Vérifications basiques des champs obligatoires
+            const title = document.getElementById("rel-title")?.value;
+            if (!title || !title.trim()) erreurs.push("Titre de la sortie manquant");
+
+            const genre = document.getElementById("genre-1")?.value;
+            if (!genre) erreurs.push("Genre principal non sélectionné");
+
+            const lang = document.getElementById("rel-lang")?.value;
+            if (!lang) erreurs.push("Langue de la sortie non renseignée");
+
+            if (typeof objetSortie !== 'undefined' && (!objetSortie.tracks || objetSortie.tracks.length === 0)) {
+                erreurs.push("Aucune piste audio n'a été ajoutée");
+            }
+
+            // Mise à jour de l'affichage dans la console HTML
+            countElem.innerText = `(${erreurs.length} manquant${erreurs.length > 1 ? 's' : ''})`;
+            listElem.innerHTML = erreurs.map(err => `<li>${err}</li>`).join("");
+
+            // Activation / Désactivation du bouton Publier
+            const btnPub = document.getElementById("btn-publier");
+            if (btnPub) {
+                btnPub.disabled = erreurs.length > 0;
+            }
+        };
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
             authDomain: "morgann-music-cp.firebaseapp.com",
@@ -1007,6 +1042,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         let currentReleaseId = new URLSearchParams(window.location.search).get("sortie");
         let uidConnecte = null;
@@ -1501,173 +1537,276 @@
             document.getElementById("modal-motion").style.display = "flex";
         };
 
+
         window.ouvrirLancementFichierAudio = function () {
             document.getElementById("file-audio-main").click();
         };
 
+        if (typeof window.analyserConsole !== 'function') {
+            window.analyserConsole = function () {
+            };
+        }
+        // Initialisation forcée en Single-Thread (Ne requiert PAS SharedArrayBuffer)
+        const { createFFmpeg, fetchFile } = FFmpeg;
+
+        const ffmpeg = createFFmpeg({
+            log: false,
+            corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js'
+        });
+
+        // Conversion universelle MP3 via FFmpeg Single-Thread (ALAC / Lossless / WAV / FLAC / etc.)
+        async function convertirAudioEnMp3Universel(file) {
+            if (file.type.includes("mpeg") || file.name.toLowerCase().endsWith(".mp3")) {
+                return file;
+            }
+
+            // Chargement du noyau Single-Thread
+            if (!ffmpeg.isLoaded()) {
+                await ffmpeg.load();
+            }
+
+            const extension = file.name.split('.').pop() || 'bin';
+            const inputFileName = `input_${Date.now()}.${extension}`;
+            const outputFileName = `output_${Date.now()}.mp3`;
+
+            // Écriture du fichier dans le système de fichiers virtuel WASM
+            ffmpeg.FS('writeFile', inputFileName, await fetchFile(file));
+
+            // Exécution du décodage ALAC/Lossless et ré-encodage MP3
+            await ffmpeg.run(
+                '-i', inputFileName,
+                '-vn',
+                '-ar', '44100',
+                '-ac', '2',
+                '-b:a', '192k',
+                outputFileName
+            );
+
+            // Récupération du fichier converti
+            const data = ffmpeg.FS('readFile', outputFileName);
+
+            // Nettoyage de la mémoire virtuelle
+            try {
+                ffmpeg.FS('unlink', inputFileName);
+                ffmpeg.FS('unlink', outputFileName);
+            } catch (e) {
+                console.warn("Nettoyage mémoire FFmpeg :", e);
+            }
+
+            const blob = new Blob([data.buffer], { type: 'audio/mp3' });
+            const originalNameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+            return new File([blob], `${originalNameWithoutExt}.mp3`, { type: 'audio/mp3' });
+        }
+
+        // Fonction d'upload principale
         window.traiterUploadFichierAudio = async function () {
-            const files = document.getElementById("file-audio-main").files;
+            const input = document.getElementById("file-audio-main");
+            const files = input ? input.files : null;
             if (!files || files.length === 0) return;
 
-            const allowed = ['wav', 'flac', 'm4a', 'mp3'];
-            let uploadCount = 0;
+            const containerProgress = document.getElementById("progress-main-container");
+            const fillProgress = document.getElementById("progress-main-fill");
+
+            if (containerProgress) containerProgress.style.display = "block";
 
             for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const ext = file.name.split('.').pop().toLowerCase();
+                const originalFile = files[i];
+                const timestamp = Date.now();
+                const baseName = originalFile.name.replace(/\.[^/.]+$/, "");
 
-                if (!allowed.includes(ext)) {
-                    showToast(`Format non supporté pour "${file.name}". Ignoré.`, "error");
-                    continue;
-                }
-
-                const generatedTrackId = crypto.randomUUID();
-                showToast(`Téléversement de "${file.name}" en cours...`, "success");
-
-                let mimeType = "audio/wav";
-                if (ext === 'flac') mimeType = "audio/flac";
-                else if (ext === 'm4a') mimeType = "audio/m4a";
-                else if (ext === 'mp3') mimeType = "audio/mpeg";
+                let mp3File = originalFile;
 
                 try {
-                    const res = await fetch(`https://pistes.api.mm-cp.uk?releaseId=${currentReleaseId}&trackId=${generatedTrackId}&ext=${ext}`, {
-                        method: "POST",
-                        headers: { "Content-Type": mimeType, "X-Audio-Type": "main" },
-                        body: file
-                    });
-                    if (!res.ok) throw new Error("MMCP R2 Rejection");
-                    const data = await res.json();
-
-                    const titrePisteInitiale = (objetSortie.tracks.length === 0 && objetSortie.title)
-                        ? objetSortie.title
-                        : file.name.replace(/\.[^/.]+$/, "");
-
-                    const nouvellePiste = {
-                        id: generatedTrackId,
-                        title: titrePisteInitiale,
-                        version: "",
-                        audioUrl: data.url,
-                        isAiGenerated: false,
-                        tiktokStart: { minute: 0, second: 0 },
-                        language: objetSortie.language || "Français",
-                        isrc: "", iswc: "",
-                        artists: [{ name: objetSortie.artistName, role: "Primary" }],
-                        writers: "", appleCredits: "", lyricsText: "", lyricType: "Clean"
-                    };
-
-                    objetSortie.tracks.push(nouvellePiste);
-
-                    if (objetSortie.tracks.length === 1 && objetSortie.title) {
-                        objetSortie.tracks[0].title = objetSortie.title;
+                    if (typeof showToast === "function") {
+                        showToast(`Conversion de "${originalFile.name}" en MMLC...`, "info");
                     }
-
-                    uploadCount++;
+                    mp3File = await convertirAudioEnMp3Universel(originalFile);
                 } catch (err) {
-                    showToast(`Erreur transfert pour "${file.name}" : ` + err.message, "error");
+                    if (typeof showToast === "function") {
+                    }
+                }
+
+                // 1. Upload Fichier Original
+                const originalRef = ref(storage, `releases/${currentReleaseId}/tracks/original/${timestamp}_${originalFile.name}`);
+                const uploadOriginalTask = uploadBytesResumable(originalRef, originalFile);
+
+                const originalUrl = await new Promise((resolve, reject) => {
+                    uploadOriginalTask.on('state_changed',
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 50;
+                            if (fillProgress) fillProgress.style.width = progress + '%';
+                        },
+                        (error) => reject(error),
+                        async () => resolve(await getDownloadURL(uploadOriginalTask.snapshot.ref))
+                    );
+                });
+
+                // 2. Upload Fichier MP3 Converti
+                const mp3Ref = ref(storage, `releases/${currentReleaseId}/tracks/mp3/${timestamp}_${mp3File.name}`);
+                const uploadMp3Task = uploadBytesResumable(mp3Ref, mp3File);
+
+                const mp3Url = await new Promise((resolve, reject) => {
+                    uploadMp3Task.on('state_changed',
+                        (snapshot) => {
+                            const progress = 50 + ((snapshot.bytesTransferred / snapshot.totalBytes) * 50);
+                            if (fillProgress) fillProgress.style.width = progress + '%';
+                        },
+                        (error) => reject(error),
+                        async () => resolve(await getDownloadURL(uploadMp3Task.snapshot.ref))
+                    );
+                });
+
+                // 3. Objet Piste
+                const nouvellePiste = {
+                    id: timestamp + "_" + i,
+                    title: baseName,
+                    fileUrl: originalUrl,
+                    mp3Url: mp3Url,
+                    originalUrl: originalUrl,
+                    version: "",
+                    isAi: false,
+                    tiktokStartM: null,
+                    tiktokStartS: null,
+                    language: (typeof objetSortie !== 'undefined' && objetSortie.language) ? objetSortie.language : "Français",
+                    isrc: "",
+                    iswc: "",
+                    artists: [],
+                    writers: [],
+                    appleCredits: "",
+                    lyrics: "",
+                    isExplicit: false,
+                    isClean: false,
+                    atmosUrl: "",
+                    instUrl: "",
+                    admUrl: ""
+                };
+
+                if (typeof objetSortie !== 'undefined' && objetSortie.tracks) {
+                    objetSortie.tracks.push(nouvellePiste);
                 }
             }
 
-            if (uploadCount > 0) {
+            if (fillProgress) fillProgress.style.width = '0%';
+            if (containerProgress) containerProgress.style.display = "none";
+            if (input) input.value = "";
+
+            if (typeof renouvelerAffichageListePistes === "function") {
                 renouvelerAffichageListePistes();
-                analyserConsole();
-                showToast(`${uploadCount} piste(s) ajoutée(s) avec succès !`, "success");
+            }
+            if (typeof window.analyserConsole === "function") {
+                window.analyserConsole();
+            }
+
+            if (typeof showToast === "function") {
+                showToast("Pistes et conversions .mmlc envoyées avec succès !", "success");
             }
         };
 
-        window.traiterUploadAtmos = async function () {
+
+
+
+
+        window.traiterUploadAtmos = function () {
             const file = document.getElementById("file-audio-atmos").files[0];
-            if (!file) return;
+            if (!file || indexPisteEnCoursEdition === null) return;
 
-            const ext = file.name.split('.').pop().toLowerCase() || "wav";
-            const statusDiv = document.getElementById("status-atmos");
-            statusDiv.style.display = "block";
-            statusDiv.innerText = "Téléversement Atmos vers MMCP R2...";
-            statusDiv.style.color = "var(--primary)";
+            const fileRef = ref(storage, `releases/${currentReleaseId}/tracks/atmos/${Date.now()}_${file.name}`);
+            const uploadTask = uploadBytesResumable(fileRef, file);
 
-            try {
-                const track = objetSortie.tracks[indexPisteEnCoursEdition];
-                const res = await fetch(`https://pistes.api.mm-cp.uk?releaseId=${currentReleaseId}&trackId=${track.id}&ext=${ext}`, {
-                    method: "POST",
-                    headers: { "Content-Type": file.type || "audio/wav", "X-Audio-Type": "atmos" },
-                    body: file
-                });
-                if (!res.ok) throw new Error("MMCP R2 Rejection");
-                const data = await res.json();
+            const container = document.getElementById("progress-atmos-container");
+            const fill = document.getElementById("progress-atmos-fill");
+            const status = document.getElementById("status-atmos");
+            if (container) container.style.display = "block";
 
-                track.atmosAudioUrl = data.url;
-                statusDiv.innerText = "✓ Dolby Atmos importé avec succès !";
-                statusDiv.style.color = "#28a745";
-                showToast("Fichier Dolby Atmos lié !", "success");
-            } catch (e) {
-                statusDiv.innerText = "✕ Erreur : " + e.message;
-                statusDiv.style.color = "#dc3545";
-                showToast("Échec Dolby Atmos", "error");
-            }
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    if (fill) fill.style.width = progress + '%';
+                },
+                (error) => {
+                    showToast("Erreur d'upload Atmos", "error");
+                },
+                async () => {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    objetSortie.tracks[indexPisteEnCoursEdition].atmosUrl = url;
+                    if (fill) fill.style.width = '0%';
+                    if (container) container.style.display = "none";
+                    if (status) {
+                        status.innerText = "Fichier Dolby Atmos configuré";
+                        status.style.display = "block";
+                    }
+                    showToast("Fichier Atmos associé à la piste", "success");
+                }
+            );
         };
 
-        window.traiterUploadInstrumental = async function () {
+        window.traiterUploadInstrumental = function () {
             const file = document.getElementById("file-audio-inst").files[0];
-            if (!file) return;
+            if (!file || indexPisteEnCoursEdition === null) return;
 
-            const ext = file.name.split('.').pop().toLowerCase() || "wav";
-            const statusDiv = document.getElementById("status-inst");
-            statusDiv.style.display = "block";
-            statusDiv.innerText = "Téléversement de l'instrumental vers MMCP R2...";
-            statusDiv.style.color = "var(--primary)";
+            const fileRef = ref(storage, `releases/${currentReleaseId}/tracks/instrumentals/${Date.now()}_${file.name}`);
+            const uploadTask = uploadBytesResumable(fileRef, file);
 
-            try {
-                const track = objetSortie.tracks[indexPisteEnCoursEdition];
-                const res = await fetch(`https://pistes.api.mm-cp.uk?releaseId=${currentReleaseId}&trackId=${track.id}&ext=${ext}`, {
-                    method: "POST",
-                    headers: { "Content-Type": file.type || "audio/wav", "X-Audio-Type": "instrumental" },
-                    body: file
-                });
-                if (!res.ok) throw new Error("MMCP R2 Rejection");
-                const data = await res.json();
+            const container = document.getElementById("progress-inst-container");
+            const fill = document.getElementById("progress-inst-fill");
+            const status = document.getElementById("status-inst");
+            if (container) container.style.display = "block";
 
-                track.instrumentalAudioUrl = data.url;
-                statusDiv.innerText = "✓ Version Instrumentale importée !";
-                statusDiv.style.color = "#28a745";
-                showToast("Fichier instrumental lié !", "success");
-            } catch (e) {
-                statusDiv.innerText = "✕ Erreur : " + e.message;
-                statusDiv.style.color = "#dc3545";
-                showToast("Échec Instrumental", "error");
-            }
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    if (fill) fill.style.width = progress + '%';
+                },
+                (error) => {
+                    showToast("Erreur d'upload Instrumentale", "error");
+                },
+                async () => {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    objetSortie.tracks[indexPisteEnCoursEdition].instUrl = url;
+                    if (fill) fill.style.width = '0%';
+                    if (container) container.style.display = "none";
+                    if (status) {
+                        status.innerText = "Version instrumentale configurée";
+                        status.style.display = "block";
+                    }
+                    showToast("Version Instrumentale associée", "success");
+                }
+            );
         };
 
-        window.traiterUploadADM = async function () {
+        window.traiterUploadADM = function () {
             const file = document.getElementById("file-audio-adm").files[0];
-            if (!file) return;
+            if (!file || indexPisteEnCoursEdition === null) return;
 
-            const ext = file.name.split('.').pop().toLowerCase() || "wav";
-            const statusDiv = document.getElementById("status-adm");
-            statusDiv.style.display = "block";
-            statusDiv.innerText = "Téléversement Apple Digital Master sur MMCP R2...";
-            statusDiv.style.color = "var(--primary)";
+            const fileRef = ref(storage, `releases/${currentReleaseId}/tracks/adm/${Date.now()}_${file.name}`);
+            const uploadTask = uploadBytesResumable(fileRef, file);
 
-            try {
-                const track = objetSortie.tracks[indexPisteEnCoursEdition];
-                const res = await fetch(`https://pistes.api.mm-cp.uk?releaseId=${currentReleaseId}&trackId=${track.id}&ext=${ext}`, {
-                    method: "POST",
-                    headers: { "Content-Type": file.type || "audio/wav", "X-Audio-Type": "adm" },
-                    body: file
-                });
-                if (!res.ok) throw new Error("MMCP R2 Rejection");
-                const data = await res.json();
+            const container = document.getElementById("progress-adm-container");
+            const fill = document.getElementById("progress-adm-fill");
+            const status = document.getElementById("status-adm");
+            if (container) container.style.display = "block";
 
-                track.admAudioUrl = data.url;
-                track.appleMasteringEmail = document.getElementById("t-apple-master-email").value.trim();
-                statusDiv.innerText = "✓ Apple Digital Master lié !";
-                statusDiv.style.color = "#28a745";
-                showToast("Apple Digital Master configuré !", "success");
-            } catch (e) {
-                statusDiv.innerText = "✕ Erreur : " + e.message;
-                statusDiv.style.color = "#dc3545";
-                showToast("Échec ADM", "error");
-            }
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    if (fill) fill.style.width = progress + '%';
+                },
+                (error) => {
+                    showToast("Erreur d'upload Apple Digital Master", "error");
+                },
+                async () => {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    objetSortie.tracks[indexPisteEnCoursEdition].admUrl = url;
+                    if (fill) fill.style.width = '0%';
+                    if (container) container.style.display = "none";
+                    if (status) {
+                        status.innerText = "Apple Digital Master configuré";
+                        status.style.display = "block";
+                    }
+                    showToast("Apple Digital Master associé", "success");
+                }
+            );
         };
-
         function renouvelerAffichageListePistes() {
             const container = document.getElementById("ui-track-list");
             container.innerHTML = "";

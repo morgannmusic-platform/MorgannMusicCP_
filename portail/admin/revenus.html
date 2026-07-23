@@ -114,6 +114,21 @@
             background: #ff1e7b;
         }
 
+        .btn-cancel {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .btn-cancel:hover {
+            background: #64748b;
+        }
+
         /* Tableaux */
         table {
             width: 100%;
@@ -156,6 +171,51 @@
         .btn-action-sm:hover {
             background: #7dd3fc;
         }
+
+        .btn-edit-sm {
+            background: #f59e0b;
+            color: #0f172a;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .btn-edit-sm:hover {
+            background: #fbbf24;
+        }
+
+        .btn-delete-sm {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn-delete-sm:hover {
+            background: #f87171;
+        }
+
+        .date-picker-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .date-picker-group select {
+            flex: 2;
+        }
+
+        .date-picker-group input {
+            flex: 1;
+            min-width: 90px;
+        }
     </style>
 </head>
 
@@ -192,31 +252,37 @@
 
                 <div id="section-gestion-revenus" style="display: none;">
                     <div class="admin-card">
-                        <div class="card-title">Injecter un nouveau revenu sur le compte : <span id="client-name"
-                                style="color: white;">...</span></div>
+                        <div class="card-title" id="form-card-title">Injecter un nouveau revenu sur le compte : <span
+                                id="client-name" style="color: white;">...</span></div>
 
                         <form id="form-revenue" onsubmit="enregistrerRevenu(event)">
+                            <input type="hidden" id="edit-doc-id" value="">
+
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label for="rev-amount">Montant du revenu (€)</label>
                                     <input type="number" id="rev-amount" step="0.01" placeholder="ex: 1450.42" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="rev-month">Mois d'activité (Période)</label>
-                                    <select id="rev-month" required>
-                                        <option value="Janvier 2026">Janvier 2026</option>
-                                        <option value="Février 2026">Février 2026</option>
-                                        <option value="Mars 2026">Mars 2026</option>
-                                        <option value="Avril 2026">Avril 2026</option>
-                                        <option value="Mai 2026">Mai 2026</option>
-                                        <option value="Juin 2026">Juin 2026</option>
-                                        <option value="Juillet 2026" selected>Juillet 2026</option>
-                                        <option value="Août 2026">Août 2026</option>
-                                        <option value="Septembre 2026">Septembre 2026</option>
-                                        <option value="Octobre 2026">Octobre 2026</option>
-                                        <option value="Novembre 2026">Novembre 2026</option>
-                                        <option value="Décembre 2026">Décembre 2026</option>
-                                    </select>
+                                    <label>Mois et Année d'activité</label>
+                                    <div class="date-picker-group">
+                                        <select id="rev-month-select" required>
+                                            <option value="Janvier">Janvier</option>
+                                            <option value="Février">Février</option>
+                                            <option value="Mars">Mars</option>
+                                            <option value="Avril">Avril</option>
+                                            <option value="Mai">Mai</option>
+                                            <option value="Juin">Juin</option>
+                                            <option value="Juillet" selected>Juillet</option>
+                                            <option value="Août">Août</option>
+                                            <option value="Septembre">Septembre</option>
+                                            <option value="Octobre">Octobre</option>
+                                            <option value="Novembre">Novembre</option>
+                                            <option value="Décembre">Décembre</option>
+                                        </select>
+                                        <input type="number" id="rev-year-input" placeholder="Ex: 2026" min="2000"
+                                            max="2100" value="2026" required>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="rev-release">Quelle Sortie (Catalogue de l'utilisateur)</label>
@@ -230,7 +296,12 @@
                                         placeholder="Artiste principal de la sortie">
                                 </div>
                             </div>
-                            <button type="submit" class="btn-submit">Valider et injecter au solde client</button>
+
+                            <button type="submit" id="btn-submit-form" class="btn-submit">Valider et injecter au solde
+                                client</button>
+                            <button type="button" id="btn-cancel-edit" class="btn-cancel" style="display: none;"
+                                onclick="annulerEdition()">Annuler la modification</button>
+
                             <a href="revenus.html"
                                 style="color: #94a3b8; font-size: 13px; margin-left: 15px; text-decoration: none;">←
                                 Changer de compte</a>
@@ -247,11 +318,12 @@
                                     <th>Artiste</th>
                                     <th>Montant injecté</th>
                                     <th>Date d'opération</th>
+                                    <th style="text-align: center;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="table-history-body">
                                 <tr>
-                                    <td colspan="5" style="color: #94a3b8; text-align:center;">Aucun versement
+                                    <td colspan="6" style="color: #94a3b8; text-align:center;">Aucun versement
                                         enregistré.</td>
                                 </tr>
                             </tbody>
@@ -265,8 +337,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        // Ajout indispensable de Firebase Auth pour envoyer ton token d'administration aux règles
+        import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -281,11 +352,10 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app); // Initialisation de l'instance d'authentification
+        const auth = getAuth(app);
 
         let catalogueSortiesArtistes = {};
 
-        // 1. INJECTION SIDEBAR / NAVBAR
         async function injecterComposants() {
             try {
                 const resSidebar = await fetch('sidebar.html');
@@ -296,22 +366,17 @@
             } catch (e) { console.error(e); }
         }
 
-        // 2. SÉCURISATION DU ROUTEUR ET VÉRIFICATION DU RÔLE ADMIN
-        // On n'exécute plus initPageRevenus() dans le vide, on attend la validation de la session
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                // Pas connecté -> Redirection vers le login de la plateforme
                 window.location.href = "login.html";
                 return;
             }
 
             try {
-                // Double vérification côté client du document utilisateur pour valider le rôle
                 const userDocRef = doc(db, "users", user.uid);
                 const userDocSnap = await getDoc(userDocRef);
 
                 if (userDocSnap.exists() && userDocSnap.data().role === "admin") {
-                    // L'utilisateur est authentifié ET a le rôle admin : on lance l'application
                     const urlParams = new URLSearchParams(window.location.search);
                     const accountUid = urlParams.get('compte');
 
@@ -323,20 +388,15 @@
                         await chargerInterfaceCompteUnique(accountUid);
                     }
                 } else {
-                    // Connecté mais pas admin -> Blocage immédiat
                     document.body.innerHTML = `<div style="padding:40px; text-align:center; color:#f43f5e; font-weight:bold; font-family:sans-serif;">
                     ⚠️ Accès Refusé : Vous devez être administrateur pour accéder à ce module.
                 </div>`;
                 }
             } catch (err) {
                 console.error("Erreur lors de la vérification des droits :", err);
-                document.body.innerHTML = `<div style="padding:40px; text-align:center; color:#f43f5e; font-family:sans-serif;">
-                Erreur d'initialisation des privilèges : ${err.message}
-            </div>`;
             }
         });
 
-        // 3. CHARGEMENT DE TOUS LES UTILISATEURS
         async function chargerListeComptes() {
             const tbody = document.getElementById("table-users-body");
             try {
@@ -359,7 +419,6 @@
             }
         }
 
-        // 4. PRE-REMPLISSAGE DU FORMULAIRE ET CORRÉLATION DE SON CATALOGUE
         async function chargerInterfaceCompteUnique(uid) {
             try {
                 const uDoc = await getDoc(doc(db, "users", uid));
@@ -392,16 +451,21 @@
             inputArtist.value = catalogueSortiesArtistes[releaseId] || "";
         };
 
-        // 5. ENREGISTREMENT DE LA SOUMISSION DANS LA SOUS-COLLECTION "FINANCES" DE L'USER
+        // ENREGISTRER (AJOUTER OU MODIFIER)
         window.enregistrerRevenu = async function (e) {
             e.preventDefault();
             const urlParams = new URLSearchParams(window.location.search);
             const uid = urlParams.get('compte');
+            const editId = document.getElementById("edit-doc-id").value;
 
             const selectRel = document.getElementById("rev-release");
+            const mois = document.getElementById("rev-month-select").value;
+            const annee = document.getElementById("rev-year-input").value;
+            const periodeFormatee = `${mois} ${annee}`;
+
             const payload = {
                 amount: parseFloat(document.getElementById("rev-amount").value),
-                period: document.getElementById("rev-month").value,
+                period: periodeFormatee,
                 releaseId: selectRel.value,
                 releaseTitle: selectRel.options[selectRel.selectedIndex].text,
                 artistName: document.getElementById("rev-artist").value,
@@ -409,23 +473,73 @@
             };
 
             try {
-                await addDoc(collection(db, "users", uid, "finances"), payload);
-                alert("Ligne de revenus ajoutée et créditée avec succès !");
+                if (editId) {
+                    // Modification
+                    await updateDoc(doc(db, "users", uid, "finances", editId), payload);
+                    alert("Ligne de revenu mise à jour avec succès !");
+                } else {
+                    // Ajout
+                    await addDoc(collection(db, "users", uid, "finances"), payload);
+                    alert("Ligne de revenus ajoutée et créditée avec succès !");
+                }
 
-                document.getElementById("form-revenue").reset();
+                annulerEdition();
                 await chargerHistoriqueFinancier(uid);
             } catch (err) {
-                alert("Erreur lors de l'injection : " + err.message);
+                alert("Erreur lors de l'opération : " + err.message);
             }
         };
 
-        // 6. CHARGER L'HISTORIQUE DE CRÉDIT
+        // CHARGER EN MODE ÉDITION
+        window.preparerEdition = async function (docId, amount, period, releaseId, artistName) {
+            document.getElementById("edit-doc-id").value = docId;
+
+            document.getElementById("rev-amount").value = amount;
+            document.getElementById("rev-release").value = releaseId;
+            document.getElementById("rev-artist").value = artistName;
+
+            // Découpage de la période "Mois Année"
+            const parts = period.split(" ");
+            if (parts.length === 2) {
+                document.getElementById("rev-month-select").value = parts[0];
+                document.getElementById("rev-year-input").value = parts[1];
+            }
+
+            // Mise à jour de l'interface
+            document.getElementById("btn-submit-form").innerText = "Mettre à jour le revenu";
+            document.getElementById("btn-cancel-edit").style.display = "inline-block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // ANNULER L'ÉDITION
+        window.annulerEdition = function () {
+            document.getElementById("edit-doc-id").value = "";
+            document.getElementById("form-revenue").reset();
+            document.getElementById("btn-submit-form").innerText = "Valider et injecter au solde client";
+            document.getElementById("btn-cancel-edit").style.display = "none";
+        };
+
+        // SUPPRIMER UN REVENU
+        window.supprimerRevenu = async function (docId) {
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const uid = urlParams.get('compte');
+
+            try {
+                await deleteDoc(doc(db, "users", uid, "finances", docId));
+                await chargerHistoriqueFinancier(uid);
+            } catch (err) {
+                alert("Erreur lors de la suppression : " + err.message);
+            }
+        };
+
+        // CHARGER L'HISTORIQUE DE CRÉDIT
         async function chargerHistoriqueFinancier(uid) {
             const tbody = document.getElementById("table-history-body");
             try {
                 const finSnap = await getDocs(collection(db, "users", uid, "finances"));
                 if (finSnap.empty) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="color: #94a3b8; text-align:center;">Aucune transaction enregistrée pour ce compte.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" style="color: #94a3b8; text-align:center;">Aucune transaction enregistrée pour ce compte.</td></tr>`;
                     return;
                 }
                 tbody.innerHTML = "";
@@ -437,7 +551,11 @@
                     <td>${f.releaseTitle}</td>
                     <td>${f.artistName}</td>
                     <td style="color:#22c55e; font-weight:700;">+ ${f.amount.toFixed(2)} €</td>
-                    <td style="font-size:12px; color:#64748b;">${f.createdAt.split('T')[0]}</td>
+                    <td style="font-size:12px; color:#64748b;">${f.createdAt ? f.createdAt.split('T')[0] : '-'}</td>
+                    <td style="text-align: center;">
+                        <button class="btn-edit-sm" onclick="preparerEdition('${fDoc.id}', ${f.amount}, '${f.period}', '${f.releaseId}', '${f.artistName}')">Modifier</button>
+                        <button class="btn-delete-sm" onclick="supprimerRevenu('${fDoc.id}')">Supprimer</button>
+                    </td>
                 `;
                     tbody.appendChild(tr);
                 });

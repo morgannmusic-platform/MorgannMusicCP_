@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Artistes - Catalogue MMCP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="/assets/js/navbar.js" defer></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin-top: 80px;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pill-nav-container {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(189, 189, 189, 0.4);
+            border-radius: 35px;
+            padding: 20px 25px;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%;
+            gap: 15px;
+            box-sizing: border-box;
+        }
+
+        .pill-tabs {
+            display: inline-flex;
+            gap: 8px;
+            background: rgba(235, 238, 242, 0.7);
+            padding: 6px;
+            border-radius: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pill-link {
+            padding: 8px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .pill-link:hover,
+        .pill-link.active {
+            background: #FC8FB0;
+            color: white;
+        }
+
+        .pill-search-bar {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pill-search-bar input {
+            width: 100%;
+            padding: 12px 22px;
+            border-radius: 25px;
+            border: 1px solid #ddd;
+            outline: none;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: #ffffff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .pill-search-bar input:focus {
+            border-color: #FC8FB0;
+            box-shadow: 0 0 8px rgba(252, 143, 176, 0.3);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .results-count {
+            font-size: 14px;
+            color: #777;
+            font-weight: 600;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+            min-height: 300px;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 25px;
+            padding: 15px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: #FC8FB0;
+        }
+
+        .card-img-artist {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 15px;
+            margin: 0 0 4px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: #777;
+            margin: 0;
+            text-align: center;
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 30px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            background: #ffffff;
+            border: 1px solid rgba(189, 189, 189, 0.5);
+            color: #444;
+            padding: 8px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover {
+            border-color: #FC8FB0;
+            color: #FC8FB0;
+        }
+
+        .page-btn.active {
+            background: #FC8FB0;
+            color: white;
+            border-color: #FC8FB0;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 0;
+            color: #888;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar"></div>
+
+    <div class="container">
+
+        <div class="pill-nav-container">
+            <div class="pill-tabs">
+                <a href="index.html" class="pill-link">Accueil</a>
+                <a href="sorties.html" class="pill-link">Sorties</a>
+                <a href="artistes.html" class="pill-link active">Artistes</a>
+                <a href="prochainement.html" class="pill-link">Prochainement</a>
+                <a href="dernierement.html" class="pill-link">Dernièrement</a>
+            </div>
+            <div class="pill-search-bar">
+                <input type="text" id="global-search" placeholder="Rechercher un artiste...">
+            </div>
+        </div>
+
+        <div class="page-header">
+            <h1 class="page-title">Tous les Artistes</h1>
+            <span class="results-count" id="results-count">Chargement...</span>
+        </div>
+
+        <div class="cards-grid" id="grid-artists"></div>
+
+        <div class="pagination-container" id="pagination-container"></div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import {
+            getFirestore,
+            collectionGroup,
+            getDocs,
+            query
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const ITEMS_PER_PAGE = 8;
+        let currentPage = 1;
+        let allArtists = [];
+        let filteredArtists = [];
+
+        async function initArtistsPage() {
+            try {
+                // 1. Récupération de toutes les sorties du catalogue valide avec statut "direct"
+                const catalogQuery = query(collectionGroup(db, "releases"));
+                const snapshot = await getDocs(catalogQuery);
+
+                const artistsMap = new Map();
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const isCatalogVisible = data.showOnMmcpCatalog === true || data.showOnMmcpCatalog === "true";
+                    const isDirectStatus = data.status === "direct";
+
+                    if (isCatalogVisible && isDirectStatus && data.artistName) {
+                        const nameTrimmed = data.artistName.trim();
+                        if (!artistsMap.has(nameTrimmed.toLowerCase())) {
+                            artistsMap.set(nameTrimmed.toLowerCase(), {
+                                name: nameTrimmed,
+                                fallbackCover: data.coverUrl || "https://via.placeholder.com/300?text=Artiste",
+                                photoUrl: null
+                            });
+                        }
+                    }
+                });
+
+                // 2. Récupération des photos de profil dans la sous-collection artists
+                const artistDocsSnapshot = await getDocs(query(collectionGroup(db, "artists")));
+                const profilePhotosByName = new Map();
+
+                artistDocsSnapshot.forEach(docSnap => {
+                    const artistData = docSnap.data();
+                    if (artistData.name && artistData.photo) {
+                        profilePhotosByName.set(artistData.name.trim().toLowerCase(), artistData.photo);
+                    }
+                });
+
+                // 3. Construction de la liste finale des artistes avec leur photo
+                const loadedArtists = [];
+                artistsMap.forEach((artistObj, key) => {
+                    loadedArtists.push({
+                        name: artistObj.name,
+                        photo: profilePhotosByName.get(key) || artistObj.fallbackCover
+                    });
+                });
+
+                // Tri alphabétique
+                loadedArtists.sort((a, b) => a.name.localeCompare(b.name));
+
+                allArtists = loadedArtists;
+                filteredArtists = [...allArtists];
+
+                renderCurrentPage();
+
+            } catch (error) {
+                console.error("Erreur lors du chargement des artistes :", error);
+                document.getElementById("grid-artists").innerHTML = `<p class="no-results">Erreur lors du chargement des données.</p>`;
+            }
+        }
+
+        function renderCurrentPage() {
+            const gridArtists = document.getElementById("grid-artists");
+            gridArtists.innerHTML = "";
+
+            const totalItems = filteredArtists.length;
+            document.getElementById("results-count").innerText = `${totalItems} artiste(s) trouvé(s)`;
+
+            if (totalItems === 0) {
+                gridArtists.innerHTML = `<p class="no-results">Aucun artiste trouvé.</p>`;
+                document.getElementById("pagination-container").innerHTML = "";
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const pageItems = filteredArtists.slice(startIndex, endIndex);
+
+            pageItems.forEach(artist => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.onclick = () => window.location.href = `artiste.html?name=${encodeURIComponent(artist.name)}`;
+
+                card.innerHTML = `
+                    <img src="${artist.photo}" class="card-img-artist" alt="${artist.name}">
+                    <p class="card-title">${artist.name}</p>
+                    <p class="card-subtitle">Artiste</p>
+                `;
+                gridArtists.appendChild(card);
+            });
+
+            renderPagination(totalItems);
+        }
+
+        function renderPagination(totalItems) {
+            const container = document.getElementById("pagination-container");
+            container.innerHTML = "";
+
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement("button");
+            prevBtn.className = "page-btn";
+            prevBtn.innerText = "« Précédent";
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderCurrentPage();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            };
+            container.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement("button");
+                pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.innerText = i;
+                pageBtn.onclick = () => {
+                    currentPage = i;
+                    renderCurrentPage();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                };
+                container.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement("button");
+            nextBtn.className = "page-btn";
+            nextBtn.innerText = "Suivant »";
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderCurrentPage();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            };
+            container.appendChild(nextBtn);
+        }
+
+        const searchInput = document.getElementById("global-search");
+
+        searchInput.addEventListener("input", (e) => {
+            const queryText = e.target.value.trim().toLowerCase();
+            currentPage = 1;
+
+            if (queryText === "") {
+                filteredArtists = [...allArtists];
+            } else {
+                filteredArtists = allArtists.filter(artist =>
+                    artist.name.toLowerCase().includes(queryText)
+                );
+            }
+
+            renderCurrentPage();
+        });
+
+        initArtistsPage();
+    </script>
+</body>
+
+</html>

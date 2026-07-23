@@ -275,7 +275,7 @@
 <body>
 
     <div id="navbar-container"></div>
-    <script src="js/navbar.js"></script>
+    <script type="module" src="js/navbar.js"></script>
     <div id="sidebar-container"></div>
     <script src="js/sidebar.js"></script>
 
@@ -344,7 +344,8 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -359,9 +360,14 @@
             measurementId: "G-FKSSXYEZF0"
         };
 
-        const app = initializeApp(firebaseConfig);
+        // Initialisation sécurisée (récupère l'instance si navbar.js l'a déjà créée)
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // 2. Écoute unique de l'état d'authentification...
+        // (Le reste de votre code reste identique)
+
 
         // 2. Écoute unique de l'état d'authentification
         // 2. Écoute unique de l'état d'authentification
@@ -492,7 +498,7 @@
                 const title = release.title || "Sans titre";
                 const artist = release.artistName || "Artiste inconnu";
                 const type = release.type || "Single";
-                const cover = release.coverUrl || "https://via.placeholder.com/150"; // Image par défaut si vide
+                const cover = release.coverUrl || "/assets/img/icons/android-chrome-512x512.png"; // Image par défaut si vide
                 const status = release.status || "brouillon";
 
                 // Adapte la couleur de la pastille selon le statut bdd

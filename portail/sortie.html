@@ -16,10 +16,6 @@
             padding: 20px;
         }
 
-        .main-content {
-            margin-top: 5rem;
-        }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -37,7 +33,6 @@
             border: 1px solid rgba(189, 189, 189, 0.438);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
-
         }
 
         .cover-container {
@@ -144,6 +139,18 @@
             color: #333;
         }
 
+        /* Style spécifique pour le sélecteur dans les métadonnées */
+        .meta-select {
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            background: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
         .tracks-section {
             background-color: rgba(232, 232, 232, 0.349);
             backdrop-filter: blur(62px);
@@ -159,7 +166,6 @@
             align-items: center;
             justify-content: space-between;
             padding: 14px 20px;
-            border-radius: 8px;
             margin-bottom: 8px;
             cursor: pointer;
             background-color: rgba(255, 255, 255, 0.877);
@@ -169,7 +175,6 @@
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             transition: all 0.3s ease;
-
         }
 
         .track-row:hover {
@@ -220,12 +225,7 @@
             top: 20px;
             right: 20px;
             background-color: #FC8FB0;
-            backdrop-filter: blur(62px);
-            -webkit-backdrop-filter: blur(62px);
             border: 1px solid rgba(189, 189, 189, 0.438);
-            border-radius: 34px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
-
             width: 30px;
             height: 30px;
             border-radius: 50%;
@@ -242,7 +242,6 @@
             font-weight: bold;
             font-size: 14px;
             text-decoration: none;
-            display: inline-block;
             margin: 10px;
             display: none;
             background: #FC8FB0;
@@ -253,7 +252,7 @@
 
 <body>
     <div id="navbar-container"></div>
-    <script src="js/navbar.js"></script>
+    <script type="module" src="js/navbar.js"></script>
     <div id="sidebar-container"></div>
     <script src="js/sidebar.js"></script>
 
@@ -268,8 +267,7 @@
                     </div>
                     <div id="release-artist" style="color:#666; margin: 5px 0 15px 0;">-</div>
 
-                    <div class="metadata-grid" id="global-metadata">
-                    </div>
+                    <div class="metadata-grid" id="global-metadata"></div>
                 </div>
             </div>
 
@@ -277,16 +275,12 @@
                 Modifier la sortie
             </button>
 
-
-
             <div class="tracks-section">
                 <h2>Pistes de la Sortie</h2>
                 <div id="tracks-list"></div>
             </div>
         </div>
     </div>
-
-
 
     <div id="track-popup" class="popup-overlay">
         <div class="popup-content">
@@ -301,7 +295,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
@@ -312,8 +306,12 @@
             appId: "1:666812685196:web:fe3df6749ae768d68494a9"
         };
 
-        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
-        const urlParams = new URLSearchParams(window.location.search); const releaseId = urlParams.get('id');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const releaseId = urlParams.get('id');
         let listePistesGlobal = [];
 
         const configurationsBadges = {
@@ -328,22 +326,23 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user && releaseId) {
-                const docSnap = await getDoc(doc(db, "users", user.uid, "releases", releaseId));
+                const docRef = doc(db, "users", user.uid, "releases", releaseId);
+                const docSnap = await getDoc(docRef);
+
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    document.getElementById("release-cover").src = data.coverUrl || data.cover || "/assets/img/icons/android-chrome-512x512.png";
 
-                    // --- TON CODE EXISTANT DE REMPLISSAGE ---
                     document.getElementById("release-title").innerText = data.title || "Sans titre";
-                    // On récupère la chaîne formatée des featurings (ex: " & Nom" ou ", Nom & Nom")
                     const chaineFeats = formaterLesFeaturings(data.feats);
-
-                    // On affiche l'artiste principal, suivi des featurings s'il y en a, puis le type de sortie
                     document.getElementById("release-artist").innerText = `${data.artistName || 'Artiste'}${chaineFeats} • ${data.type || 'Single'}`;
+
                     const sb = (data.status || "verification mmcp").toLowerCase();
                     const conf = configurationsBadges[sb] || { texte: sb, classe: "status-verification-mmcp" };
                     document.getElementById("release-status").innerText = conf.texte;
                     document.getElementById("release-status").className = `badge ${conf.classe}`;
 
+                    // Remplissage des métadonnées basiques
                     const grid = document.getElementById("global-metadata");
                     const mapFields = [
                         { l: "Code UPC", v: data.upc }, { l: "Code Catalogue", v: data.catalogNumber }, { l: "Format", v: data.format }, { l: "Label", v: data.label },
@@ -354,36 +353,59 @@
                         { l: "Territoires", v: data.territories }, { l: "Spotify URL", v: data.spotifyUrl }, { l: "Apple URL", v: data.appleUrl },
                         { l: "Plateformes Sélectionnées", v: data.selectedPlatforms?.join(", ") }, { l: "Livraisons Additionnelles", v: data.additionalDeliveries?.join(", ") }
                     ];
-                    grid.innerHTML = mapFields.map(f => f.v ? `<div class="meta-item"><span class="meta-label">${f.l}</span><span class="meta-value">${f.v}</span></div>` : '').join('');
 
-                    const tList = document.getElementById("tracks-list"); tList.innerHTML = "";
+                    let htmlGrid = mapFields.map(f => f.v ? `<div class="meta-item"><span class="meta-label">${f.l}</span><span class="meta-value">${f.v}</span></div>` : '').join('');
+
+                    // Ajout du sélecteur modifiable directement dans la grille
+                    const isCatalog = data.showOnMmcpCatalog !== false;
+                    htmlGrid += `
+                        <div class="meta-item">
+                            <span class="meta-label">Catalogue MMCP</span>
+                            <select id="select-mmcp-catalog" class="meta-select">
+                                <option value="true" ${isCatalog ? 'selected' : ''}>Oui</option>
+                                <option value="false" ${!isCatalog ? 'selected' : ''}>Non</option>
+                            </select>
+                        </div>
+                    `;
+
+                    grid.innerHTML = htmlGrid;
+
+                    // Écouteur pour sauvegarder le changement instantanément
+                    document.getElementById("select-mmcp-catalog").addEventListener("change", async (e) => {
+                        const newValue = e.target.value === "true";
+                        try {
+                            await updateDoc(docRef, { showOnMmcpCatalog: newValue });
+                            console.log("Métadonnée modifiée avec succès dans Firestore !");
+                        } catch (err) {
+                            console.error("Erreur lors de la mise à jour :", err);
+                            alert("Erreur lors de la modification de la métadonnée.");
+                        }
+                    });
+
+                    // Pistes
+                    const tList = document.getElementById("tracks-list");
+                    tList.innerHTML = "";
                     listePistesGlobal = data.tracks || [];
                     listePistesGlobal.forEach((t, i) => {
-                        const r = document.createElement("div"); r.className = "track-row"; r.onclick = () => ouvrirPopup(i);
+                        const r = document.createElement("div");
+                        r.className = "track-row";
+                        r.onclick = () => ouvrirPopup(i);
                         r.innerHTML = `<div style="font-weight:bold;"><span style="color:#bbb; margin-right:15px;">${String(i + 1).padStart(2, '0')}</span>${t.title || 'Sans titre'}</div><button class="badge status-verification-mmcp" style="border:none; cursor:pointer;">Détails</button>`;
                         tList.appendChild(r);
                     });
-                    // --- FIN DE TON CODE EXISTANT ---
 
-
-                    // ==========================================
-                    // LOGIQUE DU BOUTON EN DUR :
-                    // ==========================================
+                    // Bouton d'édition externe si besoin
                     const btnModifier = document.getElementById("btn-modifier-sortie");
                     if (btnModifier) {
-                        // On affiche le bouton maintenant que l'ID est prêt
                         btnModifier.style.display = "inline-block";
-
-                        // Au clic, on applique la redirection vers la page d'édition
                         btnModifier.onclick = function () {
                             window.location.href = `edition.html?sortie=${releaseId}`;
                         };
                     }
-                    // ==========================================
-
                 }
             }
         });
+
         window.ouvrirPopup = function (i) {
             const t = listePistesGlobal[i]; if (!t) return;
             document.getElementById("pop-title").innerText = t.title || "Piste";
@@ -398,14 +420,10 @@
             ];
             pGrid.innerHTML = fields.map(f => f.v ? `<div class="meta-item" style="grid-column:${f.l === 'Paroles' ? '1/-1' : 'auto'}"><span class="meta-label">${f.l}</span><span class="meta-value" style="white-space:pre-wrap;">${f.v}</span></div>` : '').join('');
 
-            // Audio players (Gestion Stéréo standard + Dolby Atmos spatialisés)
             let audioHTML = '';
-
-            // Lecteurs Stéréo Standards
             if (t.audioUrl) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Principal</span><br><audio controls src="${t.audioUrl}" style="width:100%; margin-top:4px;"></audio></div>`;
             if (t.instrumentalAudioUrl) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Instrumental</span><br><audio controls src="${t.instrumentalAudioUrl}" style="width:100%; margin-top:4px;"></audio></div>`;
 
-            // Affichage des Liens Dolby Atmos
             if (t.atmosAudioUrl) {
                 audioHTML += `<div style="margin-bottom:12px; padding:10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd;">
                     <span class="meta-label" style="color:#0369a1;">🔊 Master Dolby Atmos (Principal)</span><br>
@@ -427,31 +445,13 @@
             document.getElementById("track-popup").classList.remove("show");
         };
 
-
-        // Fonction pour formater proprement les featurings (ex: "Artiste A, Artiste B & Artiste C")
         function formaterLesFeaturings(listeFeats) {
-            if (!listeFeats || !Array.isArray(listeFeats) || listeFeats.length === 0) {
-                return "";
-            }
-
-            // On extrait juste les noms des artistes
+            if (!listeFeats || !Array.isArray(listeFeats) || listeFeats.length === 0) return "";
             const noms = listeFeats.map(f => typeof f === 'object' ? f.name : f);
-
-            if (noms.length === 1) {
-                return ` & ${noms[0]}`;
-            }
-
-            // S'il y en a plusieurs : on joint tout par des virgules sauf le dernier qu'on sépare par " & "
+            if (noms.length === 1) return ` & ${noms[0]}`;
             const dernierArtiste = noms.pop();
             return `, ${noms.join(", ")} & ${dernierArtiste}`;
         }
-
-
-    </script>
-
-    <script>
-
-
     </script>
 </body>
 

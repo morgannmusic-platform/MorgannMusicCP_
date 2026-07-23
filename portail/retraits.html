@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de Retrait - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: rgba(232, 232, 232, 0.35);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(189, 189, 189, 0.44);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h2,
+        h3 {
+            margin-top: 0;
+            color: #482732;
+        }
+
+        h2 {
+            border-bottom: 1px solid #482732;
+            padding-bottom: 10px;
+        }
+
+        /* Encadré Portefeuille */
+        .wallet-card {
+            background: #ffffff;
+            border: 1px solid #FC8FB0;
+            border-radius: 16px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wallet-title {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .wallet-balance {
+            font-size: 22px;
+            font-weight: 700;
+            color: #FC8FB0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #FC8FB0;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            box-shadow: 0 0 5px rgba(252, 143, 176, 0.5);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #FC8FB0;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #e07495;
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert-error {
+            background: #ffe0e0;
+            color: #d32f2f;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #FC8FB0;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Tableau d'historique */
+        .history-section {
+            margin-top: 35px;
+            border-top: 1px solid rgba(72, 39, 50, 0.2);
+            padding-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #FC8FB0;
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .badge-demande {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-envoye {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-refuse {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class="main-content">
+
+        <div class="container">
+            <a href="index.html" class="back-link">← Retour aux rapports</a>
+            <h2>Demander un retrait</h2>
+
+            <div class="wallet-card">
+                <div>
+                    <div class="wallet-title">Solde disponible</div>
+                    <div style="font-size: 11px; color: #888;">Gains accumulés - retraits validés (envoyés)</div>
+                </div>
+                <div class="wallet-balance" id="wallet-balance-display">... €</div>
+            </div>
+
+            <div id="alert-box" class="alert"></div>
+
+            <form id="withdraw-form">
+                <div class="form-group">
+                    <label for="amount">Montant à retirer (€) :</label>
+                    <input type="number" id="amount" min="3" step="0.01" placeholder="Ex: 50.00" required>
+                    <small style="color: #666; font-size: 12px;">Minimum 3,00 € par retrait.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="iban">Votre IBAN :</label>
+                    <input type="text" id="iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX" required>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="save-iban">
+                    <label for="save-iban" style="margin:0; font-weight: normal;">Enregistrer cet IBAN pour mes
+                        prochains retraits</label>
+                </div>
+
+                <button type="submit" id="btn-submit" class="btn-submit">Valider la demande</button>
+            </form>
+
+            <div class="history-section">
+                <h3>Mes demandes effectuées</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Montant</th>
+                            <th>IBAN</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-history-body">
+                        <tr>
+                            <td colspan="4" style="text-align:center; color:#999;">Chargement de votre historique...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let soldeDisponible = 0;
+        const alertBox = document.getElementById('alert-box');
+
+        function showAlert(msg, isError = false) {
+            alertBox.textContent = msg;
+            alertBox.className = `alert ${isError ? 'alert-error' : 'alert-success'}`;
+            alertBox.style.display = 'block';
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+
+                // 1. Charger IBAN
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists() && userDoc.data().iban) {
+                    document.getElementById('iban').value = userDoc.data().iban;
+                }
+
+                // 2. Calculer le solde du portefeuille
+                await calculerSolde(user.uid);
+
+                // 3. Charger l'historique
+                await chargerHistoriqueRetraits(user.uid);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function calculerSolde(userId) {
+            try {
+                // A. Somme des gains dans users/uid/finances
+                const financesSnap = await getDocs(collection(db, "users", userId, "finances"));
+                let totalGains = 0;
+                financesSnap.forEach(docSnap => {
+                    totalGains += docSnap.data().amount || 0;
+                });
+
+                // B. Somme des retraits VALIDÉS uniquement ("envoyé")
+                const qWithdrawals = query(
+                    collection(db, "withdrawals"),
+                    where("userId", "==", userId)
+                );
+                const withdrawalsSnap = await getDocs(qWithdrawals);
+                let totalRetraitsValides = 0;
+
+                withdrawalsSnap.forEach(docSnap => {
+                    const r = docSnap.data();
+                    if (r.status === "envoyé") {
+                        totalRetraitsValides += r.amount || 0;
+                    }
+                });
+
+                // Solde net disponible
+                soldeDisponible = totalGains - totalRetraitsValides;
+                if (soldeDisponible < 0) soldeDisponible = 0;
+
+                document.getElementById("wallet-balance-display").textContent = `${soldeDisponible.toFixed(2)} €`;
+
+            } catch (err) {
+                console.error("Erreur calcul du solde :", err);
+                document.getElementById("wallet-balance-display").textContent = "Erreur";
+            }
+        }
+
+        async function chargerHistoriqueRetraits(userId) {
+            const tbody = document.getElementById("user-history-body");
+            tbody.innerHTML = "";
+
+            try {
+                const q = query(
+                    collection(db, "withdrawals"),
+                    where("userId", "==", userId)
+                );
+
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Aucune demande effectuée pour le moment.</td></tr>`;
+                    return;
+                }
+
+                let retraits = [];
+                snap.forEach(docSnap => {
+                    retraits.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                retraits.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                retraits.forEach(r => {
+                    const tr = document.createElement("tr");
+
+                    let dateStr = "-";
+                    if (r.createdAt && r.createdAt.toDate) {
+                        dateStr = r.createdAt.toDate().toLocaleDateString("fr-FR");
+                    }
+
+                    let badgeClass = "badge-demande";
+                    if (r.status === "envoyé") badgeClass = "badge-envoye";
+                    if (r.status === "refusé") badgeClass = "badge-refuse";
+
+                    tr.innerHTML = `
+                        <td>${dateStr}</td>
+                        <td><strong>${(r.amount || 0).toFixed(2)} €</strong></td>
+                        <td style="font-family: monospace;">${r.iban || "-"}</td>
+                        <td><span class="badge ${badgeClass}">${r.status || "demandé"}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Erreur : ${err.message}</td></tr>`;
+            }
+        }
+
+        document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const amount = parseFloat(document.getElementById('amount').value);
+            const iban = document.getElementById('iban').value.trim();
+            const saveIban = document.getElementById('save-iban').checked;
+
+            if (amount < 3) {
+                showAlert("Le montant minimum pour effectuer un retrait est de 3 €.", true);
+                return;
+            }
+
+            if (amount > soldeDisponible) {
+                showAlert(`Vous ne pouvez pas demander un montant supérieur à votre solde disponible (${soldeDisponible.toFixed(2)} €).`, true);
+                return;
+            }
+
+            if (!iban) {
+                showAlert("Veuillez renseigner un IBAN valide.", true);
+                return;
+            }
+
+            try {
+                if (saveIban) {
+                    await updateDoc(doc(db, "users", currentUser.uid), {
+                        iban: iban
+                    });
+                }
+
+                await addDoc(collection(db, "withdrawals"), {
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    amount: amount,
+                    iban: iban,
+                    status: "demandé",
+                    createdAt: serverTimestamp()
+                });
+
+                showAlert("Votre demande de retrait a été envoyée avec succès !");
+                document.getElementById('amount').value = '';
+
+                // Mettre à jour l'historique et le solde
+                await calculerSolde(currentUser.uid);
+                await chargerHistoriqueRetraits(currentUser.uid);
+
+            } catch (err) {
+                showAlert("Erreur lors de la demande : " + err.message, true);
+            }
+        });
+    </script>
+</body>
+
+</html>

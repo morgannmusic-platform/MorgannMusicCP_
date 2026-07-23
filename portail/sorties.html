@@ -17,7 +17,6 @@
             box-sizing: border-box;
         }
 
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -27,8 +26,61 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
+
+        /* --- BARRE DE RECHERCHE ET FILTRES --- */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            background-color: rgba(232, 232, 232, 0.35);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.44);
+            border-radius: 20px;
+            padding: 15px 20px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+            align-items: center;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 10px 16px;
+            border: 1px solid rgba(189, 189, 189, 0.6);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            outline: none;
+            color: #333;
+            font-family: inherit;
+        }
+
+        .filter-input {
+            padding: 10px 16px 10px 42px;
+            /* 42px à gauche pour l'icône */
+            border: 1px solid rgba(189, 189, 189, 0.6);
+            border-radius: 30px;
+            background-color: rgba(255, 255, 255, 0.8);
+            background-image: url('/assets/img/icon/Magnifying-Glass--Streamline-Flex.svg');
+            background-repeat: no-repeat;
+            background-position: 14px center;
+            background-size: 18px 18px;
+            font-size: 14px;
+            outline: none;
+            color: #333;
+            font-family: inherit;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            border-color: #FC8FB0;
+        }
+
+        /* ------------------------------------- */
 
         .btn {
             padding: 10px 20px;
@@ -51,6 +103,13 @@
             color: #FC8FB0;
             border: 1px solid #FC8FB0;
             margin-left: 10px;
+        }
+
+        .btn-view {
+            background: #FC8FB0;
+            color: white;
+            padding: 6px 12px;
+            font-size: 13px;
         }
 
         .btn-secondary {
@@ -171,9 +230,10 @@
 
         .card-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
             margin-top: auto;
+            flex-wrap: wrap;
         }
 
         /* Pagination */
@@ -209,8 +269,7 @@
 
 <body>
     <div id="navbar-container"></div>
-    <script src="js/navbar.js"></script>
-
+    <script type="module" src="js/navbar.js"></script>
     <div id="sidebar-container"></div>
     <script src="js/sidebar.js"></script>
 
@@ -224,6 +283,26 @@
                 </div>
             </div>
 
+            <div class="filter-bar">
+                <input type="text" id="search-input" class="filter-input"
+                    placeholder="Rechercher par titre ou artiste...">
+                <select id="status-filter" class="filter-select">
+                    <option value="all">Tous les statuts</option>
+                    <option value="verification mmcp">Vérification MMCP</option>
+                    <option value="verification plate-formes">Vérification Plate-formes</option>
+                    <option value="livrée">Livrée</option>
+                    <option value="direct">Direct</option>
+                    <option value="licence">Licence</option>
+                    <option value="retrait">Retrait</option>
+                    <option value="retiré">Retiré</option>
+                </select>
+
+                <select id="sort-order" class="filter-select">
+                    <option value="desc">Plus récent au plus ancien</option>
+                    <option value="asc">Plus ancien au plus récent</option>
+                </select>
+            </div>
+
             <div id="releases-list" class="releases-grid"></div>
 
             <div class="pagination">
@@ -234,8 +313,11 @@
         </div>
     </div>
 
+    <img style="display: none; filter: brightness(0);" src="/assets/img/icon/music-edit-multimedia-svgrepo-com.svg"
+        alt="">
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -249,19 +331,26 @@
             measurementId: "G-FKSSXYEZF0"
         };
 
-        const app = initializeApp(firebaseConfig);
+        // Vérifie si l'application est déjà initialisée
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         const PAGE_SIZE = 8;
         let pageActuelle = 1;
         let uidConnecte = null;
-        let toutesLesSorties = []; // Stocke la liste complète localement pour la pagination en dur
+        let toutesLesSorties = [];
+        let sortiesFiltrees = [];
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 uidConnecte = user.uid;
                 await recupererToutesLesSorties();
+
+                // Écouteurs d'événements pour les filtres
+                document.getElementById("search-input").addEventListener("input", appliquerFiltresEtTri);
+                document.getElementById("status-filter").addEventListener("change", appliquerFiltresEtTri);
+                document.getElementById("sort-order").addEventListener("change", appliquerFiltresEtTri);
             } else {
                 window.location.href = "login.html";
             }
@@ -294,7 +383,7 @@
                     });
                 });
 
-                afficherPage(1);
+                appliquerFiltresEtTri();
 
             } catch (error) {
                 console.error("Erreur initialisation :", error);
@@ -302,28 +391,55 @@
             }
         }
 
-        // 2. Affiche uniquement les éléments de la page demandée
+        // 2. Filtre et trie dynamiquement les sorties
+        function appliquerFiltresEtTri() {
+            const recherche = document.getElementById("search-input").value.toLowerCase().trim();
+            const filtreStatut = document.getElementById("status-filter").value.toLowerCase();
+            const ordreTri = document.getElementById("sort-order").value;
+
+            sortiesFiltrees = toutesLesSorties.filter(sortie => {
+                const titre = (sortie.title || "").toLowerCase();
+                const artiste = (sortie.artistName || "").toLowerCase();
+                const statut = (sortie.status || "verification mmcp").toLowerCase();
+
+                const correspondRecherche = titre.includes(recherche) || artiste.includes(recherche);
+                const correspondStatut = (filtreStatut === "all") || (statut === filtreStatut);
+
+                return correspondRecherche && correspondStatut;
+            });
+
+            // Application du tri par date de création
+            sortiesFiltrees.sort((a, b) => {
+                const dateA = new Date(a.createdAt || 0);
+                const dateB = new Date(b.createdAt || 0);
+                return ordreTri === "asc" ? dateA - dateB : dateB - dateA;
+            });
+
+            // Réinitialise la pagination à la page 1 après un filtrage
+            afficherPage(1);
+        }
+
+        // 3. Affiche uniquement les éléments de la page demandée
         function afficherPage(numeroPage) {
             pageActuelle = numeroPage;
             const listContainer = document.getElementById("releases-list");
             listContainer.innerHTML = "";
 
-            if (toutesLesSorties.length === 0) {
-                listContainer.innerHTML = "<p>Aucune sortie disponible pour le moment.</p>";
+            if (sortiesFiltrees.length === 0) {
+                listContainer.innerHTML = "<p>Aucune sortie ne correspond à vos critères de recherche.</p>";
                 genererNumerosPage(0);
                 return;
             }
 
-            // Calcul des index de découpage (Slice)
             const indexDebut = (pageActuelle - 1) * PAGE_SIZE;
             const indexFin = indexDebut + PAGE_SIZE;
-            const sortiesPage = toutesLesSorties.slice(indexDebut, indexFin);
+            const sortiesPage = sortiesFiltrees.slice(indexDebut, indexFin);
 
             sortiesPage.forEach((release) => {
                 const id = release.id;
                 const statutBrut = (release.status || "verification mmcp").toLowerCase();
                 const configBadge = configurationsBadges[statutBrut] || { texte: statutBrut, classe: "status-verification-mmcp" };
-                const imageSrc = release.coverUrl || "https://img.icons8.com/windows/150/000000/album.png";
+                const imageSrc = release.coverUrl || "/assets/img/icons/android-chrome-512x512.png";
 
                 const card = document.createElement("div");
                 card.className = "release-card";
@@ -347,24 +463,35 @@
             <div style="display: flex; flex-direction: column;" onclick="event.stopPropagation();">
                 <span class="badge ${configBadge.classe}">${configBadge.texte}</span>
                 <div class="card-actions">
-                    <button class="btn btn-secondary" onclick="modifierSortie('${id}')">Modifier</button>
-                    <button class="btn btn-danger" onclick="demanderRetrait('${id}')" ${statutBrut === 'retrait' || statutBrut === 'retiré' ? 'disabled' : ''}>Supprimer</button>
-                </div>
+<button class="btn btn-view" onclick="voirSortie('${id}')" style="display: inline-flex; align-items: center; justify-content: center;">
+    <img style="width: 18px; height: 18px; filter: invert(1); margin-right: 6px;" src="/assets/img/icon/music-album-song.svg" alt="icon">
+    Voir
+</button>
+
+<button class="btn btn-secondary" onclick="modifierSortie('${id}')" style="display: inline-flex; align-items: center; justify-content: center;">
+    <img style="width: 18px; height: 18px; filter: invert(1); margin-right: 6px;" src="/assets/img/icon/music-edit-multimedia-svgrepo-com.svg" alt="icon">
+    Modifier
+</button>
+
+<button class="btn btn-danger" onclick="demanderRetrait('${id}')" ${statutBrut === 'retrait' || statutBrut === 'retiré' ? 'disabled' : ''} style="display: inline-flex; align-items: center; justify-content: center;">
+    <img style="width: 18px; height: 18px; filter: brightness(0) invert(1); margin-right: 6px;" src="/assets/img/icon/trash.png" alt="icon">
+    Supprimer
+</button>                </div>
             </div>
         `;
                 listContainer.appendChild(card);
             });
 
-            const totalPages = Math.ceil(toutesLesSorties.length / PAGE_SIZE);
+            const totalPages = Math.ceil(sortiesFiltrees.length / PAGE_SIZE);
             genererNumerosPage(totalPages);
         }
 
-        // 3. Construit dynamiquement la liste des numéros [1, 2, 3...]
+        // 4. Construit dynamiquement la liste des numéros
         function genererNumerosPage(totalPages) {
             const container = document.getElementById("page-numbers");
             container.innerHTML = "";
 
-            document.getElementById("btn-prev").disabled = (pageActuelle === 1);
+            document.getElementById("btn-prev").disabled = (pageActuelle === 1 || totalPages === 0);
             document.getElementById("btn-next").disabled = (pageActuelle === totalPages || totalPages === 0);
 
             for (let i = 1; i <= totalPages; i++) {
@@ -377,13 +504,15 @@
         }
 
         window.pageSuivante = function () {
-            const totalPages = Math.ceil(toutesLesSorties.length / PAGE_SIZE);
+            const totalPages = Math.ceil(sortiesFiltrees.length / PAGE_SIZE);
             if (pageActuelle < totalPages) afficherPage(pageActuelle + 1);
         }
 
         window.pagePrecedente = function () {
             if (pageActuelle > 1) afficherPage(pageActuelle - 1);
         }
+
+        window.voirSortie = function (id) { window.location.href = `sortie.html?id=${id}`; }
 
         window.modifierSortie = function (id) { window.location.href = `edition.html?sortie=${id}`; }
 
@@ -392,7 +521,6 @@
                 try {
                     const releaseRef = doc(db, "users", uidConnecte, "releases", id);
                     await updateDoc(releaseRef, { status: "retrait" });
-                    // Recharge les données pour mettre à jour la liste locale
                     await recupererToutesLesSorties();
                 } catch (error) {
                     alert("Erreur lors du traitement du retrait : " + error.message);

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galerie d'Icônes SVG</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 30px 20px;
+            margin: 0;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+        }
+
+        p {
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .card:hover {
+            background: #334155;
+            border-color: #38bdf8;
+            transform: translateY(-4px);
+        }
+
+        .card:active {
+            transform: translateY(-1px);
+        }
+
+        .card img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 12px;
+            filter: invert(1);
+        }
+
+        .card span {
+            font-size: 11px;
+            color: #cbd5e1;
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+
+        .card.copied {
+            border-color: #22c55e;
+            background: #14532d;
+        }
+
+        .card.copied span {
+            color: #86efac;
+            font-weight: bold;
+        }
+
+        /* Toast de confirmation */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #22c55e;
+            color: #000;
+            font-weight: bold;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Galerie d'Icônes SVG</h1>
+        <p>Clique sur une icône pour copier son chemin <code>/assets/img/icon/...</code></p>
+    </header>
+
+    <div class="grid" id="iconGrid"></div>
+
+    <div id="toast">Copié dans le presse-papier !</div>
+
+    <script>
+        const basePath = "/assets/img/icon/";
+
+        const icons = [
+            "Add-To-Playlist--Streamline-Flex.svg",
+            "Apple--Streamline-Flex.svg",
+            "Arrow-Roadmap--Streamline-Flex.svg",
+            "Artist-Song--Streamline-Flex.svg",
+            "Bag--Streamline-Flex.svg",
+            "Button-Power-1--Streamline-Flex.svg",
+            "Calendar-Mark--Streamline-Flex.svg",
+            "Cellular-Network-Lte--Streamline-Flex.svg",
+            "Charging--Streamline-Flex.svg",
+            "Cloud-Data-Transfer--Streamline-Flex.svg",
+            "Cloud-Download--Streamline-Flex.svg",
+            "Cloud-Off--Streamline-Flex.svg",
+            "Cloud-Warning--Streamline-Flex.svg",
+            "Code-Analysis--Streamline-Flex.svg",
+            "Code-Monitor-1--Streamline-Flex.svg",
+            "Cog--Streamline-Flex.svg",
+            "Computer-Chip-1--Streamline-Flex.svg",
+            "Cursor-Click--Streamline-Flex.svg",
+            "Database--Streamline-Flex.svg",
+            "Delete-Tag--Streamline-Flex.svg",
+            "Desktop-Lock--Streamline-Flex.svg",
+            "Download-Tray--Streamline-Flex.svg",
+            "Earpods--Streamline-Flex.svg",
+            "Eject-Square--Streamline-Flex.svg",
+            "Face-Scan-1--Streamline-Flex.svg",
+            "Fingerprint-1--Streamline-Flex.svg",
+            "Floppy-Disk--Streamline-Flex.svg",
+            "Hand-Held-Tablet-Writing--Streamline-Flex.svg",
+            "Hard-Drive-1--Streamline-Flex.svg",
+            "Hierarchy-1--Streamline-Flex.svg",
+            "Hierarchy-2--Streamline-Flex.svg",
+            "Home-2--Streamline-Flex.svg",
+            "image-1.svg",
+            "Inbox-Open--Streamline-Flex.svg",
+            "Information-Circle--Streamline-Flex.svg",
+            "Investing-And-Banking--Streamline-Flex.svg",
+            "Invisible-1--Streamline-Flex.svg",
+            "Ios-Ipados--Streamline-Flex.svg",
+            "Iphone--Streamline-Flex.svg",
+            "Iris-Scan--Streamline-Flex.svg",
+            "Key-Frame--Streamline-Flex.svg",
+            "Label-Folder-Tag--Streamline-Flex.svg",
+            "Layers-1--Streamline-Flex.svg",
+            "Link-Chain--Streamline-Flex.svg",
+            "Login-1--Streamline-Flex.svg",
+            "Logout-1--Streamline-Flex.svg",
+            "Magnifying-Glass--Streamline-Flex.svg",
+            "Mail-Send-Envelope--Streamline-Flex.svg",
+            "Megaphone-1--Streamline-Flex.svg",
+            "Monitor-Error--Streamline-Flex.svg",
+            "music-album-song.svg",
+            "music-edit-multimedia-svgrepo-com.svg",
+            "Music-Equalizer--Streamline-Flex.svg",
+            "Music-Note-Circle--Streamline-Flex.svg",
+            "Network--Streamline-Flex.svg",
+            "Notification-Application-1--Streamline-Flex.svg",
+            "Party-Popper--Streamline-Flex.svg",
+            "Pen-Tool--Streamline-Flex.svg",
+            "Pencil-Square--Streamline-Flex.svg",
+            "Phone--Streamline-Flex.svg",
+            "Phone-Shield--Streamline-Flex.svg",
+            "Pictures-Folder-Memories--Streamline-Flex.svg",
+            "Pin-1--Streamline-Flex.svg",
+            "Play-List-4--Streamline-Flex.svg",
+            "playlist.svg",
+            "publish.svg",
+            "Recycle-Bin-3--Streamline-Flex.svg",
+            "Screen-Broadcast--Streamline-Flex.svg",
+            "Screenshot--Streamline-Flex.svg",
+            "Shield-2--Streamline-Flex.svg",
+            "Show-Layer--Streamline-Flex.svg",
+            "Signal-Full--Streamline-Flex.svg",
+            "Sound-Recognition-Search--Streamline-Flex.svg",
+            "Target--Streamline-Flex.svg",
+            "Threat-Monitor--Streamline-Flex.svg",
+            "Threat-Phone--Streamline-Flex.svg",
+            "Threat-Usb--Streamline-Flex.svg",
+            "Timer-Zero--Streamline-Flex.svg",
+            "Tune-Adjust-Volume--Streamline-Flex.svg",
+            "User-Full-Body--Streamline-Flex.svg",
+            "Voice-Activation-Check-Validate--Streamline-Flex.svg",
+            "Voice-Scan-2--Streamline-Flex.svg",
+            "Volume-Level-High--Streamline-Flex.svg",
+            "Volume-Mute--Streamline-Flex.svg",
+            "Wallet--Streamline-Flex.svg",
+            "Warning-Diamond--Streamline-Flex.svg",
+            "Warranty-Badge-Highlight--Streamline-Flex.svg",
+            "Watch-2--Streamline-Flex.svg"
+        ];
+
+        const grid = document.getElementById('iconGrid');
+        const toast = document.getElementById('toast');
+
+        function showToast(text) {
+            toast.textContent = `Copié : ${text}`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        icons.forEach(fileName => {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            // Affichage de l'image locale
+            const img = document.createElement('img');
+            img.src = fileName;
+            img.alt = fileName;
+
+            const span = document.createElement('span');
+            span.textContent = fileName.replace('.svg', '');
+
+            card.appendChild(img);
+            card.appendChild(span);
+
+            // Le chemin complet à copier
+            const fullPath = basePath + fileName;
+
+            card.addEventListener('click', () => {
+                navigator.clipboard.writeText(fullPath).then(() => {
+                    showToast(fullPath);
+
+                    card.classList.add('copied');
+                    setTimeout(() => card.classList.remove('copied'), 1000);
+                });
+            });
+
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+
+</html>

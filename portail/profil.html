@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Profil Artiste - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* En-tête Profil (Bannière + Photo + Titre) */
+        .profile-header-card {
+            position: relative;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .banner-container {
+            width: 100%;
+            height: 220px;
+            background: #cbd5e1;
+            position: relative;
+        }
+
+        .banner-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-main-info {
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-top: -60px;
+            position: relative;
+            z-index: 2;
+            flex-wrap: wrap;
+        }
+
+        .avatar-container {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 5px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: #cbd5e1;
+            flex-shrink: 0;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .artist-details-header {
+            margin-top: 40px;
+            flex: 1;
+        }
+
+        .artist-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* Section Informations & Métadonnées */
+        .info-section {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .meta-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #999;
+        }
+
+        .meta-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Pop-up Overlay */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #FC8FB0;
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            color: rgb(255, 255, 255);
+        }
+
+        /* Formulaire & Inputs */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #777;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .form-group input[type="file"] {
+            padding: 8px;
+            background: #f8fafc;
+            cursor: pointer;
+        }
+
+        .btmodif {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+            background: #FC8FB0;
+            color: white;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .artist-select-item {
+            padding: 14px 20px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.877);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 20px;
+            transition: all 0.2s ease;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .artist-select-item:hover {
+            background: #fff3f7;
+            border-color: #FC8FB0;
+        }
+
+        .artist-select-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class="main-content">
+        <div class="container">
+
+            <div class="profile-header-card">
+                <div class="banner-container">
+                    <img id="artist-banner" src="/assets/img/icons/android-chrome-512x512.png" alt="Bannière">
+                </div>
+                <div class="profile-main-info">
+                    <div class="avatar-container">
+                        <img id="artist-avatar" src="/assets/img/icons/android-chrome-512x512.png" alt="Avatar">
+                    </div>
+                    <div class="artist-details-header">
+                        <h1 id="artist-name" class="artist-name">Chargement...</h1>
+                        <div id="artist-genre-sub" style="color:#666; margin-top: 5px; font-weight: 600;">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-modifier-profil" class="btmodif" onclick="ouvrirPopupEdition()">
+                Modifier le profil
+            </button>
+
+            <div class="info-section">
+                <h2>Informations de l'artiste</h2>
+                <div class="metadata-grid" id="artist-metadata">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="select-artist-popup" class="popup-overlay">
+        <div class="popup-content">
+            <h2 style="margin-top:0; color:#222;">Sélectionner un artiste</h2>
+            <p style="color:#666; font-size:14px; margin-bottom: 20px;">Veuillez choisir un artiste rattaché à votre
+                compte :</p>
+            <div id="user-artists-list">
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-profile-popup" class="popup-overlay">
+        <div class="popup-content">
+            <button class="popup-close" onclick="fermerPopupEdition()">✕</button>
+            <h2 style="margin-top:0; color:#222;">Modifier le profil</h2>
+
+            <form id="edit-artist-form" style="margin-top:20px;">
+                <div class="form-group">
+                    <label>Nom de l'artiste</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Importer la photo de profil (Max 20 Mo)</label>
+                    <input type="file" id="edit-avatar-file" accept="image/*">
+                </div>
+
+                <div class="form-group">
+                    <label>Importer la bannière (Max 20 Mo)</label>
+                    <input type="file" id="edit-banner-file" accept="image/*">
+                </div>
+
+                <div class="form-group">
+                    <label>Date de naissance / création</label>
+                    <input type="date" id="edit-birthdate">
+                </div>
+
+                <div class="form-group">
+                    <label>Ville d'origine / Naissance</label>
+                    <input type="text" id="edit-birthplace">
+                </div>
+
+                <div class="form-group">
+                    <label>Genre musical principal</label>
+                    <input type="text" id="edit-genre">
+                </div>
+
+                <button type="submit" id="btn-submit-form" class="btmodif"
+                    style="margin: 15px 0 0 0; width: 100%;">Enregistrer les modifications</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let artistId = urlParams.get('id');
+        let currentUser = null;
+        let currentArtistData = null;
+
+        const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 Mo
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) return;
+
+            currentUser = user;
+
+            if (!artistId) {
+                afficherPopupSelection(user.uid);
+            } else {
+                chargerDonneesArtiste(user.uid, artistId);
+            }
+        });
+
+        // Téléversement d'un fichier brut vers Firebase Storage
+        async function uploadFileToStorage(path, file) {
+            const storageRef = ref(storage, path);
+            await uploadBytes(storageRef, file);
+            return await getDownloadURL(storageRef);
+        }
+
+        // 1. Sélection d'un artiste si pas d'ID
+        async function afficherPopupSelection(uid) {
+            const popup = document.getElementById("select-artist-popup");
+            const containerList = document.getElementById("user-artists-list");
+            containerList.innerHTML = "<p>Chargement de vos artistes...</p>";
+            popup.classList.add("show");
+
+            try {
+                const artistsRef = collection(db, "users", uid, "artists");
+                const snapshot = await getDocs(artistsRef);
+
+                if (snapshot.empty) {
+                    containerList.innerHTML = "<p>Aucun artiste trouvé sur ce compte.</p>";
+                    return;
+                }
+
+                containerList.innerHTML = "";
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const item = document.createElement("div");
+                    item.className = "artist-select-item";
+                    item.onclick = () => {
+                        window.location.href = `profil.html?id=${docSnap.id}`;
+                    };
+
+                    const photo = data.photoUrl || data.photo || "/assets/img/icons/android-chrome-512x512.png";
+                    item.innerHTML = `
+                        <img src="${photo}" alt="${data.name}">
+                        <span>${data.name || 'Artiste sans nom'}</span>
+                    `;
+                    containerList.appendChild(item);
+                });
+
+            } catch (err) {
+                console.error("Erreur lors de la récupération des artistes :", err);
+                containerList.innerHTML = "<p>Erreur de chargement.</p>";
+            }
+        }
+
+        // 2. Chargement du profil
+        async function chargerDonneesArtiste(uid, id) {
+            try {
+                const artistRef = doc(db, "users", uid, "artists", id);
+                const docSnap = await getDoc(artistRef);
+
+                if (docSnap.exists()) {
+                    currentArtistData = docSnap.data();
+
+                    document.getElementById("artist-name").innerText = currentArtistData.name || "Sans nom";
+                    document.getElementById("artist-genre-sub").innerText = currentArtistData.genre || "Genre non renseigné";
+
+                    document.getElementById("artist-avatar").src = currentArtistData.photoUrl || currentArtistData.photo || "/assets/img/icons/android-chrome-512x512.png";
+                    document.getElementById("artist-banner").src = currentArtistData.bannerUrl || currentArtistData.banUrl || "/assets/img/icons/android-chrome-512x512.png";
+
+                    const grid = document.getElementById("artist-metadata");
+                    const fields = [
+                        { l: "Date de Naissance / Création", v: currentArtistData.birthdate },
+                        { l: "Ville de Naissance / Origine", v: currentArtistData.birthplace },
+                        { l: "Genre Principal", v: currentArtistData.genre },
+                        { l: "ID Firestore", v: id }
+                    ];
+
+                    grid.innerHTML = fields.map(f => `
+                        <div class="meta-item">
+                            <span class="meta-label">${f.l}</span>
+                            <span class="meta-value">${f.v || '-'}</span>
+                        </div>
+                    `).join('');
+
+                    // Pré-remplir les champs
+                    document.getElementById("edit-name").value = currentArtistData.name || "";
+                    document.getElementById("edit-birthdate").value = currentArtistData.birthdate || "";
+                    document.getElementById("edit-birthplace").value = currentArtistData.birthplace || "";
+                    document.getElementById("edit-genre").value = currentArtistData.genre || "";
+
+                } else {
+                    alert("Artiste introuvable sur votre compte.");
+                    window.location.href = "profil.html";
+                }
+            } catch (err) {
+                console.error("Erreur de chargement de l'artiste :", err);
+            }
+        }
+
+        // 3. Modales & Édition avec Firebase Storage
+        window.ouvrirPopupEdition = function () {
+            document.getElementById("edit-profile-popup").classList.add("show");
+        };
+
+        window.fermerPopupEdition = function () {
+            document.getElementById("edit-profile-popup").classList.remove("show");
+        };
+
+        document.getElementById("edit-artist-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            if (!currentUser || !artistId) return;
+
+            const avatarFileInput = document.getElementById("edit-avatar-file");
+            const bannerFileInput = document.getElementById("edit-banner-file");
+
+            // Contrôle des 20 Mo
+            if (avatarFileInput.files && avatarFileInput.files[0] && avatarFileInput.files[0].size > MAX_FILE_SIZE) {
+                alert("La photo de profil dépasse la limite de 20 Mo.");
+                return;
+            }
+
+            if (bannerFileInput.files && bannerFileInput.files[0] && bannerFileInput.files[0].size > MAX_FILE_SIZE) {
+                alert("La bannière dépasse la limite de 20 Mo.");
+                return;
+            }
+
+            const submitBtn = document.getElementById("btn-submit-form");
+            submitBtn.innerText = "Envoi vers le serveur...";
+            submitBtn.disabled = true;
+
+            try {
+                let photoUrl = currentArtistData.photoUrl || currentArtistData.photo || "";
+                let bannerUrl = currentArtistData.bannerUrl || currentArtistData.banUrl || "";
+
+                // Envoi de la photo de profil vers Firebase Storage
+                if (avatarFileInput.files && avatarFileInput.files[0]) {
+                    const avatarFile = avatarFileInput.files[0];
+                    const avatarPath = `users/${currentUser.uid}/artists/${artistId}/avatar_${Date.now()}`;
+                    photoUrl = await uploadFileToStorage(avatarPath, avatarFile);
+                }
+
+                // Envoi de la bannière vers Firebase Storage
+                if (bannerFileInput.files && bannerFileInput.files[0]) {
+                    const bannerFile = bannerFileInput.files[0];
+                    const bannerPath = `users/${currentUser.uid}/artists/${artistId}/banner_${Date.now()}`;
+                    bannerUrl = await uploadFileToStorage(bannerPath, bannerFile);
+                }
+
+                const updatedData = {
+                    name: document.getElementById("edit-name").value,
+                    photoUrl: photoUrl,
+                    bannerUrl: bannerUrl,
+                    birthdate: document.getElementById("edit-birthdate").value,
+                    birthplace: document.getElementById("edit-birthplace").value,
+                    genre: document.getElementById("edit-genre").value
+                };
+
+                const artistRef = doc(db, "users", currentUser.uid, "artists", artistId);
+                await updateDoc(artistRef, updatedData);
+
+                fermerPopupEdition();
+                await chargerDonneesArtiste(currentUser.uid, artistId);
+
+            } catch (err) {
+                console.error("Erreur de mise à jour :", err);
+                alert("Erreur lors de la sauvegarde : " + err.message);
+            } finally {
+                submitBtn.innerText = "Enregistrer les modifications";
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
