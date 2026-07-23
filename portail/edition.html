@@ -139,6 +139,14 @@
             border-left-color: #000000;
         }
 
+        .truc2 {
+            background: #ffffff60;
+            border-radius: 25px;
+            border: 1px solid white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.295);
+            padding: 15px
+        }
+
         .content-area {
             flex: 1;
             padding: 30px;
@@ -225,8 +233,8 @@
 
         .form-control {
             padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            border: 1px solid #FC8FB0;
+            border-radius: 50px;
             font-size: 14px;
         }
 
@@ -250,8 +258,8 @@
             width: 250px;
             height: 250px;
             background: #eee;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
+            border: 2px dashed #FC8FB0;
+            border-radius: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -277,9 +285,10 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.253);
+            background: rgba(255, 255, 255, 0.342);
+            border: 1px solid white;
+            border-radius: 50px;
             cursor: grab;
         }
 
@@ -289,17 +298,30 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
         }
 
+        .truc {
+            text-align: left;
+            font-size: 13px;
+            background: #ffffff36;
+            padding: 15px;
+            border-radius: 25px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.473);
+            margin-bottom: 20px;
+        }
+
         .modal-content {
-            background: white;
+            background: rgba(255, 255, 255, 0.418);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 32px rgba(0, 0, 0, 0.493);
             padding: 25px;
-            border-radius: 10px;
             width: 90%;
             max-width: 600px;
             max-height: 85vh;
@@ -347,19 +369,21 @@
             width: 100%;
             padding: 10px;
             border: none;
-            border-radius: 6px;
+            border-radius: 50px;
             font-weight: bold;
             cursor: pointer;
             font-size: 13px;
         }
 
         .btn-save {
-            background: #e9ecef;
-            color: #333;
+            background: #ffffff75;
+            color: #FC8FB0;
+            border: 1px solid #FC8FB0;
+
         }
 
         .btn-pub {
-            background: var(--primary);
+            background: #FC8FB0;
             color: white;
         }
 
@@ -478,9 +502,11 @@
                 <div id="selected-feats-list" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button type="button" class="btn btn-secondary" onclick="ouvrirPopupFeatExistant()">+ Ajouter un
+                    <button type="button" class="btn-side btn-save" onclick="ouvrirPopupFeatExistant()">+ Ajouter
+                        un
                         artiste existant</button>
-                    <button type="button" class="btn btn-primary" onclick="ouvrirPopupNouveauFeat()">+ Nouvel/Nouvelle
+                    <button type="button" class="btn-side btn-pub" onclick="ouvrirPopupNouveauFeat()">+
+                        Nouvel/Nouvelle
                         artiste</button>
                 </div>
             </div>
@@ -608,8 +634,7 @@
                     </div>
 
                     <div style="flex:1;">
-                        <div
-                            style="background:#f8f9fa; padding:15px; border-radius:6px; border:1px solid var(--border);">
+                        <div class="truc2">
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
                                 <img src="/assets/img/platforms/Apple_Music_icon.svg" style="height:20px;" alt="Apple">
                                 <strong style="font-size:14px;">Apple Motion Art (Optionnel)</strong>
@@ -802,8 +827,7 @@
     <div class="modal" id="modal-motion">
         <div class="modal-content">
             <h2>Spécifications Apple Motion Art</h2>
-            <div
-                style="text-align:left; font-size:13px; background:#f8f9fa; padding:15px; border-radius:6px; margin-bottom:20px;">
+            <div class="truc">
                 <strong>Obligations Techniques Absolues :</strong>
                 <ul>
                     <li>Codec requis : ProRes 422 ou ProRes 4444 (.mov)</li>
@@ -820,7 +844,7 @@
                 <button type="button" class="btn-side btn-save"
                     onclick="showToast('Import ProRes 3:4 imminent (2048x2732)', 'success')">3:4 Portrait : iPhone
                     Importer</button>
-                <button type="button" class="btn-side btn-pub" style="background:#6c757d;"
+                <button type="button" class="btn-side btn-pub"
                     onclick="document.getElementById('modal-motion').style.display='none'">Fermer</button>
             </div>
         </div>
@@ -829,6 +853,8 @@
     <div class="modal" id="modal-track-editor">
         <div class="modal-content">
             <h2 id="modal-track-title">Édition de la piste</h2>
+
+
 
             <div class="modal-nav">
                 <button type="button" class="modal-tab active"
@@ -966,6 +992,8 @@
                     onclick="sauvegarderMetaDonneesPiste()">Valider</button>
             </div>
         </div>
+
+
     </div>
 
 
@@ -1539,6 +1567,12 @@
 
 
         window.ouvrirLancementFichierAudio = function () {
+            // Vérification du badge
+            const badge = objetSortie.badge ? objetSortie.badge.trim() : "";
+            if (badge && badge !== "Verification MMCP" && badge !== "Vérification MMCP") {
+                showToast("Impossible d'ajouter des pistes : le statut/badge de cette sortie ne le permet pas.", "error");
+                return;
+            }
             document.getElementById("file-audio-main").click();
         };
 
@@ -2221,6 +2255,44 @@
             } else {
                 window.location.href = "index.html";
             }
+        };
+
+        window.fermerEditeurPiste = function () {
+            const modal = document.getElementById("modal-track-editor");
+            if (modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        window.sauvegarderSuperEditeurPiste = function () {
+            if (indexPisteEnCoursEdition !== null && objetSortie.tracks[indexPisteEnCoursEdition]) {
+                const track = objetSortie.tracks[indexPisteEnCoursEdition];
+                track.title = document.getElementById("t-edit-title").value.trim();
+                track.isrc = document.getElementById("t-edit-isrc").value.trim();
+                track.iswc = document.getElementById("t-edit-iswc").value.trim();
+                track.version = document.getElementById("t-edit-version").value.trim();
+                track.appleMasteringEmail = document.getElementById("t-apple-master-email").value.trim();
+                track.lyricType = document.querySelector('input[name="explicit-type"]:checked')?.value || "Clean";
+            }
+            renouvelerAffichageListePistes();
+            fermerEditeurPiste();
+            showToast("Piste sauvegardée avec succès", "success");
+        };
+
+        window.supprimerPiste = function (index) {
+            // Vérification du badge
+            const badge = objetSortie.badge ? objetSortie.badge.trim() : "";
+            if (badge && badge !== "Verification MMCP" && badge !== "Vérification MMCP") {
+                showToast("Impossible de supprimer une piste : le statut/badge de cette sortie ne le permet pas.", "error");
+                return;
+            }
+
+            showConfirm("Supprimer la piste", "Voulez-vous vraiment supprimer cette piste ?", () => {
+                objetSortie.tracks.splice(index, 1);
+                renouvelerAffichageListePistes();
+                analyserConsole();
+                showToast("Piste supprimée", "info");
+            });
         };
     </script>
 

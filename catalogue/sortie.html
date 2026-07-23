@@ -354,8 +354,9 @@
 
             const badgeClass = isDirect ? "badge-status direct" : "badge-status";
 
+            // CORRECTION ICI : Remplacement de encodeURIComponent(artist.name) par encodeURIComponent(artistName)
             const artistHtml = artistId
-                ? `<a href="artiste.html?id=${artistId}" class="release-artist">${artistName}</a>`
+                ? `<a href="artiste.html?name=${encodeURIComponent(artistName)}" class="release-artist">${artistName}</a>`
                 : `<span class="release-artist" style="color:#666; cursor:default;">${artistName}</span>`;
 
             const releaseDateRaw = data.originalReleaseDate || data.releaseDate;
@@ -380,7 +381,6 @@
                         trackTitle = track;
                     } else if (typeof track === 'object' && track !== null) {
                         trackTitle = track.title || (track.artists && track.artists[0] ? track.artists[0].name : 'Piste ' + (index + 1));
-                        // Priorité au fichier MP3 s'il existe, sinon repli sur d'autres formats audio
                         audioUrl = track.mp3Url || track.fileUrl || track.audioUrl || track.previewUrl || null;
                     }
 
@@ -390,73 +390,74 @@
                         playerHtml = `<span class="audio-unavailable">Extrait indisponible (en préparation)</span>`;
                     } else if (audioUrl) {
                         playerHtml = `
-                            <audio controls controlsList="nodownload" preload="metadata">
-                                <source src="${audioUrl}" type="audio/mpeg">
-                                <source src="${audioUrl}" type="audio/wav">
-                                Votre navigateur ne supporte pas la lecture audio.
-                            </audio>
-                        `;
+                        <audio controls controlsList="nodownload" preload="metadata">
+                            <source src="${audioUrl}" type="audio/mpeg">
+                            <source src="${audioUrl}" type="audio/wav">
+                            Votre navigateur ne supporte pas la lecture audio.
+                        </audio>
+                    `;
                     } else {
                         playerHtml = `<span class="audio-unavailable">Aucun fichier audio lié</span>`;
                     }
 
                     return `
-                        <li class="track-item">
-                            <div class="track-left">
-                                <span class="track-num">${String(index + 1).padStart(2, '0')}</span>
-                                <span>${trackTitle}</span>
-                            </div>
-                            <div class="track-audio-container">
-                                ${playerHtml}
-                            </div>
-                        </li>
-                    `;
+                    <li class="track-item">
+                        <div class="track-left">
+                            <span class="track-num">${String(index + 1).padStart(2, '0')}</span>
+                            <span>${trackTitle}</span>
+                        </div>
+                        <div class="track-audio-container">
+                            ${playerHtml}
+                        </div>
+                    </li>
+                `;
                 }).join("");
 
                 tracksHtml = `
-                    <div class="tracks-section">
-                        <h3 class="tracks-title">Pistes (${data.tracks.length})</h3>
-                        <ul class="tracks-list">
-                            ${itemsHtml}
-                        </ul>
-                    </div>
-                `;
+                <div class="tracks-section">
+                    <h3 class="tracks-title">Pistes (${data.tracks.length})</h3>
+                    <ul class="tracks-list">
+                        ${itemsHtml}
+                    </ul>
+                </div>
+            `;
             }
 
             contentArea.innerHTML = `
-                <article class="release-card">
-                    <div class="release-header">
-                        <img src="${cover}" alt="${title}" class="release-cover">
-                        <div class="release-info">
-                            <span class="${badgeClass}">${statusRaw}</span>
-                            <h1 class="release-title">${title}</h1>
-                            ${artistHtml}
+            <article class="release-card">
+                <div class="release-header">
+                    <img src="${cover}" alt="Pochette de ${title}" class="release-cover">
+                    <div class="release-info">
+                        <span class="${badgeClass}">${statusRaw}</span>
+                        <h1 class="release-title">${title}</h1>
+                        ${artistHtml}
 
-                            <div class="meta-grid">
-                                <div class="meta-item">
-                                    <span class="meta-label">Date de Sortie</span>
-                                    <span class="meta-value">${formattedDate}</span>
-                                </div>
-                                <div class="meta-item">
-                                    <span class="meta-label">Format / Type</span>
-                                    <span class="meta-value">${type}</span>
-                                </div>
-                                <div class="meta-item">
-                                    <span class="meta-label">Genre</span>
-                                    <span class="meta-value">${genre}</span>
-                                </div>
-                                <div class="meta-item">
-                                    <span class="meta-label">UPC / Barcode</span>
-                                    <span class="meta-value">${upc}</span>
-                                </div>
+                        <div class="meta-grid">
+                            <div class="meta-item">
+                                <span class="meta-label">Date de Sortie</span>
+                                <span class="meta-value">${formattedDate}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Format / Type</span>
+                                <span class="meta-value">${type}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Genre</span>
+                                <span class="meta-value">${genre}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">UPC / Barcode</span>
+                                <span class="meta-value">${upc}</span>
                             </div>
                         </div>
                     </div>
-                    ${tracksHtml}
-                </article>
-            `;
+                </div>
+                ${tracksHtml}
+            </article>
+        `;
         }
 
+        // Lancement explicite au chargement de la page
         loadReleaseDetails();
     </script>
 </body>

@@ -102,7 +102,7 @@
             border: 1px solid rgba(189, 189, 189, 0.4);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
             overflow: hidden;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .artist-banner {
@@ -152,6 +152,51 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        /* Section Informations & Métadonnées de l'artiste */
+        .info-section {
+            background-color: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(189, 189, 189, 0.4);
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            padding: 25px 30px;
+            margin-bottom: 40px;
+        }
+
+        .info-section-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0 0 15px 0;
+            color: #1e293b;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #334155;
         }
 
         /* Header de la section sorties */
@@ -303,7 +348,25 @@
                     src="https://via.placeholder.com/150/cbd5e1/94a3b8?text=Photo" alt="Photo de profil">
                 <div class="artist-name-container">
                     <h1 id="artist-name" class="artist-name">Chargement...</h1>
-                    <div class="artist-subtitle">Artiste Catalogue MMCP</div>
+                    <div id="artist-subtitle" class="artist-subtitle">Artiste Catalogue MMCP</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3 class="info-section-title">Informations de l'artiste</h3>
+            <div class="metadata-grid" id="artist-metadata">
+                <div class="meta-item">
+                    <span class="meta-label">Genre Principal</span>
+                    <span class="meta-value" id="meta-genre">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Date de Naissance / Création</span>
+                    <span class="meta-value" id="meta-birthdate">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Ville de Naissance / Origine</span>
+                    <span class="meta-value" id="meta-birthplace">-</span>
                 </div>
             </div>
         </div>
@@ -345,6 +408,47 @@
         let allArtistReleases = [];
         let filteredArtistReleases = [];
 
+        // Fonction pour convertir la date en format littéral français (ex: 1er Janvier 2013 ou 2 Mars 2001)
+        function formatFrenchDate(dateInput) {
+            if (!dateInput) return "-";
+
+            let dateObj = null;
+
+            // Gestion si dateInput est une chaîne "AAAA-MM-JJ" ou "JJ/MM/AAAA"
+            if (typeof dateInput === 'string') {
+                const parts = dateInput.trim().split(/[/.-]/);
+                if (parts.length === 3) {
+                    if (parts[0].length === 4) {
+                        // Format AAAA-MM-JJ
+                        dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                    } else if (parts[2].length === 4) {
+                        // Format JJ/MM/AAAA
+                        dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                    }
+                }
+            }
+
+            if (!dateObj || isNaN(dateObj.getTime())) {
+                dateObj = new Date(dateInput);
+            }
+
+            if (isNaN(dateObj.getTime())) {
+                return dateInput; // Retourne le texte brut si le format n'est pas reconnu
+            }
+
+            const day = dateObj.getDate();
+            const months = [
+                "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+                "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+            ];
+            const month = months[dateObj.getMonth()];
+            const year = dateObj.getFullYear();
+
+            const dayStr = (day === 1) ? "1er" : day;
+
+            return `${dayStr} ${month} ${year}`;
+        }
+
         // Lecture des paramètres d'URL (?name=Morgann%20Music ou ?id=ARTIST_ID)
         const urlParams = new URLSearchParams(window.location.search);
         const paramName = urlParams.get('name');
@@ -371,9 +475,11 @@
                     }
                 });
 
-                // Mettre à jour les informations dans le profil
+                // Mettre à jour les informations, le <title> et les métadonnées du profil
                 if (artistData) {
-                    document.getElementById("artist-name").innerText = artistData.name || currentArtistName;
+                    const nameToDisplay = artistData.name || currentArtistName;
+                    document.getElementById("artist-name").innerText = nameToDisplay;
+                    document.title = `${nameToDisplay} - Catalogue MMCP`;
 
                     if (artistData.banUrl || artistData.bannerUrl || artistData.banner) {
                         document.getElementById("artist-banner").src = artistData.banUrl || artistData.bannerUrl || artistData.banner;
@@ -382,10 +488,22 @@
                     if (artistData.photoUrl || artistData.photo || artistData.avatarUrl) {
                         document.getElementById("artist-photo").src = artistData.photoUrl || artistData.photo || artistData.avatarUrl;
                     }
+
+                    // Affichage des métadonnées avec conversion de la date
+                    document.getElementById("meta-genre").innerText = artistData.genre || "-";
+                    document.getElementById("meta-birthdate").innerText = formatFrenchDate(artistData.birthdate);
+                    document.getElementById("meta-birthplace").innerText = artistData.birthplace || "-";
+
+                    if (artistData.genre) {
+                        document.getElementById("artist-subtitle").innerText = `Artiste • ${artistData.genre}`;
+                    }
+
                 } else if (currentArtistName) {
                     document.getElementById("artist-name").innerText = currentArtistName;
+                    document.title = `${currentArtistName} - Catalogue MMCP`;
                 } else {
                     document.getElementById("artist-name").innerText = "Artiste inconnu";
+                    document.title = "Artiste inconnu - Catalogue MMCP";
                 }
 
                 // Mise à jour du placeholder de recherche avec le nom de l'artiste

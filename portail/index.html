@@ -9,7 +9,6 @@
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #ffffff;
             color: #1e293b;
             margin: 0;
             padding: 20px;
@@ -29,13 +28,13 @@
         .card {
             display: flex;
             flex-direction: column;
-            background-color: rgba(232, 232, 232, 0.75);
+            background-color: rgba(255, 255, 255, 0.397);
             width: 250px;
             max-width: 100%;
             height: 200px;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid rgb(255, 255, 255);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.207);
             padding: 20px;
@@ -194,11 +193,12 @@
         .release-item {
             display: flex;
             align-items: center;
-            background-color: rgba(232, 232, 232, 0.5);
+            background-color: rgba(255, 255, 255, 0.336);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(189, 189, 189, 0.3);
-            border-radius: 20px;
+            border: 1px solid rgb(255, 255, 255);
+            border-radius: 50px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.411);
             padding: 12px 20px;
             gap: 16px;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -206,14 +206,14 @@
 
         .release-item:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 0 16px rgba(0, 0, 0, 0.322);
         }
 
         /* Image de la pochette (coverUrl) */
         .release-cover {
             width: 50px;
             height: 50px;
-            border-radius: 10px;
+            border-radius: 13px;
             object-fit: cover;
             background-color: #e2e8f0;
         }

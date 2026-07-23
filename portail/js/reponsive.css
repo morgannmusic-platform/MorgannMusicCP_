@@ -4,6 +4,10 @@
     padding-bottom: 100px;
 }
 
+body {
+    background: #FFEFF4;
+}
+
 /* Sur PC : on pousse le contenu vers la droite pour laisser la place à la sidebar */
 @media (min-width: 768px) {
     .main-content {
