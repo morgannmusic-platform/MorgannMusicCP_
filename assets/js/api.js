@@ -43,19 +43,34 @@ async function apiFetch(path, options = {}) {
     options.body = JSON.stringify(options.body);
   }
 
-  const response = await fetch(url, { ...options, headers });
+  const controller = new AbortController();
+  const timeoutMs = path.startsWith("/api/upload/") ? 300000 : 30000;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: response.statusText }));
-    throw new Error(errorData.error || `Erreur ${response.status}`);
-  }
+  try {
+    const response = await fetch(url, { ...options, headers, signal: controller.signal });
 
-  // Certaines réponses peuvent ne pas avoir de body JSON
-  const contentType = response.headers.get("Content-Type") || "";
-  if (contentType.includes("application/json")) {
-    return await response.json();
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(errorData.error || `Erreur ${response.status}`);
+    }
+
+    // Certaines réponses peuvent ne pas avoir de body JSON
+    const contentType = response.headers.get("Content-Type") || "";
+    if (contentType.includes("application/json")) {
+      return await response.json();
+    }
+    return null;
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      console.error("API timeout:", url);
+      throw new Error("Le serveur a mis trop de temps à répondre. Vérifie ta connexion et réessaie.");
+    }
+    console.error("API error:", { path, error });
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  return null;
 }
 
 /**

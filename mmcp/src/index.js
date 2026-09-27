@@ -1,8 +1,17 @@
 export default {
   async fetch(request, env) {
-
+    // Traitement immédiat des requêtes CORS preflight (OPTIONS)
     if (request.method === "OPTIONS") {
       return corsResponse(null, 204);
+    }
+
+    // Assurer l'existence des tables SQL requises dans D1 au premier démarrage
+    if (env.DB) {
+      try {
+        await ensureTables(env.DB);
+      } catch (e) {
+        console.error("Initialisation D1:", e);
+      }
     }
 
     const url = new URL(request.url);
@@ -10,7 +19,13 @@ export default {
     const method = request.method;
 
     try {
-
+      // --- ROUTES PUBLIQUES STATIQUES ---
+      if (method === "GET" && path === "/api/platforms") {
+        return corsJson(LISTE_PLATFORMES);
+      }
+      if (method === "GET" && path === "/api/countries") {
+        return corsJson(LISTE_PAYS);
+      }
       if (method === "GET" && path === "/api/artists") {
         return await getAllArtists(env);
       }
@@ -40,42 +55,19 @@ export default {
         return await getPublicRelease(env, releaseId);
       }
 
-
+      // --- AUTHENTIFICATION ---
       const userId = await extractUserId(request);
       if (!userId) {
         return corsJson({ error: "Authentification requise" }, 401);
       }
       const isAdminUser = await isAdmin(env, userId);
 
-      if (method === "GET" && path === "/api/admin/users") {
-        return await listUsers(env, userId, isAdminUser);
-      }
-      if (method === "GET" && path === "/api/admin/messages") {
-        return await getAllMessages(env, userId, isAdminUser);
-      }
-      if (method === "GET" && path === "/api/admin/withdrawals") {
-        return await getAllWithdrawals(env, userId, isAdminUser);
-      }
-      if (method === "PATCH" && path.match(/^\/api\/admin\/withdrawals\/\d+$/)) {
-        return await patchWithdrawal(env, path, request, isAdminUser);
-      }
-      if (method === "POST" && path === "/api/admin/versions") {
-        return await createVersion(env, request, userId, isAdminUser);
-      }
-      if (method === "PATCH" && path.match(/^\/api\/admin\/versions\/\d+$/)) {
-        return await patchVersion(env, path, request, userId, isAdminUser);
-      }
-      if (method === "POST" && path.match(/^\/api\/admin\/users\/[^/]+\/notifications$/)) {
-        return await createNotification(env, userId, path, request, isAdminUser);
-      }
-      if (method === "GET" && path.match(/^\/api\/admin\/releases\/\d+$/)) {
-        return await getAdminRelease(env, path, isAdminUser);
-      }
-
+      // --- ME / PROFIL ---
       if (method === "GET" && path === "/api/me") {
         return await getMe(env, userId);
       }
 
+      // --- ROUTES ADMINISTRATEUR ---
       if (method === "GET" && path === "/api/admin/users") {
         return await listUsers(env, userId, isAdminUser);
       }
@@ -86,7 +78,7 @@ export default {
         return await getAllWithdrawals(env, userId, isAdminUser);
       }
       if (method === "PATCH" && path.match(/^\/api\/admin\/withdrawals\/\d+$/)) {
-        return await patchWithdrawal(env, path, request, isAdminUser);
+        return await patchWithdrawal(env, userId, path, request, isAdminUser);
       }
       if (method === "POST" && path === "/api/admin/versions") {
         return await createVersion(env, request, userId, isAdminUser);
@@ -97,7 +89,7 @@ export default {
       if (method === "GET" && path.match(/^\/api\/admin\/releases\/\d+$/)) {
         return await getAdminRelease(env, path, isAdminUser);
       }
-      if (method === "PATCH" && path.match(/^\/api\/admin\/releases\/\d+$/)) {
+      if ((method === "PATCH" || method === "PUT") && path.match(/^\/api\/admin\/releases\/\d+$/)) {
         return await adminPatchRelease(env, userId, request);
       }
       if (method === "GET" && path.match(/^\/api\/admin\/settings\/[^/]+$/)) {
@@ -122,11 +114,12 @@ export default {
         return await deleteFinance(env, userId, path, isAdminUser);
       }
 
+      // --- FEATS ---
       if (method === "POST" && path === "/api/feats") {
         return await createFeat(env, userId, request);
       }
 
-
+      // --- USERS ---
       const userMatch = path.match(/^\/api\/users\/([^/]+)$/);
       if (userMatch) {
         const uid = userMatch[1];
@@ -139,7 +132,36 @@ export default {
         if (method === "PATCH") return await patchUser(env, uid, request);
       }
 
+      // --- BIBLIOTHÈQUE SONORE / USER TRACKS (/api/users/:uid/tracks) ---
+      const userTracksMatch = path.match(/^\/api\/users\/([^/]+)\/tracks$/);
+      if (userTracksMatch) {
+        const uid = userTracksMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "GET") return await getUserTracks(env, uid);
+        if (method === "POST") return await createOrUpdateUserTrack(env, uid, request);
+      }
 
+      const userTrackMatch = path.match(/^\/api\/users\/([^/]+)\/tracks\/(.+)$/);
+      if (userTrackMatch) {
+        const uid = userTrackMatch[1];
+        const trackId = decodeURIComponent(userTrackMatch[2]);
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "DELETE") return await deleteUserTrack(env, uid, trackId);
+      }
+
+      // --- STATISTIQUES DE STREAMING / PLAYS (/api/users/:uid/plays) ---
+      const userPlaysMatch = path.match(/^\/api\/users\/([^/]+)\/plays$/);
+      if (userPlaysMatch) {
+        const uid = userPlaysMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "GET") return await getUserPlays(env, uid);
+        if (method === "POST") return await recordUserPlay(env, uid, request);
+      }
+
+      // --- ARTISTES ---
       const userArtistsMatch = path.match(/^\/api\/users\/([^/]+)\/artists$/);
       if (userArtistsMatch) {
         const uid = userArtistsMatch[1];
@@ -155,10 +177,11 @@ export default {
         const artistId = userArtistMatch[2];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-        if (method === "PATCH") return await patchArtist(env, uid, artistId, request);
+        if (method === "PATCH" || method === "PUT") return await patchArtist(env, uid, artistId, request);
+        if (method === "DELETE") return await deleteArtist(env, uid, artistId);
       }
 
-
+      // --- SORTIES / RELEASES ---
       const userReleasesMatch = path.match(/^\/api\/users\/([^/]+)\/releases$/);
       if (userReleasesMatch) {
         const uid = userReleasesMatch[1];
@@ -174,19 +197,19 @@ export default {
         const releaseId = userReleaseMatch[2];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-        if (method === "PATCH") return await patchRelease(env, uid, releaseId, request);
+        if (method === "PATCH" || method === "PUT") return await patchRelease(env, uid, releaseId, request);
         if (method === "GET") return await getRelease(env, uid, releaseId);
+        if (method === "DELETE") return await deleteRelease(env, uid, releaseId);
       }
 
-
+      // --- REVIEWS ---
       if (method === "POST" && path === "/api/reviews") {
         return await upsertReview(env, request);
       }
 
-
-      const uploadMatch = path.match(/^\/api\/upload\/(.+)$/);
-      if (uploadMatch && method === "POST") {
-        const type = uploadMatch[1];
+      // --- UPLOADS (/api/upload et /api/upload/:type) ---
+      if ((path === "/api/upload" || path.startsWith("/api/upload/")) && method === "POST") {
+        const type = path.startsWith("/api/upload/") ? path.replace("/api/upload/", "") : "file";
         return await uploadFile(env, userId, type, request);
       }
 
@@ -199,15 +222,45 @@ export default {
   }
 };
 
+const LISTE_PLATFORMES = [
+  "7Digital", "ACRCloud", "Alibaba", "AliGenie", "Amazon Music", "Anghami", "AGEDI", "Akazoo", "Apple Music", "ITunes",
+  "AMI Entertainment", "Audible Magic - Fulfillment360", "Audible Magic - Rights360", "Audiomack", "Ambients App", "AWA", "Boomplay", "Beatsource", "BMAT", "Claro Música",
+  "ClickNClear", "Deezer", "Dubset", "DISCO", "Google Play", "Curve", "Gaana", "Gracenote", "FLO", "Hungama",
+  "IHeart", "IMI Mobile", "Jaxsta", "JioSaavn", "Discogs", "JOOX", "Kanjian", "KDigital Media", "KKBOX", "LINE Music",
+  "Mixcloud", "Medianet", "MoodAgent", "MusicToday", "MELON", "NetEase Cloud Music", "Pandora", "Peloton", "PEX", "Play Network",
+  "Pretzel Rocks", "Qobuz", "Qub Musique", "Rebelation", "Rockbot", "Roxi", "Resso", "Rhapsody", "Napster", "Rakuten",
+  "Shazam", "Rakuten Music", "Slacker Radio", "Snapchat", "Spinlet", "Soundtrack Your Brand", "Sirius XM", "Soundtrack By Twitch", "Twitch", "Spotify",
+  "Tencent", "Tidal", "Styngr", "Tesla Music", "TouchTunes", "Jazzed", "MyMelo", "Fan Label", "Soundhound", "Soundmouse",
+  "Kuaishou", "Supernatural", "Grandpad", "Traxsource", "Triller", "TikTok", "Trackdrip", "United Media Agency (UMA)", "Yandex", "VEVO",
+  "YouTube Music", "Zvooq", "EMusic", "Beat.no", "Clone Digital", "Music Reports", "Mythical Games", "JPay", "Adaptr", "Pinterest",
+  "Samsung Music", "Bandcamp", "VKontakte", "Qishui Music", "Kwai", "Canva", "Musixmatch", "Soda Music"
+];
 
-
-
+const LISTE_PAYS = [
+  "Afghanistan", "Aland Islands", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua And Barbuda",
+  "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+  "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia And Herzegovina", "Botswana", "Brazil", "Brunei Darussalam", "Bulgaria", "Burkina Faso",
+  "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Colombia",
+  "Comoros", "Congo", "Costa Rica", "Cote D'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+  "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Fiji", "Finland", "France", "French Guiana", "French Polynesia",
+  "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guatemala", "Guinea", "Haiti",
+  "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+  "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Korea", "Kuwait", "Kyrgyzstan", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya",
+  "Liechtenstein", "Lithuania", "Luxembourg", "Macao", "Macedonia", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Martinique",
+  "Mauritania", "Mauritius", "Mayotte", "Mexico", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia",
+  "Nepal", "Netherlands", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Norway", "Oman", "Pakistan", "Panama", "Papua New Guinea",
+  "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Puerto Rico", "Qatar", "Reunion", "Romania", "Russian Federation", "Rwanda", "Saint Barthelemy",
+  "Saint Lucia", "Samoa", "San Marino", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
+  "South Africa", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan", "Tajikistan", "Tanzania",
+  "Thailand", "Togo", "Trinidad And Tobago", "Tunisia", "Turkey", "Turkmenistan", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
+  "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Viet Nam", "Yemen", "Zambia", "Zimbabwe"
+];
 
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
   };
 }
 
@@ -223,8 +276,127 @@ function corsJson(data, status = 200) {
 }
 
 /**
- * Extraire l'UID utilisateur depuis le token Firebase Auth (Bearer token JWT)
+ * Garantit la création automatique des tables D1 si elles n'existent pas
  */
+async function ensureTables(db) {
+  await db.batch([
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS releases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        title TEXT NOT NULL,
+        type TEXT DEFAULT 'Single',
+        artist_name TEXT,
+        cover_url TEXT,
+        status TEXT DEFAULT 'brouillon',
+        release_date TEXT,
+        original_release_date TEXT,
+        preorder_date TEXT,
+        timezone TEXT,
+        exact_time TEXT,
+        primary_genre TEXT,
+        secondary_genre TEXT,
+        language TEXT,
+        is_instrumental INTEGER DEFAULT 0,
+        label_name TEXT,
+        copyright_line_c TEXT,
+        copyright_line_p TEXT,
+        std_copyright TEXT,
+        manual_platforms INTEGER DEFAULT 0,
+        selected_platforms TEXT,
+        additional_deliveries TEXT,
+        version_line TEXT,
+        licence_type TEXT DEFAULT 'Copyright',
+        upc TEXT,
+        territories TEXT,
+        tracks TEXT,
+        feats TEXT,
+        apple_motion_11 TEXT,
+        apple_motion_34 TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS user_tracks (
+        id TEXT PRIMARY KEY,
+        user_uid TEXT NOT NULL,
+        title TEXT NOT NULL,
+        file_url TEXT,
+        version TEXT,
+        is_ai_generated INTEGER DEFAULT 0,
+        language TEXT,
+        isrc TEXT,
+        iswc TEXT,
+        writers TEXT,
+        apple_credits TEXT,
+        lyrics_text TEXT,
+        lyric_type TEXT,
+        atmos_url TEXT,
+        inst_url TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS user_plays (
+        id TEXT PRIMARY KEY,
+        user_uid TEXT NOT NULL,
+        release_id TEXT,
+        track_id TEXT,
+        platform TEXT,
+        country TEXT,
+        play_count INTEGER DEFAULT 0,
+        period_date TEXT,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS users (
+        uid TEXT PRIMARY KEY,
+        first_name TEXT,
+        last_name TEXT,
+        full_name TEXT,
+        artist_name TEXT,
+        email TEXT,
+        address TEXT,
+        city TEXT,
+        postal_code TEXT,
+        iban TEXT,
+        photo_url TEXT,
+        role TEXT DEFAULT 'user',
+        auth_method TEXT DEFAULT 'password',
+        plan_name TEXT DEFAULT 'starter',
+        subscription_status TEXT,
+        theme TEXT DEFAULT 'normal-auto',
+        totp_enabled INTEGER DEFAULT 0,
+        totp_secret TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS artists (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        name TEXT NOT NULL,
+        primary_genre TEXT,
+        feat TEXT,
+        toolost_artist_id TEXT,
+        spotify_id TEXT,
+        apple_music_id TEXT,
+        audiomack_id TEXT,
+        even_artist_id TEXT,
+        facebook_url TEXT,
+        instagram_url TEXT,
+        youtube_url TEXT,
+        photo TEXT,
+        contact_email TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+  ]);
+}
+
 async function extractUserId(request) {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
@@ -235,235 +407,33 @@ async function extractUserId(request) {
     if (parts.length !== 3) return null;
 
     const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
-    return payload.sub || payload.user_id || null;
+    return payload.sub || payload.user_id || payload.uid || null;
   } catch {
     return null;
   }
 }
 
-
-
-
+async function isAdmin(env, uid) {
+  const row = await env.DB.prepare("SELECT role FROM users WHERE uid = ?").bind(uid).first();
+  return row && row.role === "admin";
+}
 
 async function getUser(env, uid) {
   const row = await env.DB.prepare("SELECT * FROM users WHERE uid = ?").bind(uid).first();
-  if (!row) return corsJson({ error: "Utilisateur non trouvé" }, 404);
+  if (!row) return corsJson({ uid, planName: "starter", role: "user" });
   return corsJson(formatUserRow(row));
 }
 
 async function getMe(env, uid) {
   const row = await env.DB.prepare("SELECT * FROM users WHERE uid = ?").bind(uid).first();
-  if (!row) return corsJson({ error: "Utilisateur non trouvé" }, 404);
+  if (!row) return corsJson({ user: { uid, planName: "starter", role: "user" } });
   return corsJson({ user: formatUserRow(row) });
-}
-
-async function getPublicRelease(env, releaseId) {
-  const row = await env.DB.prepare("SELECT * FROM releases WHERE id = ?").bind(releaseId).first();
-  if (!row) return corsJson({ error: "Sortie non trouvée" }, 404);
-  return corsJson(formatReleaseRow(row));
-}
-
-async function getAdminRelease(env, path, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const releaseId = path.split('/').pop();
-  const row = await env.DB.prepare("SELECT * FROM releases WHERE id = ?").bind(releaseId).first();
-  if (!row) return corsJson({ error: "Sortie non trouvée" }, 404);
-  return corsJson(formatReleaseRow(row));
-}
-
-async function getSetting(env, path, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const key = path.split('/').pop();
-  const row = await env.DB.prepare("SELECT * FROM settings WHERE key = ?").bind(key).first();
-  if (!row) return corsJson({ error: "Setting non trouvé" }, 404);
-  let value = null;
-  try { value = JSON.parse(row.value); } catch { value = row.value; }
-  return corsJson({ key: row.key, value, updatedAt: row.updated_at });
-}
-
-async function upsertSetting(env, path, request, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const key = path.split('/').pop();
-  const data = await request.json();
-  const now = new Date().toISOString();
-  const value = JSON.stringify(data.value !== undefined ? data.value : data);
-  await env.DB.prepare(`INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
-    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`).bind(key, value, now).run();
-  return corsJson({ success: true, key, value: data.value !== undefined ? data.value : data }, 201);
-}
-
-async function adminPatchRelease(env, userId, request) {
-  if (!await isAdmin(env, userId)) return corsJson({ error: "Accès non autorisé" }, 403);
-  const path = new URL(request.url).pathname;
-  const releaseId = path.split('/').pop();
-  const release = await env.DB.prepare("SELECT * FROM releases WHERE id = ?").bind(releaseId).first();
-  if (!release) return corsJson({ error: "Sortie non trouvée" }, 404);
-
-  return await patchRelease(env, release.user_uid, releaseId, request);
 }
 
 async function listUsers(env, userId, isAdminUser) {
   if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
   const { results } = await env.DB.prepare("SELECT * FROM users ORDER BY created_at DESC").all();
   return corsJson(results.map(formatUserRow));
-}
-
-async function getAllMessages(env, userId, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const { results } = await env.DB.prepare("SELECT * FROM messages ORDER BY created_at DESC").all();
-  return corsJson(results.map(r => ({
-    id: r.id,
-    email: r.email,
-    message: r.message,
-    createdAt: r.created_at
-  })));
-}
-
-async function getAllWithdrawals(env, userId, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const { results } = await env.DB.prepare("SELECT * FROM withdrawals ORDER BY created_at DESC").all();
-  return corsJson(results.map(r => ({
-    id: r.id,
-    userUid: r.user_uid,
-    userEmail: r.user_email,
-    amount: r.amount,
-    iban: r.iban,
-    status: r.status,
-    createdAt: r.created_at,
-    updatedAt: r.updated_at
-  })));
-}
-
-async function patchWithdrawal(env, userId, path, request, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const withdrawalId = path.split('/').pop();
-  const data = await request.json();
-  const now = new Date().toISOString();
-
-  const fields = [];
-  const values = [];
-  if (data.status !== undefined) { fields.push("status = ?"); values.push(data.status); }
-  if (data.userEmail !== undefined) { fields.push("user_email = ?"); values.push(data.userEmail); }
-  if (data.amount !== undefined) { fields.push("amount = ?"); values.push(data.amount); }
-  if (data.iban !== undefined) { fields.push("iban = ?"); values.push(data.iban); }
-  if (fields.length === 0) return corsJson({ error: "Aucun champ à mettre à jour" }, 400);
-  fields.push("updated_at = ?"); values.push(now);
-  values.push(withdrawalId);
-
-  await env.DB.prepare(`UPDATE withdrawals SET ${fields.join(', ')} WHERE id = ?`).bind(...values).run();
-  return corsJson({ success: true });
-}
-
-async function createVersion(env, request, userId, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const data = await request.json();
-  const now = new Date().toISOString();
-  const result = await env.DB.prepare("INSERT INTO versions (version, description, date) VALUES (?, ?, ?)").bind(
-    data.version,
-    data.description || null,
-    data.date || now
-  ).run();
-  return corsJson({ success: true, id: result.meta.last_row_id }, 201);
-}
-
-async function patchVersion(env, path, request, userId, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const versionId = path.split('/').pop();
-  const data = await request.json();
-  const sets = [];
-  const values = [];
-  if (data.version !== undefined) { sets.push("version = ?"); values.push(data.version); }
-  if (data.description !== undefined) { sets.push("description = ?"); values.push(data.description); }
-  if (data.date !== undefined) { sets.push("date = ?"); values.push(data.date); }
-  if (sets.length === 0) return corsJson({ error: "Aucun champ à mettre à jour" }, 400);
-  values.push(versionId);
-  await env.DB.prepare(`UPDATE versions SET ${sets.join(', ')} WHERE id = ?`).bind(...values).run();
-  return corsJson({ success: true });
-}
-
-async function createNotification(env, userId, path, request, isAdminUser) {
-  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const uid = path.split('/')[3];
-  const data = await request.json();
-  const now = new Date().toISOString();
-
-  await env.DB.prepare("INSERT INTO notifications (user_uid, titre, notif, read, created_at) VALUES (?, ?, ?, ?, ?)").bind(
-    uid,
-    data.titre || null,
-    data.notif || null,
-    data.read ? 1 : 0,
-    now
-  ).run();
-  return corsJson({ success: true }, 201);
-}
-
-async function getFinances(env, userId, path, isAdminUser) {
-  const uid = path.split('/')[3];
-  if (uid !== userId && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const { results } = await env.DB.prepare("SELECT * FROM finances WHERE user_uid = ? ORDER BY created_at DESC").bind(uid).all();
-  return corsJson(results.map(r => ({
-    id: r.id,
-    userUid: r.user_uid,
-    amount: r.amount,
-    period: r.period,
-    releaseId: r.release_id,
-    releaseTitle: r.release_title,
-    artistName: r.artist_name,
-    createdAt: r.created_at,
-    updatedAt: r.updated_at
-  })));
-}
-
-async function createFinance(env, userId, path, request, isAdminUser) {
-  const uid = path.split('/')[3];
-  if (uid !== userId && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const data = await request.json();
-  const now = new Date().toISOString();
-  const result = await env.DB.prepare("INSERT INTO finances (user_uid, amount, period, release_id, release_title, artist_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(
-    uid,
-    data.amount || 0,
-    data.period || null,
-    data.releaseId || null,
-    data.releaseTitle || null,
-    data.artistName || null,
-    now,
-    now
-  ).run();
-  return corsJson({ success: true, id: result.meta.last_row_id }, 201);
-}
-
-async function patchFinance(env, userId, path, request, isAdminUser) {
-  const parts = path.split('/');
-  const uid = parts[3];
-  const financeId = parts[5];
-  if (uid !== userId && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  const data = await request.json();
-  const sets = [];
-  const values = [];
-  if (data.amount !== undefined) { sets.push("amount = ?"); values.push(data.amount); }
-  if (data.period !== undefined) { sets.push("period = ?"); values.push(data.period); }
-  if (data.releaseId !== undefined) { sets.push("release_id = ?"); values.push(data.releaseId); }
-  if (data.releaseTitle !== undefined) { sets.push("release_title = ?"); values.push(data.releaseTitle); }
-  if (data.artistName !== undefined) { sets.push("artist_name = ?"); values.push(data.artistName); }
-  if (sets.length === 0) return corsJson({ error: "Aucun champ à mettre à jour" }, 400);
-  sets.push("updated_at = ?"); values.push(new Date().toISOString());
-  values.push(financeId, uid);
-  await env.DB.prepare(`UPDATE finances SET ${sets.join(', ')} WHERE id = ? AND user_uid = ?`).bind(...values).run();
-  return corsJson({ success: true });
-}
-
-async function deleteFinance(env, userId, path, isAdminUser) {
-  const parts = path.split('/');
-  const uid = parts[3];
-  const financeId = parts[5];
-  if (uid !== userId && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-  await env.DB.prepare("DELETE FROM finances WHERE id = ? AND user_uid = ?").bind(financeId, uid).run();
-  return corsJson({ success: true });
-}
-
-async function isAdmin(env, uid) {
-  const row = await env.DB.prepare("SELECT role FROM users WHERE uid = ?").bind(uid).first();
-  return row && row.role === "admin";
 }
 
 async function upsertUser(env, uid, request) {
@@ -506,7 +476,7 @@ async function upsertUser(env, uid, request) {
     data.photoURL || null,
     data.role || "user",
     data.authMethod || "password",
-    data.planName || null,
+    data.planName || "starter",
     data.subscriptionStatus || null,
     data.theme || "normal-auto",
     data.totpEnabled ? 1 : 0,
@@ -548,24 +518,16 @@ async function patchUser(env, uid, request) {
   for (const [key, column] of Object.entries(fieldMap)) {
     if (data[key] !== undefined) {
       sets.push(`${column} = ?`);
-      if (key === "totpEnabled") {
-        values.push(data[key] ? 1 : 0);
-      } else {
-        values.push(data[key]);
-      }
+      values.push(key === "totpEnabled" ? (data[key] ? 1 : 0) : data[key]);
     }
   }
 
-  if (sets.length === 0) {
-    return corsJson({ error: "Aucun champ à mettre à jour" }, 400);
-  }
+  if (sets.length === 0) return corsJson({ error: "Aucun champ à mettre à jour" }, 400);
 
   sets.push("updated_at = ?");
-  values.push(now);
-  values.push(uid);
+  values.push(now, uid);
 
   await env.DB.prepare(`UPDATE users SET ${sets.join(", ")} WHERE uid = ?`).bind(...values).run();
-
   return corsJson({ success: true });
 }
 
@@ -585,7 +547,7 @@ function formatUserRow(row) {
     photoURL: row.photo_url,
     role: row.role,
     authMethod: row.auth_method,
-    planName: row.plan_name,
+    planName: row.plan_name || "starter",
     subscriptionStatus: row.subscription_status,
     theme: row.theme,
     totpEnabled: !!row.totp_enabled,
@@ -595,9 +557,67 @@ function formatUserRow(row) {
   };
 }
 
+async function getUserTracks(env, uid) {
+  const { results } = await env.DB.prepare("SELECT * FROM user_tracks WHERE user_uid = ? ORDER BY created_at DESC").bind(uid).all();
+  return corsJson(results || []);
+}
 
+async function createOrUpdateUserTrack(env, uid, request) {
+  const data = await request.json();
+  const id = data.id || `track_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
+  await env.DB.prepare(`
+    INSERT INTO user_tracks (
+      id, user_uid, title, file_url, version, is_ai_generated, language,
+      isrc, iswc, writers, apple_credits, lyrics_text, lyric_type, atmos_url, inst_url
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      title = excluded.title,
+      file_url = excluded.file_url,
+      version = excluded.version,
+      is_ai_generated = excluded.is_ai_generated,
+      language = excluded.language,
+      isrc = excluded.isrc,
+      iswc = excluded.iswc,
+      writers = excluded.writers,
+      apple_credits = excluded.apple_credits,
+      lyrics_text = excluded.lyrics_text,
+      lyric_type = excluded.lyric_type,
+      atmos_url = excluded.atmos_url,
+      inst_url = excluded.inst_url
+  `).bind(
+    id, uid, data.title || "Titre inconnu", data.fileUrl || "", data.version || "",
+    data.isAiGenerated ? 1 : 0, data.language || "Français", data.isrc || "", data.iswc || "",
+    data.writers || "", data.appleCredits || "", data.lyricsText || "", data.lyricType || "Clean",
+    data.atmosUrl || null, data.instUrl || null
+  ).run();
 
+  return corsJson({ success: true, id }, 201);
+}
+
+async function deleteUserTrack(env, uid, trackId) {
+  await env.DB.prepare("DELETE FROM user_tracks WHERE id = ? AND user_uid = ?").bind(trackId, uid).run();
+  return corsJson({ success: true });
+}
+
+async function getUserPlays(env, uid) {
+  const { results } = await env.DB.prepare("SELECT * FROM user_plays WHERE user_uid = ? ORDER BY updated_at DESC").bind(uid).all();
+  return corsJson(results || []);
+}
+
+async function recordUserPlay(env, uid, request) {
+  const body = await request.json();
+  const id = `play_${Date.now()}`;
+  await env.DB.prepare(`
+    INSERT INTO user_plays (id, user_uid, release_id, track_id, platform, country, play_count, period_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    id, uid, body.releaseId || "", body.trackId || "", body.platform || "Spotify",
+    body.country || "France", body.playCount || 0, body.periodDate || new Date().toISOString().split("T")[0]
+  ).run();
+
+  return corsJson({ success: true, id }, 201);
+}
 
 async function getAllArtists(env) {
   const { results } = await env.DB.prepare("SELECT * FROM artists ORDER BY name ASC").all();
@@ -609,34 +629,6 @@ async function getAllFeats(env) {
   return corsJson(results.map(formatArtistRow));
 }
 
-async function createFeat(env, uid, request) {
-  const data = await request.json();
-  const now = new Date().toISOString();
-
-  const result = await env.DB.prepare(`
-    INSERT INTO artists (user_uid, name, primary_genre, feat, toolost_artist_id, spotify_id, apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, youtube_url, photo, contact_email, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(
-    uid,
-    data.name,
-    data.primaryGenre || null,
-    JSON.stringify(data.links || {}),
-    data.toolost_artist_id || null,
-    data.spotify_id || null,
-    data.apple_music_id || null,
-    data.audiomack_id || null,
-    data.even_artist_id || null,
-    data.facebookUrl || null,
-    data.instagramUrl || null,
-    data.youtubeUrl || null,
-    data.photo || null,
-    data.contactEmail || null,
-    now
-  ).run();
-
-  return corsJson({ success: true, id: result.meta.last_row_id }, 201);
-}
-
 async function getUserArtists(env, uid) {
   const { results } = await env.DB.prepare("SELECT * FROM artists WHERE user_uid = ? ORDER BY name ASC").bind(uid).all();
   return corsJson(results.map(formatArtistRow));
@@ -646,7 +638,7 @@ async function createArtist(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
 
-  const result = await env.DB.prepare(`
+  const res = await env.DB.prepare(`
     INSERT INTO artists (user_uid, name, primary_genre, feat, toolost_artist_id, spotify_id, apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, youtube_url, photo, contact_email, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
@@ -654,56 +646,69 @@ async function createArtist(env, uid, request) {
     data.name,
     data.primaryGenre || null,
     data.feat || null,
-    data.toolost_artist_id || null,
-    data.spotify_id || null,
-    data.apple_music_id || null,
-    data.audiomack_id || null,
-    data.even_artist_id || null,
+    data.toolostArtistId || null,
+    data.spotifyId || null,
+    data.appleMusicId || null,
+    data.audiomackId || null,
+    data.evenArtistId || null,
     data.facebookUrl || null,
     data.instagramUrl || null,
     data.youtubeUrl || null,
     data.photo || null,
     data.contactEmail || null,
-    data.createdAt || now
+    now
   ).run();
 
-  return corsJson({ success: true, id: result.meta.last_row_id }, 201);
+  return corsJson({ id: res.meta.last_row_id, success: true }, 201);
+}
+
+async function createFeat(env, uid, request) {
+  const data = await request.json();
+  const now = new Date().toISOString();
+
+  const links = data.links || {};
+  const res = await env.DB.prepare(`
+    INSERT INTO artists (user_uid, name, feat, apple_music_id, spotify_id, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).bind(
+    uid,
+    data.name,
+    "feat",
+    links.apple || data.appleMusicId || null,
+    links.spotify || data.spotifyId || null,
+    now
+  ).run();
+
+  return corsJson({ id: res.meta.last_row_id, name: data.name, success: true }, 201);
 }
 
 async function patchArtist(env, uid, artistId, request) {
   const data = await request.json();
 
-  const fieldMap = {
-    name: "name",
-    primaryGenre: "primary_genre",
-    feat: "feat",
-    toolost_artist_id: "toolost_artist_id",
-    spotify_id: "spotify_id",
-    apple_music_id: "apple_music_id",
-    audiomack_id: "audiomack_id",
-    even_artist_id: "even_artist_id",
-    facebookUrl: "facebook_url",
-    instagramUrl: "instagram_url",
-    youtubeUrl: "youtube_url",
-    photo: "photo",
-    contactEmail: "contact_email",
-  };
+  await env.DB.prepare(`
+    UPDATE artists SET
+      name = COALESCE(?, name),
+      primary_genre = COALESCE(?, primary_genre),
+      spotify_id = COALESCE(?, spotify_id),
+      apple_music_id = COALESCE(?, apple_music_id),
+      photo = COALESCE(?, photo)
+    WHERE id = ? AND (user_uid = ? OR ? = 1)
+  `).bind(
+    data.name || null,
+    data.primaryGenre || null,
+    data.spotifyId || null,
+    data.appleMusicId || null,
+    data.photo || null,
+    artistId,
+    uid,
+    (await isAdmin(env, uid)) ? 1 : 0
+  ).run();
 
-  const sets = [];
-  const values = [];
+  return corsJson({ success: true });
+}
 
-  for (const [key, column] of Object.entries(fieldMap)) {
-    if (data[key] !== undefined) {
-      sets.push(`${column} = ?`);
-      values.push(data[key]);
-    }
-  }
-
-  if (sets.length === 0) return corsJson({ error: "Aucun champ à mettre à jour" }, 400);
-
-  values.push(artistId, uid);
-  await env.DB.prepare(`UPDATE artists SET ${sets.join(", ")} WHERE id = ? AND user_uid = ?`).bind(...values).run();
-
+async function deleteArtist(env, uid, artistId) {
+  await env.DB.prepare("DELETE FROM artists WHERE id = ? AND user_uid = ?").bind(artistId, uid).run();
   return corsJson({ success: true });
 }
 
@@ -715,9 +720,9 @@ function formatArtistRow(row) {
     name: row.name,
     primaryGenre: row.primary_genre,
     feat: row.feat,
-    toolost_artist_id: row.toolost_artist_id,
-    spotify_id: row.spotify_id,
-    apple_music_id: row.apple_music_id,
+    toolostArtistId: row.toolost_artist_id,
+    spotifyId: row.spotify_id,
+    appleMusicId: row.apple_music_id,
     audiomackId: row.audiomack_id,
     evenArtistId: row.even_artist_id,
     facebookUrl: row.facebook_url,
@@ -729,38 +734,23 @@ function formatArtistRow(row) {
   };
 }
 
-
-
-
-
 async function getAllReleases(env, url) {
   const status = url.searchParams.get("status");
-  const catalog = url.searchParams.get("catalog");
-  const artistName = url.searchParams.get("artistName");
-
-  let query = "SELECT * FROM releases WHERE 1=1";
-  const bindings = [];
+  let query = "SELECT * FROM releases";
+  const params = [];
 
   if (status) {
-    query += " AND status = ?";
-    bindings.push(status);
+    query += " WHERE status = ?";
+    params.push(status);
   }
-  if (catalog === "true" || catalog === "1") {
-    query += " AND show_on_mmcp_catalog = 1";
-  }
-  if (artistName) {
-    query += " AND LOWER(artist_name) = LOWER(?)";
-    bindings.push(artistName);
-  }
+  query += " ORDER BY created_at DESC";
 
-  query += " ORDER BY release_date DESC";
-
-  const { results } = await env.DB.prepare(query).bind(...bindings).all();
+  const { results } = await env.DB.prepare(query).bind(...params).all();
   return corsJson(results.map(formatReleaseRow));
 }
 
 async function getUserReleases(env, uid) {
-  const { results } = await env.DB.prepare("SELECT * FROM releases WHERE user_uid = ? ORDER BY release_date DESC").bind(uid).all();
+  const { results } = await env.DB.prepare("SELECT * FROM releases WHERE user_uid = ? ORDER BY created_at DESC").bind(uid).all();
   return corsJson(results.map(formatReleaseRow));
 }
 
@@ -770,232 +760,438 @@ async function getRelease(env, uid, releaseId) {
   return corsJson(formatReleaseRow(row));
 }
 
+async function getPublicRelease(env, releaseId) {
+  const row = await env.DB.prepare("SELECT * FROM releases WHERE id = ?").bind(releaseId).first();
+  if (!row) return corsJson({ error: "Sortie non trouvée" }, 404);
+  return corsJson(formatReleaseRow(row));
+}
+
+async function getAdminRelease(env, path, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const releaseId = path.split("/").pop();
+  const row = await env.DB.prepare("SELECT * FROM releases WHERE id = ?").bind(releaseId).first();
+  if (!row) return corsJson({ error: "Sortie non trouvée" }, 404);
+  return corsJson(formatReleaseRow(row));
+}
+
 async function createRelease(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
 
-  let rawData = data.data;
-  if (!rawData && (data.tracks || data.feats || data.primaryGenre || data.language || data.isInstrumental !== undefined)) {
-    rawData = {
-      tracks: data.tracks || [],
-      feats: data.feats || [],
-      primaryGenre: data.primaryGenre || null,
-      language: data.language || null,
-      isInstrumental: data.isInstrumental || false
-    };
-  }
+  const formattedTerritories = typeof data.territories === "object"
+    ? JSON.stringify(data.territories)
+    : (data.territories || "Tous les pays (Monde entier)");
 
-  const result = await env.DB.prepare(`
-    INSERT INTO releases (user_uid, artist_name, title, type, release_date, cover_url, status, show_on_mmcp_catalog, upc, isrc, data, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  const res = await env.DB.prepare(`
+    INSERT INTO releases (
+      user_uid, title, type, artist_name, cover_url, status,
+      release_date, original_release_date, preorder_date, timezone, exact_time,
+      primary_genre, secondary_genre, language, is_instrumental,
+      label_name, copyright_line_c, copyright_line_p, std_copyright,
+      manual_platforms, selected_platforms, additional_deliveries,
+      version_line, licence_type, upc, territories, tracks, feats,
+      apple_motion_11, apple_motion_34, created_at, updated_at
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?
+    )
   `).bind(
     uid,
-    data.artistName || null,
-    data.title || null,
-    data.type || null,
-    data.releaseDate || null,
-    data.coverUrl || null,
-    data.status || "draft",
-    data.showOnMmcpCatalog ? 1 : 0,
-    data.upc || null,
-    data.isrc || null,
-    rawData ? JSON.stringify(rawData) : null,
+    data.title || "",
+    data.type || "Single",
+    data.artistName || "",
+    data.coverUrl || "",
+    data.status || "brouillon",
+    data.releaseDate || "",
+    data.originalReleaseDate || "",
+    data.preorderDate || "",
+    data.timezone || "",
+    data.exactTime || "",
+    data.primaryGenre || "",
+    data.secondaryGenre || "",
+    data.language || "",
+    data.isInstrumental ? 1 : 0,
+    data.labelName || "",
+    data.copyrightLineC || "",
+    data.copyrightLineP || "",
+    data.stdCopyright || "",
+    data.manualPlatforms ? 1 : 0,
+    JSON.stringify(data.selectedPlatforms || []),
+    JSON.stringify(data.additionalDeliveries || []),
+    data.versionLine || "",
+    data.licenceType || "Copyright",
+    data.upc || "",
+    formattedTerritories,
+    JSON.stringify(data.tracks || []),
+    JSON.stringify(data.feats || []),
+    data.appleMotion11 || null,
+    data.appleMotion34 || null,
+    now,
     now
   ).run();
 
-  return corsJson({ success: true, id: result.meta.last_row_id }, 201);
+  return corsJson({ id: res.meta.last_row_id, success: true }, 201);
 }
 
 async function patchRelease(env, uid, releaseId, request) {
   const data = await request.json();
+  const now = new Date().toISOString();
 
-  const existingRow = await env.DB.prepare("SELECT data FROM releases WHERE id = ? AND user_uid = ?").bind(releaseId, uid).first();
-  let existingDataJson = {};
-  try {
-    if (existingRow && existingRow.data) {
-      existingDataJson = JSON.parse(existingRow.data) || {};
-    }
-  } catch {
-    existingDataJson = {};
+  const row = await env.DB.prepare("SELECT * FROM releases WHERE id = ? AND user_uid = ?").bind(releaseId, uid).first();
+  if (!row) return corsJson({ error: "Sortie non trouvée ou non autorisée" }, 404);
+
+  let formattedTerritories = null;
+  if (data.territories !== undefined) {
+    formattedTerritories = typeof data.territories === "object"
+      ? JSON.stringify(data.territories)
+      : data.territories;
   }
 
-  if (data.tracks !== undefined) existingDataJson.tracks = data.tracks;
-  if (data.feats !== undefined) existingDataJson.feats = data.feats;
-  if (data.primaryGenre !== undefined) existingDataJson.primaryGenre = data.primaryGenre;
-  if (data.language !== undefined) existingDataJson.language = data.language;
-  if (data.isInstrumental !== undefined) existingDataJson.isInstrumental = data.isInstrumental;
+  await env.DB.prepare(`
+    UPDATE releases SET
+      title = COALESCE(?, title),
+      type = COALESCE(?, type),
+      artist_name = COALESCE(?, artist_name),
+      cover_url = COALESCE(?, cover_url),
+      status = COALESCE(?, status),
+      release_date = COALESCE(?, release_date),
+      original_release_date = COALESCE(?, original_release_date),
+      preorder_date = COALESCE(?, preorder_date),
+      timezone = COALESCE(?, timezone),
+      exact_time = COALESCE(?, exact_time),
+      primary_genre = COALESCE(?, primary_genre),
+      secondary_genre = COALESCE(?, secondary_genre),
+      language = COALESCE(?, language),
+      is_instrumental = COALESCE(?, is_instrumental),
+      label_name = COALESCE(?, label_name),
+      copyright_line_c = COALESCE(?, copyright_line_c),
+      copyright_line_p = COALESCE(?, copyright_line_p),
+      std_copyright = COALESCE(?, std_copyright),
+      manual_platforms = COALESCE(?, manual_platforms),
+      selected_platforms = COALESCE(?, selected_platforms),
+      additional_deliveries = COALESCE(?, additional_deliveries),
+      version_line = COALESCE(?, version_line),
+      licence_type = COALESCE(?, licence_type),
+      upc = COALESCE(?, upc),
+      territories = COALESCE(?, territories),
+      tracks = COALESCE(?, tracks),
+      feats = COALESCE(?, feats),
+      apple_motion_11 = COALESCE(?, apple_motion_11),
+      apple_motion_34 = COALESCE(?, apple_motion_34),
+      updated_at = ?
+    WHERE id = ? AND user_uid = ?
+  `).bind(
+    data.title !== undefined ? data.title : null,
+    data.type !== undefined ? data.type : null,
+    data.artistName !== undefined ? data.artistName : null,
+    data.coverUrl !== undefined ? data.coverUrl : null,
+    data.status !== undefined ? data.status : null,
+    data.releaseDate !== undefined ? data.releaseDate : null,
+    data.originalReleaseDate !== undefined ? data.originalReleaseDate : null,
+    data.preorderDate !== undefined ? data.preorderDate : null,
+    data.timezone !== undefined ? data.timezone : null,
+    data.exactTime !== undefined ? data.exactTime : null,
+    data.primaryGenre !== undefined ? data.primaryGenre : null,
+    data.secondaryGenre !== undefined ? data.secondaryGenre : null,
+    data.language !== undefined ? data.language : null,
+    data.isInstrumental !== undefined ? (data.isInstrumental ? 1 : 0) : null,
+    data.labelName !== undefined ? data.labelName : null,
+    data.copyrightLineC !== undefined ? data.copyrightLineC : null,
+    data.copyrightLineP !== undefined ? data.copyrightLineP : null,
+    data.stdCopyright !== undefined ? data.stdCopyright : null,
+    data.manualPlatforms !== undefined ? (data.manualPlatforms ? 1 : 0) : null,
+    data.selectedPlatforms !== undefined ? JSON.stringify(data.selectedPlatforms) : null,
+    data.additionalDeliveries !== undefined ? JSON.stringify(data.additionalDeliveries) : null,
+    data.versionLine !== undefined ? data.versionLine : null,
+    data.licenceType !== undefined ? data.licenceType : null,
+    data.upc !== undefined ? data.upc : null,
+    formattedTerritories,
+    data.tracks !== undefined ? JSON.stringify(data.tracks) : null,
+    data.feats !== undefined ? JSON.stringify(data.feats) : null,
+    data.appleMotion11 !== undefined ? data.appleMotion11 : null,
+    data.appleMotion34 !== undefined ? data.appleMotion34 : null,
+    now,
+    releaseId,
+    uid
+  ).run();
 
-  if (data.data && typeof data.data === "object") {
-    existingDataJson = { ...existingDataJson, ...data.data };
-  }
+  return corsJson({ id: releaseId, success: true });
+}
 
-  const fieldMap = {
-    artistName: "artist_name",
-    title: "title",
-    type: "type",
-    releaseDate: "release_date",
-    coverUrl: "cover_url",
-    status: "status",
-    showOnMmcpCatalog: "show_on_mmcp_catalog",
-    upc: "upc",
-    isrc: "isrc",
-  };
+async function adminPatchRelease(env, userId, request) {
+  if (!(await isAdmin(env, userId))) return corsJson({ error: "Accès non autorisé" }, 403);
+  const data = await request.json();
+  const releaseId = data.id;
 
-  const sets = [];
-  const values = [];
+  if (!releaseId) return corsJson({ error: "ID de sortie manquant" }, 400);
 
-  for (const [key, column] of Object.entries(fieldMap)) {
-    if (data[key] !== undefined) {
-      sets.push(`${column} = ?`);
-      if (key === "showOnMmcpCatalog") {
-        values.push(data[key] ? 1 : 0);
-      } else {
-        values.push(data[key]);
-      }
-    }
-  }
+  await env.DB.prepare(`
+    UPDATE releases SET
+      status = COALESCE(?, status),
+      upc = COALESCE(?, upc),
+      updated_at = ?
+    WHERE id = ?
+  `).bind(
+    data.status || null,
+    data.upc || null,
+    new Date().toISOString(),
+    releaseId
+  ).run();
 
-  sets.push("data = ?");
-  values.push(Object.keys(existingDataJson).length > 0 ? JSON.stringify(existingDataJson) : null);
+  return corsJson({ success: true });
+}
 
-  if (sets.length === 1 && !data.data && data.tracks === undefined && data.feats === undefined) {
-    return corsJson({ error: "Aucun champ à mettre à jour" }, 400);
-  }
-
-  values.push(releaseId, uid);
-  await env.DB.prepare(`UPDATE releases SET ${sets.join(", ")} WHERE id = ? AND user_uid = ?`).bind(...values).run();
-
+async function deleteRelease(env, uid, releaseId) {
+  await env.DB.prepare("DELETE FROM releases WHERE id = ? AND user_uid = ?").bind(releaseId, uid).run();
   return corsJson({ success: true });
 }
 
 function formatReleaseRow(row) {
   if (!row) return null;
-  let parsedData = null;
+
+  let selectedPlatforms = [];
+  try { selectedPlatforms = JSON.parse(row.selected_platforms || "[]"); } catch (e) { }
+
+  let additionalDeliveries = [];
+  try { additionalDeliveries = JSON.parse(row.additional_deliveries || "[]"); } catch (e) { }
+
+  let tracks = [];
+  try { tracks = JSON.parse(row.tracks || "[]"); } catch (e) { }
+
+  let feats = [];
+  try { feats = JSON.parse(row.feats || "[]"); } catch (e) { }
+
+  let territories = row.territories || "Tous les pays (Monde entier)";
   try {
-    parsedData = row.data ? JSON.parse(row.data) : {};
-  } catch {
-    parsedData = {};
-  }
+    if (typeof territories === "string" && (territories.startsWith("[") || territories.startsWith("{"))) {
+      territories = JSON.parse(territories);
+    }
+  } catch (e) { }
 
   return {
     id: row.id,
     userUid: row.user_uid,
-    artistName: row.artist_name,
-    title: row.title,
-    type: row.type,
-    releaseDate: row.release_date,
-    coverUrl: row.cover_url,
-    status: row.status,
-    showOnMmcpCatalog: !!row.show_on_mmcp_catalog,
-    upc: row.upc,
-    isrc: row.isrc,
-    data: parsedData,
-    tracks: parsedData.tracks || [],
-    feats: parsedData.feats || [],
-    primaryGenre: parsedData.primaryGenre || null,
-    language: parsedData.language || null,
-    isInstrumental: parsedData.isInstrumental || false,
+    title: row.title || "",
+    type: row.type || "Single",
+    artistName: row.artist_name || "",
+    coverUrl: row.cover_url || "",
+    status: row.status || "brouillon",
+    releaseDate: row.release_date || "",
+    originalReleaseDate: row.original_release_date || "",
+    preorderDate: row.preorder_date || "",
+    timezone: row.timezone || "",
+    exactTime: row.exact_time || "",
+    primaryGenre: row.primary_genre || "",
+    secondaryGenre: row.secondary_genre || "",
+    language: row.language || "",
+    isInstrumental: Boolean(row.is_instrumental),
+    labelName: row.label_name || "",
+    copyrightLineC: row.copyright_line_c || "",
+    copyrightLineP: row.copyright_line_p || "",
+    stdCopyright: row.std_copyright || "",
+    manualPlatforms: Boolean(row.manual_platforms),
+    selectedPlatforms,
+    additionalDeliveries,
+    versionLine: row.version_line || "",
+    licenceType: row.licence_type || "Copyright",
+    upc: row.upc || "",
+    territories,
+    tracks,
+    feats,
+    appleMotion11: row.apple_motion_11 || null,
+    appleMotion34: row.apple_motion_34 || null,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
+async function uploadFile(env, userId, type, request) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file");
+    if (!file) {
+      return corsJson({ error: "Aucun fichier fourni" }, 400);
+    }
 
+    const filename = file.name || "upload";
+    const ext = filename.split(".").pop();
+    const key = `${type}/${userId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
 
+    const bucket = env.STORAGE || env.BUCKET || env.MEDIA_BUCKET;
+    if (bucket) {
+      await bucket.put(key, await file.arrayBuffer(), {
+        httpMetadata: { contentType: file.type || "application/octet-stream" },
+      });
+    } else if (env.FILES_KV) {
+      await env.FILES_KV.put(key, await file.arrayBuffer());
+    } else {
+      return corsJson({ error: "Stockage R2 non configuré sur le worker" }, 500);
+    }
 
+    const url = `/api/files/${encodeURIComponent(key)}`;
+    return corsJson({ key, url, success: true });
+  } catch (err) {
+    return corsJson({ error: `Erreur de téléversement: ${err.message}` }, 500);
+  }
+}
+
+async function serveFile(env, key) {
+  try {
+    const bucket = env.STORAGE || env.BUCKET || env.MEDIA_BUCKET;
+    if (bucket) {
+      const object = await bucket.get(key);
+      if (!object) return new Response("Fichier non trouvé", { status: 404 });
+      const headers = new Headers();
+      object.writeHttpMetadata(headers);
+      headers.set("etag", object.httpEtag);
+      headers.set("Access-Control-Allow-Origin", "*");
+      return new Response(object.body, { headers });
+    }
+    if (env.FILES_KV) {
+      const value = await env.FILES_KV.get(key, "arrayBuffer");
+      if (!value) return new Response("Fichier non trouvé", { status: 404 });
+      return new Response(value, { headers: { "Access-Control-Allow-Origin": "*" } });
+    }
+    return new Response("Stockage non disponible", { status: 500 });
+  } catch (err) {
+    return new Response(`Erreur: ${err.message}`, { status: 500 });
+  }
+}
 
 async function getAllReviews(env) {
-  const { results } = await env.DB.prepare("SELECT * FROM reviews ORDER BY updated_at DESC").all();
-  return corsJson(results.map(r => ({
-    id: r.id,
-    artistName: r.artist_name,
-    rating: r.rating,
-    message: r.message,
-    updatedAt: r.updated_at,
-  })));
+  const { results } = await env.DB.prepare("SELECT * FROM reviews ORDER BY created_at DESC").all();
+  return corsJson(results);
 }
 
 async function upsertReview(env, request) {
   const data = await request.json();
   const now = new Date().toISOString();
-  const id = data.id || (data.artistName ? data.artistName.trim().toLowerCase().replace(/[^a-z0-9]/g, "_") : `review_${Date.now()}`);
-
   await env.DB.prepare(`
-    INSERT INTO reviews (id, artist_name, rating, message, updated_at)
+    INSERT INTO reviews (user_uid, author_name, rating, comment, created_at)
     VALUES (?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-      rating = excluded.rating,
-      message = excluded.message,
-      updated_at = excluded.updated_at
-  `).bind(id, data.artistName || "", data.rating || 0, data.message || "", now).run();
-
+  `).bind(data.userUid, data.authorName, data.rating, data.comment, now).run();
   return corsJson({ success: true });
 }
 
-
-
-
-
-async function createMessage(env, request) {
-  const data = await request.json();
-  const now = new Date().toISOString();
-
-  if (!data.email || !data.message) {
-    return corsJson({ error: "Email et message requis" }, 400);
-  }
-
-  await env.DB.prepare(`INSERT INTO messages (email, message, created_at) VALUES (?, ?, ?)`).bind(data.email, data.message, now).run();
-
-  return corsJson({ success: true }, 201);
-}
-
-
-
-
-
 async function getAllVersions(env) {
-  const { results } = await env.DB.prepare("SELECT * FROM versions ORDER BY date DESC").all();
+  const { results } = await env.DB.prepare("SELECT * FROM app_versions ORDER BY version_code DESC").all();
   return corsJson(results);
 }
 
-
-
-
-
-async function uploadFile(env, userId, type, request) {
-  const contentType = request.headers.get("Content-Type") || "application/octet-stream";
-
-  if (contentType.includes("multipart/form-data")) {
-    const formData = await request.formData();
-    const file = formData.get("file");
-    if (!file) return corsJson({ error: "Aucun fichier fourni" }, 400);
-
-    const originalName = file.name || "file.bin";
-    const ext = originalName.split(".").pop() || "bin";
-    const key = `${type}/${userId}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-    await env.STORAGE.put(key, file.stream(), {
-      httpMetadata: { contentType: file.type || contentType },
-    });
-
-    return corsJson({ success: true, key, url: `/api/files/${key}` });
-  }
-
-  const ext = type === "avatar" ? "png" : "bin";
-  const key = `${type}/${userId}/${Date.now()}.${ext}`;
-
-  await env.STORAGE.put(key, request.body, {
-    httpMetadata: { contentType },
-  });
-
-  return corsJson({ success: true, key, url: `/api/files/${key}` });
+async function createVersion(env, request, userId, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const data = await request.json();
+  const res = await env.DB.prepare(`
+    INSERT INTO app_versions (version_name, version_code, release_notes, created_at)
+    VALUES (?, ?, ?, ?)
+  `).bind(data.versionName, data.versionCode, data.releaseNotes, new Date().toISOString()).run();
+  return corsJson({ id: res.meta.last_row_id, success: true });
 }
 
-async function serveFile(env, key) {
-  const object = await env.STORAGE.get(key);
-  if (!object) return corsResponse("Not Found", 404);
+async function patchVersion(env, path, request, userId, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const versionId = path.split("/").pop();
+  const data = await request.json();
+  await env.DB.prepare(`
+    UPDATE app_versions SET version_name = COALESCE(?, version_name), release_notes = COALESCE(?, release_notes) WHERE id = ?
+  `).bind(data.versionName || null, data.releaseNotes || null, versionId).run();
+  return corsJson({ success: true });
+}
 
-  const headers = new Headers(corsHeaders());
-  headers.set("Content-Type", object.httpMetadata?.contentType || "application/octet-stream");
-  headers.set("Cache-Control", "public, max-age=31536000");
+async function createMessage(env, request) {
+  const data = await request.json();
+  await env.DB.prepare(`
+    INSERT INTO messages (name, email, subject, message, created_at)
+    VALUES (?, ?, ?, ?, ?)
+  `).bind(data.name, data.email, data.subject, data.message, new Date().toISOString()).run();
+  return corsJson({ success: true });
+}
 
-  return new Response(object.body, { headers });
+async function getAllMessages(env, userId, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const { results } = await env.DB.prepare("SELECT * FROM messages ORDER BY created_at DESC").all();
+  return corsJson(results);
+}
+
+async function getAllWithdrawals(env, userId, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const { results } = await env.DB.prepare("SELECT * FROM withdrawals ORDER BY created_at DESC").all();
+  return corsJson(results);
+}
+
+async function patchWithdrawal(env, userId, path, request, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const id = path.split("/").pop();
+  const data = await request.json();
+  await env.DB.prepare("UPDATE withdrawals SET status = ? WHERE id = ?").bind(data.status, id).run();
+  return corsJson({ success: true });
+}
+
+async function getSetting(env, path, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const key = path.split("/").pop();
+  const row = await env.DB.prepare("SELECT value FROM settings WHERE key = ?").bind(key).first();
+  return corsJson({ value: row ? row.value : null });
+}
+
+async function upsertSetting(env, path, request, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const key = path.split("/").pop();
+  const data = await request.json();
+  await env.DB.prepare(`
+    INSERT INTO settings (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `).bind(key, typeof data.value === "object" ? JSON.stringify(data.value) : data.value).run();
+  return corsJson({ success: true });
+}
+
+async function createNotification(env, userId, path, request, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const targetUid = path.split("/")[4];
+  const data = await request.json();
+  await env.DB.prepare(`
+    INSERT INTO notifications (user_uid, title, message, created_at)
+    VALUES (?, ?, ?, ?)
+  `).bind(targetUid, data.title, data.message, new Date().toISOString()).run();
+  return corsJson({ success: true });
+}
+
+async function getFinances(env, userId, path, isAdminUser) {
+  const targetUid = path.split("/")[4];
+  if (targetUid !== userId && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const { results } = await env.DB.prepare("SELECT * FROM finances WHERE user_uid = ? ORDER BY date DESC").bind(targetUid).all();
+  return corsJson(results);
+}
+
+async function createFinance(env, userId, path, request, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const targetUid = path.split("/")[4];
+  const data = await request.json();
+  await env.DB.prepare(`
+    INSERT INTO finances (user_uid, amount, description, type, date)
+    VALUES (?, ?, ?, ?, ?)
+  `).bind(targetUid, data.amount, data.description, data.type || "royalty", data.date || new Date().toISOString()).run();
+  return corsJson({ success: true });
+}
+
+async function patchFinance(env, userId, path, request, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const id = path.split("/").pop();
+  const data = await request.json();
+  await env.DB.prepare(`
+    UPDATE finances SET amount = COALESCE(?, amount), description = COALESCE(?, description) WHERE id = ?
+  `).bind(data.amount || null, data.description || null, id).run();
+  return corsJson({ success: true });
+}
+
+async function deleteFinance(env, userId, path, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  const id = path.split("/").pop();
+  await env.DB.prepare("DELETE FROM finances WHERE id = ?").bind(id).run();
+  return corsJson({ success: true });
 }

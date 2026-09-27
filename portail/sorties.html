@@ -35,23 +35,52 @@
             gap: 15px;
             margin-bottom: 25px;
             flex-wrap: wrap;
-            background-color: rgba(232, 232, 232, 0.349);
+            background-color: rgba(232, 232, 232, 0.4);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(255, 255, 255, 0.575);
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.173);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             border-radius: 50px;
-            padding: 15px 20px;
+            padding: 12px 20px;
             align-items: center;
             transition: all 0.3s;
         }
 
         .filter-bar:hover {
             transform: translateY(-2px);
-            box-shadow: 0 2px 18px rgba(0, 0, 0, 0.24);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
         }
 
-        .filter-input,
+        .filter-input-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-input-wrapper svg {
+            position: absolute;
+            left: 14px;
+            width: 18px;
+            height: 18px;
+            fill: #888;
+            pointer-events: none;
+        }
+
+        .filter-input {
+            width: 100%;
+            padding: 10px 16px 10px 42px;
+            border: 1px solid rgb(194, 194, 194);
+            border-radius: 30px;
+            background-color: rgb(255, 255, 255);
+            font-size: 14px;
+            outline: none;
+            color: #333;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
         .filter-select {
             padding: 10px 16px;
             border: 1px solid rgb(194, 194, 194);
@@ -61,32 +90,14 @@
             outline: none;
             color: #333;
             font-family: inherit;
-        }
-
-        .filter-input {
-            padding: 10px 16px 10px 42px;
-            /* 42px à gauche pour l'icône */
-            border: 1px solid rgb(194, 194, 194);
-            border-radius: 30px;
-            background-color: rgb(255, 255, 255);
-            background-image: url('/assets/img/icon/Magnifying-Glass--Streamline-Flex.svg');
-            background-repeat: no-repeat;
-            background-position: 14px center;
-            background-size: 18px 18px;
-            font-size: 14px;
-            outline: none;
-            color: #333;
-            font-family: inherit;
-            flex: 1;
-            min-width: 200px;
+            cursor: pointer;
         }
 
         .filter-input:focus,
         .filter-select:focus {
             border-color: #FC8FB0;
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.2);
         }
-
-        /* ------------------------------------- */
 
         .btn {
             padding: 10px 20px;
@@ -96,15 +107,17 @@
             font-weight: bold;
             font-size: 14px;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             transition: all 0.3s;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 2px 18px rgba(0, 0, 0, 0.24);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-
 
         .btn-primary {
             background: #FC8FB0;
@@ -113,7 +126,7 @@
 
         .btn-success {
             background: #E8FDC4;
-            color: #FC8FB0;
+            color: #d85c80;
             border: 1px solid #FC8FB0;
             margin-left: 10px;
         }
@@ -121,25 +134,31 @@
         .btn-view {
             background: #FC8FB0;
             color: white;
-            padding: 6px 12px;
+            padding: 8px 14px;
             font-size: 13px;
         }
 
         .btn-secondary {
-            background: #000000;
+            background: #1e293b;
             color: white;
-            padding: 6px 12px;
+            padding: 8px 14px;
             font-size: 13px;
         }
 
         .btn-danger {
             background: #dc3562;
             color: white;
-            padding: 6px 12px;
+            padding: 8px 14px;
             font-size: 13px;
         }
 
-        /* Grille des sorties */
+        .btn-danger:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
         .releases-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -148,69 +167,80 @@
         }
 
         .release-card {
-            background-color: rgba(218, 218, 218, 0.226);
-            backdrop-filter: blur(62px);
-            -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgb(255, 255, 255);
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.173);
-            border-radius: 30px;
-
-            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 28px;
+            padding: 16px;
             text-align: center;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
         .release-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 18px rgba(0, 0, 0, 0.24);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
-
 
         .cover-wrapper {
             width: 100%;
             aspect-ratio: 1/1;
-            background: #ddd;
-            border-radius: 24px;
+            background: #f1f5f9;
+            border-radius: 20px;
             margin-bottom: 12px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         .release-cover {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
         .release-title {
             font-size: 16px;
-            font-weight: bold;
-            margin: 8px 0 4px 0;
-            color: #222;
+            font-weight: 700;
+            margin: 6px 0 2px 0;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .release-artist {
             font-size: 14px;
-            color: #666;
-            margin: 0 0 12px 0;
+            color: #64748b;
+            margin: 0 0 10px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* Badges de statut */
         .badge {
             display: inline-block;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
             align-self: center;
+        }
+
+        .status-brouillon {
+            background: #94a3b8;
+            color: #ffffff;
         }
 
         .status-verification-mmcp {
@@ -219,32 +249,32 @@
         }
 
         .status-verification-plateformes {
-            background: #5dabff;
+            background: #3b82f6;
             color: white;
         }
 
         .status-livree {
-            background: #be63ff;
+            background: #a855f7;
             color: white;
         }
 
         .status-direct {
-            background: #4aed70;
+            background: #22c55e;
             color: white;
         }
 
         .status-licence {
-            background: #ff933a;
+            background: #f97316;
             color: white;
         }
 
         .status-retrait {
-            background: #d7172a;
+            background: #ef4444;
             color: white;
         }
 
         .status-retire {
-            background: #000000;
+            background: #0f172a;
             color: white;
         }
 
@@ -256,7 +286,6 @@
             flex-wrap: wrap;
         }
 
-        /* Pagination */
         .pagination {
             display: flex;
             justify-content: center;
@@ -266,23 +295,133 @@
         }
 
         .page-btn {
-            padding: 8px 14px;
+            padding: 8px 16px;
             border: 1px solid #FC8FB0;
             background: white;
             cursor: pointer;
             border-radius: 50px;
             font-weight: bold;
+            color: #FC8FB0;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #FC8FB0;
+            color: white;
         }
 
         .page-btn:disabled {
-            background: #e8c9d3;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
             cursor: not-allowed;
-            color: #ffffff;
+            color: #94a3b8;
         }
 
         .page-btn.active {
             background: #FC8FB0;
             color: white;
+        }
+
+        /* --- MODAL DE CONFIRMATION PERSO (Sans alert/confirm) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 24px;
+            border-radius: 24px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+
+        .modal-desc {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -298,16 +437,36 @@
             <div class="header-actions">
                 <h2>Mes Sorties</h2>
                 <div>
-                    <a href="nouvelle.html" class="btn btn-primary">Créer une sortie</a>
-                    <button class="btn btn-success" onclick="creerSortieTest()">Créer une sortie test</button>
+                    <a href="nouvelle.html" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Créer une sortie
+                    </a>
+                    <button class="btn btn-success" onclick="creerSortieTest()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Créer une sortie test
+                    </button>
                 </div>
             </div>
 
             <div class="filter-bar">
-                <input type="text" id="search-input" class="filter-input"
-                    placeholder="Rechercher par titre ou artiste...">
+                <div class="filter-input-wrapper">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                    </svg>
+                    <input type="text" id="search-input" class="filter-input"
+                        placeholder="Rechercher par titre ou artiste...">
+                </div>
+
                 <select id="status-filter" class="filter-select">
                     <option value="all">Tous les statuts</option>
+                    <option value="brouillon">Brouillon</option>
                     <option value="verification mmcp">Vérification MMCP</option>
                     <option value="verification plate-formes">Vérification Plate-formes</option>
                     <option value="livrée">Livrée</option>
@@ -333,19 +492,55 @@
         </div>
     </div>
 
-    <img style="display: none; filter: brightness(0);" src="/assets/img/icon/music-edit-multimedia-svgrepo-com.svg"
-        alt="">
+    <!-- Modale de Confirmation Perso -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-title">Confirmation</div>
+            <div class="modal-desc" id="modal-desc">Voulez-vous vraiment effectuer cette action ?</div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="fermerModal()">Annuler</button>
+                <button class="btn btn-danger" id="modal-confirm-btn">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteneur de Notifications Toast -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script type="module">
         import { auth } from "/assets/js/firebase.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import { api } from "/assets/js/api.js";
 
+        const DEFAULT_COVER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'><rect width='100%' height='100%' fill='%23f1f5f9'/><path d='M120 100v70a25 25 0 1 0 20 24.5V120h40v-20h-60z' fill='%23FC8FB0'/><text x='50%' y='80%' font-family='sans-serif' font-size='14' fill='%2394a3b8' text-anchor='middle'>Pochette non disponible</text></svg>";
+
         const PAGE_SIZE = 8;
         let pageActuelle = 1;
         let uidConnecte = null;
         let toutesLesSorties = [];
         let sortiesFiltrees = [];
+        let actionAConfirmer = null;
+
+        function getCoverUrl(release) {
+            let rawCover = release.coverUrl || release.cover || release.cover_url || release.pochetteUrl;
+            if (!rawCover && release.data) {
+                rawCover = release.data.coverUrl || release.data.cover || release.data.cover_url || release.data.pochetteUrl;
+            }
+            if (!rawCover) return DEFAULT_COVER;
+
+            try {
+                if (typeof api.fileUrl === 'function') {
+                    return api.fileUrl(rawCover);
+                }
+            } catch (e) {
+                console.warn("Erreur résolution pochette via api.fileUrl :", e);
+            }
+
+            if (rawCover.startsWith("http://") || rawCover.startsWith("https://") || rawCover.startsWith("data:")) {
+                return rawCover;
+            }
+            return rawCover;
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -361,25 +556,27 @@
         });
 
         const configurationsBadges = {
+            "brouillon": { texte: "Brouillon", classe: "status-brouillon" },
             "verification mmcp": { texte: "Vérification MMCP", classe: "status-verification-mmcp" },
             "verification plate-formes": { texte: "Vérification Plate-formes", classe: "status-verification-plateformes" },
+            "verification plateformes": { texte: "Vérification Plate-formes", classe: "status-verification-plateformes" },
             "livrée": { texte: "Livrée", classe: "status-livree" },
+            "livree": { texte: "Livrée", classe: "status-livree" },
             "direct": { texte: "Direct", classe: "status-direct" },
             "licence": { texte: "Licence", classe: "status-licence" },
             "retrait": { texte: "Retrait", classe: "status-retrait" },
-            "retiré": { texte: "Retiré", classe: "status-retire" }
+            "retiré": { texte: "Retiré", classe: "status-retire" },
+            "retire": { texte: "Retiré", classe: "status-retire" }
         };
 
-        // 1. Charge toutes les données depuis D1
         async function recupererToutesLesSorties() {
             const listContainer = document.getElementById("releases-list");
-            listContainer.innerHTML = "<p>Chargement des sorties...</p>";
+            listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #64748b;'>Chargement des sorties...</p>";
 
             try {
                 const res = await api.get(`/api/users/${uidConnecte}/releases`);
                 toutesLesSorties = Array.isArray(res) ? res : [];
 
-                // Auto-promotion : livrée → direct si la date de sortie est passée
                 const aujourdHui = new Date();
                 aujourdHui.setHours(0, 0, 0, 0);
                 for (const sortie of toutesLesSorties) {
@@ -391,7 +588,7 @@
                             try {
                                 await api.patch(`/api/users/${uidConnecte}/releases/${sortie.id}`, { status: "direct" });
                             } catch (e) {
-                                console.error("Erreur auto-promotion livrée→direct D1 :", e);
+                                console.error("Erreur auto-promotion livrée→direct :", e);
                             }
                         }
                     }
@@ -401,11 +598,10 @@
 
             } catch (error) {
                 console.error("Erreur initialisation :", error);
-                listContainer.innerHTML = `<p style="color:red;">Erreur lors du chargement : ${error.message}</p>`;
+                listContainer.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #ef4444;">Erreur lors du chargement : ${error.message}</p>`;
             }
         }
 
-        // 2. Filtre et trie dynamiquement les sorties
         function appliquerFiltresEtTri() {
             const recherche = document.getElementById("search-input").value.toLowerCase().trim();
             const filtreStatut = document.getElementById("status-filter").value.toLowerCase();
@@ -422,25 +618,22 @@
                 return correspondRecherche && correspondStatut;
             });
 
-            // Application du tri par date de création
             sortiesFiltrees.sort((a, b) => {
                 const dateA = new Date(a.createdAt || 0);
                 const dateB = new Date(b.createdAt || 0);
                 return ordreTri === "asc" ? dateA - dateB : dateB - dateA;
             });
 
-            // Réinitialise la pagination à la page 1 après un filtrage
             afficherPage(1);
         }
 
-        // 3. Affiche uniquement les éléments de la page demandée
         function afficherPage(numeroPage) {
             pageActuelle = numeroPage;
             const listContainer = document.getElementById("releases-list");
             listContainer.innerHTML = "";
 
             if (sortiesFiltrees.length === 0) {
-                listContainer.innerHTML = "<p>Aucune sortie ne correspond à vos critères de recherche.</p>";
+                listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;'>Aucune sortie ne correspond à vos critères de recherche.</p>";
                 genererNumerosPage(0);
                 return;
             }
@@ -452,10 +645,11 @@
             sortiesPage.forEach((release) => {
                 const id = release.id;
                 const statutBrut = (release.status || "verification mmcp").toLowerCase();
-                const configBadge = configurationsBadges[statutBrut] || { texte: statutBrut, classe: "status-verification-mmcp" };
-                const imageSrc = release.coverUrl || "/assets/img/icons/brouillon.png";
+                const configBadge = configurationsBadges[statutBrut] || { texte: release.status || "Statut inconnu", classe: "status-verification-mmcp" };
 
-                // Vérification des statuts qui bloquent la modification
+                // Utilisation de la méthode de résolution de pochette identique à sortie.html
+                const imageSrc = getCoverUrl(release);
+
                 const masquerModifier = [
                     "verification mmcp",
                     "verification plate-formes",
@@ -475,35 +669,35 @@
                 };
 
                 card.innerHTML = `
-    <div>
-        <div class="cover-wrapper">
-            <img src="${imageSrc}" class="release-cover" alt="Pochette">
-        </div>
-        <div class="release-title">${release.title || 'Sans titre'}</div>
-        <div class="release-artist">${release.artistName || 'Artiste inconnu'}</div>
-    </div>
-    <div style="display: flex; flex-direction: column;" onclick="event.stopPropagation();">
-        <span class="badge ${configBadge.classe}">${configBadge.texte}</span>
-        <div class="card-actions">
-            <button class="btn btn-view" onclick="voirSortie('${id}')" style="display: inline-flex; align-items: center; justify-content: center;">
-                <img style="width: 18px; height: 18px; filter: invert(1); margin-right: 6px;" src="/assets/img/icon/music-album-song.svg" alt="icon">
-                Voir
-            </button>
+                    <div>
+                        <div class="cover-wrapper">
+                            <img src="${imageSrc}" class="release-cover" alt="Pochette" onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
+                        </div>
+                        <div class="release-title">${release.title || 'Sans titre'}</div>
+                        <div class="release-artist">${release.artistName || 'Artiste inconnu'}</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column;" onclick="event.stopPropagation();">
+                        <span class="badge ${configBadge.classe}">${configBadge.texte}</span>
+                        <div class="card-actions">
+                            <button class="btn btn-view" onclick="voirSortie('${id}')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                                Voir
+                            </button>
 
-            ${!masquerModifier ? `
-            <button class="btn btn-secondary" onclick="modifierSortie('${id}')" style="display: inline-flex; align-items: center; justify-content: center;">
-                <img style="width: 18px; height: 18px; filter: invert(1); margin-right: 6px;" src="/assets/img/icon/music-edit-multimedia-svgrepo-com.svg" alt="icon">
-                Modifier
-            </button>
-            ` : ''}
+                            ${!masquerModifier ? `
+                            <button class="btn btn-secondary" onclick="modifierSortie('${id}')">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                Modifier
+                            </button>
+                            ` : ''}
 
-            <button class="btn btn-danger" onclick="demanderRetrait('${id}')" ${statutBrut === 'retrait' || statutBrut === 'retiré' ? 'disabled' : ''} style="display: inline-flex; align-items: center; justify-content: center;">
-                <img style="width: 18px; height: 18px; filter: brightness(0) invert(1); margin-right: 6px;" src="/assets/img/icon/trash.png" alt="icon">
-                Supprimer
-            </button>
-        </div>
-    </div>
-    `;
+                            <button class="btn btn-danger" onclick="demanderRetrait('${id}')" ${statutBrut === 'retrait' || statutBrut === 'retiré' ? 'disabled' : ''}>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+                `;
                 listContainer.appendChild(card);
             });
 
@@ -511,7 +705,6 @@
             genererNumerosPage(totalPages);
         }
 
-        // 4. Construit dynamiquement la liste des numéros
         function genererNumerosPage(totalPages) {
             const container = document.getElementById("page-numbers");
             container.innerHTML = "";
@@ -541,16 +734,20 @@
 
         window.modifierSortie = function (id) { window.location.href = `edition.html?sortie=${id}`; }
 
-        window.demanderRetrait = async function (id) {
-            if (confirm("Êtes-vous sûr de vouloir demander le retrait de cette sortie ?")) {
-                try {
-                    const releaseRef = doc(db, "users", uidConnecte, "releases", id);
-                    await updateDoc(releaseRef, { status: "retrait" });
-                    await recupererToutesLesSorties();
-                } catch (error) {
-                    alert("Erreur lors du traitement du retrait : " + error.message);
+        window.demanderRetrait = function (id) {
+            ouvrirModal(
+                "Demander le retrait",
+                "Êtes-vous sûr de vouloir demander le retrait de cette sortie ? Elle sera examinée avant suppression définitive.",
+                async () => {
+                    try {
+                        await api.patch(`/api/users/${uidConnecte}/releases/${id}`, { status: "retrait" });
+                        afficherToast("Demande de retrait enregistrée avec succès.");
+                        await recupererToutesLesSorties();
+                    } catch (error) {
+                        afficherToast("Erreur lors de la demande : " + error.message);
+                    }
                 }
-            }
+            );
         }
 
         window.creerSortieTest = async function () {
@@ -573,11 +770,38 @@
             };
 
             try {
-                await addDoc(collection(db, "users", uidConnecte, "releases"), nouvelleSortieTest);
+                await api.post(`/api/users/${uidConnecte}/releases`, nouvelleSortieTest);
+                afficherToast("Sortie de test créée avec succès !");
                 await recupererToutesLesSorties();
             } catch (error) {
-                alert("Erreur création test : " + error.message);
+                afficherToast("Erreur création sortie test : " + error.message);
             }
+        }
+
+        function ouvrirModal(titre, description, callback) {
+            document.getElementById("modal-title").innerText = titre;
+            document.getElementById("modal-desc").innerText = description;
+            actionAConfirmer = callback;
+            document.getElementById("confirm-modal").classList.add("active");
+        }
+
+        window.fermerModal = function () {
+            document.getElementById("confirm-modal").classList.remove("active");
+            actionAConfirmer = null;
+        }
+
+        document.getElementById("modal-confirm-btn").onclick = async function () {
+            if (actionAConfirmer) await actionAConfirmer();
+            fermerModal();
+        };
+
+        function afficherToast(message) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
     </script>
     <script>
