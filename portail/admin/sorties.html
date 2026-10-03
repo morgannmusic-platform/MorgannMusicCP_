@@ -23,14 +23,12 @@
 
         .search-input {
             width: 100%;
-            margin-top: 50px;
             padding: 10px 16px;
-            border-radius: 10px;
+            border-radius: 34px;
             background-color: rgba(232, 232, 232, 0.349);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
             border: 1px solid rgba(189, 189, 189, 0.438);
-            border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
             font-size: 14px;
             outline: none;
@@ -72,7 +70,7 @@
 
         .releases-table td {
             padding: 14px 16px;
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.15);
             vertical-align: middle;
         }
 
@@ -83,6 +81,22 @@
 
         .releases-table tbody tr:hover {
             background: #fc8fb051 !important;
+        }
+
+        .release-cell-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .release-cover-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+            background-color: #e2e8f0;
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            flex-shrink: 0;
         }
 
         .badge-status {
@@ -96,32 +110,38 @@
 
         .status-direct {
             background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
+            color: #059669;
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .status-verification {
             background: rgba(245, 158, 11, 0.15);
-            color: #fbbf24;
+            color: #d97706;
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
         .status-livree {
             background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
+            color: #2563eb;
             border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .status-retrait {
             background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
+            color: #dc2626;
             border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-brouillon {
+            background: rgba(100, 116, 139, 0.15);
+            color: #475569;
+            border: 1px solid rgba(100, 116, 139, 0.3);
         }
 
         .table-loading {
             text-align: center;
             padding: 40px !important;
-            color: #94a3b8;
+            color: #64748b;
         }
 
         .upc-code {
@@ -150,8 +170,9 @@
             <div class="page-header-actions">
                 <div>
                     <h2 class="page-title" style="margin: 0;">Gestion des Sorties</h2>
-                    <p style="color: #94a3b8; font-size: 14px; margin-top: 4px;">Liste intégrale des sorties du
-                        catalogue MMCP.</p>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 4px;">
+                        Liste intégrale des sorties du catalogue MMCP.
+                    </p>
                 </div>
 
                 <div class="search-bar-container">
@@ -175,7 +196,7 @@
                     <tbody id="releases-table-body">
                         <tr>
                             <td colspan="6" class="table-loading">
-                                <span>Chargement des sorties...</span>
+                                <span>Chargement de toutes les sorties...</span>
                             </td>
                         </tr>
                     </tbody>
@@ -193,6 +214,21 @@
         import { chargerProfilNavbar } from "./navbar.js";
 
         let listReleasesCache = [];
+
+        const DEFAULT_COVER = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="100%" height="100%" fill="%23e2e8f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="16" fill="%2364748b">Pas d'image</text></svg>`;
+
+        function obtenirUrlPochette(rawUrl) {
+            if (!rawUrl) return DEFAULT_COVER;
+            if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('data:')) {
+                return rawUrl;
+            }
+            if (typeof api.fileUrl === 'function') {
+                return api.fileUrl(rawUrl);
+            }
+            const cleanPath = rawUrl.startsWith('/') ? rawUrl : '/' + rawUrl;
+            const baseUrl = api.baseUrl ? api.baseUrl.replace(/\/$/, '') : '';
+            return `${baseUrl}${cleanPath}`;
+        }
 
         async function injecterComposants() {
             try {
@@ -225,60 +261,87 @@
             const tbody = document.getElementById("releases-table-body");
 
             try {
+                // Utilisation du point d'entrée d'administration pour récupérer TOUTES les sorties sans filtre de statut
                 const releasesList = await api.get("/api/releases");
-                listReleasesCache = Array.isArray(releasesList) ? releasesList : [];
+
+                // Déstructuration robuste (supporte tableau direct, { releases: [...] }, ou { data: [...] })
+                const rawData = Array.isArray(releasesList) ? releasesList : (releasesList.releases || releasesList.data || []);
+                listReleasesCache = Array.isArray(rawData) ? rawData : [];
+
+                // Affichage direct sans filtrer sur le statut (toutes les sorties sont visibles pour l'admin)
                 afficherTableauSorties(listReleasesCache);
             } catch (err) {
-                console.error("Erreur chargement sorties D1:", err);
-                tbody.innerHTML = `<tr><td colspan="6" class="table-loading" style="color:#ef4444;">Erreur lors du chargement des sorties.</td></tr>`;
+                console.error("Erreur chargement des sorties :", err);
+                tbody.innerHTML = `<tr><td colspan="6" class="table-loading" style="color:#ef4444;">Erreur lors du chargement des sorties du catalogue.</td></tr>`;
             }
         }
 
         function afficherTableauSorties(liste) {
             const tbody = document.getElementById("releases-table-body");
-            if (liste.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="table-loading">Aucune sortie trouvée.</td></tr>`;
+            if (!liste || liste.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="table-loading">Aucune sortie trouvée dans le catalogue.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = liste.map(rel => {
-                const title = rel.title || "Sans titre";
-                const artist = rel.artistName || "Artiste inconnu";
+                const title = rel.title || rel.titre || "Sans titre";
+                const artist = rel.artistName || rel.artist || rel.artiste || "Artiste inconnu";
                 const format = rel.format || rel.type || "Single";
                 const upc = rel.upc || "—";
                 const status = rel.status || "Vérification MMCP";
-                const releaseDate = rel.releaseDate || "—";
+                const releaseDate = rel.releaseDate || rel.dateRelease || "—";
+                const coverUrl = obtenirUrlPochette(rel.coverUrl || rel.cover_url || rel.pochetteUrl || rel.cover);
 
+                // Normalisation des badges de statuts d'administration
                 let badgeClass = "status-verification";
-                if (status === "direct") badgeClass = "status-direct";
-                if (status === "livrée") badgeClass = "status-livree";
-                if (status === "retrait" || status === "retiré") badgeClass = "status-retrait";
+                const statusLower = String(status).toLowerCase();
+
+                if (statusLower === "direct" || statusLower === "publié" || statusLower === "live") badgeClass = "status-direct";
+                else if (statusLower === "livrée" || statusLower === "livre" || statusLower === "valide") badgeClass = "status-livree";
+                else if (statusLower === "retrait" || statusLower === "retiré") badgeClass = "status-retrait";
+                else if (statusLower === "brouillon") badgeClass = "status-brouillon";
 
                 return `
             <tr class="release-row" data-id="${rel.id}">
-                <td><strong>${title}</strong></td>
+                <td>
+                    <div class="release-cell-title">
+                        <img class="release-cover-thumb" src="${coverUrl}" alt="${title}">
+                        <strong>${title}</strong>
+                    </div>
+                </td>
                 <td>${artist}</td>
                 <td>${format}</td>
                 <td><span class="upc-code">${upc}</span></td>
                 <td><span class="badge-status ${badgeClass}">${status}</span></td>
-                <td style="color: #94a3b8;">${releaseDate}</td>
+                <td style="color: #64748b;">${releaseDate}</td>
             </tr>
         `;
             }).join("");
 
+            // Secours image cassée
+            document.querySelectorAll('.release-cover-thumb').forEach(img => {
+                img.addEventListener('error', () => {
+                    img.src = DEFAULT_COVER;
+                });
+            });
+
+            // Redirection au clic sur une ligne vers l'édition/vue détaillée
             document.querySelectorAll('.release-row').forEach(row => {
                 row.addEventListener('click', () => {
                     const releaseId = row.getAttribute('data-id');
-                    window.location.href = `sortie.html?id=${releaseId}`;
+                    if (releaseId) {
+                        window.location.href = `sortie.html?id=${releaseId}`;
+                    }
                 });
             });
         }
 
+        // Recherche en temps réel
         document.getElementById("release-search-input").addEventListener("input", (e) => {
             const searchVal = e.target.value.toLowerCase().trim();
             const filtered = listReleasesCache.filter(r => {
-                const title = (r.title || "").toLowerCase();
-                const artist = (r.artistName || "").toLowerCase();
+                const title = (r.title || r.titre || "").toLowerCase();
+                const artist = (r.artistName || r.artist || r.artiste || "").toLowerCase();
                 const upc = (r.upc || "").toLowerCase();
                 return title.includes(searchVal) || artist.includes(searchVal) || upc.includes(searchVal);
             });
@@ -289,8 +352,14 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                chargerProfilNavbar(db, user);
+                if (typeof db !== "undefined") {
+                    chargerProfilNavbar(db, user);
+                } else {
+                    chargerProfilNavbar(null, user);
+                }
                 chargerToutesLesSorties();
+            } else {
+                window.location.href = "/login.html";
             }
         });
     </script>

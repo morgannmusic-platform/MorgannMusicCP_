@@ -45,13 +45,6 @@
             border: 2px solid #FC8FB0;
         }
 
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-
         .artist-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -67,6 +60,7 @@
             box-shadow: 0 0 22px rgba(0, 0, 0, 0.385);
             padding: 20px;
             text-align: center;
+            cursor: pointer;
         }
 
         .artist-card img {
@@ -95,7 +89,7 @@
 
         .modal-content {
             padding: 30px;
-            width: 650px;
+            width: 500px;
             max-height: 85vh;
             overflow-y: auto;
             background-color: rgba(255, 255, 255, 0.418);
@@ -107,18 +101,8 @@
         }
 
         .form-section {
-            border-bottom: 1px solid #FC8FB0;
             padding-bottom: 15px;
             margin-bottom: 15px;
-        }
-
-        .form-section h3 {
-            margin-top: 0;
-            color: #495057;
-            font-size: 16px;
-            border-left: 4px solid #FC8FB0;
-            padding-left: 8px;
-            border-radius: 3px;
         }
 
         .form-group {
@@ -134,32 +118,11 @@
             color: #444;
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 8px;
+        .form-group input {
+            padding: 10px;
             border: 1px solid #FC8FB0;
             border-radius: 50px;
             font-size: 14px;
-        }
-
-        .form-group input:disabled {
-            background: #ffeef2;
-            cursor: not-allowed;
-        }
-
-        .dynamic-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-
-        .checkbox-group {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            font-size: 13px;
         }
 
         /* Animation de rotation du logo Litual */
@@ -245,16 +208,14 @@
 
         <div id="artist-modal" class="modal">
             <div class="modal-content">
-                <h2 id="modal-title">Ajouter un Artiste</h2>
+                <h2>Créer un Artiste</h2>
                 <form id="artist-form" onsubmit="soumettreFormulaire(event)">
-                    <input type="hidden" id="artist-id">
-
                     <div class="form-section">
-                        <h3>Informations Principales</h3>
                         <div class="form-group">
                             <label>Nom de l'artiste *</label>
                             <input type="text" id="artist-name" required placeholder="Ex: Morgann Music">
                         </div>
+
                         <div class="litual-ai-section"
                             style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
                             <label style="font-weight: bold; font-size: 13px; display: block; margin-bottom: 8px;">
@@ -286,117 +247,11 @@
                             <div id="litual-results"
                                 style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;"></div>
                         </div>
-                        <div class="form-group">
-                            <label>Photo de profil</label>
-                            <input type="file" id="artist-photo-file" accept="image/*"
-                                onchange="gererTeleversementR2()">
-                            <input type="hidden" id="artist-photo">
-                            <div id="upload-status" style="font-size: 12px; margin-top: 5px; color: #555;"></div>
-                        </div>
-                        <div class="form-group">
-                            <label>Option du téléverseur</label>
-                            <input type="text" id="artist-uploader-option" placeholder="Note ou option interne">
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Écrivains par défaut</h3>
-                        <div id="writers-container"></div>
-                        <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;"
-                            onclick="ajouterEcrivainRow()">+ Ajouter un écrivain</button>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Crédits par défaut</h3>
-                        <div id="credits-container"></div>
-                        <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;"
-                            onclick="ajouterCreditRow()">+ Ajouter un crédit</button>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Distribution & Timing</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group"><label>Genre Primaire</label><input type="text" id="genre-primary">
-                            </div>
-                            <div class="form-group"><label>Genre Secondaire</label><input type="text"
-                                    id="genre-secondary">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Langage par défaut</label>
-                            <input type="text" id="default-language" placeholder="Français, Anglais...">
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group"><label>Fuseau horaire</label><input type="text" id="timezone"
-                                    placeholder="Europe/Paris"></div>
-                            <div class="form-group"><label>Heure de sortie</label><input type="time" id="release-time">
-                            </div>
-                        </div>
-                        <div class="form-group"><label>Sélection manuelle des plateformes</label><input type="text"
-                                id="manual-platforms" placeholder="Séparées par des virgules"></div>
-                        <div class="form-group"><label>Sélection manuelle des territoires</label><input type="text"
-                                id="manual-territories" placeholder="Monde, Europe..."></div>
-                    </div>
-
-                    <div id="label-fields" class="form-section" style="display:none;">
-                        <h3>Options Label / Édition</h3>
-                        <div id="wl-only-fields" style="display:none;">
-                            <div class="form-group"><label>Nom du Label</label><input type="text" id="label-name"></div>
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group"><label>Ligne Copyright (C)</label><input type="text"
-                                    id="line-copyright"></div>
-                            <div class="form-group"><label>Ligne Phonographe (P)</label><input type="text"
-                                    id="line-phonogram"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Livraisons Additionnelles</h3>
-                        <div id="delivery-checkboxes" class="checkbox-group"></div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3>Profil, Plateformes & Réseaux</h3>
-                        <div class="form-group"><label>Description de l'artiste</label><textarea id="artist-desc"
-                                rows="3"></textarea></div>
-
-                        <h4 style="margin: 10px 0 5px 0; font-size:13px; color:#555;">Plateformes :</h4>
-                        <div class="form-group"><input type="url" id="link-yt-chan" placeholder="Lien chaîne YouTube">
-                        </div>
-                        <div class="form-group"><input type="url" id="link-yt-music" placeholder="Lien YouTube Music">
-                        </div>
-                        <div class="form-group"><input type="url" id="link-apple" placeholder="Lien Apple Music"></div>
-                        <div class="form-group"><input type="url" id="link-spotify" placeholder="Lien Spotify"></div>
-                        <div class="form-group"><input type="url" id="link-amazon" placeholder="Lien Amazon Music">
-                        </div>
-                        <div class="form-group"><input type="url" id="link-soundcloud" placeholder="Lien SoundCloud">
-                        </div>
-                        <div class="form-group"><input type="url" id="link-website" placeholder="Lien site web"></div>
-
-                        <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Réseaux Sociaux :</h4>
-                        <div class="form-group"><input type="url" id="link-fb" placeholder="Lien Facebook"></div>
-                        <div class="form-group"><input type="url" id="link-insta" placeholder="Lien Instagram"></div>
-                        <div class="form-group"><input type="url" id="link-x" placeholder="Lien X (Twitter)"></div>
-                        <div class="form-group"><input type="url" id="link-yt-social"
-                                placeholder="Lien YouTube (Social)">
-                        </div>
-
-                        <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Identifiants & Métadonnées
-                            Externes :</h4>
-                        <div class="form-group"><input type="url" id="link-wiki" placeholder="Lien Wikipédia"></div>
-                        <div class="form-group"><input type="text" id="id-ddex" placeholder="Lien/ID DDEX"></div>
-                        <div class="form-group"><input type="text" id="id-musicbrainz"
-                                placeholder="Lien/ID MusicBrainz">
-                        </div>
-                        <div class="form-group"><input type="text" id="id-allmusic" placeholder="Lien/ID AllMusic">
-                        </div>
-                        <div class="form-group"><input type="text" id="id-isni" placeholder="ISNI"></div>
                     </div>
 
                     <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                         <button type="button" class="btn btn-secondary" onclick="fermerModal()">Annuler</button>
-                        <button type="submit" class="btn btn-primary" id="btn-submit-form">Enregistrer</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit-form">Créer</button>
                     </div>
                 </form>
             </div>
@@ -412,9 +267,6 @@
         let userPlan = "starter";
         let maxArtistsAllowed = 1;
 
-        const allDeliveries = ["Beatport", "YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Tracklib", "Hook", "LyricFind", "EVEN"];
-
-        // --- AUTHENTICATION ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 uidConnecte = user.uid;
@@ -425,7 +277,6 @@
             }
         });
 
-        // --- ÉVÉNEMENT BOUTON IA LITUAL ---
         document.getElementById('btn-generate-ai').addEventListener('click', async () => {
             const loadingDiv = document.getElementById('litual-loading');
             const resultsDiv = document.getElementById('litual-results');
@@ -526,7 +377,7 @@
                         pill.textContent = name;
 
                         pill.addEventListener('click', () => {
-                            const inputName = document.getElementById('artist-name') || document.querySelector('input[name="artistName"]');
+                            const inputName = document.getElementById('artist-name');
                             if (inputName) {
                                 inputName.value = name;
                             }
@@ -543,7 +394,6 @@
             }
         });
 
-        // --- FONCTIONS GLOBALEMENT ACCESSIBLES ---
         async function verifierPlanEtLimites(uid) {
             try {
                 const userData = await api.get(`/api/users/${uid}`);
@@ -592,77 +442,22 @@
                 snapshot.forEach((artist) => {
                     const card = document.createElement("div");
                     card.className = "artist-card";
+                    card.onclick = () => {
+                        window.location.href = `artiste.html?id=${artist.id}`;
+                    };
+
                     const photoUrl = artist.photo ? api.fileUrl(artist.photo) : "/assets/img/icons/pdp.png";
 
                     card.innerHTML = `
-                    <img src="${photoUrl}" alt="${artist.name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: #ddd; margin-bottom: 10px;">
-                    <h3>${artist.name}</h3>
-                    <p style="font-size:12px; color:#777;">${artist.primaryGenre || 'Aucun genre'}</p>
-                    <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="ouvrirModalDetails('${artist.id}')">Voir les détails</button>
-                `;
+                        <img src="${photoUrl}" alt="${artist.name}">
+                        <h3>${artist.name}</h3>
+                        <p style="font-size:12px; color:#777;">${artist.primaryGenre || 'Aucun genre'}</p>
+                    `;
                     listContainer.appendChild(card);
                 });
             } catch (err) {
                 console.error("Erreur chargement artistes D1:", err);
             }
-        }
-
-        window.ajouterEcrivainRow = function (valeurs = { nom: "", type: "les deux" }) {
-            const container = document.getElementById("writers-container");
-            const div = document.createElement("div");
-            div.className = "dynamic-row";
-            div.innerHTML = `
-            <input type="text" class="writer-name" placeholder="Nom de l'écrivain" style="flex:2;" value="${valeurs.nom}">
-            <select class="writer-type" style="flex:1;">
-                <option value="ecrivan" ${valeurs.type === 'ecrivan' ? 'selected' : ''}>Écrivain</option>
-                <option value="parolier" ${valeurs.type === 'parolier' ? 'selected' : ''}>Parolier</option>
-                <option value="les deux" ${valeurs.type === 'les deux' ? 'selected' : ''}>Les Deux</option>
-            </select>
-            <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
-        `;
-            container.appendChild(div);
-        }
-
-        window.ajouterCreditRow = function (valeurs = { nom: "", instrument: "", voix: "", utilite: "" }) {
-            const container = document.getElementById("credits-container");
-            const div = document.createElement("div");
-            div.className = "dynamic-row";
-            div.innerHTML = `
-            <input type="text" class="credit-name" placeholder="Nom complet" style="flex:1.5;" value="${valeurs.nom}">
-            <input type="text" class="credit-instrument" placeholder="Instrument" style="flex:1;" value="${valeurs.instrument}">
-            <input type="text" class="credit-voice" placeholder="Voix" style="flex:1;" value="${valeurs.voix}">
-            <input type="text" class="credit-utility" placeholder="Utilité" style="flex:1;" value="${valeurs.utilite}">
-            <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
-        `;
-            container.appendChild(div);
-        }
-
-        function injecterStructureSelonPlan() {
-            const labelFields = document.getElementById("label-fields");
-            const wlOnlyFields = document.getElementById("wl-only-fields");
-            const deliveryContainer = document.getElementById("delivery-checkboxes");
-
-            deliveryContainer.innerHTML = "";
-
-            let allowedDeliveries = [];
-            if (userPlan === "starter" || userPlan === "pro") {
-                allowedDeliveries = ["YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Hook", "LyricFind", "EVEN"];
-                if (labelFields) labelFields.style.display = "none";
-            } else if (userPlan === "label") {
-                allowedDeliveries = allDeliveries;
-                if (labelFields) labelFields.style.display = "block";
-                if (wlOnlyFields) wlOnlyFields.style.display = "none";
-            } else if (userPlan === "white-label") {
-                allowedDeliveries = allDeliveries;
-                if (labelFields) labelFields.style.display = "block";
-                if (wlOnlyFields) wlOnlyFields.style.display = "block";
-            }
-
-            allowedDeliveries.forEach(del => {
-                deliveryContainer.innerHTML += `
-                <label><input type="checkbox" class="delivery-cb" value="${del}"> ${del}</label>
-            `;
-            });
         }
 
         window.ouvrirModalAjout = async function () {
@@ -679,230 +474,48 @@
                 }
 
                 document.getElementById("artist-form").reset();
-                document.getElementById("artist-id").value = "";
-                document.getElementById("artist-photo").value = "";
-                document.getElementById("artist-name").disabled = false;
-                document.getElementById("modal-title").innerText = "Ajouter un Artiste";
-                document.getElementById("writers-container").innerHTML = "";
-                document.getElementById("credits-container").innerHTML = "";
-
-                injecterStructureSelonPlan();
+                document.getElementById("litual-results").innerHTML = "";
                 document.getElementById("artist-modal").style.display = "flex";
             } catch (e) {
                 console.error("Erreur ouverture modal ajout :", e);
             }
         }
 
-        window.ouvrirModalDetails = async function (artistId) {
-            try {
-                document.getElementById("artist-form").reset();
-                document.getElementById("modal-title").innerText = "Détails de l'Artiste";
-                document.getElementById("artist-name").disabled = true;
-
-                injecterStructureSelonPlan();
-
-                const data = await api.get(`/api/users/${auth.currentUser.uid}/artists/${artistId}`);
-                if (data && !data.error) {
-                    document.getElementById("artist-id").value = artistId;
-                    document.getElementById("artist-name").value = data.name || "";
-                    document.getElementById("artist-photo").value = data.photo || "";
-                    document.getElementById("artist-uploader-option").value = data.uploaderOption || "";
-                    document.getElementById("genre-primary").value = data.primaryGenre || "";
-                    document.getElementById("genre-secondary").value = data.secondaryGenre || "";
-                    document.getElementById("default-language").value = data.defaultLanguage || "";
-                    document.getElementById("timezone").value = data.timezone || "";
-                    document.getElementById("release-time").value = data.releaseTime || "";
-                    document.getElementById("manual-platforms").value = data.manualPlatforms || "";
-                    document.getElementById("manual-territories").value = data.manualTerritories || "";
-
-                    if (userPlan === "label" || userPlan === "white-label") {
-                        document.getElementById("line-copyright").value = data.lineCopyright || "";
-                        document.getElementById("line-phonogram").value = data.linePhonogram || "";
-                        if (userPlan === "white-label") {
-                            document.getElementById("label-name").value = data.labelName || "";
-                        }
-                    }
-
-                    document.getElementById("writers-container").innerHTML = "";
-                    if (data.writers) {
-                        const parsedWriters = typeof data.writers === 'string' ? JSON.parse(data.writers) : data.writers;
-                        parsedWriters.forEach(w => ajouterEcrivainRow(w));
-                    }
-
-                    document.getElementById("credits-container").innerHTML = "";
-                    if (data.credits) {
-                        const parsedCredits = typeof data.credits === 'string' ? JSON.parse(data.credits) : data.credits;
-                        parsedCredits.forEach(c => ajouterCreditRow(c));
-                    }
-
-                    const checkboxes = document.querySelectorAll(".delivery-cb");
-                    const parsedDeliveries = typeof data.deliveries === 'string' ? JSON.parse(data.deliveries) : (data.deliveries || []);
-                    checkboxes.forEach(cb => {
-                        if (parsedDeliveries.includes(cb.value)) cb.checked = true;
-                    });
-
-                    document.getElementById("artist-desc").value = data.description || "";
-                    document.getElementById("link-yt-chan").value = data.linkYtChan || "";
-                    document.getElementById("link-yt-music").value = data.linkYtMusic || "";
-                    document.getElementById("link-apple").value = data.linkApple || "";
-                    document.getElementById("link-spotify").value = data.linkSpotify || "";
-                    document.getElementById("link-amazon").value = data.linkAmazon || "";
-                    document.getElementById("link-soundcloud").value = data.linkSoundcloud || "";
-                    document.getElementById("link-website").value = data.linkWebsite || "";
-                    document.getElementById("link-fb").value = data.linkFb || "";
-                    document.getElementById("link-insta").value = data.linkInsta || "";
-                    document.getElementById("link-x").value = data.linkX || "";
-                    document.getElementById("link-yt-social").value = data.linkYtSocial || "";
-                    document.getElementById("link-wiki").value = data.linkWiki || "";
-                    document.getElementById("id-ddex").value = data.idDdex || "";
-                    document.getElementById("id-musicbrainz").value = data.idMusicbrainz || "";
-                    document.getElementById("id-allmusic").value = data.idAllmusic || "";
-                    document.getElementById("id-isni").value = data.idIsni || "";
-
-                    document.getElementById("artist-modal").style.display = "flex";
-                }
-            } catch (e) {
-                console.error("Erreur ouverture détails :", e);
-            }
-        }
-
         window.soumettreFormulaire = async function (e) {
             e.preventDefault();
             const uid = auth.currentUser.uid;
-            const artistId = document.getElementById("artist-id").value;
+            const artistName = document.getElementById("artist-name").value.trim();
 
-            const writers = [];
-            const writerNames = document.querySelectorAll(".writer-name");
-            const writerTypes = document.querySelectorAll(".writer-type");
-            writerNames.forEach((el, index) => {
-                if (el.value.trim() !== "") {
-                    writers.push({ nom: el.value.trim(), type: writerTypes[index].value });
-                }
-            });
-
-            const credits = [];
-            const creditNames = document.querySelectorAll(".credit-name");
-            const creditInstruments = document.querySelectorAll(".credit-instrument");
-            const creditVoices = document.querySelectorAll(".credit-voice");
-            const creditUtilities = document.querySelectorAll(".credit-utility");
-            creditNames.forEach((el, index) => {
-                if (el.value.trim() !== "") {
-                    credits.push({
-                        nom: el.value.trim(),
-                        instrument: creditInstruments[index].value.trim(),
-                        voix: creditVoices[index].value.trim(),
-                        utilite: creditUtilities[index].value.trim()
-                    });
-                }
-            });
-
-            const deliveries = [];
-            document.querySelectorAll(".delivery-cb:checked").forEach(cb => deliveries.push(cb.value));
+            if (!artistName) return;
 
             const artistPayload = {
-                name: document.getElementById("artist-name").value.trim(),
-                photo: document.getElementById("artist-photo").value.trim(),
-                uploaderOption: document.getElementById("artist-uploader-option").value.trim(),
-                writers: writers,
-                credits: credits,
-                primaryGenre: document.getElementById("genre-primary").value.trim(),
-                secondaryGenre: document.getElementById("genre-secondary").value.trim(),
-                defaultLanguage: document.getElementById("default-language").value.trim(),
-                timezone: document.getElementById("timezone").value.trim(),
-                releaseTime: document.getElementById("release-time").value,
-                manualPlatforms: document.getElementById("manual-platforms").value.trim(),
-                manualTerritories: document.getElementById("manual-territories").value.trim(),
-                deliveries: deliveries,
-                description: document.getElementById("artist-desc").value.trim(),
-                linkYtChan: document.getElementById("link-yt-chan").value.trim(),
-                linkYtMusic: document.getElementById("link-yt-music").value.trim(),
-                linkApple: document.getElementById("link-apple").value.trim(),
-                linkSpotify: document.getElementById("link-spotify").value.trim(),
-                linkAmazon: document.getElementById("link-amazon").value.trim(),
-                linkSoundcloud: document.getElementById("link-soundcloud").value.trim(),
-                linkWebsite: document.getElementById("link-website").value.trim(),
-                linkFb: document.getElementById("link-fb").value.trim(),
-                linkInsta: document.getElementById("link-insta").value.trim(),
-                linkX: document.getElementById("link-x").value.trim(),
-                linkYtSocial: document.getElementById("link-yt-social").value.trim(),
-                linkWiki: document.getElementById("link-wiki").value.trim(),
-                idDdex: document.getElementById("id-ddex").value.trim(),
-                idMusicbrainz: document.getElementById("id-musicbrainz").value.trim(),
-                idAllmusic: document.getElementById("id-allmusic").value.trim(),
-                idIsni: document.getElementById("id-isni").value.trim()
+                name: artistName
             };
 
-            if (userPlan === "label" || userPlan === "white-label") {
-                artistPayload.lineCopyright = document.getElementById("line-copyright").value.trim();
-                artistPayload.linePhonogram = document.getElementById("line-phonogram").value.trim();
-                if (userPlan === "white-label") {
-                    artistPayload.labelName = document.getElementById("label-name").value.trim();
-                }
-            }
-
             try {
-                if (artistId) {
-                    await api.put(`/api/users/${uid}/artists/${artistId}`, artistPayload);
-                } else {
-                    await api.post(`/api/users/${uid}/artists`, artistPayload);
-                }
+                const response = await api.post(`/api/users/${uid}/artists`, artistPayload);
                 fermerModal();
-                chargerArtistes(uid);
+                if (response && response.id) {
+                    window.location.href = `artiste.html?id=${response.id}`;
+                } else {
+                    chargerArtistes(uid);
+                }
             } catch (error) {
-                console.error("Erreur lors de la sauvegarde :", error);
+                console.error("Erreur lors de la création :", error);
             }
         }
 
         window.fermerModal = function () {
             document.getElementById("artist-modal").style.display = "none";
         }
-
-        window.gererTeleversementR2 = async function () {
-            const fileInput = document.getElementById("artist-photo-file");
-            const statusDiv = document.getElementById("upload-status");
-            const hiddenUrlInput = document.getElementById("artist-photo");
-            const artistId = document.getElementById("artist-id").value || "new-artist";
-
-            if (!fileInput.files || fileInput.files.length === 0) return;
-
-            const file = fileInput.files[0];
-            statusDiv.innerText = "Téléversement vers Cloudflare R2 en cours...";
-            statusDiv.style.color = "#007bff";
-
-            try {
-                const response = await fetch(`https://pdp-media.api.mm-cp.uk?artistId=${artistId}`, {
-                    method: "POST",
-                    headers: { "Content-Type": file.type },
-                    body: file
-                });
-
-                if (!response.ok) throw new Error("Échec de la réponse du serveur R2");
-
-                const data = await response.json();
-                hiddenUrlInput.value = data.url;
-
-                statusDiv.innerText = "✓ Image sauvegardée sur R2 avec succès !";
-                statusDiv.style.color = "#2ecc71";
-            } catch (error) {
-                console.error(error);
-                statusDiv.innerText = "✕ Erreur lors du téléversement : " + error.message;
-                statusDiv.style.color = "#dc3545";
-            }
-        }
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // 1. On récupère le nom de la page actuelle (ex: "sorties.html")
             const currentPath = window.location.pathname.split("/").pop();
-
-            // 2. On sélectionne tous les liens de la navbar
             const navLinks = document.querySelectorAll(".responsive-nav a");
 
             navLinks.forEach(link => {
-                // 3. On récupère l'attribut href du lien (ex: "sorties.html")
                 const linkPath = link.getAttribute("href").split("/").pop();
-
-                // 4. Si ça correspond, on ajoute "active", sinon on l'enlève
                 if (currentPath === linkPath) {
                     link.classList.add("active");
                 } else {

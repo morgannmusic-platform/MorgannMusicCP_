@@ -241,7 +241,7 @@
 <body>
 
     <div class="admin-wrapper">
-        <!-- Sidebar fixe à gauche[cite: 5] -->
+        <!-- Sidebar fixe à gauche -->
         <aside id="sidebar-injector" class="sidebar-container"></aside>
 
         <!-- Contenu principal à droite -->
@@ -266,6 +266,7 @@
                 <table class="messages-table">
                     <thead>
                         <tr>
+                            <th>Nom / Expéditeur</th>
                             <th>E-mail</th>
                             <th>Message</th>
                             <th>Date de réception</th>
@@ -273,7 +274,7 @@
                     </thead>
                     <tbody id="messages-table-body">
                         <tr>
-                            <td colspan="3" class="table-loading">
+                            <td colspan="4" class="table-loading">
                                 <span>Chargement des messages...</span>
                             </td>
                         </tr>
@@ -292,6 +293,10 @@
                 <button class="modal-close-btn" id="close-modal">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="modal-field-group">
+                    <label>Nom</label>
+                    <div class="modal-value" id="modal-name">—</div>
+                </div>
                 <div class="modal-field-group">
                     <label>Expéditeur (E-mail)</label>
                     <div class="modal-value" id="modal-email">—</div>
@@ -352,40 +357,37 @@
             const tbody = document.getElementById("messages-table-body");
 
             try {
-                const messagesRef = collection(db, "messages");
-                const q = query(messagesRef, orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                listMessagesCache = [];
-
-                querySnapshot.forEach(docSnap => {
-                    listMessagesCache.push({ id: docSnap.id, ...docSnap.data() });
-                });
+                // Utilisation du client API centralisé pour récupérer les messages depuis D1 via le Cloudflare Worker
+                const messages = await api.get("/api/admin/messages");
+                listMessagesCache = Array.isArray(messages) ? messages : [];
 
                 afficherTableauMessages(listMessagesCache);
             } catch (err) {
                 console.error("Erreur chargement messages:", err);
-                tbody.innerHTML = `<tr><td colspan="3" class="table-loading" style="color:#ef4444;">Erreur lors du chargement des messages.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="table-loading" style="color:#ef4444;">Erreur lors du chargement des messages.</td></tr>`;
             }
         }
 
         function afficherTableauMessages(liste) {
             const tbody = document.getElementById("messages-table-body");
             if (liste.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="table-loading">Aucun message trouvé.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="table-loading">Aucun message trouvé.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = liste.map(msg => {
+                const name = msg.name || "Anonyme";
                 const email = msg.email || "Inconnu";
                 const messageText = msg.message || "—";
 
                 let dateStr = "—";
-                if (msg.createdAt && msg.createdAt.toDate) {
-                    dateStr = msg.createdAt.toDate().toLocaleString("fr-FR");
+                if (msg.created_at) {
+                    dateStr = new Date(msg.created_at).toLocaleString("fr-FR");
                 }
 
                 return `
             <tr class="message-row" data-id="${msg.id}">
+                <td style="font-weight: 600; color: #0f172a;">${name}</td>
                 <td><span class="email-badge">${email}</span></td>
                 <td><div class="message-preview">${messageText}</div></td>
                 <td style="color: #94a3b8;">${dateStr}</td>
@@ -397,7 +399,7 @@
             document.querySelectorAll('.message-row').forEach(row => {
                 row.addEventListener('click', () => {
                     const messageId = row.getAttribute('data-id');
-                    const selectedMsg = listMessagesCache.find(m => m.id === messageId);
+                    const selectedMsg = listMessagesCache.find(m => String(m.id) === String(messageId));
                     if (selectedMsg) {
                         ouvrirModaleMessage(selectedMsg);
                     }
@@ -411,11 +413,12 @@
         const closeModalActionBtn = document.getElementById("modal-close-action");
 
         function ouvrirModaleMessage(msg) {
+            document.getElementById("modal-name").textContent = msg.name || "Anonyme";
             document.getElementById("modal-email").textContent = msg.email || "Inconnu";
 
             let dateStr = "—";
-            if (msg.createdAt && msg.createdAt.toDate) {
-                dateStr = msg.createdAt.toDate().toLocaleString("fr-FR");
+            if (msg.created_at) {
+                dateStr = new Date(msg.created_at).toLocaleString("fr-FR");
             }
             document.getElementById("modal-date").textContent = dateStr;
             document.getElementById("modal-text").textContent = msg.message || "Aucun contenu";
@@ -438,9 +441,10 @@
         document.getElementById("message-search-input").addEventListener("input", (e) => {
             const searchVal = e.target.value.toLowerCase().trim();
             const filtered = listMessagesCache.filter(m => {
+                const name = (m.name || "").toLowerCase();
                 const email = (m.email || "").toLowerCase();
                 const message = (m.message || "").toLowerCase();
-                return email.includes(searchVal) || message.includes(searchVal);
+                return name.includes(searchVal) || email.includes(searchVal) || message.includes(searchVal);
             });
             afficherTableauMessages(filtered);
         });
@@ -449,7 +453,7 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                chargerProfilNavbar(db, user);
+                chargerProfilNavbar(null, user);
                 chargerTousLesMessages();
             }
         });

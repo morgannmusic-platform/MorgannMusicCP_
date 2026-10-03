@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    fetch("js/sidebar.html") // Assure-toi que le chemin vers ton HTML est le bon
+    fetch("/portail/js/sidebar.html") // Assure-toi que le chemin vers ton HTML est le bon
         .then(response => {
             if (!response.ok) {
                 throw new Error("Erreur lors du chargement de la sidebar");

@@ -14,7 +14,7 @@
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: #f4f6f9;
+            background: #FFEFF4;
             color: #333;
             margin-top: 80px;
             padding: 20px;
@@ -389,10 +389,16 @@
         let allArtistReleases = [];
         let filteredArtistReleases = [];
 
-        // Fonction pour convertir la date en format littéral français
+        function getFullMediaUrl(url) {
+            if (!url) return null;
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+                return url;
+            }
+            return api.fileUrl ? api.fileUrl(url) : `/api/files/${url.replace(/^\/+/, '')}`;
+        }
+
         function formatFrenchDate(dateInput) {
             if (!dateInput) return "-";
-
             let dateObj = null;
 
             if (typeof dateInput === 'string') {
@@ -421,7 +427,6 @@
             ];
             const month = months[dateObj.getMonth()];
             const year = dateObj.getFullYear();
-
             const dayStr = (day === 1) ? "1er" : day;
 
             return `${dayStr} ${month} ${year}`;
@@ -436,33 +441,38 @@
                 let currentArtistName = paramName ? decodeURIComponent(paramName).trim() : "";
                 let artistData = null;
 
-                // 1. Récupération des artistes via API
-                const artistsRes = await api.get('/api/artists');
-                const artistsData = artistsRes.artists || [];
+                try {
+                    const artistsRes = await api.get('/api/artists');
+                    const artistsData = artistsRes.artists || [];
 
-                artistsData.forEach(item => {
-                    const nameMatch = currentArtistName && item.name && item.name.trim().toLowerCase() === currentArtistName.toLowerCase();
-                    const idMatch = paramArtistId && (item.id === paramArtistId || item._id === paramArtistId);
+                    artistsData.forEach(item => {
+                        const nameMatch = currentArtistName && item.name && item.name.trim().toLowerCase() === currentArtistName.toLowerCase();
+                        const idMatch = paramArtistId && (item.id === paramArtistId || item._id === paramArtistId);
 
-                    if (nameMatch || idMatch) {
-                        artistData = item;
-                        if (!currentArtistName && item.name) {
-                            currentArtistName = item.name.trim();
+                        if (nameMatch || idMatch) {
+                            artistData = item;
+                            if (!currentArtistName && item.name) {
+                                currentArtistName = item.name.trim();
+                            }
                         }
-                    }
-                });
+                    });
+                } catch (e) {
+                    console.warn("Impossible de récupérer la liste des artistes :", e);
+                }
 
                 if (artistData) {
                     const nameToDisplay = artistData.name || currentArtistName;
                     document.getElementById("artist-name").innerText = nameToDisplay;
                     document.title = `${nameToDisplay} - Catalogue MMCP`;
 
-                    if (artistData.banUrl || artistData.bannerUrl || artistData.banner) {
-                        document.getElementById("artist-banner").src = artistData.banUrl || artistData.bannerUrl || artistData.banner;
+                    const bannerUrl = artistData.banUrl || artistData.bannerUrl || artistData.banner;
+                    if (bannerUrl) {
+                        document.getElementById("artist-banner").src = getFullMediaUrl(bannerUrl);
                     }
 
-                    if (artistData.photoUrl || artistData.photo || artistData.avatarUrl) {
-                        document.getElementById("artist-photo").src = artistData.photoUrl || artistData.photo || artistData.avatarUrl;
+                    const photoUrl = artistData.photoUrl || artistData.photo || artistData.avatarUrl;
+                    if (photoUrl) {
+                        document.getElementById("artist-photo").src = getFullMediaUrl(photoUrl);
                     }
 
                     document.getElementById("meta-genre").innerText = artistData.genre || "-";
@@ -472,7 +482,6 @@
                     if (artistData.genre) {
                         document.getElementById("artist-subtitle").innerText = `Artiste • ${artistData.genre}`;
                     }
-
                 } else if (currentArtistName) {
                     document.getElementById("artist-name").innerText = currentArtistName;
                     document.title = `${currentArtistName} - Catalogue MMCP`;
@@ -485,13 +494,14 @@
                     document.getElementById("artist-releases-search").placeholder = `Rechercher dans les sorties de ${currentArtistName}...`;
                 }
 
-                // 2. Récupération des sorties via API
                 const releasesRes = await api.get('/api/releases');
                 const releasesData = releasesRes.releases || [];
                 const releasesList = [];
 
                 releasesData.forEach(data => {
-                    const isCatalogVisible = data.showOnMmcpCatalog === true || data.showOnMmcpCatalog === "true" || data.showOnMmcpCatalog == 1;
+                    const isCatalogVisible = data.showOnMmcpCatalog === true || data.showOnMmcpCatalog === "true" || data.showOnMmcpCatalog == 1 || data.showOnMmcpCatalog === undefined;
+
+                    // Filtrage strict : UNIQUEMENT le statut "direct"[cite: 1]
                     const isDirectStatus = data.status === "direct";
 
                     if (isCatalogVisible && isDirectStatus) {
@@ -502,8 +512,8 @@
                             releasesList.push({
                                 id: data.id || data._id,
                                 title: data.title || "Sans titre",
-                                cover: data.coverUrl || data.cover || "https://via.placeholder.com/300?text=Pochette",
-                                animatedCover: data.animatedCoverUrl || data.animatedCover || null,
+                                cover: getFullMediaUrl(data.coverUrl || data.cover) || "https://via.placeholder.com/300?text=Pochette",
+                                animatedCover: getFullMediaUrl(data.animatedCoverUrl || data.animatedCover || data.appleMotion11),
                                 type: data.type || "Single",
                                 releaseDate: data.releaseDate || ""
                             });
@@ -548,7 +558,7 @@
                 if (release.animatedCover) {
                     mediaHtml = `<video src="${release.animatedCover}" class="card-video-release" autoplay loop muted playsinline></video>`;
                 } else {
-                    mediaHtml = `<img src="${release.cover}" class="card-img-release" alt="${release.title}">`;
+                    mediaHtml = `<img src="${release.cover}" class="card-img-release" alt="${release.title}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Cover';">`;
                 }
 
                 card.innerHTML = `

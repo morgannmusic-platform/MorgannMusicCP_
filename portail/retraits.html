@@ -203,7 +203,7 @@
     <div class="main-content">
 
         <div class="container">
-            <a href="index.html" class="back-link">← Retour aux rapports</a>
+            <a href="mes-revenus.html" class="back-link">← Retour aux rapports</a>
             <h2>Demander un retrait</h2>
 
             <div class="wallet-card">
@@ -261,22 +261,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
 
         let currentUser = null;
         let soldeDisponible = 0;
@@ -292,89 +279,66 @@
             if (user) {
                 currentUser = user;
 
-                // 1. Charger IBAN
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists() && userDoc.data().iban) {
-                    document.getElementById('iban').value = userDoc.data().iban;
+                try {
+                    // 1. Charger Profil utilisateur pour l'IBAN
+                    const userData = await api.get(`/api/users/${user.uid}`);
+                    if (userData && userData.iban) {
+                        document.getElementById('iban').value = userData.iban;
+                    }
+
+                    // 2. Calculer le solde et charger l'historique
+                    await calculerSoldeEtHistorique(user.uid);
+                } catch (err) {
+                    console.error("Erreur d'initialisation :", err);
                 }
-
-                // 2. Calculer le solde du portefeuille
-                await calculerSolde(user.uid);
-
-                // 3. Charger l'historique
-                await chargerHistoriqueRetraits(user.uid);
             } else {
                 window.location.href = "login.html";
             }
         });
 
-        async function calculerSolde(userId) {
+        async function calculerSoldeEtHistorique(userId) {
+            const tbody = document.getElementById("user-history-body");
             try {
-                // A. Somme des gains dans users/uid/finances
-                const financesSnap = await getDocs(collection(db, "users", userId, "finances"));
+                // A. Récupérer les finances de l'utilisateur
+                const finances = await api.get(`/api/users/${userId}/finances`);
                 let totalGains = 0;
-                financesSnap.forEach(docSnap => {
-                    totalGains += docSnap.data().amount || 0;
-                });
+                if (Array.isArray(finances)) {
+                    finances.forEach(f => {
+                        totalGains += Number(f.amount || 0);
+                    });
+                }
 
-                // B. Somme des retraits VALIDÉS uniquement ("envoyé")
-                const qWithdrawals = query(
-                    collection(db, "withdrawals"),
-                    where("userId", "==", userId)
-                );
-                const withdrawalsSnap = await getDocs(qWithdrawals);
+                // B. Récupérer l'historique des retraits globaux
+                const withdrawals = await api.get(`/api/withdrawals`);
                 let totalRetraitsValides = 0;
+                let userWithdrawals = [];
 
-                withdrawalsSnap.forEach(docSnap => {
-                    const r = docSnap.data();
-                    if (r.status === "envoyé") {
-                        totalRetraitsValides += r.amount || 0;
-                    }
-                });
+                if (Array.isArray(withdrawals)) {
+                    userWithdrawals = withdrawals.filter(w => w.userId === userId || w.user_uid === userId || w.userEmail === currentUser.email);
+                    userWithdrawals.forEach(w => {
+                        if (w.status === "envoyé") {
+                            totalRetraitsValides += Number(w.amount || 0);
+                        }
+                    });
+                }
 
-                // Solde net disponible
                 soldeDisponible = totalGains - totalRetraitsValides;
                 if (soldeDisponible < 0) soldeDisponible = 0;
 
                 document.getElementById("wallet-balance-display").textContent = `${soldeDisponible.toFixed(2)} €`;
 
-            } catch (err) {
-                console.error("Erreur calcul du solde :", err);
-                document.getElementById("wallet-balance-display").textContent = "Erreur";
-            }
-        }
-
-        async function chargerHistoriqueRetraits(userId) {
-            const tbody = document.getElementById("user-history-body");
-            tbody.innerHTML = "";
-
-            try {
-                const q = query(
-                    collection(db, "withdrawals"),
-                    where("userId", "==", userId)
-                );
-
-                const snap = await getDocs(q);
-
-                if (snap.empty) {
+                // Remplir le tableau d'historique
+                tbody.innerHTML = "";
+                if (userWithdrawals.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Aucune demande effectuée pour le moment.</td></tr>`;
                     return;
                 }
 
-                let retraits = [];
-                snap.forEach(docSnap => {
-                    retraits.push({ id: docSnap.id, ...docSnap.data() });
-                });
+                userWithdrawals.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
 
-                retraits.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-                retraits.forEach(r => {
+                userWithdrawals.forEach(r => {
                     const tr = document.createElement("tr");
-
-                    let dateStr = "-";
-                    if (r.createdAt && r.createdAt.toDate) {
-                        dateStr = r.createdAt.toDate().toLocaleDateString("fr-FR");
-                    }
+                    let dateStr = r.created_at || r.createdAt ? new Date(r.created_at || r.createdAt).toLocaleDateString("fr-FR") : "-";
 
                     let badgeClass = "badge-demande";
                     if (r.status === "envoyé") badgeClass = "badge-envoye";
@@ -382,7 +346,7 @@
 
                     tr.innerHTML = `
                         <td>${dateStr}</td>
-                        <td><strong>${(r.amount || 0).toFixed(2)} €</strong></td>
+                        <td><strong>${Number(r.amount || 0).toFixed(2)} €</strong></td>
                         <td style="font-family: monospace;">${r.iban || "-"}</td>
                         <td><span class="badge ${badgeClass}">${r.status || "demandé"}</span></td>
                     `;
@@ -390,7 +354,8 @@
                 });
 
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Erreur : ${err.message}</td></tr>`;
+                console.error("Erreur chargement solde/historique :", err);
+                tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Erreur de chargement</td></tr>`;
             }
         }
 
@@ -418,26 +383,25 @@
 
             try {
                 if (saveIban) {
-                    await updateDoc(doc(db, "users", currentUser.uid), {
-                        iban: iban
-                    });
+                    await api.patch(`/api/users/${currentUser.uid}`, { iban: iban });
                 }
 
-                await addDoc(collection(db, "withdrawals"), {
+                // Envoi effectif de la demande de retrait vers le Worker
+                const response = await api.post('/api/withdrawals', {
                     userId: currentUser.uid,
-                    userEmail: currentUser.email,
+                    userEmail: currentUser.email || "",
                     amount: amount,
-                    iban: iban,
-                    status: "demandé",
-                    createdAt: serverTimestamp()
+                    iban: iban
                 });
 
-                showAlert("Votre demande de retrait a été envoyée avec succès !");
+                if (response && response.error) {
+                    throw new Error(response.error);
+                }
+
+                showAlert("Votre demande de retrait a été enregistrée avec succès !");
                 document.getElementById('amount').value = '';
 
-                // Mettre à jour l'historique et le solde
-                await calculerSolde(currentUser.uid);
-                await chargerHistoriqueRetraits(currentUser.uid);
+                await calculerSoldeEtHistorique(currentUser.uid);
 
             } catch (err) {
                 showAlert("Erreur lors de la demande : " + err.message, true);

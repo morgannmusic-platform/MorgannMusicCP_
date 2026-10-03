@@ -124,6 +124,13 @@
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
             padding: 12px;
             text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+            border-color: #FC8FB0;
         }
 
         .item-cover {
@@ -131,7 +138,7 @@
             aspect-ratio: 1/1;
             border-radius: 8px;
             object-fit: cover;
-            background: #334155;
+            background: #e2e8f0;
             margin-bottom: 8px;
         }
 
@@ -146,24 +153,13 @@
 
         .item-sub {
             font-size: 11px;
-            color: #242424;
+            color: #64748b;
         }
 
         .alert-status {
             margin-top: 10px;
             font-size: 14px;
             display: none;
-        }
-
-        /* Rend les cartes cliquables avec un effet survol */
-        .items-grid .item-card {
-            cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .items-grid .item-card:hover {
-            transform: translateY(-3px);
-            border-color: #FC8FB0;
         }
     </style>
 </head>
@@ -262,7 +258,7 @@
                 <div class="card">
                     <h3 style="margin: 0; color: #000000;">Sorties / Musiques</h3>
                     <div id="releases-grid" class="items-grid">
-                        <p style="color: #454545; font-size: 14px;">Chargement des sorties...</p>
+                        <p style="color: #64748b; font-size: 14px;">Chargement des sorties...</p>
                     </div>
                 </div>
 
@@ -270,7 +266,7 @@
                 <div class="card">
                     <h3 style="margin: 0; color: #000000;">Artistes associés</h3>
                     <div id="artists-grid" class="items-grid">
-                        <p style="color: #3e3e3e; font-size: 14px;">Chargement des artistes...</p>
+                        <p style="color: #64748b; font-size: 14px;">Chargement des artistes...</p>
                     </div>
                 </div>
 
@@ -279,40 +275,17 @@
     </div>
 
     <script type="module">
-        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import {
-            getFirestore,
-            doc,
-            getDoc,
-            updateDoc,
-            collection,
-            getDocs,
-            query,
-            where,
-            serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
         import { initSidebar } from "./sidebar.js";
         import { chargerProfilNavbar } from "./navbar.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
-            measurementId: "G-FKSSXYEZF0"
-        };
-
-        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // Récupérer l'ID de l'URL
+        // Récupérer l'ID de l'URL (?id=...)
         const urlParams = new URLSearchParams(window.location.search);
         const targetUserId = urlParams.get('id');
+
+        const DEFAULT_COVER = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="100%" height="100%" fill="%23e2e8f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="16" fill="%2364748b">Pas d'image</text></svg>`;
 
         const fields = [
             'firstName', 'lastName', 'fullName', 'artistName',
@@ -320,6 +293,19 @@
             'subscriptionStatus', 'address', 'city', 'postalCode',
             'iban', 'theme'
         ];
+
+        function formerUrlComplet(rawUrl) {
+            if (!rawUrl) return null;
+            if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('data:')) {
+                return rawUrl;
+            }
+            if (typeof api.fileUrl === 'function') {
+                return api.fileUrl(rawUrl);
+            }
+            const cleanPath = rawUrl.startsWith('/') ? rawUrl : '/' + rawUrl;
+            const baseUrl = api.baseUrl ? api.baseUrl.replace(/\/$/, '') : '';
+            return `${baseUrl}${cleanPath}`;
+        }
 
         async function injecterComposants() {
             try {
@@ -331,186 +317,179 @@
                 const resNavbar = await fetch('navbar.html');
                 if (resNavbar.ok) {
                     document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
-                    if (auth.currentUser) chargerProfilNavbar(db, auth.currentUser);
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
                 }
             } catch (e) {
-                console.error("Erreur injection:", e);
+                console.error("Erreur d'injection des composants:", e);
             }
         }
 
+        // Chargement du profil utilisateur depuis Cloudflare D1/D3 via l'API
         async function chargerInfosCompte() {
             if (!targetUserId) {
-                alert("Aucun ID de compte spécifié dans l'URL.");
+                alert("Aucun identifiant de compte spécifié dans l'URL.");
                 return;
             }
 
             try {
-                const docRef = doc(db, "users", targetUserId);
-                const docSnap = await getDoc(docRef);
+                // Appel API REST D1/D3
+                const user = await api.get(`/api/users/${targetUserId}`);
 
-                if (!docSnap.exists()) {
+                if (!user || user.error) {
                     document.getElementById('header-user-name').textContent = "Utilisateur introuvable";
                     return;
                 }
 
-                const data = docSnap.data();
-
-                // Remplir les champs du formulaire (vide si absent/non défini)
+                // Remplir le formulaire
                 fields.forEach(field => {
                     const input = document.getElementById(field);
                     if (input) {
-                        input.value = data[field] !== undefined && data[field] !== null ? data[field] : "";
+                        input.value = user[field] !== undefined && user[field] !== null ? user[field] : "";
                     }
                 });
 
-                // En-tête
-                const name = data.fullName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || "Utilisateur";
+                // Remplir l'en-tête
+                const name = user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.displayName || "Utilisateur";
                 document.getElementById('header-user-name').textContent = name;
-                document.getElementById('header-user-email').textContent = data.email || "Sans email";
+                document.getElementById('header-user-email').textContent = user.email || "Sans email";
 
-                // Avatar
+                // Afficher l'avatar
                 const avatarContainer = document.getElementById('avatar-container');
-                if (data.photoURL) {
-                    avatarContainer.innerHTML = `<img src="${data.photoURL}" alt="Avatar">`;
+                const avatarUrl = formerUrlComplet(user.photoURL || user.photo);
+
+                if (avatarUrl) {
+                    avatarContainer.innerHTML = `<img src="${avatarUrl}" alt="Avatar" onerror="this.onerror=null; this.parentNode.innerHTML='<span>${name.charAt(0).toUpperCase()}</span>';">`;
                 } else {
-                    avatarContainer.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
+                    avatarContainer.innerHTML = `<span>${name.charAt(0).toUpperCase() || "U"}</span>`;
                 }
 
-                // Charger Sorties et Artistes
+                // Charger les contenus D1/D3 associés
                 chargerSorties();
                 chargerArtistes();
 
             } catch (err) {
-                console.error("Erreur chargement compte:", err);
+                console.error("Erreur de chargement du profil D1/D3 :", err);
+                document.getElementById('header-user-name').textContent = "Erreur de chargement";
             }
         }
 
-        // Sauvegarde des modifications
+        // Enregistrement des modifications vers D1/D3
         document.getElementById('user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const statusDiv = document.getElementById('save-status');
             statusDiv.style.display = 'block';
-            statusDiv.style.color = '#94a3b8';
-            statusDiv.textContent = "Mise à jour en cours...";
+            statusDiv.style.color = '#64748b';
+            statusDiv.textContent = "Mise à jour en cours dans la base de données...";
 
             try {
-                const updateData = {
-                    updatedAt: serverTimestamp()
-                };
-
+                const updateData = {};
                 fields.forEach(field => {
                     const val = document.getElementById(field).value.trim();
                     updateData[field] = val;
                 });
 
-                await updateDoc(doc(db, "users", targetUserId), updateData);
+                // Appel PATCH vers l'API Worker
+                await api.patch(`/api/users/${targetUserId}`, updateData);
 
                 statusDiv.style.color = '#10b981';
-                statusDiv.textContent = "Modifications enregistrées avec succès !";
+                statusDiv.textContent = "Modifications enregistrées avec succès dans D3/D1 !";
                 setTimeout(() => statusDiv.style.display = 'none', 3000);
 
             } catch (err) {
-                console.error("Erreur mise à jour :", err);
+                console.error("Erreur de mise à jour :", err);
                 statusDiv.style.color = '#ef4444';
                 statusDiv.textContent = "Erreur lors de la sauvegarde.";
             }
         });
 
-        // Charger les sorties de l'utilisateur avec redirection au clic
+        // Chargement des sorties
         async function chargerSorties() {
             const grid = document.getElementById('releases-grid');
             try {
-                let releasesSnap = await getDocs(collection(db, "users", targetUserId, "releases"));
+                const res = await api.get(`/api/users/${targetUserId}/releases`);
+                const releases = Array.isArray(res) ? res : (res.releases || res.data || []);
 
-                if (releasesSnap.empty) {
-                    const q = query(collection(db, "releases"), where("userId", "==", targetUserId));
-                    releasesSnap = await getDocs(q);
-                }
-
-                if (releasesSnap.empty) {
-                    grid.innerHTML = `<p style="color: #94a3b8; font-size: 14px;">Aucune sortie trouvée.</p>`;
+                if (!releases || releases.length === 0) {
+                    grid.innerHTML = `<p style="color: #64748b; font-size: 14px;">Aucune sortie trouvée pour cet utilisateur.</p>`;
                     return;
                 }
 
-                grid.innerHTML = releasesSnap.docs.map(docSnap => {
-                    const rel = docSnap.data();
-                    const relId = docSnap.id;
-                    const title = rel.title || rel.name || "Sans titre";
-                    const cover = rel.coverUrl || rel.cover || rel.pochette || "";
-                    const type = rel.type || "Single";
+                grid.innerHTML = releases.map(rel => {
+                    const relId = rel.id;
+                    const title = rel.title || rel.titre || "Sans titre";
+                    const cover = formerUrlComplet(rel.coverUrl || rel.cover_url || rel.cover) || DEFAULT_COVER;
+                    const type = rel.type || rel.format || "Single";
 
                     return `
                 <div class="item-card release-item" data-id="${relId}">
-                    ${cover ? `<img src="${cover}" class="item-cover" alt="Cover">` : `<div class="item-cover" style="display:flex;align-items:center;justify-content:center;color:#64748b;">Pas de cover</div>`}
+                    <img src="${cover}" class="item-cover" alt="${title}" onerror="this.src='${DEFAULT_COVER}'">
                     <div class="item-title" title="${title}">${title}</div>
                     <div class="item-sub">${type}</div>
                 </div>
             `;
                 }).join('');
 
-                // Clic -> Redirection vers sortie.html?id=...
                 document.querySelectorAll('.release-item').forEach(card => {
                     card.addEventListener('click', () => {
                         const releaseId = card.getAttribute('data-id');
-                        window.location.href = `sortie.html?id=${releaseId}`;
+                        if (releaseId) window.location.href = `sortie.html?id=${releaseId}`;
                     });
                 });
 
             } catch (e) {
-                console.error("Erreur chargement sorties:", e);
-                grid.innerHTML = `<p style="color: #94a3b8; font-size: 14px;">Impossible de charger les sorties.</p>`;
+                console.error("Erreur de chargement des sorties :", e);
+                grid.innerHTML = `<p style="color: #ef4444; font-size: 14px;">Erreur de chargement des sorties.</p>`;
             }
         }
 
-        // Charger les artistes associés au compte avec redirection au clic
+        // Chargement des artistes
         async function chargerArtistes() {
             const grid = document.getElementById('artists-grid');
             try {
-                let artistsSnap = await getDocs(collection(db, "users", targetUserId, "artists"));
+                const res = await api.get(`/api/users/${targetUserId}/artists`);
+                const artists = Array.isArray(res) ? res : (res.artists || res.data || []);
 
-                if (artistsSnap.empty) {
-                    const q = query(collection(db, "artists"), where("userId", "==", targetUserId));
-                    artistsSnap = await getDocs(q);
-                }
-
-                if (artistsSnap.empty) {
-                    grid.innerHTML = `<p style="color: #94a3b8; font-size: 14px;">Aucun artiste associé.</p>`;
+                if (!artists || artists.length === 0) {
+                    grid.innerHTML = `<p style="color: #64748b; font-size: 14px;">Aucun artiste associé.</p>`;
                     return;
                 }
 
-                grid.innerHTML = artistsSnap.docs.map(docSnap => {
-                    const art = docSnap.data();
-                    const artistId = docSnap.id;
+                grid.innerHTML = artists.map(art => {
+                    const artistId = art.id;
                     const name = art.name || art.artistName || "Artiste";
-                    const pdp = art.photoURL || art.image || art.avatar || "";
+                    const pdp = formerUrlComplet(art.photo || art.photoURL || art.image) || DEFAULT_COVER;
 
                     return `
                 <div class="item-card artist-item" data-id="${artistId}">
-                    ${pdp ? `<img src="${pdp}" class="item-cover" style="border-radius:50%;" alt="PDP">` : `<div class="item-cover" style="border-radius:50%;display:flex;align-items:center;justify-content:center;color:#64748b;">Pas de photo</div>`}
+                    <img src="${pdp}" class="item-cover" style="border-radius:50%;" alt="${name}" onerror="this.src='${DEFAULT_COVER}'">
                     <div class="item-title" title="${name}">${name}</div>
                 </div>
             `;
                 }).join('');
 
-                // Clic -> Redirection vers artiste.html?id=...
                 document.querySelectorAll('.artist-item').forEach(card => {
                     card.addEventListener('click', () => {
                         const artistId = card.getAttribute('data-id');
-                        window.location.href = `artiste.html?id=${artistId}`;
+                        if (artistId) window.location.href = `artiste.html?id=${artistId}`;
                     });
                 });
 
             } catch (e) {
-                console.error("Erreur chargement artistes:", e);
-                grid.innerHTML = `<p style="color: #94a3b8; font-size: 14px;">Impossible de charger les artistes.</p>`;
+                console.error("Erreur de chargement des artistes :", e);
+                grid.innerHTML = `<p style="color: #ef4444; font-size: 14px;">Erreur de chargement des artistes.</p>`;
             }
-        }        // Initialisation
+        }
+
+        // Initialisation
         injecterComposants();
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                chargerProfilNavbar(db, user);
+                chargerProfilNavbar(null, user);
+                chargerInfosCompte();
+            } else {
+                window.location.href = "/login.html";
             }
-            chargerInfosCompte();
         });
     </script>
 </body>

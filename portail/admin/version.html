@@ -232,7 +232,7 @@
                 <div>
                     <h2 class="page-title" style="margin: 0;">Gestion des Versions & Mises à jour</h2>
                     <p style="color: #545454; font-size: 14px; margin-top: 4px;">Publiez et gérez les versions du site
-                        stockées en temps réel sur Firestore.</p>
+                        stockées en temps réel sur la base de données D1.</p>
                 </div>
             </div>
 
@@ -256,9 +256,10 @@
                 <div id="status-msg"></div>
             </div>
 
-            <!-- Historique des versions enregistrées dans Firestore -->
+            <!-- Historique des versions enregistrées dans D1 -->
             <div class="table-card">
-                <h3 style="margin: 0 0 15px 0; color: #111; font-size: 16px;">Historique des versions (Firestore)</h3>
+                <h3 style="margin: 0 0 15px 0; color: #111; font-size: 16px;">Historique des versions (Cloudflare D1)
+                </h3>
                 <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Cliquez sur une version dans le tableau
                     pour ouvrir son popup de modification.</p>
                 <table class="versions-table">
@@ -271,7 +272,7 @@
                     </thead>
                     <tbody id="versions-table-body">
                         <tr>
-                            <td colspan="3" class="table-loading">Chargement depuis Firestore...</td>
+                            <td colspan="3" class="table-loading">Chargement depuis la base de données...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -345,19 +346,22 @@
             tbody.innerHTML = `<tr><td colspan="3" class="table-loading">Chargement depuis la base de données...</td></tr>`;
 
             try {
-                const versionsList = await api.get("/api/versions");
+                const res = await api.get("/api/versions");
 
-                if (!Array.isArray(versionsList) || versionsList.length === 0) {
+                // Adaptation pour récupérer le tableau selon la structure retournée par votre Worker
+                const versionsList = Array.isArray(res) ? res : (res.versions || []);
+
+                if (versionsList.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="3" class="table-loading">Aucune version enregistrée.</td></tr>`;
                     return;
                 }
 
                 tbody.innerHTML = versionsList.map(item => {
-                    let dateFormatted = item.date || item.createdAt || "Date non spécifiée";
+                    let dateFormatted = item.date || item.createdAt || item.created_at || "Date non spécifiée";
                     return `
-                        <tr data-id="${item.id}" data-version="${item.version || ''}" data-description="${encodeURIComponent(item.description || '')}">
-                            <td><span class="version-tag">${item.version || 'v1.0.0'}</span></td>
-                            <td style="max-width: 350px; line-height: 1.4;">${item.description || ''}</td>
+                        <tr data-id="${item.id}" data-version="${item.version || item.version_name || ''}" data-description="${encodeURIComponent(item.description || item.release_notes || '')}">
+                            <td><span class="version-tag">${item.version || item.version_name || 'v1.0.0'}</span></td>
+                            <td style="max-width: 350px; line-height: 1.4;">${item.description || item.release_notes || ''}</td>
                             <td style="color: #545454; font-size: 13px;">${dateFormatted}</td>
                         </tr>
                     `;
@@ -373,8 +377,8 @@
                 });
 
             } catch (error) {
-                console.error("Erreur Firestore :", error);
-                tbody.innerHTML = `<tr><td colspan="3" class="table-loading" style="color: #ef4444;">Erreur de chargement Firestore : ${error.message}</td></tr>`;
+                console.error("Erreur D1 :", error);
+                tbody.innerHTML = `<tr><td colspan="3" class="table-loading" style="color: #ef4444;">Erreur de chargement D1 : ${error.message}</td></tr>`;
             }
         }
 
@@ -411,21 +415,14 @@
             const formattedVersion = newVersion.startsWith('v') ? newVersion : 'v' + newVersion;
 
             modalStatus.style.color = "#d01159";
-            modalStatus.textContent = "Mise à jour dans Firestore...";
+            modalStatus.textContent = "Mise à jour dans D1...";
 
             try {
-                const docRef = doc(db, "versions", id);
-                await updateDoc(docRef, {
+                // Appel API PATCH au lieu de Firestore updateDoc
+                await api.patch(`/api/versions/${id}`, {
                     version: formattedVersion,
                     description: newDesc
                 });
-
-                if (id === "site_version" || id === "current") {
-                    await setDoc(doc(db, "settings", "site_version"), {
-                        version: formattedVersion,
-                        description: newDesc
-                    }, { merge: true });
-                }
 
                 modalStatus.style.color = "#4ade80";
                 modalStatus.textContent = "Modifications enregistrées avec succès !";
@@ -436,7 +433,7 @@
                 }, 800);
 
             } catch (error) {
-                console.error("Erreur modification Firestore :", error);
+                console.error("Erreur modification D1 :", error);
                 modalStatus.style.color = "#ef4444";
                 modalStatus.textContent = "Erreur : " + error.message;
             }
@@ -452,37 +449,30 @@
             const version = rawVersion.startsWith('v') ? rawVersion : 'v' + rawVersion;
 
             statusMsg.style.color = "#d01159";
-            statusMsg.textContent = "Enregistrement dans Firestore en cours...";
+            statusMsg.textContent = "Enregistrement dans la base D1 en cours...";
 
             const now = new Date();
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
             const dateStr = now.toLocaleDateString('fr-FR', options) + " à " + now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
             try {
-                const newVersionRef = doc(collection(db, "versions"));
-                await setDoc(newVersionRef, {
+                // Appel API POST au lieu de Firestore setDoc
+                await api.post("/api/versions", {
                     version: version,
                     description: description,
                     date: dateStr,
-                    createdAt: new Date()
-                });
-
-                await setDoc(doc(db, "settings", "site_version"), {
-                    version: version,
-                    description: description,
-                    date: dateStr,
-                    createdAt: new Date()
+                    createdAt: new Date().toISOString()
                 });
 
                 statusMsg.style.color = "#4ade80";
-                statusMsg.textContent = `Succès ! La version ${version} a été publiée et enregistrée sur Firestore.`;
+                statusMsg.textContent = `Succès ! La version ${version} a été publiée et enregistrée sur D1.`;
                 document.getElementById('version-form').reset();
                 chargerHistoriqueVersions();
 
             } catch (error) {
-                console.error("Erreur publication Firestore :", error);
+                console.error("Erreur publication D1 :", error);
                 statusMsg.style.color = "#ef4444";
-                statusMsg.textContent = "Erreur lors de la publication sur Firestore : " + error.message;
+                statusMsg.textContent = "Erreur lors de la publication sur D1 : " + error.message;
             }
         });
 
@@ -492,7 +482,7 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                chargerProfilNavbar(db, user);
+                chargerProfilNavbar(null, user);
             }
         });
     </script>

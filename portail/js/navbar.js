@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut, getIdTokenResult } from "https://www.gstat
 import { api } from "/assets/js/api.js";
 
 function initNavbar() {
-    fetch("js/navbar.html")
+    fetch("/portail/js/navbar.html")
         .then(response => {
             if (!response.ok) {
                 throw new Error("Erreur lors du chargement de la navbar");

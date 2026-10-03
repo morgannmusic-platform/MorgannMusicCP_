@@ -235,22 +235,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
 
         let chartInstance = null;
         let toutesLesFinances = [];
@@ -261,10 +248,11 @@
             "Septembre": 9, "Octobre": 10, "Novembre": 11, "Décembre": 12
         };
 
-        // La fonction injecterComposants() a été retirée pour supprimer l'erreur 404
-
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                if (typeof chargerProfilNavbar === 'function') {
+                    chargerProfilNavbar(null, user);
+                }
                 await chargerDonneesFinancieresArtiste(user.uid);
             } else {
                 window.location.href = "login.html";
@@ -275,33 +263,28 @@
             const tbody = document.getElementById("client-history-body");
 
             try {
-                const snap = await getDocs(collection(db, "users", uid, "finances"));
-                if (snap.empty) {
+                const finances = await api.get(`/api/users/${uid}/finances`);
+                toutesLesFinances = Array.isArray(finances) ? finances : [];
+
+                if (toutesLesFinances.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Aucun relevé financier n'a encore été publié pour votre compte.</td></tr>`;
                     document.getElementById("select-year").innerHTML = `<option value="">Aucune donnée</option>`;
                     genererGraphique([], []);
                     return;
                 }
 
-                toutesLesFinances = [];
                 const anneesTrouvees = new Set();
-
-                snap.forEach((docSnap) => {
-                    const f = docSnap.data();
+                toutesLesFinances.forEach((f) => {
                     const periodStr = f.period || "";
-
                     const parts = periodStr.trim().split(" ");
                     const mois = parts[0] || "Inconnu";
                     const annee = parts[1] || "Inconnue";
 
                     if (parts[1]) anneesTrouvees.add(annee);
 
-                    toutesLesFinances.push({
-                        ...f,
-                        mois: mois,
-                        annee: annee,
-                        moisIndex: ORDRE_MOIS[mois] || 99
-                    });
+                    f.mois = mois;
+                    f.annee = annee;
+                    f.moisIndex = ORDRE_MOIS[mois] || 99;
                 });
 
                 const selectYear = document.getElementById("select-year");
@@ -347,14 +330,14 @@
 
             financesFiltrees.forEach((f) => {
                 const totalMoisKey = `${f.mois}`;
-                donneesGraphique[totalMoisKey] = (donneesGraphique[totalMoisKey] || 0) + (f.amount || 0);
+                donneesGraphique[totalMoisKey] = (donneesGraphique[totalMoisKey] || 0) + Number(f.amount || 0);
 
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                 <td style="font-weight:600;">${f.period}</td>
                 <td>${f.releaseTitle || "Vente directe catalogue"}</td>
                 <td>${f.artistName || "-"}</td>
-                <td class="text-green">+ ${(f.amount || 0).toFixed(2)} €</td>
+                <td class="text-green">+ ${Number(f.amount || 0).toFixed(2)} €</td>
             `;
                 tbody.appendChild(tr);
             });

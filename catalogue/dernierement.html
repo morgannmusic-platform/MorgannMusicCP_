@@ -14,7 +14,7 @@
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: #f4f6f9;
+            background: #FFEFF4;
             color: #333;
             margin-top: 80px;
             padding: 20px;
@@ -304,7 +304,6 @@
 
         async function initRecentPage() {
             try {
-                // Récupération des sorties via l'API D1
                 const releasesRes = await api.get('/api/releases');
                 const releasesData = releasesRes.releases || [];
                 const loadedReleases = [];
@@ -313,12 +312,22 @@
                     const rawStatus = (data.status || "").trim().toLowerCase();
                     const normalizedStatus = rawStatus.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-                    if (normalizedStatus === "direct") {
+                    // Vérification stricte : Statut "direct" ET catalogue MMCP activé
+                    const isCatalogVisible = data.showOnMmcpCatalog === true || data.showOnMmcpCatalog === "true" || data.showOnMmcpCatalog == 1 || data.showOnMmcpCatalog === undefined;
+                    const isDirectStatus = normalizedStatus === "direct";
+
+                    if (isCatalogVisible && isDirectStatus) {
                         const effectiveDateStr = data.originalReleaseDate || data.releaseDate || null;
+
+                        let tracksParsed = data.tracks;
+                        if (typeof tracksParsed === 'string') {
+                            try { tracksParsed = JSON.parse(tracksParsed); } catch (e) { tracksParsed = []; }
+                        }
 
                         loadedReleases.push({
                             id: data.id || data._id,
                             ...data,
+                            tracks: Array.isArray(tracksParsed) ? tracksParsed : [],
                             effectiveReleaseDate: effectiveDateStr
                         });
                     }
@@ -327,6 +336,7 @@
                 // Tri par date de sortie la plus récente
                 loadedReleases.sort((a, b) => new Date(b.effectiveReleaseDate || 0) - new Date(a.effectiveReleaseDate || 0));
 
+                // Sélection des 5 dernières sorties
                 allRecentReleases = loadedReleases.slice(0, 5);
                 filteredRecentReleases = [...allRecentReleases];
 
@@ -346,7 +356,7 @@
             document.getElementById("results-count").innerText = `${totalItems} sortie(s) affichée(s)`;
 
             if (totalItems === 0) {
-                container.innerHTML = `<p class="no-results">Aucune sortie avec le statut "Direct" trouvée.</p>`;
+                container.innerHTML = `<p class="no-results">Aucune sortie récente avec le statut "Direct" et le catalogue MMCP activé.</p>`;
                 return;
             }
 
@@ -359,7 +369,7 @@
                 });
 
                 const cover = rel.coverUrl || rel.cover || "https://via.placeholder.com/300?text=Pochette";
-                const animatedCover = rel.animatedCoverUrl || rel.animatedCover || null;
+                const animatedCover = rel.animatedCoverUrl || rel.animatedCover || rel.appleMotion11 || null;
 
                 let mediaHtml = "";
                 if (animatedCover) {

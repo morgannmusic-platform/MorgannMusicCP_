@@ -161,7 +161,6 @@
             border: 1px solid rgba(189, 189, 189, 0.438);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
-            border-radius: 8px;
             margin-top: 15px;
             display: none;
             overflow: hidden;
@@ -200,10 +199,10 @@
 
             <div class="details-container">
                 <div class="card">
-                    <h2 style="margin:0; color:#000000;">Créer & Uploader une Sortie (Mode Admin)</h2>
+                    <h2 style="margin:0; color:#000000;">Créer & Uploader une Sortie (Mode Admin D1)</h2>
                     <p style="color: #434343; font-size: 14px; margin-top: 4px; margin-bottom: 24px;">
-                        Sélectionne un utilisateur, gère ses artistes et importe les fichiers média (Pochette & Pistes
-                        Audio).
+                        Sélectionne un utilisateur, gère ses artistes et importe les fichiers média avec découpe
+                        automatique (5 Mo/chunk).
                     </p>
 
                     <!-- ÉTAPE 1: SELECTION COMPTE ET ARTISTE -->
@@ -292,7 +291,7 @@
                     </div>
 
                     <!-- ÉTAPE 3: PISTES ET FICHIERS AUDIO -->
-                    <h3 style="color:#ffffff; margin-top: 32px; margin-bottom: 12px;">3. Pistes & Fichiers Audio</h3>
+                    <h3 style="color:#000000; margin-top: 32px; margin-bottom: 12px;">3. Pistes & Fichiers Audio</h3>
                     <div id="admin-tracks-list"></div>
 
                     <button type="button" class="btn-add-track" onclick="ajouterPiste()">+ Ajouter une piste</button>
@@ -302,39 +301,34 @@
                         <div class="progress-bar" id="progress-bar">0%</div>
                     </div>
 
-                    <button class="btn-save" id="btn-submit" onclick="creerEtUploaderSortie()">Uploader les fichiers &
-                        Enregistrer sur Firestore</button>
+                    <button class="btn-save" id="btn-submit" onclick="creerEtUploaderSortie()">Uploader les fichiers par
+                        paquets & Enregistrer dans D1</button>
                 </div>
             </div>
         </main>
     </div>
 
     <script type="module">
-        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, getDocs, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
         import { initSidebar } from "./sidebar.js";
         import { chargerProfilNavbar } from "./navbar.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
-            measurementId: "G-FKSSXYEZF0"
-        };
-
-        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-
         let pistesActuelles = [];
         let listeUtilisateurs = {};
+
+        // Résolution dynamique de l'URL de l'API Worker
+        function getApiBaseUrl() {
+            if (api && api.baseUrl && (api.baseUrl.startsWith('http://') || api.baseUrl.startsWith('https://'))) {
+                return api.baseUrl.replace(/\/$/, '');
+            }
+            // Si exécuté sur Live Server local (127.0.0.1:5500), cibler le Worker Cloudflare
+            if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+                return 'https://mon-site-api.morgann-rachedi.workers.dev';
+            }
+            return (api && api.baseUrl) ? api.baseUrl.replace(/\/$/, '') : '';
+        }
 
         async function injecterComposants() {
             try {
@@ -347,7 +341,7 @@
                 const resNavbar = await fetch('navbar.html');
                 if (resNavbar.ok) {
                     document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
-                    if (auth.currentUser) chargerProfilNavbar(db, auth.currentUser);
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
                 }
             } catch (e) {
                 console.error("Erreur injection composants : ", e);
@@ -357,38 +351,45 @@
         injecterComposants();
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = "../login.html"; return; }
+            if (!user) { window.location.href = "/login.html"; return; }
 
-            chargerProfilNavbar(db, user);
+            chargerProfilNavbar(null, user);
 
             try {
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists() || userSnap.data().role !== "admin") {
-                    alert("Accès interdit."); window.location.href = "../sorties.html"; return;
-                }
                 await chargerListeUtilisateurs();
-                ajouterPiste(); // Une première piste par défaut
+                ajouterPiste();
             } catch (err) { console.error(err); }
         });
 
-        // Charger tous les comptes de la BDD
+        // Charger tous les comptes de la base D1
         async function chargerListeUtilisateurs() {
             const selectUser = document.getElementById("select-user");
             selectUser.innerHTML = `<option value="">-- Sélectionner un utilisateur --</option>`;
 
-            const snap = await getDocs(collection(db, "users"));
-            snap.forEach(d => {
-                const data = d.data();
-                listeUtilisateurs[d.id] = data;
-                const opt = document.createElement("option");
-                opt.value = d.id;
-                opt.textContent = `${data.nom || data.displayName || 'Sans Nom'} (${data.email || d.id})`;
-                selectUser.appendChild(opt);
-            });
+            try {
+                let usersRes;
+                try {
+                    usersRes = await api.get("/api/admin/users");
+                } catch (e) {
+                    usersRes = await api.get("/api/users");
+                }
+
+                const usersList = Array.isArray(usersRes) ? usersRes : (usersRes.users || usersRes.data || []);
+
+                usersList.forEach(u => {
+                    const userId = u.uid || u.id;
+                    listeUtilisateurs[userId] = u;
+                    const opt = document.createElement("option");
+                    opt.value = userId;
+                    const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.fullName || u.email || userId;
+                    opt.textContent = `${name} (${u.email || 'Sans mail'})`;
+                    selectUser.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Erreur chargement liste utilisateurs :", e);
+            }
         }
 
-        // Charger les artistes liés à l'utilisateur sélectionné
         window.chargerArtistesUtilisateur = async function () {
             const userId = document.getElementById("select-user").value;
             const selectArtist = document.getElementById("select-artist");
@@ -396,13 +397,19 @@
 
             if (!userId) return;
 
-            const snap = await getDocs(collection(db, "users", userId, "artists"));
-            snap.forEach(d => {
-                const opt = document.createElement("option");
-                opt.value = d.data().name || d.id;
-                opt.textContent = d.data().name || d.id;
-                selectArtist.appendChild(opt);
-            });
+            try {
+                const res = await api.get(`/api/users/${userId}/artists`);
+                const artistsList = Array.isArray(res) ? res : (res.artists || res.data || []);
+
+                artistsList.forEach(art => {
+                    const opt = document.createElement("option");
+                    opt.value = art.name || art.artistName || art.id;
+                    opt.textContent = art.name || art.artistName || art.id;
+                    selectArtist.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Erreur chargement artistes utilisateur :", e);
+            }
         };
 
         window.afficherBlocNouvelArtiste = function () {
@@ -418,10 +425,7 @@
             if (!artistName) { alert("Saisis un nom d'artiste."); return; }
 
             try {
-                await addDoc(collection(db, "users", userId, "artists"), {
-                    name: artistName,
-                    createdAt: serverTimestamp()
-                });
+                await api.post(`/api/users/${userId}/artists`, { name: artistName });
                 alert(`Artiste "${artistName}" créé avec succès !`);
                 document.getElementById("new-artist-name").value = "";
                 document.getElementById("block-new-artist").style.display = "none";
@@ -483,13 +487,12 @@
                         <div class="form-group"><label>Auteurs / Compositeurs (Writers)</label><input type="text" id="t-writers-${i}" class="form-control" value="${t.writers || ''}"></div>
                         <div class="form-group full-width"><label>Paroles</label><textarea id="t-lyrics-${i}" class="form-control" rows="2">${t.lyricsText || ''}</textarea></div>
                         
-                        <!-- IMPORTATION DES FICHIERS PISTES -->
                         <div class="form-group full-width" style="background:#ffffff; padding:12px; border-radius:8px;">
-                            <label style="color:#34d399;">Fichier Audio Stereo (WAV / MP3)</label>
+                            <label style="color:#059669; font-weight:bold;">Fichier Audio Stereo (WAV / MP3)</label>
                             <input type="file" id="file-audio-${i}" accept="audio/*" class="form-control">
                         </div>
                         <div class="form-group full-width" style="background:#ffffff; padding:12px; border-radius:8px;">
-                            <label style="color:#60a5fa;">Fichier Audio Dolby Atmos (Optionnel)</label>
+                            <label style="color:#2563eb; font-weight:bold;">Fichier Audio Dolby Atmos (Optionnel)</label>
                             <input type="file" id="file-atmos-${i}" accept="audio/*,.caf" class="form-control">
                         </div>
                     </div>
@@ -510,23 +513,86 @@
             afficherPistesHTML();
         };
 
-        // Helper pour uploader un fichier sur Firebase Storage avec suivi de progression
-        function uploadFichierStorage(file, path) {
-            return new Promise((resolve, reject) => {
-                const storageRef = ref(storage, path);
-                const uploadTask = uploadBytesResumable(storageRef, file);
+        // Envoi par paquets de 5 Mo directement vers l'API Worker
+        async function envoyerFichierParChunks(file, type = "track", onProgress = null) {
+            const CHUNK_SIZE = 5 * 1024 * 1024; // 5 Mo
+            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            const uploadId = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            const baseUrl = getApiBaseUrl();
 
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        // Progression
-                    },
-                    (error) => reject(error),
-                    async () => {
-                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                        resolve(downloadURL);
-                    }
-                );
+            const headers = {};
+            if (auth.currentUser) {
+                const token = await auth.currentUser.getIdToken();
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            // 1. Si le fichier fait <= 5 Mo, envoi direct
+            if (file.size <= CHUNK_SIZE) {
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const res = await fetch(`${baseUrl}/api/upload/${type}`, {
+                    method: "POST",
+                    headers: headers,
+                    body: formData
+                });
+
+                const result = await res.json();
+                if (!res.ok || !result.success) {
+                    throw new Error(result.error || `Erreur d'envoi du fichier (HTTP ${res.status})`);
+                }
+                return result.url || `/api/files/${encodeURIComponent(result.key)}`;
+            }
+
+            // 2. Découpe et envoi séquentiel des paquets de 5 Mo
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * CHUNK_SIZE;
+                const end = Math.min(file.size, start + CHUNK_SIZE);
+                const chunkBlob = file.slice(start, end);
+
+                const formData = new FormData();
+                formData.append("file", chunkBlob, `${file.name}.part${i}`);
+                formData.append("chunkIndex", i);
+                formData.append("totalChunks", totalChunks);
+                formData.append("uploadId", uploadId);
+                formData.append("type", type);
+                formData.append("originalFileName", file.name);
+
+                const chunkRes = await fetch(`${baseUrl}/api/upload/chunk`, {
+                    method: "POST",
+                    headers: headers,
+                    body: formData
+                });
+
+                if (!chunkRes.ok) {
+                    const errJson = await chunkRes.json().catch(() => ({}));
+                    throw new Error(errJson.error || `Erreur lors de l'envoi du morceau ${i + 1}/${totalChunks} (HTTP ${chunkRes.status})`);
+                }
+
+                if (typeof onProgress === "function") {
+                    const percent = Math.round(((i + 1) / totalChunks) * 100);
+                    onProgress(percent);
+                }
+            }
+
+            // 3. Finalisation et assemblage sur R2
+            const completeFormData = new FormData();
+            completeFormData.append("uploadId", uploadId);
+            completeFormData.append("type", type);
+            completeFormData.append("originalFileName", file.name);
+
+            const completeRes = await fetch(`${baseUrl}/api/upload/chunk/complete`, {
+                method: "POST",
+                headers: headers,
+                body: completeFormData
             });
+
+            const resultJson = await completeRes.json();
+            if (!completeRes.ok || !resultJson.success) {
+                throw new Error(resultJson.error || "Échec de l'assemblage du fichier sur le serveur.");
+            }
+
+            return resultJson.url || `/api/files/${encodeURIComponent(resultJson.key)}`;
         }
 
         window.creerEtUploaderSortie = async function () {
@@ -543,7 +609,6 @@
 
             capturerSaisiesPistes();
 
-            // Vérifier que chaque piste a un fichier audio
             for (let i = 0; i < pistesActuelles.length; i++) {
                 const fAudio = document.getElementById(`file-audio-${i}`).files[0];
                 if (!fAudio) {
@@ -564,32 +629,32 @@
                 // 1. Upload de la pochette
                 progressBar.style.width = "10%";
                 progressBar.textContent = "Upload Pochette...";
-                const coverPath = `releases/${userId}/${Date.now()}_cover_${coverFile.name}`;
-                const coverUrl = await uploadFichierStorage(coverFile, coverPath);
+                const coverUrl = await envoyerFichierParChunks(coverFile, "cover");
 
-                // 2. Upload des fichiers des pistes
+                // 2. Upload des fichiers audio par paquets de 5 Mo
                 const totalTracks = pistesActuelles.length;
                 for (let i = 0; i < totalTracks; i++) {
-                    const stepPercent = Math.round(10 + ((i + 1) / totalTracks) * 70);
-                    progressBar.style.width = `${stepPercent}%`;
-                    progressBar.textContent = `Upload Piste ${i + 1}/${totalTracks}...`;
-
                     const audioFile = document.getElementById(`file-audio-${i}`).files[0];
-                    const audioPath = `releases/${userId}/tracks/${Date.now()}_audio_${audioFile.name}`;
-                    pistesActuelles[i].audioUrl = await uploadFichierStorage(audioFile, audioPath);
+
+                    pistesActuelles[i].fileUrl = await envoyerFichierParChunks(audioFile, "track", (pct) => {
+                        progressBar.style.width = `${pct}%`;
+                        progressBar.textContent = `Piste ${i + 1}/${totalTracks} (${pct}%)...`;
+                    });
+                    pistesActuelles[i].audioUrl = pistesActuelles[i].fileUrl;
 
                     const atmosFile = document.getElementById(`file-atmos-${i}`).files[0];
                     if (atmosFile) {
-                        const atmosPath = `releases/${userId}/atmos/${Date.now()}_atmos_${atmosFile.name}`;
-                        pistesActuelles[i].atmosAudioUrl = await uploadFichierStorage(atmosFile, atmosPath);
-                    } else {
-                        pistesActuelles[i].atmosAudioUrl = "";
+                        pistesActuelles[i].atmosUrl = await envoyerFichierParChunks(atmosFile, "atmos", (pct) => {
+                            progressBar.style.width = `${pct}%`;
+                            progressBar.textContent = `Atmos ${i + 1}/${totalTracks} (${pct}%)...`;
+                        });
+                        pistesActuelles[i].atmosAudioUrl = pistesActuelles[i].atmosUrl;
                     }
                 }
 
-                // 3. Construction des métadonnées finales pour Firestore
-                progressBar.style.width = "90%";
-                progressBar.textContent = "Enregistrement Firestore...";
+                // 3. Enregistrement des métadonnées dans Cloudflare D1
+                progressBar.style.width = "95%";
+                progressBar.textContent = "Enregistrement D1...";
 
                 const releaseData = {
                     title: title,
@@ -600,31 +665,30 @@
                     status: document.getElementById("edit-status").value,
                     upc: document.getElementById("edit-upc").value,
                     catalogNumber: document.getElementById("edit-catalogNumber").value,
-                    label: document.getElementById("edit-label").value,
+                    labelName: document.getElementById("edit-label").value,
                     primaryGenre: document.getElementById("edit-primaryGenre").value,
                     secondaryGenre: document.getElementById("edit-secondaryGenre").value,
                     language: document.getElementById("edit-language").value,
                     releaseDate: document.getElementById("edit-releaseDate").value,
                     coverUrl: coverUrl,
                     tracks: pistesActuelles,
-                    createdAt: serverTimestamp(),
                     showOnMmcpCatalog: true,
                     manualPlatforms: false,
                     selectedPlatforms: [],
                     additionalDeliveries: []
                 };
 
-                // Sauvegarde sous le sous-dossier de l'utilisateur ciblé
-                const docRef = await addDoc(collection(db, "users", userId, "releases"), releaseData);
+                const res = await api.post(`/api/users/${userId}/releases`, releaseData);
 
                 progressBar.style.width = "100%";
-                progressBar.textContent = "Terminé !";
+                progressBar.textContent = "Transfert terminé !";
 
-                alert(`Sortie "${title}" créée et uploadée avec succès ! (ID: ${docRef.id})`);
-                window.location.href = `sortie.html?id=${docRef.id}`;
+                const newReleaseId = res.id || res.releaseId || "";
+                alert(`Sortie "${title}" créée et téléversée par morceaux avec succès dans D1 !`);
+                window.location.href = `sortie.html?id=${newReleaseId}`;
 
             } catch (err) {
-                console.error(err);
+                console.error("Erreur de transfert :", err);
                 alert("Erreur lors du transfert : " + err.message);
                 btn.disabled = false;
                 btn.style.opacity = "1";

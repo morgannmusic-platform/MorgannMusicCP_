@@ -2,13 +2,11 @@ import Stripe from 'stripe';
 
 export default {
   async fetch(request, env) {
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY);
     const url = new URL(request.url);
 
-    // Gestion du CORS
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     };
 
@@ -16,64 +14,118 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // --- ROUTE 1 : Création du PaymentIntent ---
+    if (!env.STRIPE_SECRET_KEY) {
+      return new Response(JSON.stringify({ error: "Configuration erreur : STRIPE_SECRET_KEY manquant" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    // --- CRÉATION DE SESSION CHECKOUT ---
     if (request.method === "POST" && url.pathname === "/") {
       try {
-        const { amount, planName, planId, userId } = await request.json();
+        const body = await request.json();
+        const { amount, planName, planId, userId, userEmail, mode } = body;
+        const checkoutMode = mode || 'subscription';
 
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: amount,
-          currency: "eur",
-          automatic_payment_methods: { enabled: true },
-          metadata: {
-            userId: userId,
-            planId: planId,
-            planName: planName
-          },
+        const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+          httpClient: Stripe.createFetchHttpClient(),
         });
 
-        return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }), {
+        const lineItem = {
+          price_data: {
+            currency: 'eur',
+            product_data: { name: planName || 'Abonnement MMCP' },
+            unit_amount: amount,
+          },
+          quantity: 1,
+        };
+
+        if (checkoutMode === 'subscription') {
+          lineItem.price_data.recurring = { interval: 'month' };
+        }
+
+        const sessionConfig = {
+          payment_method_types: ['card'],
+          line_items: [lineItem],
+          mode: checkoutMode,
+          success_url: `https://mm-cp.uk/success.html?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `https://mm-cp.uk/cancel.html`,
+          metadata: {
+            userId: userId || '',
+            planId: planId || '',
+            planName: planName || ''
+          },
+        };
+
+        if (userEmail) {
+          sessionConfig.customer_email = userEmail;
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionConfig);
+
+        return new Response(JSON.stringify({ url: session.url }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders });
+        return new Response(JSON.stringify({ error: "Stripe error: " + e.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
       }
     }
 
-    // --- ROUTE 2 : Webhook (Appelé par Stripe après paiement) ---
-    if (request.method === "POST" && url.pathname === "/webhook") {
-      const signature = request.headers.get("stripe-signature");
-      if (!signature) {
-        return new Response("Erreur : Header stripe-signature manquant", { status: 400, headers: corsHeaders });
-      }
-
-      const body = await request.text();
-      let event;
-
-      if (!env.STRIPE_WEBHOOK_SECRET) {
-        return new Response("Erreur : STRIPE_WEBHOOK_SECRET n'est pas configuré dans le Worker", { status: 500, headers: corsHeaders });
+    // --- VÉRIFICATION DE SESSION ET MISE À JOUR D1 ---
+    if (request.method === "GET" && url.pathname === "/verify-session") {
+      const sessionId = url.searchParams.get("session_id");
+      if (!sessionId) {
+        return new Response(JSON.stringify({ error: "session_id manquant" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
       }
 
       try {
-        event = await stripe.webhooks.constructEventAsync(body, signature, env.STRIPE_WEBHOOK_SECRET);
-      } catch (err) {
-        return new Response(`Webhook Error (Signature): ${err.message}`, { status: 400, headers: corsHeaders });
-      }
+        const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+          httpClient: Stripe.createFetchHttpClient(),
+        });
 
-      if (event.type === "payment_intent.succeeded") {
-        // Le plan est maintenant mis à jour côté client dans account.js après redirection.
-        // On se contente de valider la réception du webhook pour Stripe.
-        try {
-          const session = event.data.object;
-          console.log(`Paiement réussi pour le PaymentIntent: ${session.id}`);
-        } catch (dbError) {
-          console.error("Webhook Log Error:", dbError.message);
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        if (session.payment_status === "paid" || session.status === "complete") {
+          const planId = session.metadata?.planId;
+          const planName = session.metadata?.planName;
+          const userEmail = session.customer_email || session.customer_details?.email;
+          const assignedPlan = planId || planName;
+
+          if (userEmail && env.DB) {
+            // Met à jour la colonne plan_name dans la table users en cherchant par email
+            await env.DB.prepare(
+              `UPDATE users 
+               SET plan_name = ?
+               WHERE email = ?`
+            ).bind(assignedPlan, userEmail).run();
+
+            console.log(`[D1 Success] Utilisateur ${userEmail} mis à jour avec plan_name = ${assignedPlan}`);
+          }
+
+          return new Response(JSON.stringify({ success: true, planName: assignedPlan }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } else {
+          return new Response(JSON.stringify({ success: false, error: "Paiement non validé" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
         }
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-
-      return new Response(JSON.stringify({ received: true }), { status: 200 });
     }
 
-    return new Response("Not Found", { status: 404 });
+    return new Response("Not Found", { status: 404, headers: corsHeaders });
   },
 };

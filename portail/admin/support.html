@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion du Support | MMCP Admin</title>
+    <link rel="stylesheet" href="admin.css">
+
+    <!-- Ajout de la librairie Marked.js pour parser le Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        .page-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            margin-top: 50px;
+        }
+
+        .search-bar-container {
+            position: relative;
+            min-width: 280px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.292);
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #FC8FB0;
+        }
+
+        .table-card {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .tickets-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            color: #000000;
+            font-size: 14px;
+        }
+
+        .tickets-table th {
+            padding: 14px 16px;
+            border-bottom: 1px solid #334155;
+            color: #545454;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tickets-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.15);
+            vertical-align: middle;
+        }
+
+        .tickets-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .tickets-table tbody tr:hover {
+            background: #fc8fb077 !important;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .status-badge.open {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-badge.closed {
+            background: rgba(34, 197, 94, 0.15);
+            color: #16a34a;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .table-loading {
+            text-align: center;
+            padding: 40px !important;
+            color: #64748b;
+        }
+
+        /* --- MODALE DE DÉTAIL DU TICKET --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 34px;
+            max-width: 700px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #3e2837;
+        }
+
+        .payload-details-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .payload-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .payload-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .payload-label {
+            font-weight: 700;
+            color: #475569;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .payload-value {
+            color: #1e293b;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        /* --- SECTION DE DISCUSSION / RÉPONSES --- */
+        .chat-section {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .chat-section h4 {
+            margin: 0 0 10px 0;
+            color: #3e2837;
+            font-size: 15px;
+        }
+
+        .messages-history {
+            background: #fdfdfd;
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            padding: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message-bubble {
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 85%;
+        }
+
+        .message-bubble.admin {
+            background: #fce7f0;
+            color: #3e2837;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message-bubble.user {
+            background: #f1f5f9;
+            color: #1e293b;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message-meta {
+            font-size: 10px;
+            color: #64748b;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        /* Styles pour le rendu Markdown dans les messages */
+        .message-content {
+            word-wrap: break-word;
+        }
+
+        .message-content p {
+            margin: 0 0 8px 0;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-content a {
+            color: #d01159;
+            text-decoration: underline;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            margin-top: 4px;
+            margin-bottom: 8px;
+            padding-left: 20px;
+        }
+
+        .message-content pre {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .message-content code {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .reply-form {
+            display: flex;
+            flex-direction: column;
+            /* Changé pour s'adapter au textarea */
+            gap: 8px;
+        }
+
+        .reply-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            /* Un peu moins arrondi pour un textarea */
+            font-size: 13px;
+            outline: none;
+            resize: vertical;
+            /* Permet d'agrandir verticalement */
+            min-height: 80px;
+            /* Hauteur minimale */
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .reply-input:focus {
+            border-color: #FC8FB0;
+        }
+
+        .reply-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .markdown-hint {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .btn-send-reply {
+            background-color: #FC8FB0;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .btn-send-reply:hover {
+            background-color: #d01159;
+        }
+
+        .btn-send-reply:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .modal-footer-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+        }
+
+        .status-update-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-update-group select {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            font-size: 13px;
+            outline: none;
+            background: #fff;
+        }
+
+        .btn-update {
+            background-color: #3e2837;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-update:hover {
+            background-color: #5a3c4f;
+        }
+
+        .btn-close {
+            background-color: #e2e8f0;
+            color: #64748b;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-close:hover {
+            background-color: #cbd5e1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <aside id="sidebar-injector" class="sidebar-container"></aside>
+
+        <main class="main-container">
+            <header id="navbar-injector" class="navbar-container"></header>
+
+            <div class="page-header-actions">
+                <div>
+                    <h2 class="page-title" style="margin: 0;">Gestion des Tickets de Support</h2>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 4px;">
+                        Suivi des demandes d'assistance envoyées par les utilisateurs.
+                    </p>
+                </div>
+
+                <div class="search-bar-container">
+                    <input type="text" id="ticket-search-input" class="search-input"
+                        placeholder="Rechercher par nom, section..." />
+                </div>
+            </div>
+
+            <div class="table-card">
+                <table class="tickets-table">
+                    <thead>
+                        <tr>
+                            <th>Artiste / Utilisateur</th>
+                            <th>Thématique / Section</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-table-body">
+                        <tr>
+                            <td colspan="4" class="table-loading">
+                                <span>Chargement des tickets...</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modale détail du ticket -->
+    <div id="ticket-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-ticket-title">Détails du ticket</h3>
+            <p id="modal-ticket-meta" style="color: #64748b; font-size: 13px; margin-bottom: 12px;"></p>
+
+            <div class="payload-details-container" id="modal-ticket-payload">Chargement...</div>
+
+            <!-- Espace de discussion / Réponses -->
+            <div class="chat-section">
+                <h4>Échanges avec l'artiste</h4>
+                <div class="messages-history" id="modal-messages-history">
+                    <!-- Les messages s'affichent ici -->
+                </div>
+                <form id="reply-form" class="reply-form">
+                    <!-- Remplacement de l'input par un textarea -->
+                    <textarea id="reply-message-input" class="reply-input"
+                        placeholder="Écrire une réponse au support... (Le format Markdown est supporté : **gras**, *italique*, [lien](url))"
+                        required></textarea>
+
+                    <div class="reply-actions">
+                        <span class="markdown-hint">Sauts de ligne et Markdown autorisés</span>
+                        <button type="submit" id="btn-submit-reply" class="btn-send-reply">Envoyer</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer-actions">
+                <div class="status-update-group">
+                    <label for="modal-status-select" style="font-size: 13px; font-weight: 600;">Statut :</label>
+                    <select id="modal-status-select">
+                        <option value="ouvert">Ouvert</option>
+                        <option value="ferme">Fermé</option>
+                        <option value="resolu">Résolu</option>
+                    </select>
+                    <button type="button" class="btn-update" id="btn-save-status">Mettre à jour</button>
+                </div>
+                <button type="button" class="btn-close" onclick="fermerModalTicket()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+        import { initSidebar } from "./sidebar.js";
+        import { chargerProfilNavbar } from "./navbar.js";
+
+        let listTicketsCache = [];
+        let usersMapCache = {};
+        let currentSelectedTicket = null;
+
+        const fieldLabelsMap = {
+            message: "Message / Précisions initiales",
+            screenshot: "Capture d'écran / Fichier",
+            payoutId: "Versement concerné",
+            releaseId: "Sortie concernée",
+            releaseIds: "Sorties sélectionnées",
+            scAutoUrl: "Lien SoundCloud (Généré auto)",
+            scOfficialUrl: "Lien SoundCloud (Officiel)",
+            ytTopicUrl: "Lien YouTube Topic",
+            ytMainUrl: "Lien Chaîne YouTube Principale",
+            ytVideoUrl: "Lien Vidéo YouTube générée",
+            ytCorrectUrl: "Lien Chaîne YouTube Correct",
+            ytIncorrectUrl: "Lien Chaîne YouTube Incorrect",
+            platform: "Plateforme sélectionnée",
+            platformsMulti: "Plateformes sélectionnées",
+            tiktokUgcUrl: "Lien sonore UGC TikTok",
+            ugcTimestamp: "Horodatage UGC",
+            audioTimestamp: "Horodatage Audio Officiel",
+            instaUser: "Nom d'utilisateur Instagram",
+            fbPageUrl: "URL Page Facebook",
+            mappingScenario: "Scénario de mapping",
+            newArtistName: "Nom du nouvel artiste",
+            mappingPlatforms: "Plateformes de mapping",
+            mappingExtra: "Informations complémentaires",
+            correctPageUrl: "URL de la page correcte",
+            incorrectPageUrl: "URL de la page incorrecte",
+            ourArtistPageUrl: "URL de notre page d'artiste",
+            releaseToRemoveUrl: "URL de la sortie à retirer",
+            proofFile: "Fichier de preuve / Licence",
+            claimId: "Numéro de Claim (#)",
+            desiredReleaseTitle: "Titre de sortie souhaité",
+            desiredTrackTitle: "Titre de piste souhaité",
+            appleMusicUrl: "URL Apple Music"
+        };
+
+        const scenarioLabels = {
+            new_artist: "C'est ma première publication (nouvelle page d'artiste)",
+            wrong_page: "La sortie a été livrée sur la mauvaise page d'artiste",
+            other_artist_wrong: "La sortie d'un autre artiste a été livrée sur notre page"
+        };
+
+        async function injecterComposants() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) {
+                    document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+                    initSidebar(auth);
+
+                    const links = document.querySelectorAll('.sidebar-link');
+                    links.forEach(l => {
+                        const href = l.getAttribute('href');
+                        if (href === 'support.html' || href === 'admin-support.html') {
+                            l.classList.add('active');
+                        } else {
+                            l.classList.remove('active');
+                        }
+                    });
+                }
+
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) {
+                    document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
+                }
+            } catch (e) {
+                console.error("Erreur injection composants : ", e);
+            }
+        }
+
+        async function chargerDonnees() {
+            const tbody = document.getElementById("tickets-table-body");
+            try {
+                try {
+                    const usersRes = await api.get("/api/admin/users");
+                    const usersList = Array.isArray(usersRes) ? usersRes : (usersRes.users || usersRes.results || []);
+                    usersList.forEach(u => {
+                        if (u.uid) {
+                            usersMapCache[u.uid] = u.first_name || u.firstName || u.artistName || u.name || "Artiste";
+                        }
+                    });
+                } catch (e) {
+                    console.error("Erreur chargement utilisateurs pour noms:", e);
+                }
+
+                const res = await api.get("/api/support/tickets");
+                listTicketsCache = Array.isArray(res) ? res : (res.results || []);
+                afficherTableauTickets(listTicketsCache);
+            } catch (err) {
+                console.error("Erreur chargement tickets:", err);
+                tbody.innerHTML = `<tr><td colspan="4" class="table-loading" style="color:#ef4444;">Erreur lors du chargement des tickets.</td></tr>`;
+            }
+        }
+
+        function afficherTableauTickets(liste) {
+            const tbody = document.getElementById("tickets-table-body");
+            if (!liste || liste.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="table-loading">Aucun ticket de support trouvé.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = liste.map(ticket => {
+                const uid = ticket.uid;
+                const userName = usersMapCache[uid] || ticket.user_name || ticket.userName || "Anonyme";
+                const section = ticket.section || "Général";
+                const status = ticket.status || "ouvert";
+                const dateStr = ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "—";
+
+                return `
+                    <tr class="ticket-row" data-id="${ticket.id}">
+                        <td><strong>${userName}</strong></td>
+                        <td><span style="text-transform: capitalize;">${section}</span></td>
+                        <td><span class="status-badge ${status === 'ouvert' ? 'open' : 'closed'}">${status}</span></td>
+                        <td style="color: #64748b;">${dateStr}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            document.querySelectorAll('.ticket-row').forEach(row => {
+                row.addEventListener('click', () => {
+                    const ticketId = row.getAttribute('data-id');
+                    const ticket = listTicketsCache.find(t => String(t.id) === String(ticketId));
+                    if (ticket) {
+                        ouvrirModalTicket(ticket);
+                    }
+                });
+            });
+        }
+
+        window.ouvrirModalTicket = function (ticket) {
+            currentSelectedTicket = ticket;
+            const userName = usersMapCache[ticket.uid] || ticket.user_name || ticket.userName || 'Anonyme';
+            document.getElementById("modal-ticket-title").innerText = `Ticket #${ticket.id} (${ticket.section})`;
+            document.getElementById("modal-ticket-meta").innerText = `Par ${userName} le ${new Date(ticket.created_at).toLocaleString('fr-FR')}`;
+
+            const statusSelect = document.getElementById("modal-status-select");
+            statusSelect.value = ticket.status || "ouvert";
+
+            // Affichage des données du payload
+            const container = document.getElementById("modal-ticket-payload");
+            container.innerHTML = "";
+
+            let payloadObj = {};
+            try {
+                payloadObj = typeof ticket.payload === 'object' ? ticket.payload : JSON.parse(ticket.payload || "{}");
+            } catch {
+                container.innerHTML = `<div class="payload-value">${ticket.payload || "Aucun détail."}</div>`;
+            }
+
+            const keys = Object.keys(payloadObj);
+            if (keys.length === 0) {
+                container.innerHTML = `<div class="payload-value">Aucune donnée transmise dans ce formulaire.</div>`;
+            } else {
+                keys.forEach(key => {
+                    let val = payloadObj[key];
+                    const label = fieldLabelsMap[key] || key;
+
+                    if (key === 'mappingScenario' && scenarioLabels[val]) {
+                        val = scenarioLabels[val];
+                    } else if (Array.isArray(val)) {
+                        val = val.join(', ');
+                    } else if (!val) {
+                        val = "—";
+                    }
+
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "payload-item";
+                    itemDiv.innerHTML = `
+                        <span class="payload-label">${label}</span>
+                        <span class="payload-value">${val}</span>
+                    `;
+                    container.appendChild(itemDiv);
+                });
+            }
+
+            // Charger l'historique des messages / réponses
+            renderMessagesHistory(ticket.messages || []);
+
+            document.getElementById("ticket-modal").classList.add("show");
+        }
+
+        function renderMessagesHistory(messages) {
+            const historyContainer = document.getElementById("modal-messages-history");
+            if (!messages || messages.length === 0) {
+                historyContainer.innerHTML = `<p style="font-size:12px; color:#64748b; text-align:center; margin:10px 0;">Aucune réponse pour l'instant.</p>`;
+                return;
+            }
+
+            historyContainer.innerHTML = messages.map(msg => {
+                const isAdmin = msg.sender === 'admin' || msg.isAdmin;
+                const bubbleClass = isAdmin ? 'admin' : 'user';
+                const senderName = isAdmin ? 'Support MMCP (Admin)' : 'Artiste';
+                const dateStr = msg.created_at ? new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+
+                const rawText = msg.text || msg.message || '';
+                // Utilisation de Marked.js pour parser le texte. L'option breaks:true transforme les sauts de ligne en <br>
+                const htmlContent = window.marked ? window.marked.parse(rawText, { breaks: true }) : `<p>${rawText}</p>`;
+
+                return `
+                    <div class="message-bubble ${bubbleClass}">
+                        <span class="message-meta">${senderName} • ${dateStr}</span>
+                        <div class="message-content">${htmlContent}</div>
+                    </div>
+                `;
+            }).join("");
+
+            historyContainer.scrollTop = historyContainer.scrollHeight;
+        }
+
+        window.fermerModalTicket = function () {
+            currentSelectedTicket = null;
+            document.getElementById("ticket-modal").classList.remove("show");
+        }
+
+        // Envoi d'une réponse au ticket
+        document.getElementById("reply-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!currentSelectedTicket) return;
+
+            const input = document.getElementById("reply-message-input");
+            const submitBtn = document.getElementById("btn-submit-reply");
+            const text = input.value.trim();
+            if (!text) return;
+
+            try {
+                // Désactiver le bouton pendant l'envoi
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Envoi...";
+
+                const res = await api.post(`/api/support/tickets/${currentSelectedTicket.id}/messages`, {
+                    text: text,
+                    sender: "admin",
+                    createdAt: new Date().toISOString()
+                });
+
+                // Mettre à jour localement
+                if (!currentSelectedTicket.messages) {
+                    currentSelectedTicket.messages = [];
+                }
+                const newMsg = { text: text, sender: "admin", created_at: new Date().toISOString() };
+                currentSelectedTicket.messages.push(newMsg);
+
+                renderMessagesHistory(currentSelectedTicket.messages);
+                input.value = "";
+            } catch (err) {
+                console.error("Erreur envoi réponse:", err);
+                alert("Erreur lors de l'envoi de la réponse.");
+            } finally {
+                // Réactiver le bouton
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Envoyer";
+            }
+        });
+
+        // Gérer la soumission du formulaire avec Ctrl+Enter dans le textarea
+        document.getElementById("reply-message-input").addEventListener("keydown", (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById("reply-form").dispatchEvent(new Event("submit"));
+            }
+        });
+
+        document.getElementById("btn-save-status").addEventListener("click", async () => {
+            if (!currentSelectedTicket) return;
+            const newStatus = document.getElementById("modal-status-select").value;
+
+            try {
+                await api.put(`/api/support/tickets/${currentSelectedTicket.id}`, { status: newStatus });
+                currentSelectedTicket.status = newStatus;
+                afficherTableauTickets(listTicketsCache);
+                alert("Statut du ticket mis à jour avec succès !");
+                fermerModalTicket();
+            } catch (err) {
+                console.error("Erreur mise à jour statut:", err);
+                alert("Erreur lors de la mise à jour du statut.");
+            }
+        });
+
+        document.getElementById("ticket-search-input").addEventListener("input", (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            const filtered = listTicketsCache.filter(t => {
+                const userName = usersMapCache[t.uid] || t.user_name || t.userName || '';
+                const name = userName.toLowerCase();
+                const section = (t.section || '').toLowerCase();
+                return name.includes(val) || section.includes(val);
+            });
+            afficherTableauTickets(filtered);
+        });
+
+        injecterComposants();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                chargerProfilNavbar(null, user);
+                chargerDonnees();
+            } else {
+                window.location.href = "/login.html";
+            }
+        });
+    </script>
+</body>
+
+</html>

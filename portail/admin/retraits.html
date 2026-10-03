@@ -66,11 +66,17 @@
         select {
             background: #FC8FB0;
             border: 1px solid #ffffff;
-            color: #f8fafc;
+            color: #ffffff;
             padding: 6px 10px;
             border-radius: 50px;
             font-weight: 600;
             outline: none;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #ffffff;
+            color: #000000;
         }
 
         select:focus {
@@ -86,19 +92,19 @@
 
         .badge-demande {
             background: rgba(255, 193, 7, 0.15);
-            color: #ffc107;
+            color: #b7791f;
             border: 1px solid rgba(255, 193, 7, 0.3);
         }
 
         .badge-envoye {
             background: rgba(34, 197, 94, 0.15);
-            color: #22c55e;
+            color: #15803d;
             border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
         .badge-refuse {
             background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
+            color: #b91c1c;
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
     </style>
@@ -139,26 +145,13 @@
     </div>
 
     <script type="module">
-        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
 
         import { initSidebar } from "./sidebar.js";
+        // Si vous utilisez une fonction de profil navbar partagée, assurez-vous du bon chemin ou import
         import { chargerProfilNavbar } from "./navbar.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
-            measurementId: "G-FKSSXYEZF0"
-        };
-
-        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-        const auth = getAuth(app);
-        const db = getFirestore(app);
 
         async function injecterComposants() {
             try {
@@ -167,10 +160,9 @@
                     document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
                     initSidebar(auth);
 
-                    // Mettre en évidence le lien actif sur la sidebar (à adapter selon le nom de ton fichier de retraits, ex: retraits.html)
                     const links = document.querySelectorAll('.sidebar-link');
                     links.forEach(l => {
-                        if (l.getAttribute('href') === 'retraits.html') {
+                        if (l.getAttribute('href') === 'retraits_3.html' || l.getAttribute('href') === 'retraits.html') {
                             l.classList.add('active');
                         } else {
                             l.classList.remove('active');
@@ -181,7 +173,6 @@
                 const resNavbar = await fetch('navbar.html');
                 if (resNavbar.ok) {
                     document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
-                    if (auth.currentUser) chargerProfilNavbar(db, auth.currentUser);
                 }
             } catch (e) {
                 console.error("Erreur injection composants : ", e);
@@ -190,7 +181,6 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                chargerProfilNavbar(db, user);
                 chargerDemandes();
             } else {
                 window.location.href = "login.html";
@@ -202,32 +192,36 @@
             tbody.innerHTML = "";
 
             try {
-                const snap = await getDocs(collection(db, "withdrawals"));
-                if (snap.empty) {
+                const withdrawals = await api.get(`/api/admin/withdrawals`);
+
+                if (!Array.isArray(withdrawals) || withdrawals.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">Aucune demande de retrait enregistrée.</td></tr>`;
                     return;
                 }
 
-                snap.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const id = docSnap.id;
-
+                withdrawals.forEach((w) => {
+                    const id = w.id;
                     const tr = document.createElement("tr");
 
                     let badgeClass = "badge-demande";
-                    if (data.status === "envoyé") badgeClass = "badge-envoye";
-                    if (data.status === "refusé") badgeClass = "badge-refuse";
+                    if (w.status === "envoyé") badgeClass = "badge-envoye";
+                    if (w.status === "refusé") badgeClass = "badge-refuse";
+
+                    const userIdentifier = w.userEmail || w.user_uid || w.userId || "Utilisateur";
+                    const amountVal = Number(w.amount || 0).toFixed(2);
+                    const ibanVal = w.iban || "-";
+                    const currentStatus = w.status || "demandé";
 
                     tr.innerHTML = `
-                        <td>${data.userEmail || data.userId}</td>
-                        <td><strong>${(data.amount || 0).toFixed(2)} €</strong></td>
-                        <td style="font-family: monospace;">${data.iban || "-"}</td>
-                        <td><span class="badge ${badgeClass}">${data.status}</span></td>
+                        <td>${userIdentifier}</td>
+                        <td><strong>${amountVal} €</strong></td>
+                        <td style="font-family: monospace;">${ibanVal}</td>
+                        <td><span class="badge ${badgeClass}">${currentStatus}</span></td>
                         <td>
-                            <select onchange="modifierStatut('${id}', '${data.userId}', ${data.amount}, this.value)">
-                                <option value="demandé" ${data.status === "demandé" ? "selected" : ""}>demandé</option>
-                                <option value="envoyé" ${data.status === "envoyé" ? "selected" : ""}>envoyé</option>
-                                <option value="refusé" ${data.status === "refusé" ? "selected" : ""}>refusé</option>
+                            <select onchange="modifierStatut('${id}', this.value)">
+                                <option value="demandé" ${currentStatus === "demandé" ? "selected" : ""}>demandé</option>
+                                <option value="envoyé" ${currentStatus === "envoyé" ? "selected" : ""}>envoyé</option>
+                                <option value="refusé" ${currentStatus === "refusé" ? "selected" : ""}>refusé</option>
                             </select>
                         </td>
                     `;
@@ -238,24 +232,13 @@
             }
         }
 
-        window.modifierStatut = async function (withdrawId, userId, amount, nouveauStatut) {
+        window.modifierStatut = async function (withdrawId, nouveauStatut) {
             try {
-                // 1. Mettre à jour le statut du retrait
-                await updateDoc(doc(db, "withdrawals", withdrawId), {
+                await api.patch(`/api/admin/withdrawals/${withdrawId}`, {
                     status: nouveauStatut
                 });
 
-                // 2. Créer une notification pour l'utilisateur
-                let titre = "Mise à jour de votre retrait";
-                let messageNotif = `Le statut de votre demande de retrait de ${amount.toFixed(2)} € est désormais : ${nouveauStatut}.`;
-
-                await addDoc(collection(db, "users", userId, "notifications"), {
-                    titre: titre,
-                    notif: messageNotif,
-                    createdAt: serverTimestamp()
-                });
-
-                alert("Statut mis à jour et notification envoyée !");
+                alert("Statut mis à jour avec succès !");
                 chargerDemandes();
             } catch (err) {
                 alert("Erreur lors de la modification : " + err.message);

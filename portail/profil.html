@@ -339,24 +339,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
 
         const urlParams = new URLSearchParams(window.location.search);
         let artistId = urlParams.get('id');
@@ -380,11 +365,14 @@
             }
         });
 
-        // Téléversement d'un fichier brut vers Firebase Storage
-        async function uploadFileToStorage(path, file) {
-            const storageRef = ref(storage, path);
-            await uploadBytes(storageRef, file);
-            return await getDownloadURL(storageRef);
+        // Téléversement d'un fichier brut vers l'API R2
+        async function uploadFileToCloudflare(file, type = "cover") {
+            const formData = new FormData();
+            formData.append("file", file);
+            const res = await api.upload(`/api/upload/${type}`, formData);
+            if (res && res.url) return res.url;
+            if (res && res.key) return api.fileUrl(res.key);
+            throw new Error(res.error || "Échec du téléversement du fichier.");
         }
 
         // 1. Sélection d'un artiste si pas d'ID
@@ -395,27 +383,27 @@
             popup.classList.add("show");
 
             try {
-                const artistsRef = collection(db, "users", uid, "artists");
-                const snapshot = await getDocs(artistsRef);
+                const res = await api.get(`/api/users/${uid}/artists`);
+                const artistsList = Array.isArray(res) ? res : (res.artists || res.data || []);
 
-                if (snapshot.empty) {
+                if (artistsList.length === 0) {
                     containerList.innerHTML = "<p>Aucun artiste trouvé sur ce compte.</p>";
                     return;
                 }
 
                 containerList.innerHTML = "";
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
+                artistsList.forEach((art) => {
+                    const artId = art.id || art._id;
                     const item = document.createElement("div");
                     item.className = "artist-select-item";
                     item.onclick = () => {
-                        window.location.href = `profil.html?id=${docSnap.id}`;
+                        window.location.href = `profil.html?id=${artId}`;
                     };
 
-                    const photo = data.photo || "/assets/img/icons/pdp.png";
+                    const photo = api.fileUrl(art.photo || art.avatarUrl) || "/assets/img/icons/pdp.png";
                     item.innerHTML = `
-                        <img src="${photo}" alt="${data.name}">
-                        <span>${data.name || 'Artiste sans nom'}</span>
+                        <img src="${photo}" alt="${art.name}">
+                        <span>${art.name || 'Artiste sans nom'}</span>
                     `;
                     containerList.appendChild(item);
                 });
@@ -429,24 +417,24 @@
         // 2. Chargement du profil
         async function chargerDonneesArtiste(uid, id) {
             try {
-                const artistRef = doc(db, "users", uid, "artists", id);
-                const docSnap = await getDoc(artistRef);
+                const res = await api.get(`/api/users/${uid}/artists/${id}`);
+                const artist = res.artist || res;
 
-                if (docSnap.exists()) {
-                    currentArtistData = docSnap.data();
+                if (artist) {
+                    currentArtistData = artist;
 
-                    document.getElementById("artist-name").innerText = currentArtistData.name || "Sans nom";
-                    document.getElementById("artist-genre-sub").innerText = currentArtistData.genre || "Genre non renseigné";
+                    document.getElementById("artist-name").innerText = artist.name || "Sans nom";
+                    document.getElementById("artist-genre-sub").innerText = artist.genre || "Genre non renseigné";
 
-                    document.getElementById("artist-avatar").src = currentArtistData.photo || "/assets/img/icons/pdp.png";
-                    document.getElementById("artist-banner").src = currentArtistData.bannerUrl || currentArtistData.banUrl || "/assets/img/icons/ban.png";
+                    document.getElementById("artist-avatar").src = api.fileUrl(artist.photo || artist.avatarUrl) || "/assets/img/icons/pdp.png";
+                    document.getElementById("artist-banner").src = api.fileUrl(artist.bannerUrl || artist.banUrl) || "/assets/img/icons/ban.png";
 
                     const grid = document.getElementById("artist-metadata");
                     const fields = [
-                        { l: "Date de Naissance / Création", v: currentArtistData.birthdate },
-                        { l: "Ville de Naissance / Origine", v: currentArtistData.birthplace },
-                        { l: "Genre Principal", v: currentArtistData.genre },
-                        { l: "ID Firestore", v: id }
+                        { l: "Date de Naissance / Création", v: artist.birthdate },
+                        { l: "Ville de Naissance / Origine", v: artist.birthplace },
+                        { l: "Genre Principal", v: artist.genre },
+                        { l: "ID D1 / Base", v: id }
                     ];
 
                     grid.innerHTML = fields.map(f => `
@@ -457,10 +445,10 @@
                     `).join('');
 
                     // Pré-remplir les champs
-                    document.getElementById("edit-name").value = currentArtistData.name || "";
-                    document.getElementById("edit-birthdate").value = currentArtistData.birthdate || "";
-                    document.getElementById("edit-birthplace").value = currentArtistData.birthplace || "";
-                    document.getElementById("edit-genre").value = currentArtistData.genre || "";
+                    document.getElementById("edit-name").value = artist.name || "";
+                    document.getElementById("edit-birthdate").value = artist.birthdate || "";
+                    document.getElementById("edit-birthplace").value = artist.birthplace || "";
+                    document.getElementById("edit-genre").value = artist.genre || "";
 
                 } else {
                     alert("Artiste introuvable sur votre compte.");
@@ -471,7 +459,7 @@
             }
         }
 
-        // 3. Modales & Édition avec Firebase Storage
+        // 3. Modales & Édition avec API D1 / R2
         window.ouvrirPopupEdition = function () {
             document.getElementById("edit-profile-popup").classList.add("show");
         };
@@ -504,21 +492,17 @@
             submitBtn.disabled = true;
 
             try {
-                let photo = currentArtistData.photo || "";
+                let photo = currentArtistData.photo || currentArtistData.avatarUrl || "";
                 let bannerUrl = currentArtistData.bannerUrl || currentArtistData.banUrl || "";
 
-                // Envoi de la photo de profil vers Firebase Storage
+                // Envoi de la photo de profil vers R2
                 if (avatarFileInput.files && avatarFileInput.files[0]) {
-                    const avatarFile = avatarFileInput.files[0];
-                    const avatarPath = `users/${currentUser.uid}/artists/${artistId}/avatar_${Date.now()}`;
-                    photo = await uploadFileToStorage(avatarPath, avatarFile);
+                    photo = await uploadFileToCloudflare(avatarFileInput.files[0], "cover");
                 }
 
-                // Envoi de la bannière vers Firebase Storage
+                // Envoi de la bannière vers R2
                 if (bannerFileInput.files && bannerFileInput.files[0]) {
-                    const bannerFile = bannerFileInput.files[0];
-                    const bannerPath = `users/${currentUser.uid}/artists/${artistId}/banner_${Date.now()}`;
-                    bannerUrl = await uploadFileToStorage(bannerPath, bannerFile);
+                    bannerUrl = await uploadFileToCloudflare(bannerFileInput.files[0], "cover");
                 }
 
                 const updatedData = {
@@ -530,8 +514,7 @@
                     genre: document.getElementById("edit-genre").value
                 };
 
-                const artistRef = doc(db, "users", currentUser.uid, "artists", artistId);
-                await updateDoc(artistRef, updatedData);
+                await api.patch(`/api/users/${currentUser.uid}/artists/${artistId}`, updatedData);
 
                 fermerPopupEdition();
                 await chargerDonneesArtiste(currentUser.uid, artistId);

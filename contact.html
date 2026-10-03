@@ -28,8 +28,6 @@
     <link rel="icon" type="image/png" href="/assets/img/icons/clair.png" media="(prefers-color-scheme: light)">
     <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png" media="(prefers-color-scheme: dark)">
     <link rel="apple-touch-icon" href="/assets/img/icons/accueil.png">
-    <meta name="msapplication-TileColor" content="#7494ec">
-    <meta name="msapplication-TileImage" content="/assets/img/icons/accueil.png">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://mm-cp.uk/contact.html">
@@ -59,14 +57,14 @@
 
         .contact-hero h1 {
             font-size: clamp(2.5rem, 6vw, 4.5rem);
-            color: var(--rose);
+            color: var(--rose, #FC8FB0);
             margin-bottom: 1rem;
             font-weight: 800;
         }
 
         .contact-hero p {
             font-size: clamp(1.1rem, 2vw, 1.4rem);
-            color: var(--text-secondary);
+            color: var(--text-secondary, #64748b);
             max-width: 600px;
             line-height: 1.6;
         }
@@ -87,8 +85,10 @@
         }
 
         .contact-card-box {
-            background: linear-gradient(135deg, var(--container1), var(--container3));
-            border: 1px solid var(--border-subtle);
+            background: linear-gradient(135deg, var(--container1, rgba(255, 255, 255, 0.85)), var(--container3, rgba(240, 240, 240, 0.85)));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
             border-radius: 30px;
             padding: 3rem 2.5rem;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
@@ -98,7 +98,7 @@
 
         .contact-card-box h2 {
             font-size: 1.8rem;
-            color: var(--rose);
+            color: var(--rose, #FC8FB0);
             margin-bottom: 1.5rem;
         }
 
@@ -112,7 +112,7 @@
             display: block;
             font-size: 0.95rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--text-primary, #1e293b);
             margin-bottom: 0.5rem;
         }
 
@@ -121,18 +121,19 @@
             width: 100%;
             padding: 1rem 1.2rem;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-subtle);
+            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
             border-radius: 12px;
-            color: var(--text-primary);
+            color: var(--text-primary, #1e293b);
             font-family: inherit;
             font-size: 1rem;
             transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
         }
 
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: var(--rose);
+            border-color: var(--rose, #FC8FB0);
             box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.15);
         }
 
@@ -143,8 +144,8 @@
 
         .submit-btn {
             width: 100%;
-            background: var(--rose);
-            color: var(--bg);
+            background: var(--rose, #FC8FB0);
+            color: #ffffff;
             border: none;
             padding: 1rem;
             border-radius: 12px;
@@ -175,7 +176,7 @@
 
         .email-item {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
+            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
             padding: 1.2rem 1.5rem;
             border-radius: 16px;
             display: flex;
@@ -186,20 +187,20 @@
 
         .email-item:hover {
             transform: translateX(5px);
-            border-color: var(--rose);
+            border-color: var(--rose, #FC8FB0);
         }
 
         .email-item .service-name {
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--text-secondary);
+            color: var(--text-secondary, #64748b);
             font-weight: 700;
         }
 
         .email-item a {
             font-size: 1.05rem;
-            color: var(--rose);
+            color: var(--rose, #FC8FB0);
             text-decoration: none;
             font-weight: 600;
             word-break: break-all;
@@ -217,7 +218,9 @@
 
         <!-- Hero -->
         <header class="contact-hero">
-            <span class="hero-pill" style="opacity: 1;">Support & Équipe</span>
+            <span class="hero-pill"
+                style="opacity: 1; background: var(--rose, #FC8FB0); color: #fff; padding: 0.3rem 1rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 1rem;">Support
+                & Équipe</span>
             <h1 class="hero-title-anim">Contactez <span>Morgann Music CP</span></h1>
             <p class="hero-desc-anim">
                 Une question sur vos paiements, votre distribution ou vos tarifs ? Envoyez-nous un message directement
@@ -228,10 +231,10 @@
         <!-- Grille Contact (Formulaire + Adresses Mail) -->
         <section class="contact-container-grid">
 
-            <!-- Formulaire Firestore -->
+            <!-- Formulaire API Cloudflare D1 -->
             <div class="contact-card-box" id="form-box">
                 <span class="highlight-tag"
-                    style="background: var(--rose); color: var(--bg); padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 1rem; text-transform: uppercase;">Direct</span>
+                    style="background: var(--rose, #FC8FB0); color: #fff; padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 1rem; text-transform: uppercase;">Direct</span>
                 <h2>Envoyer un message</h2>
                 <form id="contact-form">
                     <div class="form-group">
@@ -251,7 +254,7 @@
             <!-- Liste des adresses e-mail -->
             <div class="contact-card-box" id="emails-box">
                 <span class="highlight-tag"
-                    style="background: var(--rose); color: var(--bg); padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 1rem; text-transform: uppercase;">Par
+                    style="background: var(--rose, #FC8FB0); color: #fff; padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 1rem; text-transform: uppercase;">Par
                     Service</span>
                 <h2>Nos adresses e-mail</h2>
                 <div class="email-list">
@@ -268,7 +271,7 @@
                         <a href="mailto:distribution@mm-cp.uk">distribution@mm-cp.uk</a>
                     </div>
                     <div class="email-item">
-                        <span class="service-name">Support Technique & Plateforme</span>
+                        <span class="service-name">Service Technique & Plateforme</span>
                         <a href="mailto:technique@mm-cp.uk">technique@mm-cp.uk</a>
                     </div>
                 </div>
@@ -279,7 +282,6 @@
     </div>
     <div id="footer"></div>
 
-    <!-- Script API D1 & Animations GSAP -->
     <script type="module">
         import { api } from "/assets/js/api.js";
 
@@ -297,20 +299,21 @@
 
                 submitBtn.disabled = true;
                 submitBtn.textContent = "Envoi en cours...";
-                formStatus.style.color = "var(--text-secondary)";
-                formStatus.textContent = "Transmission du message...";
+                formStatus.style.color = "var(--text-secondary, #64748b)";
+                formStatus.textContent = "Enregistrement dans la base D1...";
 
                 try {
+                    // Utilisation de l'API centralisée qui cible https://api.worker.mm-cp.uk
                     await api.post("/api/messages", {
                         email: email,
                         message: message
                     });
 
                     formStatus.style.color = "#4ade80";
-                    formStatus.textContent = "Message envoyé avec succès ! Nous vous répondrons rapidement.";
+                    formStatus.textContent = "Message enregistré avec succès dans D1 ! Nous vous répondrons rapidement.";
                     contactForm.reset();
                 } catch (error) {
-                    console.error("Erreur lors de l'enregistrement :", error);
+                    console.error("Erreur lors de l'enregistrement D1 :", error);
                     formStatus.style.color = "#f87171";
                     formStatus.textContent = "Une erreur est survenue. Veuillez réessayer ou utiliser nos e-mails.";
                 } finally {
@@ -376,22 +379,6 @@
                     el.style.transform = "none";
                 });
             }
-        });
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const currentPath = window.location.pathname.split("/").pop();
-            const navLinks = document.querySelectorAll(".responsive-nav a");
-
-            navLinks.forEach(link => {
-                const linkPath = link.getAttribute("href").split("/").pop();
-                if (currentPath === linkPath) {
-                    link.classList.add("active");
-                } else {
-                    link.classList.remove("active");
-                }
-            });
         });
     </script>
 </body>

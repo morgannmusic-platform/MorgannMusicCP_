@@ -45,7 +45,8 @@
                         <li>Support 24h</li>
                         <li>478 plateformes</li>
                     </ul>
-                    <a href="/paiement.html?plan=under18" class="plan-button">Vérifier mon âge</a>
+                    <button class="plan-button checkout-trigger" data-plan="under18"
+                        data-name="Future légende (-18 ans)" data-amount="99">Vérifier mon âge</button>
                 </article>
 
                 <!-- Plan Starter -->
@@ -62,7 +63,8 @@
                         <li>Support 48h</li>
                         <li>5 singles, 1 albums, 2 EPs</li>
                     </ul>
-                    <a href="/paiement.html?plan=starter" class="plan-button">Choisir Starter</a>
+                    <button class="plan-button checkout-trigger" data-plan="starter" data-name="Starter"
+                        data-amount="299">Choisir Starter</button>
                 </article>
 
                 <!-- Plan Pro -->
@@ -77,7 +79,8 @@
                         <li>Support 24h</li>
                         <li>2 artistes</li>
                     </ul>
-                    <a href="/paiement.html?plan=pro" class="plan-button">Passer Pro</a>
+                    <button class="plan-button checkout-trigger" data-plan="pro" data-name="Pro"
+                        data-amount="399">Passer Pro</button>
                 </article>
 
                 <!-- Plan Label -->
@@ -88,7 +91,8 @@
                         <li>Toutes les fonctionnalités Starter & Pro</li>
                         <li>Artistes illimités</li>
                     </ul>
-                    <a href="/paiement.html?plan=label" class="plan-button">Contacter le Label</a>
+                    <button class="plan-button checkout-trigger" data-plan="label" data-name="Label"
+                        data-amount="599">Choisir Label</button>
                 </article>
 
                 <!-- Plan White-Label -->
@@ -106,8 +110,7 @@
                         devis</a>
                 </article>
             </div>
-
-
+        </section>
     </main>
 
     <!-- Interface de Chat Litual AI -->
@@ -133,7 +136,10 @@
 
     <div id="footer"></div>
 
-    <script>
+    <script type="module">
+        import { auth } from '/assets/js/firebase.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
         document.addEventListener("DOMContentLoaded", () => {
             if (typeof gsap === "undefined") return;
             const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -144,6 +150,57 @@
             } else {
                 gsap.set([".tarifs-hero > *", ".price-card"], { opacity: 1, y: 0 });
             }
+
+            let currentUser = null;
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+            });
+
+            // --- GESTION DIRECTE DU CHECKOUT STRIPE ---
+            const buttons = document.querySelectorAll('.checkout-trigger');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!currentUser) {
+                        alert("Vous devez être connecté pour souscrire à un abonnement.");
+                        window.location.href = "/login.html";
+                        return;
+                    }
+
+                    const planId = btn.getAttribute('data-plan');
+                    const planName = btn.getAttribute('data-name');
+                    const amount = parseInt(btn.getAttribute('data-amount'), 10);
+
+                    const originalText = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = "Redirection...";
+
+                    try {
+                        const response = await fetch('https://pay.mm-cp.uk/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                amount: amount,
+                                planName: planName,
+                                planId: planId,
+                                userId: currentUser.uid,
+                                userEmail: currentUser.email,
+                                mode: 'subscription'
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.url) {
+                            window.location.href = data.url;
+                        } else {
+                            throw new Error(data.error || "Erreur de création de session Stripe.");
+                        }
+                    } catch (err) {
+                        alert("Erreur : " + err.message);
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }
+                });
+            });
 
             // --- LOGIQUE CHAT LITUAL AI ---
             const chatToggle = document.getElementById('chat-toggle');
@@ -161,8 +218,7 @@ CONSIGNES DE CONVERSATION :
 2. NE DIS PAS "Bonjour" ou "Enchanté" à chaque message si la discussion est déjà lancée.
 3. Utilise impérativement le Markdown pour tes réponses (gras, listes à puces).
 4. Utilise des TABLEAUX Markdown pour comparer les tarifs ou les fonctionnalités quand l'utilisateur hésite.
-5. Lorsqu'un utilisateur souhaite s'abonner ou choisir un plan, crée impérativement un lien Markdown vers paiement.html (ex: [Souscrire au plan Pro](paiement.html?plan=pro)).
-6. Sois élégant, précis et professionnel.
+5. Sois élégant, précis et professionnel.
 
 NOS OFFRES :
 - Future légende (0,99€/mois) : -18 ans uniquement. 1 artiste, illimité, Atmos, Lossless, AI Analytics, OAC, Support 24h.
@@ -182,113 +238,23 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
                 }
                 chatMessages.appendChild(div);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                if (typeof gsap !== "undefined") {
-                    gsap.fromTo(div, { opacity: 0, scale: 0.9, y: 5 }, { opacity: 1, scale: 1, y: 0, duration: 0.3 });
-                }
                 return div;
             }
 
             const openChat = () => {
-                const tl = gsap.timeline();
-
-                if (reducedMotion) {
-                    gsap.set(chatOverlay, { display: 'block', opacity: 1 });
-                    gsap.set(chatToggle, { scale: 0, opacity: 0 });
-                    gsap.set(chatWindow, { autoAlpha: 1, display: 'flex', scale: 1, width: 450, height: 500, borderRadius: "20px", pointerEvents: "all" });
-                    gsap.set([".chat-header", "#chat-messages", "#chat-input-form"], { opacity: 1, y: 0 });
-                    userInput.focus();
-                    return;
-                }
-
-                // 0. Activation du flou d'arrière-plan
-                tl.set(chatOverlay, { display: 'block' });
-                tl.to(chatOverlay, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0);
-
-                // 1. Disparition du bouton avec un effet de recul
-                tl.to(chatToggle, { scale: 0, opacity: 0, duration: 0.2, ease: "back.in(1.7)" });
-
-                // 2. Expansion dynamique de la fenêtre (Pop-out)
-                tl.fromTo(chatWindow,
-                    {
-                        autoAlpha: 0,
-                        scale: 0.2,
-                        width: 60,
-                        height: 60,
-                        borderRadius: "50%",
-                        pointerEvents: "none"
-                    },
-                    {
-                        autoAlpha: 1,
-                        display: 'flex',
-                        scale: 1,
-                        width: 450,
-                        height: 500,
-                        borderRadius: "20px",
-                        duration: 0.35,
-                        ease: "back.out(1.4)", // Effet de pop à l'arrivée
-                        pointerEvents: "all",
-                        onComplete: () => userInput.focus()
-                    }, "-=0.1"
-                );
-
-                // 3. Apparition des éléments internes avec effet de cascade (Stagger)
-                tl.fromTo([".chat-header", "#chat-messages", "#chat-input-form"],
-                    { opacity: 0, y: 20 },
-                    {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.25,
-                        stagger: 0.05,
-                        ease: "power3.out"
-                    }, "-=0.25"
-                );
+                chatOverlay.style.display = 'block';
+                gsap.to(chatOverlay, { opacity: 1, duration: 0.3 });
+                gsap.to(chatToggle, { scale: 0, opacity: 0, duration: 0.2 });
+                gsap.fromTo(chatWindow, { autoAlpha: 0, scale: 0.2, width: 60, height: 60, borderRadius: "50%" }, {
+                    autoAlpha: 1, display: 'flex', scale: 1, width: 450, height: 500, borderRadius: "20px", duration: 0.35, ease: "back.out(1.4)", onComplete: () => userInput.focus()
+                });
             };
 
             const hideChat = () => {
-                const tl = gsap.timeline();
-
-                if (reducedMotion) {
-                    gsap.set(chatOverlay, { display: 'none', opacity: 0 });
-                    gsap.set(chatToggle, { scale: 1, opacity: 1 });
-                    gsap.set(chatWindow, { autoAlpha: 0, display: 'none', pointerEvents: "none" });
-                    gsap.set([".chat-header", "#chat-messages", "#chat-input-form"], { opacity: 0, y: 0 });
-                    return;
-                }
-
-                // Désactivation du flou
-                tl.to(chatOverlay, { opacity: 0, duration: 0.25, onComplete: () => gsap.set(chatOverlay, { display: 'none' }) }, 0);
-
-                // 1. Les éléments internes s'envolent légèrement en s'effaçant de bas en haut
-                tl.to(["#chat-input-form", "#chat-messages", ".chat-header"], {
-                    opacity: 0,
-                    y: -20,
-                    duration: 0.15,
-                    stagger: 0.03,
-                    ease: "power2.in"
-                });
-
-                // 2. La fenêtre se replie avec un effet d'aspiration vers le bouton
-                tl.to(chatWindow, {
-                    autoAlpha: 0,
-                    scale: 0.3,
-                    width: 60,
-                    height: 60,
-                    borderRadius: "50%",
-                    duration: 0.3,
-                    ease: "back.in(1.5)",
-                    pointerEvents: "none"
-                }, "-=0.1");
-
-                // 3. Réapparition dynamique du bouton avec un effet élastique
-                tl.to(chatToggle, {
-                    scale: 1,
-                    opacity: 1,
-                    duration: 0.4,
-                    ease: "elastic.out(1.2, 0.6)"
-                }, "-=0.15");
-
-                tl.set(chatWindow, { display: 'none' });
+                gsap.to(chatOverlay, { opacity: 0, duration: 0.2, onComplete: () => chatOverlay.style.display = 'none' });
+                gsap.to(chatWindow, { autoAlpha: 0, scale: 0.3, width: 60, height: 60, borderRadius: "50%", duration: 0.3 });
+                gsap.to(chatToggle, { scale: 1, opacity: 1, duration: 0.4 });
+                setTimeout(() => chatWindow.style.display = 'none', 300);
             };
 
             chatToggle.addEventListener('click', openChat);
@@ -304,61 +270,41 @@ HORS ABONNEMENT : Single 3,44€ | EP/Album 7,97€.`;
                 userInput.value = '';
                 messageHistory.push({ role: 'user', content: text });
 
-                const aiMsgDiv = addMessage('', 'ai', true); // Create an empty div for streaming Markdown
-                aiMsgDiv.innerHTML = ''; // Clear any initial content from addMessage
-
+                const aiMsgDiv = addMessage('', 'ai', true);
                 try {
                     const response = await fetch('https://litual.ai.morgannmusic.uk', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            messages: messageHistory,
-                            instruction: systemInstruction
-                        })
+                        body: JSON.stringify({ messages: messageHistory, instruction: systemInstruction })
                     });
-
                     if (!response.ok) throw new Error();
-
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     let aiFullText = "";
-
                     while (true) {
                         const { done, value } = await reader.read();
                         if (done) break;
                         const chunkString = decoder.decode(value, { stream: true });
-
-                        // Split by 'data: ' to handle multiple JSON objects in one chunk
                         const dataChunks = chunkString.split('data: ').filter(s => s.trim() !== '' && s.trim() !== '[DONE]');
-
                         for (const dataChunk of dataChunks) {
                             try {
                                 const json = JSON.parse(dataChunk.trim());
                                 if (json.response) {
                                     aiFullText += json.response;
                                     aiMsgDiv.innerHTML = DOMPurify.sanitize(marked.parse(aiFullText));
-
-                                    // Détection automatique de tableau pour agrandir la fenêtre entière
-                                    if (aiMsgDiv.querySelector('table')) {
-                                        gsap.to(chatWindow, { width: 650, duration: 0.6, ease: "power2.out" });
-                                    }
-
                                     chatMessages.scrollTop = chatMessages.scrollHeight;
                                 }
-                            } catch (parseError) {
-                                console.error("Error parsing JSON chunk:", parseError, "Chunk:", dataChunk);
-                            }
+                            } catch (e) { }
                         }
                     }
                     messageHistory.push({ role: 'assistant', content: aiFullText });
                 } catch (err) {
-                    aiMsgDiv.innerHTML = DOMPurify.sanitize(marked.parse("Désolé, une erreur est survenue lors de la connexion à Litual AI."));
+                    aiMsgDiv.innerHTML = DOMPurify.sanitize(marked.parse("Désolé, une erreur est survenue."));
                 }
             });
 
-            // Initialisation du message de bienvenue
             chatMessages.innerHTML = '';
-            addMessage("Bonjour ! Je suis Litual AI. Quel projet musical souhaitez-vous distribuer ? Je peux vous aider à choisir le meilleur plan.", 'ai', true);
+            addMessage("Bonjour ! Je suis Litual AI. Quel plan souhaitez-vous choisir ?", 'ai', true);
         });
     </script>
 </body>

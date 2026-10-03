@@ -3,8 +3,85 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portail Administrateur | MMCP</title>
     <link rel="stylesheet" href="admin.css">
+    <style>
+        .page-title {
+            margin-top: 40px;
+            margin-bottom: 24px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .ai-grid-table {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .ai-card-cell {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .ai-card-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #000000;
+        }
+
+        .badge {
+            background: #FC8FB0;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .ai-summary-box {
+            font-size: 14px;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .stat-highlight {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            color: #000000;
+        }
+
+        .stat-subtext {
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .text-danger {
+            color: #dc2626 !important;
+            font-weight: bold;
+        }
+
+        .loader {
+            color: #64748b;
+            font-style: italic;
+        }
+    </style>
 </head>
 
 <body>
@@ -84,42 +161,53 @@
             }
         }
 
-        // CHARGEMENT DES MÉTRIQUES ADMIN DEPUIS D1
+        // CHARGEMENT DES MÉTRIQUES ADMIN DEPUIS D1 / D3
         async function chargerMetriquesAdmin() {
             const sortiesBox = document.getElementById("sorties-box");
             const comptesBox = document.getElementById("comptes-box");
+            const supportBox = document.getElementById("support-box");
 
-            // Sorties
+            // 1. Métriques des Sorties (Releases)
             try {
-                const releasesList = await api.get("/api/releases");
-                let countMmcp = 0, countPlat = 0, totalReleases = 0;
-
-                if (Array.isArray(releasesList)) {
-                    releasesList.forEach(rel => {
-                        totalReleases++;
-                        const status = (rel.status || "").toLowerCase().trim();
-                        if (status === "verification mmcp") countMmcp++;
-                        else if (status.includes("plateforme")) countPlat++;
-                    });
+                let releasesList;
+                try {
+                    releasesList = await api.get("/api/admin/releases");
+                } catch (e) {
+                    releasesList = await api.get("/api/releases");
                 }
 
+                const rawReleases = Array.isArray(releasesList) ? releasesList : (releasesList.releases || releasesList.data || []);
+                let countMmcp = 0, countPlat = 0, totalReleases = rawReleases.length;
+
+                rawReleases.forEach(rel => {
+                    const status = String(rel.status || "").toLowerCase().trim();
+                    if (status.includes("verification") || status.includes("mmcp") || status === "brouillon") countMmcp++;
+                    else if (status.includes("plateforme") || status.includes("livr")) countPlat++;
+                });
+
                 sortiesBox.innerHTML = `
-                    <p class="stat-highlight">⚠️ <strong class="${countMmcp > 0 ? 'text-danger' : ''}">${countMmcp}</strong> sortie(s) en attente MMCP</p>
-                    <p class="stat-subtext">• ${countPlat} en attente plateformes<br>• ${totalReleases} sortie(s) au total</p>
+                    <p class="stat-highlight">⚠️ <strong class="${countMmcp > 0 ? 'text-danger' : ''}">${countMmcp}</strong> sortie(s) à vérifier</p>
+                    <p class="stat-subtext">• ${countPlat} en cours/livrée(s)<br>• ${totalReleases} sortie(s) au total</p>
                 `;
             } catch (err) {
+                console.error("Erreur métriques sorties:", err);
                 sortiesBox.innerHTML = `<span class="text-danger">Erreur de lecture des sorties D1</span>`;
             }
-        }
 
-            // Comptes
+            // 2. Métriques des Comptes Utilisateurs (Users D1/D3)
             try {
-                const usersSnapshot = await getDocs(collection(db, "users"));
-                let totalUsers = 0, countLabelPlan = 0;
+                let usersRes;
+                try {
+                    usersRes = await api.get("/api/admin/users");
+                } catch (e) {
+                    usersRes = await api.get("/api/users");
+                }
 
-                usersSnapshot.forEach(docSnap => {
-                    totalUsers++;
-                    const plan = (docSnap.data().planName || "").toLowerCase();
+                const rawUsers = Array.isArray(usersRes) ? usersRes : (usersRes.users || usersRes.data || []);
+                let totalUsers = rawUsers.length, countLabelPlan = 0;
+
+                rawUsers.forEach(usr => {
+                    const plan = String(usr.planName || usr.plan || "").toLowerCase();
                     if (plan.includes("label") || plan.includes("pro")) countLabelPlan++;
                 });
 
@@ -128,25 +216,19 @@
                     <p class="stat-subtext">• ${countLabelPlan} abonnement(s) Plan Label / Pro</p>
                 `;
             } catch (err) {
+                console.error("Erreur métriques comptes:", err);
                 comptesBox.innerHTML = `<span class="text-danger">Erreur de lecture des comptes</span>`;
             }
 
-            // Tickets
+            // 3. Messages Support & Administration
             try {
-                const ticketsSnapshot = await getDocs(collectionGroup(db, "tickets"));
-                let openTickets = 0, urgentTickets = 0;
-
-                ticketsSnapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data.status !== "fermé" && data.status !== "resolved") {
-                        openTickets++;
-                        if (data.priority === "haute" || data.priority === "urgent") urgentTickets++;
-                    }
-                });
+                const messagesRes = await api.get("/api/admin/messages");
+                const rawMessages = Array.isArray(messagesRes) ? messagesRes : (messagesRes.messages || messagesRes.data || []);
+                const totalMessages = rawMessages.length;
 
                 supportBox.innerHTML = `
-                    <p class="stat-highlight">🎟️ <strong>${openTickets}</strong> ticket(s) ouvert(s)</p>
-                    <p class="stat-subtext">• ${urgentTickets} urgence(s)</p>
+                    <p class="stat-highlight">🎟️ <strong>${totalMessages}</strong> message(s) support</p>
+                    <p class="stat-subtext">Demandes récentes reçues</p>
                 `;
             } catch (err) {
                 supportBox.innerHTML = `<p class="stat-highlight">🎟️ <strong>0</strong> ticket urgent</p><p class="stat-subtext">Aucun problème signalé</p>`;
@@ -159,7 +241,9 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 chargerMetriquesAdmin();
-                chargerProfilNavbar(db, user);
+                chargerProfilNavbar(null, user);
+            } else {
+                window.location.href = "/login.html";
             }
         });
     </script>

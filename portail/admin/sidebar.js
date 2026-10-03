@@ -41,6 +41,30 @@ export function initSidebar() {
         };
     }
 
+    async function loadSidebarVersion() {
+        try {
+            const res = await api.get("/api/versions");
+            const versionsList = Array.isArray(res) ? res : (res.versions || []);
+            if (versionsList.length > 0) {
+                const latest = versionsList[0];
+                const versionString = latest.version || latest.version_name || "v1.0.0";
+
+                // Cible l'élément exact dans la sidebar (ainsi que les autres sélecteurs potentiels)
+                const versionEl = document.getElementById("site-version-display");
+                if (versionEl) {
+                    versionEl.textContent = versionString;
+                }
+                const versionEls = document.querySelectorAll(".sidebar-version, #sidebar-version, [data-sidebar-version]");
+                versionEls.forEach(el => {
+                    el.textContent = versionString;
+                });
+            }
+        } catch (err) {
+            console.error("Erreur chargement version sidebar:", err);
+        }
+    }
+    loadSidebarVersion();
+
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
             window.location.href = "/login.html";
@@ -49,7 +73,7 @@ export function initSidebar() {
 
         let fullname = user.displayName || "Utilisateur";
         let email = user.email || "";
-        let photoURL = user.photoURL || null;
+        let rawPhoto = user.photoURL || null;
 
         try {
             const data = await api.get(`/api/users/${user.uid}`);
@@ -60,11 +84,16 @@ export function initSidebar() {
                     fullname = data.fullName;
                 }
                 if (data.photoURL) {
-                    photoURL = api.fileUrl(data.photoURL);
+                    rawPhoto = data.photoURL;
                 }
             }
         } catch (err) {
             console.error("Erreur D1 user:", err);
+        }
+
+        let photoURL = null;
+        if (rawPhoto) {
+            photoURL = rawPhoto.startsWith("http") ? rawPhoto : api.fileUrl(rawPhoto);
         }
 
         const initials = fullname.substring(0, 2).toUpperCase();
@@ -74,10 +103,13 @@ export function initSidebar() {
         const sbAvatar = document.getElementById("sidebar-avatar");
 
         if (sbName) sbName.textContent = fullname;
-        if (sbAvatar && photoURL) {
-            sbAvatar.innerHTML = `<img src="${photoURL}" alt="Avatar">`;
-        } else if (sbInit) {
-            sbInit.textContent = initials;
+
+        if (sbAvatar) {
+            if (photoURL) {
+                sbAvatar.innerHTML = `<img src="${photoURL}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            } else if (sbInit) {
+                sbInit.textContent = initials;
+            }
         }
 
         const mName = document.getElementById("modal-fullname");
@@ -87,10 +119,13 @@ export function initSidebar() {
 
         if (mName) mName.textContent = fullname;
         if (mEmail) mEmail.textContent = email;
-        if (mAvatar && photoURL) {
-            mAvatar.innerHTML = `<img src="${photoURL}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-        } else if (mInit) {
-            mInit.textContent = initials;
+
+        if (mAvatar) {
+            if (photoURL) {
+                mAvatar.innerHTML = `<img src="${photoURL}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            } else if (mInit) {
+                mInit.textContent = initials;
+            }
         }
     });
 }

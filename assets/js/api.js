@@ -7,7 +7,7 @@
 import { auth } from "/assets/js/firebase.js";
 
 // URL de base du Worker API — à adapter si tu utilises un domaine personnalisé
-const API_BASE = "https://mon-site-api.morgann-rachedi.workers.dev";
+const API_BASE = "https://api.worker.mm-cp.uk";
 
 /**
  * Récupère le token Firebase Auth de l'utilisateur connecté.
@@ -17,7 +17,7 @@ async function getAuthToken() {
   const user = auth.currentUser;
   if (!user) return null;
   try {
-    return await user.getIdToken();
+    return await user.getIdToken(true);
   } catch {
     return null;
   }
@@ -44,7 +44,7 @@ async function apiFetch(path, options = {}) {
   }
 
   const controller = new AbortController();
-  const timeoutMs = path.startsWith("/api/upload/") ? 300000 : 30000;
+  const timeoutMs = path.startsWith("/api/upload/") ? 600000 : 30000;
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
@@ -71,6 +71,102 @@ async function apiFetch(path, options = {}) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function xhrUpload(path, payload, onProgress) {
+  return new Promise(async (resolve, reject) => {
+    const url = `${API_BASE}${path}`;
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+
+    const token = await getAuthToken();
+    if (token) {
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    }
+
+    xhr.timeout = 600000;
+    xhr.withCredentials = false;
+
+    xhr.upload.addEventListener("progress", (event) => {
+      if (!event.lengthComputable) return;
+      const percent = Math.round((event.loaded / event.total) * 100);
+      if (typeof onProgress === "function") onProgress(percent);
+    });
+
+    xhr.addEventListener("load", async () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const responseText = xhr.responseText || "";
+          const json = responseText ? JSON.parse(responseText) : null;
+          resolve(json);
+        } catch (error) {
+          resolve(null);
+        }
+        return;
+      }
+
+      let errorMessage = `Erreur ${xhr.status}`;
+      try {
+        const payloadJson = JSON.parse(xhr.responseText || "{}");
+        if (payloadJson && payloadJson.error) errorMessage = payloadJson.error;
+      } catch { }
+      reject(new Error(errorMessage));
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Erreur réseau pendant le téléversement."));
+    });
+
+    xhr.addEventListener("timeout", () => {
+      reject(new Error("Le téléversement a dépassé la limite de 10 minutes."));
+    });
+
+    if (payload instanceof FormData) {
+      xhr.send(payload);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", payload);
+    xhr.send(formData);
+  });
+}
+
+async function uploadChunkedFile(type, file, onProgress) {
+  const chunkSize = 5 * 1024 * 1024;
+  const totalChunks = Math.ceil(file.size / chunkSize);
+  const uploadId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  for (let index = 0; index < totalChunks; index++) {
+    const start = index * chunkSize;
+    const end = Math.min(start + chunkSize, file.size);
+    const chunk = file.slice(start, end, file.type || "application/octet-stream");
+
+    const formData = new FormData();
+    formData.append("file", chunk, file.name);
+    formData.append("chunkIndex", String(index));
+    formData.append("totalChunks", String(totalChunks));
+    formData.append("uploadId", uploadId);
+    formData.append("type", type);
+    formData.append("originalFileName", file.name);
+
+    await xhrUpload("/api/upload/chunk", formData, (percent) => {
+      if (typeof onProgress === "function") {
+        const globalPercent = Math.round(((index / totalChunks) * 100) + (percent / totalChunks));
+        onProgress(Math.min(100, globalPercent));
+      }
+    });
+  }
+
+  return xhrUpload(`/api/upload/chunk/complete`, (() => {
+    const formData = new FormData();
+    formData.append("uploadId", uploadId);
+    formData.append("type", type);
+    formData.append("originalFileName", file.name);
+    return formData;
+  })(), (percent) => {
+    if (typeof onProgress === "function") onProgress(Math.min(100, percent));
+  });
 }
 
 /**
@@ -118,13 +214,23 @@ export const api = {
    * @param {File} file - L'objet File à uploader
    * @returns {Promise<{success: boolean, key: string, url: string}>}
    */
-  async uploadFile(type, file) {
-    const formData = new FormData();
-    formData.append("file", file);
-    return apiFetch(`/api/upload/${type}`, {
-      method: "POST",
-      body: formData,
-    });
+  async uploadFile(type, file, onProgress) {
+    if (file && file.size > 5 * 1024 * 1024) {
+      return uploadChunkedFile(type, file, onProgress);
+    }
+
+    if (typeof XMLHttpRequest === "undefined") {
+      return apiFetch(`/api/upload/${type}`, {
+        method: "POST",
+        body: (() => {
+          const formData = new FormData();
+          formData.append("file", file);
+          return formData;
+        })(),
+      });
+    }
+
+    return xhrUpload(`/api/upload/${type}`, file, onProgress);
   },
 
   /**

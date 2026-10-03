@@ -14,7 +14,7 @@
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: #f4f6f9;
+            background: #FFEFF4;
             color: #333;
             margin: 0;
             padding: 20px;
@@ -253,20 +253,27 @@
     <script type="module">
         import { api } from "/assets/js/api.js";
 
+        function getFullMediaUrl(url) {
+            if (!url) return null;
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+                return url;
+            }
+            return api.fileUrl ? api.fileUrl(url) : `/api/files/${url.replace(/^\/+/, '')}`;
+        }
+
         async function initCatalogHome() {
             try {
-                // Récupération de toutes les sorties via l'API D1
                 const releasesRes = await api.get('/api/releases');
                 const releasesData = releasesRes.releases || [];
 
                 const allReleases = [];
 
                 releasesData.forEach(rel => {
-                    const isCatalogVisible = rel.showOnMmcpCatalog === true || rel.showOnMmcpCatalog === "true" || rel.showOnMmcpCatalog == 1;
+                    const isCatalogVisible = rel.showOnMmcpCatalog === true || rel.showOnMmcpCatalog === "true" || rel.showOnMmcpCatalog == 1 || rel.showOnMmcpCatalog === undefined;
+                    // Restriction stricte : afficher UNIQUEMENT les sorties avec le statut 'direct'
                     const isDirectStatus = rel.status === "direct";
 
                     if (isCatalogVisible && isDirectStatus) {
-                        // Parser les pistes si stockées en JSON string dans D1
                         let tracksParsed = rel.tracks;
                         if (typeof tracksParsed === 'string') {
                             try { tracksParsed = JSON.parse(tracksParsed); } catch (e) { tracksParsed = []; }
@@ -279,7 +286,7 @@
                     }
                 });
 
-                allReleases.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
+                allReleases.sort((a, b) => new Date(b.releaseDate || b.createdTime || 0) - new Date(a.releaseDate || a.createdTime || 0));
 
                 let totalPistes = 0;
                 const setArtistesUniques = new Set();
@@ -297,23 +304,25 @@
                 document.getElementById("stat-artistes").innerText = setArtistesUniques.size;
                 document.getElementById("stat-pistes").innerText = totalPistes;
 
-                // Récupération des artistes via l'API D1
-                const artistsRes = await api.get('/api/artists');
-                const artistsData = artistsRes.artists || [];
                 const profilePhotosByName = new Map();
-
-                artistsData.forEach(artistData => {
-                    if (artistData.name && artistData.photo) {
-                        profilePhotosByName.set(artistData.name.trim().toLowerCase(), artistData.photo);
-                    }
-                });
+                try {
+                    const artistsRes = await api.get('/api/artists');
+                    const artistsData = artistsRes.artists || [];
+                    artistsData.forEach(artistData => {
+                        if (artistData.name && artistData.photo) {
+                            profilePhotosByName.set(artistData.name.trim().toLowerCase(), getFullMediaUrl(artistData.photo));
+                        }
+                    });
+                } catch (err) {
+                    console.warn("Impossible de charger le référentiel des artistes :", err);
+                }
 
                 const recentArtistsMap = new Map();
                 for (const rel of allReleases) {
                     if (rel.artistName && !recentArtistsMap.has(rel.artistName)) {
                         recentArtistsMap.set(rel.artistName, {
                             name: rel.artistName,
-                            fallbackCover: rel.coverUrl || "/assets/img/icons/android-chrome-512x512.png"
+                            fallbackCover: getFullMediaUrl(rel.coverUrl) || "/assets/img/icons/android-chrome-512x512.png"
                         });
                     }
                 }
@@ -332,14 +341,14 @@
                         card.className = "card";
                         card.onclick = () => window.location.href = `sortie.html?id=${rel.id}`;
 
-                        const animatedCoverUrl = rel.animatedCoverUrl || rel.animatedCover;
+                        const animatedCoverUrl = getFullMediaUrl(rel.animatedCoverUrl || rel.animatedCover || rel.appleMotion11);
                         let mediaHTML = "";
 
                         if (animatedCoverUrl) {
                             mediaHTML = `<video src="${animatedCoverUrl}" class="card-video" autoplay loop muted playsinline></video>`;
                         } else {
-                            const cover = rel.coverUrl || "https://via.placeholder.com/300?text=No+Cover";
-                            mediaHTML = `<img src="${cover}" class="card-img" alt="${rel.title}">`;
+                            const cover = getFullMediaUrl(rel.coverUrl) || "https://via.placeholder.com/300?text=No+Cover";
+                            mediaHTML = `<img src="${cover}" class="card-img" alt="${rel.title || 'Pochette'}" onerror="this.onerror=null; this.src='https://via.placeholder.com/300?text=No+Cover';">`;
                         }
 
                         card.innerHTML = `
@@ -369,7 +378,7 @@
                         card.onclick = () => window.location.href = `artiste.html?name=${encodeURIComponent(artist.name)}`;
 
                         card.innerHTML = `
-                            <img src="${finalPhoto}" class="card-img" style="border-radius: 50%;" alt="${artist.name}">
+                            <img src="${finalPhoto}" class="card-img" style="border-radius: 50%;" alt="${artist.name}" onerror="this.onerror=null; this.src='/assets/img/icons/android-chrome-512x512.png';">
                             <p class="card-title" style="text-align: center;">${artist.name}</p>
                             <p class="card-subtitle" style="text-align: center;">Artiste</p>
                         `;

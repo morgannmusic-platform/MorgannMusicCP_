@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support | Morgann Music CP</title>
+    <link rel="stylesheet" href="/portail/js/reponsive.css">
+
+    <!-- Ajout de la librairie Marked.js pour parser le Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            color: #333;
+            margin: 4rem 0 0 0;
+            padding: 20px;
+        }
+
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #ffffff;
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin: 20px 0px;
+            box-sizing: border-box;
+        }
+
+        .welcome-card h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: #FC8FB0;
+            margin: 0 0 10px 0;
+        }
+
+        .welcome-card p {
+            font-size: 16px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* Section Mes Tickets */
+        .my-tickets-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #ffffff;
+            border-radius: 34px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .my-tickets-card h2 {
+            font-size: 20px;
+            color: #3e2837;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .tickets-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ticket-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 14px 20px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ticket-item:hover {
+            border-color: #FC8FB0;
+            transform: translateY(-2px);
+        }
+
+        .ticket-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .ticket-title {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 15px;
+            text-transform: capitalize;
+        }
+
+        .ticket-date {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .status-badge.open,
+        .status-badge.ouvert {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-badge.closed,
+        .status-badge.ferme,
+        .status-badge.resolu,
+        .status-badge.resolved {
+            background: rgba(252, 143, 176, 0.15);
+            color: #d01159;
+            border: 1px solid rgba(252, 143, 176, 0.4);
+        }
+
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .support-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .support-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .support-icon {
+            font-size: 28px;
+            background: rgba(252, 143, 176, 0.15);
+            padding: 10px;
+            border-radius: 16px;
+        }
+
+        .support-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: #3e2837;
+            margin: 0;
+        }
+
+        .support-card p {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 16px;
+            flex-grow: 1;
+            line-height: 1.4;
+        }
+
+        .article-links {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .article-links a {
+            color: #FC8FB0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .article-links a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-support {
+            background-color: #FC8FB0;
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .btn-support:hover {
+            background-color: #d01159;
+        }
+
+        /* --- POPUP & WIZARD MODALE --- */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 34px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            max-width: 600px;
+            width: 90%;
+            box-sizing: border-box;
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .popup-content h2 {
+            margin-top: 0;
+            color: #3e2837;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .step-container {
+            display: none;
+        }
+
+        .step-container.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .platform-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .popup-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+        }
+
+        .btn-cancel {
+            background-color: #e2e8f0;
+            color: #64748b;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background-color: #cbd5e1;
+        }
+
+        .btn-next,
+        .btn-submit {
+            background-color: #FC8FB0;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-next:hover,
+        .btn-submit:hover {
+            background-color: #d01159;
+        }
+
+        /* --- STYLE POUR DISCUSSION / TICKET ACTIF --- */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .messages-history {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message-bubble {
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 85%;
+        }
+
+        .message-bubble.user {
+            background: #fce7f0;
+            color: #3e2837;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message-bubble.admin {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message-meta {
+            font-size: 10px;
+            color: #64748b;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        /* Styles pour le rendu Markdown dans les messages */
+        .message-content {
+            word-wrap: break-word;
+        }
+
+        .message-content p {
+            margin: 0 0 8px 0;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-content a {
+            color: #d01159;
+            text-decoration: underline;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            margin-top: 4px;
+            margin-bottom: 8px;
+            padding-left: 20px;
+        }
+
+        .message-content pre {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+
+        .message-content code {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .reply-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .reply-input {
+            flex-grow: 1;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .reply-input:focus {
+            border-color: #FC8FB0;
+        }
+
+        .btn-send-reply {
+            background-color: #FC8FB0;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-send-reply:hover {
+            background-color: #d01159;
+        }
+
+        .ticket-closed-notice {
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+    <script type="module" src="/portail/js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="/portail/js/sidebar.js"></script>
+
+    <div class="main-content">
+        <div class="welcome-card">
+            <h1 id="welcome-title">Bonjour ......, que se passe-t-il ?</h1>
+            <p>Sélectionne la thématique ci-dessous pour contacter le support de Morgann Music CP.</p>
+        </div>
+
+        <!-- Section de suivi des tickets de l'artiste -->
+        <div class="my-tickets-card" id="my-tickets-section" style="display: none;">
+            <h2>Mes demandes d'assistance en cours</h2>
+            <div class="tickets-list" id="my-tickets-container">
+                <!-- Injecté dynamiquement -->
+            </div>
+        </div>
+
+        <div class="support-grid" id="support-sections-container">
+            <!-- Injecté dynamiquement -->
+        </div>
+    </div>
+
+    <!-- Modale de formulaire multi-étapes (Wizard) / Suivi de ticket -->
+    <div id="support-popup" class="popup-overlay">
+        <div class="popup-content">
+            <h2 id="popup-section-title">Support</h2>
+            <form id="support-form">
+                <input type="hidden" id="form-section-name" name="section">
+                <div id="wizard-steps-container">
+                    <!-- Les étapes successives ou la discussion s'affichent ici -->
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        let userReleases = [];
+        let userPayouts = [];
+        let availablePlatforms = [];
+        let currentUid = null;
+        let currentUserName = "";
+        let currentStepIndex = 0;
+        let activeSectionConfig = null;
+        let userTicketsCache = [];
+        let activeTicketView = null;
+
+        const platformsListRaw = `7Digital,ACRCloud,Alibaba,AliGenie,Amazon Music,Anghami,AGEDI,Akazoo,Apple Music,ITunes,AMI Entertainment,Audible Magic - Fulfillment360,Audible Magic - Rights360,Audiomack,Ambients App,AWA,Boomplay,Beatsource,BMAT,Claro Música,ClickNClear,Deezer,Dubset,DISCO,Google Play,Curve,PEX Attribution Engine,Gaana,Gracenote,FLO,Hungama,IHeart,IMI Mobile,Jaxsta,JioSaavn,Discogs,JOOX,Kanjian,KDigital Media,KKBOX,LINE Music,Mixcloud,Medianet,MoodAgent,MusicToday,MELON,NetEase Cloud Music,Pandora,Peloton,PEX,Play Network,Pretzel Rocks,Qobuz,Qub Musique,Rebelation,Rockbot,Roxi,Resso,Rhapsody,Napster,Rakuten,Shazam,Rakuten Music,Slacker Radio,Snapchat,Spinlet,Soundtrack Your Brand,Sirius XM,Soundtrack By Twitch,Twitch,Spotify,Tencent,Tidal,Styngr,Tesla Music,TouchTunes,Jazzed,MyMelo,Fan Label,Soundhound,Soundmouse,Kuaishou,Supernatural,Grandpad,Traxsource,Triller,TikTok,Trackdrip,United Media Agency (UMA),Yandex,VEVO,YouTube Music,Zvooq,VL Group,EMusic,Beat.no,Clone Digital,Music Reports,Mythical Games,JPay,Broadtime,Keefe Group,ViaPath,Turnkey Corrections,Adaptr,Artie,Oga Dance (MoveWorld),DanceFight,Lickd,Pinterest,Samsung Music,Hyundaicard Music,Melon Kt,Olleh+Genie,Mnet,Soribada,Bugs!,Dalkom,Kakao,Cyworld,Daum,Monkey3,Iguplus,Acer,Artistxite,Audiojungle,B612,China Unicom,Wo Music,Bilibili,Bleep,CCA,CDON,Celcom,Changba,Chunghwa Mobile,Coolvox,CTS Eventim AG,Dance All Day,DiGi,Digitally Imported,Douban Music,Douyin,Dragonfly FM,Echo,ExLibris,FETnet,Findspire,Flipagram,FNAC,Forest Incentives,Friday Music (Omusic),FUHU,Gismart,Global Radio,Hardstyle.com,High Res Audio,Himalayan FM,HMV,Hmv PLAY (Soliton),HTC One,Huawei Music,Huawei Music - Hi Res,Huawei South Africa,Huawei Middle Eeast,Iam+ Dial,IFeng,Jeou Tai,Jinli Music,Kanjian Music,Koala FM,Kobo,Kuyin Ringtone,La Musica,Last FM,Lenovo Music,Lenovo Sound,Lequ Music,Lizhi FM,Love Music (China Telecom),Mach By Mariposa,Maxis,Me2u Music,Media Markt,Medion,Mi Tracks,Migu Music (China Mobile),Mixette,Mixpixie,Mixup Digital,Moi Mir,MOOV,MQA,MusicQubed,MyMusic,Naver,NMusic,Odnoklassniki,Onkyo,Open Live,Overmax,Pledge,Pono,Prodigium,Infogo,Psonar,Pubbles,Pulselocker,QNX CAR,Raku,ROK Mobile,Sainsburys,Saturn,Stellar,TDC,T Star,Qianqian Music,TaiHua,Taiwan Mobile,TDC/TDC Mobile,Technics Tracks,The Overflow,TingTing FM,Triplay,Tunewiki,Tuzhan,U-Mobile,Ucmba,Vibe,VUE,Walkgame,Wasu TV,Weibo Music,Weltbild DE,We Sing,WEYV,Xiaomi Music,Xiaoying,Xiumi,Xiutang,Yiqixiu,FriDay,Alibaba Group,Migu Music,Netease Music,Kugou,Kuwo,QQ Music,Love Music,China Telecom,HUAWEI Hi-Res,24-7 Entertainment,Huawei Global Radio,Orange France,Tigo,Deutsche Telekom Austria And Netherlands,Swisscom,Fastweb,Belgacom,Tango,Ex Libris,Vibo Telecom,Huawei Middle East,HighResAudio,Line Music (JP),TIM Music,Kuack Media,Boomplay Music,Bugs Music,Naver Vibe,Slacker,Sunrise,Rhino,Bucher.de,Lissen,Mobilcom-Debitel,MePlaylist,CCI Distribution,Tonspion,Sonos,TELE2,Vodafone,3.DK,Bose,In8 Mobile,GHH Commerce,QNX CAR™,Music Worx,SberZvuk,Astro,T-Mobile,Spanish Broadcasting System,Turntable.fm,Tradebit,ShopTo,Senzari,RBS,NatWest,Gravity Mobile,DoubleTwist,Clip Interactive,Pure Music,Cyberlink,Huawei Ringtone,VIVO Hi-Res,KTV,Toutiao,Ooopic,Yunting,Yesoul,CIG,Kids+,CoSleep&Heartide,Wondershare,Tingxi,VCG,58pic,Qianku,Daily Yoga,Hidooro,Mangguofm,Kelakela,Jinshan,Gaoding,DOOLUU,Duitang,Dajiang,Bijian,Baotu,Babytree,AiyinsitanFM,Epub360,P.R.O. Agency,Litup,Lrts,Keep,Xiaohongshu,Audio Stock,Trebel,NEC,My Melo,Momople,Genie Music,WeSing,Tencent Video,Sohu Video,Sina Video,MGTV,Xplore Music Stores,PPTV,Youku&Tudou,IQiyi & PPS,RabbitPre,5sing,China Airlines,Jetstar,MOO,Nile Air,Qantas,Stardtb,UC,Viper HIFI,Babubabu,Rainbow Music,Duanku,Fliggy,Haitu,Hema,Huoshan,Viamaker,Whales,Juhuasuan,Ku FM,Kuwo Boom,Kuwo Juxing,Kuwo KTV,Kuwo Vedio,Kuwo Tingshu,QQ FM,Qingting,Virgin Australia,Kugou Sing,Kugou KTV,Kugou Ringtone,Kugou Live,Kugouzhibobanlv,Top Music,Meitu,Taobao,Tmall,Weishi,WeChat,Xigua Video,Intime,Intoo,Alipay,AirAsia,AirAsiaX,Air Vanuatu,Beijing Eye,Puxin,SUPERMONKEY,Alibaba Cloud Computing Co. Ltd.`;
+        availablePlatforms = platformsListRaw.split(',').map(p => p.trim()).filter(Boolean);
+
+        const sectionsConfig = [
+            {
+                id: "facturation",
+                title: "Facturation et abonnements",
+                desc: "Questions sur tes paiements, abonnements Stripe ou factures.",
+                icon: "💳",
+                articles: [
+                    { title: "Gérer ma facturation", url: "https://support.mm-cp.uk/facturation" },
+                    { title: "Comprendre les abonnements", url: "https://support.mm-cp.uk/abonnements" }
+                ],
+                steps: [
+                    {
+                        fields: [
+                            { name: "message", label: "Qu'se passe-t-il ?", type: "textarea", required: true },
+                            { name: "screenshot", label: "Ajouter une capture d'écran", type: "file" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "versement",
+                title: "Problèmes de versement",
+                desc: "Difficultés relatives au paiement de tes royalties.",
+                icon: "💸",
+                articles: [{ title: "Guide des versements", url: "https://support.mm-cp.uk/versements" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "payoutId", label: "Choisir un versement dans l'historique", type: "payoutSelect", required: true },
+                            { name: "message", label: "Informations complémentaires", type: "textarea", required: true }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "soundcloud",
+                title: "Fusion de comptes SoundCloud",
+                desc: "Demande de liaison ou de fusion de profils SoundCloud.",
+                icon: "☁️",
+                articles: [{ title: "Aide SoundCloud", url: "https://support.mm-cp.uk/soundcloud" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "scAutoUrl", label: "Lien page artiste SoundCloud (générée automatiquement)", type: "text", required: true },
+                            { name: "scOfficialUrl", label: "Lien page artiste SoundCloud (profil officiel)", type: "text", required: true },
+                            { name: "message", label: "Informations supplémentaires", type: "textarea" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "youtube-officielle",
+                title: "Demandes de chaîne d'artiste officielle YouTube",
+                desc: "Obtention du badge de note musicale sur YouTube.",
+                icon: "▶️",
+                articles: [{ title: "Chaîne officielle YouTube (OAC)", url: "https://support.mm-cp.uk/youtube-oac" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "ytTopicUrl", label: "Lien chaîne YouTube Topic (générée automatiquement)", type: "text", required: true },
+                            { name: "ytMainUrl", label: "Lien chaîne YouTube (principale)", type: "text", required: true },
+                            { name: "message", label: "Informations supplémentaires", type: "textarea" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "youtube-reassociation",
+                title: "Réassociation YouTube",
+                desc: "Lier ou replacer ton catalogue sur une autre chaîne YouTube.",
+                icon: "🔄",
+                articles: [{ title: "Réassocier son catalogue YT", url: "https://support.mm-cp.uk/youtube-remap" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sélectionner la sortie concernée", type: "releaseSelect", required: true },
+                            { name: "ytVideoUrl", label: "Lien de la vidéo générée par YouTube", type: "text", required: true },
+                            { name: "ytCorrectUrl", label: "Lien de la chaîne YouTube correcte", type: "text", required: true },
+                            { name: "ytIncorrectUrl", label: "Lien de la chaîne YouTube incorrecte", type: "text", required: true }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "renvoi",
+                title: "Renvoi de contenu",
+                desc: "Demander le renvoi d'une sortie sur les plateformes.",
+                icon: "🚀",
+                articles: [{ title: "Redistribution de contenu", url: "https://support.mm-cp.uk/redistribution" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sélectionner la sortie", type: "releaseSelect", required: true },
+                            { name: "platform", label: "Choisir une plateforme", type: "platformSelect", required: true },
+                            { name: "message", label: "Informations en plus", type: "textarea" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "technique",
+                title: "Problèmes techniques",
+                desc: "Bugs rencontrés sur le portail ou sur la distribution.",
+                icon: "🛠️",
+                articles: [{ title: "Résolution des bugs", url: "https://support.mm-cp.uk/tech" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sortie concernée (facultatif)", type: "releaseSelectOptional" },
+                            { name: "message", label: "Description du problème technique", type: "textarea", required: true },
+                            { name: "screenshot", label: "Ajouter une capture d'écran", type: "file" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "tiktok",
+                title: "Association manuelle de son sur TikTok",
+                desc: "Lier ta musique à la bibliothèque officielle TikTok.",
+                icon: "🎵",
+                articles: [{ title: "TikTok Music Publishing", url: "https://support.mm-cp.uk/tiktok" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sélectionner la sortie", type: "releaseSelect", required: true },
+                            { name: "tiktokUgcUrl", label: "Lien sonore UGC TikTok", type: "text", required: true },
+                            { name: "ugcTimestamp", label: "Horodatage du match UGC (ex: 0:15)", type: "text", required: true },
+                            { name: "audioTimestamp", label: "Horodatage audio officiel (ex: 0:22)", type: "text", required: true }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "instagram-facebook",
+                title: "Association de titres sur Instagram et Facebook",
+                desc: "Gérer l'apparition des musiques dans les stories/reels.",
+                icon: "📸",
+                articles: [{ title: "Meta Music Association", url: "https://support.mm-cp.uk/meta" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseIds", label: "Sélectionner une ou plusieurs sorties", type: "releaseMultiSelect", required: true },
+                            { name: "instaUser", label: "Nom d'utilisateur Instagram", type: "text", required: true },
+                            { name: "fbPageUrl", label: "URL de la page Facebook", type: "text", required: true },
+                            { name: "message", label: "Message / Précisions", type: "textarea" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "contenu",
+                title: "Association de contenu",
+                desc: "Problèmes d'attribution de release ou Content ID.",
+                icon: "🗂️",
+                articles: [{ title: "Gestion Content ID", url: "https://support.mm-cp.uk/content-id" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sélectionner la sortie", type: "releaseSelect", required: true },
+                            {
+                                name: "mappingScenario", label: "Sélectionner votre cas de figure", type: "select", options: [
+                                    { value: "new_artist", label: "C'est ma première publication, j'ai besoin qu'une nouvelle page d'artiste soit créée" },
+                                    { value: "wrong_page", label: "Ma sortie a été livrée sur la mauvaise page d'artiste" },
+                                    { value: "other_artist_wrong", label: "La sortie d'un autre artiste a été livrée sur notre page" }
+                                ], required: true
+                            }
+                        ]
+                    },
+                    {
+                        fields: [
+                            { name: "dynamicMappingFields", label: "Détails du cas", type: "dynamicMappingSubfields" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "redevances",
+                title: "Redevances",
+                desc: "Questions sur les rapports de ventes et calculs de gains.",
+                icon: "📊",
+                articles: [{ title: "Rapports de redevances", url: "https://support.mm-cp.uk/redevances" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sélectionner la sortie", type: "releaseSelect", required: true },
+                            { name: "platformsMulti", label: "Choisir une ou plusieurs plateformes", type: "platformMultiSelect", required: true },
+                            { name: "message", label: "Votre message", type: "textarea", required: true }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "preuves",
+                title: "Preuves requises",
+                desc: "Fournir des documents ou licences demandés par la modération.",
+                icon: "🛡️",
+                articles: [{ title: "Licences et Validations", url: "https://support.mm-cp.uk/preuves" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sélectionner une sortie (statut Licence)", type: "licensedReleaseSelect", required: true },
+                            { name: "proofFile", label: "Importer la preuve/licence (PDF, IMG, PNG, JPG)", type: "file", required: true },
+                            { name: "message", label: "Commentaire / Message", type: "textarea" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "copyright",
+                title: "Violation du droit d'auteur",
+                desc: "Signaler un litige ou un problème de claim copyright.",
+                icon: "⚠️",
+                articles: [{ title: "Politique Copyright", url: "https://support.mm-cp.uk/copyright" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sélectionner la sortie", type: "releaseSelect", required: true },
+                            { name: "claimId", label: "Numéro de Claim (Claim #)", type: "text", required: true },
+                            { name: "message", label: "Description de la violation / litige", type: "textarea", required: true }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "apple-music",
+                title: "Majuscules dans les titres sur Apple Music",
+                desc: "Demande de correction de casse (majuscules/minuscules).",
+                icon: "🍏",
+                articles: [{ title: "Guide de style Apple Music", url: "https://support.mm-cp.uk/apple-music" }],
+                steps: [
+                    {
+                        fields: [
+                            { name: "releaseId", label: "Sélectionner la sortie", type: "releaseSelect", required: true },
+                            { name: "desiredReleaseTitle", label: "Titre de sortie voulu", type: "text" },
+                            { name: "desiredTrackTitle", label: "Titre de piste voulu", type: "text" },
+                            { name: "appleMusicUrl", label: "URL Apple Music", type: "text", required: true }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "/login.html";
+                return;
+            }
+            currentUid = user.uid;
+
+            try {
+                const userData = await api.get(`/api/users/${user.uid}`);
+
+                if (userData && !userData.error) {
+                    // On gère les différents formats que l'API SQL pourrait renvoyer
+                    let userObj = userData;
+
+                    if (Array.isArray(userData) && userData.length > 0) {
+                        userObj = userData[0];
+                    } else if (userData.results && Array.isArray(userData.results) && userData.results.length > 0) {
+                        userObj = userData.results[0];
+                    }
+
+                    // On cible les cas possibles selon la DB (camelCase ou snake_case)
+                    currentUserName = userObj.firstName || userObj.first_name || userObj.prenom || userObj.name || "Artiste";
+                    document.getElementById("welcome-title").innerText = `Bonjour ${currentUserName}, que se passe-t-il ?`;
+                }
+            } catch (e) {
+                console.error("Erreur profil utilisateur:", e);
+                currentUserName = "Artiste";
+                document.getElementById("welcome-title").innerText = `Bonjour ${currentUserName}, que se passe-t-il ?`;
+            }
+
+            try {
+                const releases = await api.get(`/api/users/${user.uid}/releases`);
+                userReleases = Array.isArray(releases) ? releases : [];
+            } catch (e) {
+                console.error("Erreur sorties:", e);
+            }
+
+            try {
+                const payouts = await api.get(`/api/users/${user.uid}/payouts`);
+                userPayouts = Array.isArray(payouts) ? payouts : [];
+            } catch (e) {
+                userPayouts = [{ id: "mock_payout_1", title: "Versement #1 - 45,20 € (01/2026)" }, { id: "mock_payout_2", title: "Versement #2 - 120,00 € (02/2026)" }];
+            }
+
+            renderSections();
+            chargerUserTickets();
+        });
+
+        async function chargerUserTickets() {
+            try {
+                const res = await api.get(`/api/support/tickets?uid=${currentUid}`);
+                userTicketsCache = Array.isArray(res) ? res : (res.results || []);
+                userTicketsCache = userTicketsCache.filter(t => t.uid === currentUid);
+
+                const container = document.getElementById("my-tickets-container");
+                const sectionCard = document.getElementById("my-tickets-section");
+
+                if (userTicketsCache.length > 0) {
+                    sectionCard.style.display = "block";
+                    container.innerHTML = userTicketsCache.map(ticket => {
+                        const dateStr = ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : "—";
+                        const rawStatus = (ticket.status || "ouvert").toLowerCase();
+                        const statusLabel = ticket.status || "ouvert";
+                        return `
+                            <div class="ticket-item" onclick="ouvrirDiscussionTicket('${ticket.id}')">
+                                <div class="ticket-info">
+                                    <span class="ticket-title">Ticket #${ticket.id} — ${ticket.section}</span>
+                                    <span class="ticket-date">Créé le ${dateStr}</span>
+                                </div>
+                                <span class="status-badge ${rawStatus}">${statusLabel}</span>
+                            </div>
+                        `;
+                    }).join("");
+                } else {
+                    sectionCard.style.display = "none";
+                }
+            } catch (e) {
+                console.error("Erreur chargement tickets utilisateur:", e);
+            }
+        }
+
+        window.ouvrirDiscussionTicket = function (ticketId) {
+            const ticket = userTicketsCache.find(t => String(t.id) === String(ticketId));
+            if (!ticket) return;
+
+            activeTicketView = ticket;
+            document.getElementById("popup-section-title").innerText = `Ticket #${ticket.id} (${ticket.section})`;
+
+            const stepsContainer = document.getElementById("wizard-steps-container");
+            const rawStatus = (ticket.status || "ouvert").toLowerCase();
+            const isOpen = rawStatus === "ouvert" || rawStatus === "open";
+
+            let messagesHtml = "";
+            const messages = ticket.messages || [];
+            if (messages.length === 0) {
+                messagesHtml = `<p style="font-size:12px; color:#64748b; text-align:center;">Aucun échange pour le moment. Le support va traiter votre demande.</p>`;
+            } else {
+                messagesHtml = messages.map(msg => {
+                    const isAdmin = msg.sender === 'admin' || msg.isAdmin;
+                    const bubbleClass = isAdmin ? 'admin' : 'user';
+                    const senderName = isAdmin ? 'Support MMCP' : 'Moi';
+                    const timeStr = msg.created_at ? new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+
+                    const rawText = msg.text || msg.message || '';
+                    // Utilisation de Marked.js pour parser le texte, avec conversion des sauts de ligne
+                    const htmlContent = window.marked ? window.marked.parse(rawText, { breaks: true }) : `<p>${rawText}</p>`;
+
+                    return `
+                        <div class="message-bubble ${bubbleClass}">
+                            <span class="message-meta">${senderName} • ${timeStr}</span>
+                            <div class="message-content">${htmlContent}</div>
+                        </div>
+                    `;
+                }).join("");
+            }
+
+            stepsContainer.innerHTML = `
+                <div class="chat-container active">
+                    <div class="messages-history" id="artist-messages-history">
+                        ${messagesHtml}
+                    </div>
+                    ${isOpen ? `
+                        <div class="reply-form">
+                            <input type="text" id="artist-reply-input" class="reply-input" placeholder="Répondre au support...">
+                            <button type="button" id="btn-send-reply" class="btn-send-reply">Envoyer</button>
+                        </div>
+                    ` : `
+                        <div class="ticket-closed-notice">Ce ticket est fermé ou résolu. Vous ne pouvez plus y répondre.</div>
+                    `}
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-cancel" onclick="closeSupportPopup()">Fermer</button>
+                    </div>
+                </div>
+            `;
+
+            if (isOpen) {
+                const sendBtn = document.getElementById("btn-send-reply");
+                const replyInput = document.getElementById("artist-reply-input");
+
+                const sendMessage = async () => {
+                    const text = replyInput.value.trim();
+                    if (!text) return;
+
+                    try {
+                        await api.post(`/api/support/tickets/${ticket.id}/messages`, {
+                            text: text,
+                            sender: "user",
+                            createdAt: new Date().toISOString()
+                        });
+
+                        if (!ticket.messages) ticket.messages = [];
+                        ticket.messages.push({ text: text, sender: "user", created_at: new Date().toISOString() });
+
+                        ouvrirDiscussionTicket(ticket.id);
+                        chargerUserTickets();
+                    } catch (err) {
+                        console.error("Erreur envoi réponse artiste:", err);
+                        alert("Erreur lors de l'envoi de votre message.");
+                    }
+                };
+
+                if (sendBtn) {
+                    sendBtn.addEventListener("click", sendMessage);
+                }
+
+                if (replyInput) {
+                    replyInput.addEventListener("keydown", (e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            sendMessage();
+                        }
+                    });
+                }
+            }
+
+            const hist = document.getElementById("artist-messages-history");
+            if (hist) hist.scrollTop = hist.scrollHeight;
+
+            document.getElementById("support-popup").classList.add("show");
+        }
+
+        function renderSections() {
+            const container = document.getElementById("support-sections-container");
+            container.innerHTML = "";
+
+            sectionsConfig.forEach(sec => {
+                const card = document.createElement("div");
+                card.className = "support-card";
+
+                let articlesHtml = "";
+                if (sec.articles && sec.articles.length > 0) {
+                    articlesHtml = `<div class="article-links">` +
+                        sec.articles.map(art => `<a href="${art.url}" target="_blank">📄 ${art.title}</a>`).join("") +
+                        `</div>`;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header-top">
+                            <span class="support-icon">${sec.icon}</span>
+                            <h3>${sec.title}</h3>
+                        </div>
+                        <p>${sec.desc}</p>
+                        ${articlesHtml}
+                    </div>
+                    <button class="btn-support" onclick="openSupportWizard('${sec.id}')">Sélectionner</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.openSupportWizard = function (sectionId) {
+            activeSectionConfig = sectionsConfig.find(s => s.id === sectionId);
+            if (!activeSectionConfig) return;
+
+            document.getElementById("popup-section-title").innerText = activeSectionConfig.title;
+            document.getElementById("form-section-name").value = sectionId;
+            currentStepIndex = 0;
+
+            renderAllSteps();
+            document.getElementById("support-popup").classList.add("show");
+        }
+
+        window.closeSupportPopup = function () {
+            document.getElementById("support-popup").classList.remove("show");
+            activeTicketView = null;
+        }
+
+        function validateContainer(container) {
+            const inputs = container.querySelectorAll('input[required], select[required], textarea[required]');
+            let valid = true;
+            inputs.forEach(inp => {
+                if (!inp.value || inp.value.trim() === '') {
+                    valid = false;
+                    inp.style.borderColor = '#ef4444';
+                } else {
+                    inp.style.borderColor = '#cbd5e1';
+                }
+            });
+
+            if (!valid) {
+                alert("Veuillez remplir tous les champs obligatoires avant de continuer.");
+            }
+            return valid;
+        }
+
+        function renderAllSteps() {
+            const container = document.getElementById("wizard-steps-container");
+            container.innerHTML = "";
+
+            const steps = activeSectionConfig.steps;
+
+            steps.forEach((step, index) => {
+                const stepDiv = document.createElement("div");
+                stepDiv.className = `step-container ${index === 0 ? 'active' : ''}`;
+                stepDiv.id = `wizard-step-${index}`;
+
+                let fieldsHtml = "";
+                step.fields.forEach(field => {
+                    fieldsHtml += generateFieldHtml(field);
+                });
+
+                stepDiv.innerHTML = fieldsHtml;
+
+                const isLastStep = index === steps.length - 1;
+                const actionsDiv = document.createElement("div");
+                actionsDiv.className = "popup-actions";
+
+                let prevBtnHtml = index > 0
+                    ? `<button type="button" class="btn-cancel" onclick="prevStep()">Précédent</button>`
+                    : `<button type="button" class="btn-cancel" onclick="closeSupportPopup()">Annuler</button>`;
+
+                let nextBtnHtml = isLastStep
+                    ? `<button type="button" class="btn-submit" onclick="submitSupportTicket()">Envoyer au support</button>`
+                    : `<button type="button" class="btn-next" onclick="nextStep()">Suivant</button>`;
+
+                actionsDiv.innerHTML = `${prevBtnHtml}${nextBtnHtml}`;
+                stepDiv.appendChild(actionsDiv);
+
+                container.appendChild(stepDiv);
+            });
+
+            if (activeSectionConfig.steps.some(s => s.fields.some(f => f.type === 'select' && f.name === 'mappingScenario'))) {
+                setupMappingScenarioListener();
+            }
+        }
+
+        function generateFieldHtml(field) {
+            let html = `<div class="form-group"><label>${field.label}</label>`;
+
+            if (field.type === "textarea") {
+                html += `<textarea name="${field.name}" ${field.required ? 'required' : ''} placeholder="Votre message..."></textarea>`;
+            } else if (field.type === "text") {
+                html += `<input type="text" name="${field.name}" ${field.required ? 'required' : ''} placeholder="Entrez les informations...">`;
+            } else if (field.type === "file") {
+                html += `<input type="file" name="${field.name}" ${field.required ? 'required' : ''} accept=".pdf,.png,.jpg,.jpeg">`;
+            } else if (field.type === "releaseSelect") {
+                html += `<select name="${field.name}" ${field.required ? 'required' : ''}>
+                    <option value="">-- Choisir une sortie --</option>
+                    ${userReleases.map(r => `<option value="${r.id}">${r.title} (${r.artistName || 'Artiste'})</option>`).join("")}
+                </select>`;
+            } else if (field.type === "releaseSelectOptional") {
+                html += `<select name="${field.name}">
+                    <option value="">-- Aucune sortie spécifique --</option>
+                    ${userReleases.map(r => `<option value="${r.id}">${r.title} (${r.artistName || 'Artiste'})</option>`).join("")}
+                </select>`;
+            } else if (field.type === "licensedReleaseSelect") {
+                const licensed = userReleases.filter(r => (r.status || "").toLowerCase().includes("licence") || r.licenseProvided);
+                html += `<select name="${field.name}" ${field.required ? 'required' : ''}>
+                    <option value="">-- Choisir une sortie avec statut Licence --</option>
+                    ${licensed.map(r => `<option value="${r.id}">${r.title}</option>`).join("")}
+                </select>`;
+            } else if (field.type === "releaseMultiSelect" || field.type === "releaseMulti") {
+                html += `<div class="platforms-grid">
+                    ${userReleases.map(r => `
+                        <label class="platform-checkbox-item">
+                            <input type="checkbox" name="${field.name}" value="${r.id}"> ${r.title}
+                        </label>
+                    `).join("")}
+                </div>`;
+            } else if (field.type === "payoutSelect") {
+                html += `<select name="${field.name}" ${field.required ? 'required' : ''}>
+                    <option value="">-- Choisir un versement --</option>
+                    ${userPayouts.map(p => `<option value="${p.id}">${p.title || p.id}</option>`).join("")}
+                </select>`;
+            } else if (field.type === "platformSelect") {
+                html += `<select name="${field.name}" ${field.required ? 'required' : ''}>
+                    <option value="">-- Choisir une plateforme --</option>
+                    ${availablePlatforms.map(plat => `<option value="${plat}">${plat}</option>`).join("")}
+                </select>`;
+            } else if (field.type === "platformMultiSelect") {
+                html += `<div class="platforms-grid">
+                    ${availablePlatforms.map(plat => `
+                        <label class="platform-checkbox-item">
+                            <input type="checkbox" name="${field.name}" value="${plat}"> ${plat}
+                        </label>
+                    `).join("")}
+                </div>`;
+            } else if (field.type === "select") {
+                html += `<select name="${field.name}" id="${field.name}" ${field.required ? 'required' : ''}>
+                    <option value="">-- Sélectionner --</option>
+                    ${field.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("")}
+                </select>`;
+            } else if (field.type === "dynamicMappingSubfields") {
+                html += `<div id="dynamic-mapping-subcontainer"></div>`;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        function setupMappingScenarioListener() {
+            const select = document.getElementById("mappingScenario");
+            if (!select) return;
+            select.addEventListener("change", (e) => {
+                const val = e.target.value;
+                const subContainer = document.getElementById("dynamic-mapping-subcontainer");
+                if (!subContainer) return;
+
+                if (val === "new_artist") {
+                    subContainer.innerHTML = `
+                        <div class="form-group"><label>Nom de l'artiste</label><input type="text" name="newArtistName" required></div>
+                        <div class="form-group"><label>Plateformes concernées</label>
+                            <div class="platforms-grid">
+                                ${availablePlatforms.map(p => `<label class="platform-checkbox-item"><input type="checkbox" name="mappingPlatforms" value="${p}"> ${p}</label>`).join("")}
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Informations supplémentaires</label><textarea name="mappingExtra"></textarea></div>
+                    `;
+                } else if (val === "wrong_page") {
+                    subContainer.innerHTML = `
+                        <div class="form-group"><label>Lien de la page correcte</label><input type="text" name="correctPageUrl" required></div>
+                        <div class="form-group"><label>Lien de la page incorrecte</label><input type="text" name="incorrectPageUrl" required></div>
+                        <div class="form-group"><label>Message complémentaire</label><textarea name="mappingExtra"></textarea></div>
+                    `;
+                } else if (val === "other_artist_wrong") {
+                    subContainer.innerHTML = `
+                        <div class="form-group"><label>Lien de notre page d'artiste</label><input type="text" name="ourArtistPageUrl" required></div>
+                        <div class="form-group"><label>Lien de la sortie à retirer de notre page</label><input type="text" name="releaseToRemoveUrl" required></div>
+                        <div class="form-group"><label>Message complémentaire</label><textarea name="mappingExtra"></textarea></div>
+                    `;
+                } else {
+                    subContainer.innerHTML = "";
+                }
+            });
+        }
+
+        window.nextStep = function () {
+            const currentContainer = document.getElementById(`wizard-step-${currentStepIndex}`);
+
+            if (!validateContainer(currentContainer)) {
+                return;
+            }
+
+            currentContainer.classList.remove('active');
+            currentStepIndex++;
+            document.getElementById(`wizard-step-${currentStepIndex}`).classList.add('active');
+        }
+
+        window.prevStep = function () {
+            if (currentStepIndex > 0) {
+                document.getElementById(`wizard-step-${currentStepIndex}`).classList.remove('active');
+                currentStepIndex--;
+                document.getElementById(`wizard-step-${currentStepIndex}`).classList.add('active');
+            }
+        }
+
+        window.submitSupportTicket = async function () {
+            const currentContainer = document.getElementById(`wizard-step-${currentStepIndex}`);
+            if (!validateContainer(currentContainer)) {
+                return;
+            }
+
+            const form = document.getElementById("support-form");
+            const formData = new FormData(form);
+            const dataObj = {
+                uid: currentUid,
+                userName: currentUserName,
+                section: formData.get("section"),
+                status: "ouvert",
+                createdAt: new Date().toISOString(),
+                payload: {}
+            };
+
+            const allInputs = form.querySelectorAll('input, select, textarea');
+            allInputs.forEach(input => {
+                const name = input.name;
+                if (!name || name === "section") return;
+
+                if (input.type === "checkbox") {
+                    if (input.checked) {
+                        if (!dataObj.payload[name]) dataObj.payload[name] = [];
+                        dataObj.payload[name].push(input.value);
+                    }
+                } else if (input.type === "file") {
+                    if (input.files && input.files[0]) {
+                        dataObj.payload[name] = input.files[0].name;
+                    }
+                } else {
+                    if (input.value && input.value.trim() !== '') {
+                        dataObj.payload[name] = input.value;
+                    }
+                }
+            });
+
+            try {
+                await api.post(`/api/support/tickets`, dataObj);
+                alert("Votre demande a bien été envoyée au support de Morgann Music CP !");
+                closeSupportPopup();
+                chargerUserTickets();
+            } catch (error) {
+                console.error("Erreur envoi ticket:", error);
+                alert("Erreur lors de l'envoi du ticket. Veuillez réessayer.");
+            }
+        }
+    </script>
+</body>
+
+</html>

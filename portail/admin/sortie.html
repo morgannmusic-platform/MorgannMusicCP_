@@ -164,7 +164,7 @@
                 <div id="loading-message" class="card">Chargement de la sortie en cours...</div>
 
                 <div class="card" id="admin-panel" style="display:none;">
-                    <h2 style="margin:0; color:#000000;">Édition Complète (Mode Admin)</h2>
+                    <h2 style="margin:0; color:#000000;">Édition Complète (Mode Admin D1)</h2>
                     <p style="color: #363636; font-size: 14px; margin-top: 4px; margin-bottom: 24px;">Métadonnées et
                         pistes associées.</p>
 
@@ -225,12 +225,10 @@
                         <div class="form-group"><label>Fuseau Horaire</label><input type="text" id="edit-timezone"
                                 class="form-control"></div>
 
-                        <!-- AJOUT DU LIEN DE SORTIE SMARTLINK -->
                         <div class="form-group full-width"><label style="color:#10b981;">Lien de la sortie (Smartlink /
                                 URL globale)</label><input type="text" id="edit-releaseUrl" class="form-control"
                                 placeholder="https://..." style="border-color:#10b981;"></div>
 
-                        <!-- IMPORTATION POCHETTE ANIMÉE CARRÉ EN MP4 -->
                         <div class="form-group full-width"
                             style="background: rgba(208, 17, 89, 0.05); padding: 16px; border-radius: 20px; border: 1px dashed #d01159;">
                             <label style="color:#d01159; font-weight: bold; font-size: 13px;">Pochette Animée (Carré,
@@ -276,42 +274,37 @@
 
                     <button type="button" class="btn-add-track" onclick="ajouterPiste()">+ Ajouter une piste</button>
 
-                    <button class="btn-save" onclick="sauvegarderSortieAdmin()">Enregistrer et synchroniser sur
-                        Firestore</button>
+                    <button class="btn-save" onclick="sauvegarderSortieAdmin()">Enregistrer et synchroniser sur la base
+                        D1</button>
                 </div>
             </div>
         </main>
     </div>
 
     <script type="module">
-        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collectionGroup, getDocs, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
         import { initSidebar } from "./sidebar.js";
         import { chargerProfilNavbar } from "./navbar.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
-            measurementId: "G-FKSSXYEZF0"
-        };
-
-        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+        const WORKER_URL = "https://api.worker.mm-cp.uk";
 
         const urlParams = new URLSearchParams(window.location.search);
         const releaseId = urlParams.get('id');
         let detectUserId = null;
         let pistesActuelles = [];
         let ancienStatut = "";
+
+        // Fonction utilitaire pour s'assurer que les URL relatives pointent vers le bon Worker
+        function corrigerUrlFichier(url) {
+            if (!url) return "";
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+                return url;
+            }
+            const cleanPath = url.startsWith('/') ? url : '/' + url;
+            return `${WORKER_URL}${cleanPath}`;
+        }
 
         async function injecterComposants() {
             try {
@@ -324,7 +317,7 @@
                 const resNavbar = await fetch('navbar.html');
                 if (resNavbar.ok) {
                     document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
-                    if (auth.currentUser) chargerProfilNavbar(db, auth.currentUser);
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
                 }
             } catch (e) {
                 console.error("Erreur injection composants : ", e);
@@ -334,16 +327,11 @@
         injecterComposants();
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = "../login.html"; return; }
+            if (!user) { window.location.href = "/login.html"; return; }
 
-            chargerProfilNavbar(db, user);
+            chargerProfilNavbar(null, user);
 
             try {
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists() || userSnap.data().role !== "admin") {
-                    alert("Accès interdit."); window.location.href = "../sorties.html"; return;
-                }
                 if (releaseId) { await chercherEtChargerSortie(); }
             } catch (err) { console.error(err); }
         });
@@ -391,6 +379,9 @@
             container.innerHTML = "";
 
             pistesActuelles.forEach((t, i) => {
+                const audioSrc = corrigerUrlFichier(t.audioUrl);
+                const instSrc = corrigerUrlFichier(t.instrumentalAudioUrl);
+
                 const box = document.createElement("div");
                 box.className = "track-box";
                 box.innerHTML = `
@@ -413,8 +404,8 @@
                         <div class="form-group"><label>TikTok Start (Sec)</label><input type="number" id="t-tk-s-${i}" class="form-control" value="${t.tiktokStart?.second || 0}"></div>
                         <div class="form-group full-width"><label>Texte des Paroles</label><textarea id="t-lyrics-${i}" class="form-control" rows="2">${t.lyricsText || ''}</textarea></div>
                         
-                        <div class="form-group full-width"><label>Audio URL (Stéréo Principal)</label><input type="text" id="t-audio-${i}" class="form-control" value="${t.audioUrl || ''}"><div class="audio-preview">${t.audioUrl ? `<audio controls src="${t.audioUrl}"></audio>` : 'Aucun'}</div></div>
-                        <div class="form-group full-width"><label>Instrumental Audio URL (Stéréo)</label><input type="text" id="t-inst-${i}" class="form-control" value="${t.instrumentalAudioUrl || ''}"><div class="audio-preview">${t.instrumentalAudioUrl ? `<audio controls src="${t.instrumentalAudioUrl}"></audio>` : 'Aucun'}</div></div>
+                        <div class="form-group full-width"><label>Audio URL (Stéréo Principal)</label><input type="text" id="t-audio-${i}" class="form-control" value="${t.audioUrl || ''}"><div class="audio-preview">${audioSrc ? `<audio controls src="${audioSrc}"></audio>` : 'Aucun'}</div></div>
+                        <div class="form-group full-width"><label>Instrumental Audio URL (Stéréo)</label><input type="text" id="t-inst-${i}" class="form-control" value="${t.instrumentalAudioUrl || ''}"><div class="audio-preview">${instSrc ? `<audio controls src="${instSrc}"></audio>` : 'Aucun'}</div></div>
                         
                         <div class="form-group full-width"><label style="color:#60a5fa;">Dolby Atmos Audio URL (Principal)</label><input type="text" id="t-atmos-${i}" class="form-control" value="${t.atmosAudioUrl || ''}" placeholder="Lien vers le fichier .wav / .caf ou dossier Atmos master"><div class="audio-preview">${t.atmosAudioUrl ? `<span style="color:#34d399; font-weight:bold;">✓ Master Atmos configuré</span>` : 'Aucun'}</div></div>
                         <div class="form-group full-width"><label style="color:#60a5fa;">Dolby Atmos Instrumental Audio URL</label><input type="text" id="t-atmos-inst-${i}" class="form-control" value="${t.atmosInstrumentalAudioUrl || ''}" placeholder="Lien vers le fichier instrumental Atmos master"><div class="audio-preview">${t.atmosInstrumentalAudioUrl ? `<span style="color:#34d399; font-weight:bold;">✓ Master Atmos Instrumental configuré</span>` : 'Aucun'}</div></div>
@@ -441,14 +432,16 @@
         };
 
         async function chercherEtChargerSortie() {
-            const groupRef = collectionGroup(db, "releases");
-            const querySnapshot = await getDocs(groupRef);
-            let cibleDoc = null;
-            querySnapshot.forEach(d => { if (d.id === releaseId) cibleDoc = d; });
+            try {
+                const res = await api.get(`/api/releases/${releaseId}`);
+                const data = res.release || res;
 
-            if (cibleDoc) {
-                const data = cibleDoc.data();
-                detectUserId = cibleDoc.ref.parent.parent.id;
+                if (!data) {
+                    alert("Sortie introuvable.");
+                    return;
+                }
+
+                detectUserId = data.userId || data.user_id;
                 ancienStatut = data.status || "";
 
                 const simples = ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "releaseUrl", "spotifyUrl", "appleUrl", "territories", "status"];
@@ -462,43 +455,35 @@
                 document.getElementById("edit-selectedPlatforms").value = Array.isArray(data.selectedPlatforms) ? data.selectedPlatforms.join(", ") : "";
                 document.getElementById("edit-additionalDeliveries").value = Array.isArray(data.additionalDeliveries) ? data.additionalDeliveries.join(", ") : "";
 
-                // Pochette animée
                 const animUrl = data.animatedCoverUrl || "";
                 document.getElementById("edit-animatedCoverUrl").value = animUrl;
                 const animPreview = document.getElementById("animated-cover-preview");
                 if (animUrl) {
-                    animPreview.innerHTML = `<div style="display:flex; align-items:center; gap:12px;"><video autoplay loop muted playsinline src="${animUrl}" style="width:120px; height:120px; object-fit:cover; border-radius:16px; border:1px solid #ccc;"></video><span style="font-size:12px; color:#10b981; font-weight:bold;">✓ Pochette animée active</span></div>`;
+                    const fullAnimUrl = corrigerUrlFichier(animUrl);
+                    animPreview.innerHTML = `<div style="display:flex; align-items:center; gap:12px;"><video autoplay loop muted playsinline src="${fullAnimUrl}" style="width:120px; height:120px; object-fit:cover; border-radius:16px; border:1px solid #ccc;"></video><span style="font-size:12px; color:#10b981; font-weight:bold;">✓ Pochette animée active</span></div>`;
                 } else {
                     animPreview.innerHTML = `<span style="font-size:12px; color:#666;">Aucune pochette animée importée</span>`;
                 }
 
-                pistesActuelles = data.tracks || [];
+                pistesActuelles = typeof data.tracks === 'string' ? JSON.parse(data.tracks) : (data.tracks || []);
                 afficherPistesHTML();
 
                 document.getElementById("loading-message").style.display = "none";
                 document.getElementById("admin-panel").style.display = "block";
+            } catch (err) {
+                console.error("Erreur de chargement de la sortie :", err);
+                document.getElementById("loading-message").textContent = "Erreur lors du chargement de la sortie.";
             }
         }
 
         async function envoyerNotificationStatut(userId, titleRelease, nouveauStatut) {
-            let message = "";
-            switch (nouveauStatut) {
-                case "verification mmcp": message = `Votre sortie "${titleRelease}" est en cours de vérification par Morgann Music CP.`; break;
-                case "verification plate-formes": message = `Votre sortie "${titleRelease}" est en cours de vérification par les plateformes.`; break;
-                case "livrée": message = `Votre sortie "${titleRelease}" a été livrée aux plateformes en attente de la date de sortie.`; break;
-                case "direct": message = `Votre sortie "${titleRelease}" est en direct sur les plateformes, félicitations !`; break;
-                case "retrait": message = `Nous avons reçu votre demande de retrait pour la sortie "${titleRelease}".`; break;
-                case "retiré": message = `Votre sortie "${titleRelease}" a bien été retirée des plateformes.`; break;
-                default: message = `Le statut de votre sortie "${titleRelease}" a été mis à jour vers "${nouveauStatut}".`; break;
-            }
+            if (!userId) return;
+            let message = `Le statut de votre sortie "${titleRelease}" a été mis à jour vers "${nouveauStatut}".`;
 
             try {
-                const notifRef = collection(db, "users", userId, "notifications");
-                await addDoc(notifRef, {
+                await api.post(`/api/users/${userId}/notifications`, {
                     titre: "Mise à jour de votre sortie",
-                    notif: message,
-                    read: false,
-                    createdAt: serverTimestamp()
+                    notif: message
                 });
             } catch (err) {
                 console.error("Erreur d'envoi de la notification :", err);
@@ -522,7 +507,6 @@
                 }
             }
 
-            // Gestion de l'import de la pochette animée (MP4)
             let animatedCoverUrl = document.getElementById("edit-animatedCoverUrl").value;
             const fileInput = document.getElementById("edit-animatedCoverFile");
             if (fileInput.files && fileInput.files[0]) {
@@ -532,11 +516,11 @@
                     return;
                 }
                 try {
-                    const filePath = `releases/${detectUserId}/${releaseId}/animated_cover_${Date.now()}.mp4`;
-                    const fileRef = storageRef(storage, filePath);
+                    const formData = new FormData();
+                    formData.append("file", file);
                     alert("Importation de la pochette animée en cours...");
-                    const snapshot = await uploadBytes(fileRef, file);
-                    animatedCoverUrl = await getDownloadURL(snapshot.ref);
+                    const res = await api.upload("/api/upload/cover", formData);
+                    animatedCoverUrl = res.url || `/api/files/${res.key}`;
                     document.getElementById("edit-animatedCoverUrl").value = animatedCoverUrl;
                 } catch (e) {
                     alert("Erreur lors de l'upload de la pochette animée : " + e.message);
@@ -560,15 +544,17 @@
             updateData["status"] = nouveauStatut;
 
             try {
-                await updateDoc(doc(db, "users", detectUserId, "releases", releaseId), updateData);
+                await api.patch(`/api/releases/${releaseId}`, updateData);
 
                 if (nouveauStatut !== ancienStatut) {
                     await envoyerNotificationStatut(detectUserId, releaseTitle, nouveauStatut);
                     ancienStatut = nouveauStatut;
                 }
 
-                alert("Firestore synchronisé intégralement avec succès !");
-            } catch (err) { alert(err.message); }
+                alert("Base de données D1 synchronisée intégralement avec succès !");
+            } catch (err) {
+                alert("Erreur lors de la sauvegarde : " + err.message);
+            }
         }
     </script>
 </body>

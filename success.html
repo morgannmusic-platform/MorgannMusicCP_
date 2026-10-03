@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement réussi | Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/styles-tarifs.css">
+</head>
+
+<body
+    style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; font-family: sans-serif; background: #fff0f5;">
+    <div
+        style="background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <h1 id="status-title" style="color: #ff4b72;">Validation en cours...</h1>
+        <p id="status-desc" style="color: #666; margin-top: 10px;">Veuillez patienter pendant que nous activons votre
+            abonnement.</p>
+        <a href="/index.html" id="home-btn"
+            style="display: none; margin-top: 20px; padding: 10px 20px; background: #ff4b72; color: white; text-decoration: none; border-radius: 10px;">Retour
+            à l'accueil</a>
+    </div>
+
+    <script>
+        async function verifyPayment() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+
+            const titleEl = document.getElementById('status-title');
+            const descEl = document.getElementById('status-desc');
+            const btnEl = document.getElementById('home-btn');
+
+            if (!sessionId) {
+                titleEl.textContent = "Erreur";
+                descEl.textContent = "Aucune session de paiement détectée.";
+                btnEl.style.display = 'inline-block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://pay.mm-cp.uk/verify-session?session_id=${sessionId}`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    titleEl.textContent = "Paiement réussi ! 🎉";
+                    descEl.textContent = `Merci ! Votre abonnement "${data.planName || data.planId}" a bien été activé et enregistré.`;
+                } else {
+                    titleEl.textContent = "Oups...";
+                    descEl.textContent = "Impossible de valider la session : " + (data.error || "Erreur inconnue");
+                }
+            } catch (err) {
+                titleEl.textContent = "Erreur de connexion";
+                descEl.textContent = "Impossible de joindre le serveur de validation.";
+            } finally {
+                btnEl.style.display = 'inline-block';
+            }
+        }
+
+        verifyPayment();
+    </script>
+</body>
+
+</html>
