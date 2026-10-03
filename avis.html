@@ -202,13 +202,15 @@
         }
 
         .review-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
+            background: linear-gradient(140deg, var(--container1) 0%, var(--container3) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: 36px;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.156);
+
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
@@ -268,9 +270,9 @@
             margin: 0;
             line-height: 1.6;
             white-space: pre-line;
-            background: #fff;
+            background: #ffffff65;
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 24px;
             border: 1px solid #f1f5f9;
         }
 
@@ -296,19 +298,6 @@
         .review-edit-btn:hover {
             background: #fff0f5;
             transform: translateY(-1px);
-        }
-
-        .review-owner-badge {
-            display: inline-flex;
-            align-items: center;
-            width: fit-content;
-            margin-top: 5px;
-            padding: 3px 8px;
-            border-radius: 999px;
-            background: rgba(252, 143, 176, 0.12);
-            color: #d94f7d;
-            font-size: 10px;
-            font-weight: 800;
         }
 
         .artist-selected-preview {
@@ -397,7 +386,8 @@
                     </select>
 
                     <div id="artist-selected-preview" class="artist-selected-preview" style="display:none;">
-                        <img id="selected-artist-avatar" src="/assets/img/icons/pdp.png" alt="">
+                        <img id="selected-artist-avatar" src="/assets/img/icons/pdp.png" alt=""
+                            onerror="this.onerror=null; this.src='/assets/img/icons/pdp.png';">
                         <div>
                             <strong id="selected-artist-name"></strong>
                             <span id="selected-artist-status"></span>
@@ -413,12 +403,12 @@
 
                 <div class="form-group">
                     <label class="form-label" for="review-message">Votre message</label>
-                    <textarea id=" review-message" class="form-textarea"
+                    <textarea id="review-message" class="form-textarea"
                         placeholder="Ex: Super catalogue, l'équipe est top..." style="border-radius: 24px;"
                         required></textarea>
                 </div>
 
-                <button type=" submit" class="submit-btn" id="submit-btn-text">Publier mon avis</button>
+                <button type="submit" class="submit-btn" id="submit-btn-text">Publier mon avis</button>
             </form>
         </div>
 
@@ -438,6 +428,14 @@
 
         let existingReviewsMap = new Map();
 
+        function getFullMediaUrl(url) {
+            if (!url) return null;
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+                return url;
+            }
+            return api.fileUrl ? api.fileUrl(url) : `/api/files/${url.replace(/^\/+/, '')}`;
+        }
+
         function getRoundedStarSvg(isFilled, customClass = "star-svg") {
             const fillColor = isFilled ? "#FC8FB0" : "none";
             const strokeColor = "#FC8FB0";
@@ -446,13 +444,32 @@
             </svg>`;
         }
 
-        function renderStars(ratingValue) {
+        function renderStars(ratingValue, animate = false) {
             let html = '';
             const starsCount = Math.round(ratingValue);
             for (let i = 1; i <= 5; i++) {
                 html += getRoundedStarSvg(i <= starsCount);
             }
             return html;
+        }
+
+        // Animation GSAP séquentielle sur un conteneur d'étoiles
+        function animateStarsIn(containerElement) {
+            if (!containerElement) return;
+            const stars = containerElement.querySelectorAll('.star-svg');
+            if (stars.length === 0) return;
+
+            gsap.fromTo(stars,
+                { scale: 0, rotation: -30, opacity: 0 },
+                {
+                    scale: 1,
+                    rotation: 0,
+                    opacity: 1,
+                    duration: 0.5,
+                    stagger: 0.08,
+                    ease: "back.out(1.7)"
+                }
+            );
         }
 
         function initStarPicker(currentRating = 5) {
@@ -483,12 +500,12 @@
                 picker.appendChild(wrapper);
             }
 
-            // Un seul listener global sur le picker pour éviter les doublons
             picker.onmouseleave = () => {
                 highlightStars(parseInt(ratingInput.value, 10));
             };
 
             highlightStars(currentRating);
+            animateStarsIn(picker);
         }
 
         function highlightStars(count) {
@@ -509,14 +526,6 @@
             return String(name || "").trim().toLowerCase();
         }
 
-        function getArtistAvatar(artist, fallbackName = "") {
-            if (artist && artist.photo) {
-                return api.fileUrl ? api.fileUrl(artist.photo) : artist.photo;
-            }
-
-            return `/assets/img/icons/pdp.png`;
-        }
-
         function getReviewId(review) {
             return review?.id || review?._id || review?.reviewId || review?.review_id || null;
         }
@@ -527,8 +536,6 @@
         }
 
         async function sendReviewRequest(method, url, data) {
-            // On utilise directement fetch pour pouvoir envoyer PUT lors d'une modification.
-            // L'authentification Firebase est déjà gérée par le système existant.
             const response = await fetch(url, {
                 method,
                 headers: {
@@ -594,19 +601,18 @@
 
         async function initAvisPage() {
             try {
-                // Récupération des artistes pour récupérer leur nom et leur PDP.
-                const artistsList = await api.get("/api/artists");
-                const artistMap = new Map();
+                const artistsRes = await api.get('/api/artists');
+                const artistsData = artistsRes.artists || artistsRes || [];
                 const artistAvatarsMap = new Map();
 
-                if (Array.isArray(artistsList)) {
-                    artistsList.forEach(art => {
+                if (Array.isArray(artistsData)) {
+                    artistsData.forEach(art => {
                         if (!art?.name) return;
 
                         const key = normalizeArtistName(art.name);
-                        artistMap.set(key, art);
+                        const photoUrl = art.photo || art.photoUrl || art.avatarUrl;
+                        const avatarUrl = photoUrl ? getFullMediaUrl(photoUrl) : "/assets/img/icons/pdp.png";
 
-                        const avatarUrl = getArtistAvatar(art, art.name);
                         artistAvatarsMap.set(key, avatarUrl);
                     });
                 }
@@ -626,8 +632,6 @@
 
                         const artistKey = normalizeArtistName(artistName);
 
-                        // Même s'il existe accidentellement plusieurs lignes en base,
-                        // on n'affiche et ne sélectionne qu'un seul avis par artiste.
                         if (displayedReviewKeys.has(artistKey)) return;
                         displayedReviewKeys.add(artistKey);
 
@@ -649,13 +653,8 @@
                         const artistProfileUrl =
                             `/catalogue/artiste.html?name=${encodeURIComponent(artistName)}`;
 
-                        const avatarSrc =
-                            artistAvatarsMap.get(artistKey) ||
-                            (rev.artistPhoto || rev.artist_photo
-                                ? (api.fileUrl
-                                    ? api.fileUrl(rev.artistPhoto || rev.artist_photo)
-                                    : (rev.artistPhoto || rev.artist_photo))
-                                : "/assets/img/icons/pdp.png");
+                        const rawRevPhoto = rev.photo || rev.artistPhoto || rev.artist_photo;
+                        const avatarSrc = artistAvatarsMap.get(artistKey) || (rawRevPhoto ? getFullMediaUrl(rawRevPhoto) : "/assets/img/icons/pdp.png");
 
                         const reviewAuthorUid = rev.userUid || rev.user_uid || rev.uid || "";
                         const reviewId = getReviewId(rev);
@@ -710,16 +709,24 @@
                     avgScoreEl.innerText = average.toFixed(1);
                     avgStarsEl.innerHTML = renderStars(Math.round(average));
                     totalTextEl.innerText = `${reviewCount} avis publié(s)`;
+                    // Animation GSAP pour la note moyenne générale
+                    animateStarsIn(avgStarsEl);
                 } else {
                     avgScoreEl.innerText = "0.0";
                     avgStarsEl.innerHTML = renderStars(0);
                     totalTextEl.innerText = "0 avis publié(s)";
+                    animateStarsIn(avgStarsEl);
                 }
 
                 document.getElementById("reviews-list").innerHTML =
                     reviewsListHtml.length > 0
                         ? reviewsListHtml.join("")
                         : `<p style="color:#64748b;font-size:14px;">Aucun avis publié pour le moment.</p>`;
+
+                // Animation GSAP pour les étoiles de chaque carte d'avis affichée
+                document.querySelectorAll(".review-card .stars-container").forEach(container => {
+                    animateStarsIn(container);
+                });
 
                 onAuthStateChanged(auth, async (user) => {
                     const accessMsg = document.getElementById("form-access-message");
@@ -740,7 +747,6 @@
                             userArtists = [];
                         }
 
-                        // Seuls les artistes réellement liés au compte sont proposés.
                         const eligibleArtists = userArtists.filter(art => art?.name?.trim());
 
                         if (eligibleArtists.length === 0) {
@@ -758,7 +764,6 @@
                             return `<option value="${escapeHtml(artistName)}">${escapeHtml(artistName)}</option>`;
                         }).join("");
 
-                        // Les boutons "Modifier" ne sont visibles que pour l'artiste connecté.
                         document.querySelectorAll(".review-edit-btn").forEach(button => {
                             const artistName = button.dataset.editArtist || "";
                             const review = existingReviewsMap.get(normalizeArtistName(artistName));
@@ -901,8 +906,6 @@
                 ? isReviewOwnedByUser(existing, currentUser.uid)
                 : false;
 
-            // Sécurité côté interface : impossible de créer un deuxième avis
-            // pour le même artiste. Si l'avis appartient au compte, on le modifie.
             if (existing && !ownedByCurrentUser) {
                 alert("Cet artiste possède déjà un avis. Un seul avis est autorisé par artiste.");
                 return;
@@ -925,12 +928,9 @@
                     const reviewId = getReviewId(existing);
 
                     if (!reviewId) {
-                        throw new Error(
-                            "L'identifiant de l'avis est absent. L'API doit retourner un champ id pour permettre sa modification."
-                        );
+                        throw new Error("L'identifiant de l'avis est absent.");
                     }
 
-                    // Modification de l'avis existant : PUT /api/reviews/:id
                     await sendReviewRequest(
                         "PUT",
                         `/api/reviews/${encodeURIComponent(reviewId)}`,
@@ -939,9 +939,7 @@
 
                     alert("Votre avis a bien été modifié !");
                 } else {
-                    // Nouvelle publication uniquement si aucun avis n'existe pour cet artiste.
                     await sendReviewRequest("POST", "/api/reviews", reviewData);
-
                     alert("Votre avis a bien été publié !");
                 }
 
@@ -951,12 +949,7 @@
                 console.error("Erreur enregistrement avis :", error);
 
                 if (error.status === 409) {
-                    alert("Un avis existe déjà pour cet artiste. Vous pouvez modifier uniquement votre propre avis.");
-                } else if (error.status === 404 || error.status === 405) {
-                    alert(
-                        "La modification n'est pas encore disponible côté API. " +
-                        "Ajoute la route PUT /api/reviews/:id sur ton serveur."
-                    );
+                    alert("Un avis existe déjà pour cet artiste.");
                 } else {
                     alert(error.message || "Une erreur est survenue lors de l'enregistrement.");
                 }
