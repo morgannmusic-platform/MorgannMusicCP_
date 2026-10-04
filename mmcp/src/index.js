@@ -35,6 +35,9 @@ export default {
       if (method === "GET" && path === "/api/reviews") {
         return await getAllReviews(env);
       }
+      if (method === "GET" && path === "/api/premiere") {
+        return await getPublicPremiere(env, url);
+      }
 
       // Routes versions publiques et sécurisées
       if (method === "GET" && path === "/api/versions") {
@@ -396,6 +399,11 @@ async function ensureTables(db) {
         spotify_url TEXT,
         apple_url TEXT,
         show_on_mmcp_catalog INTEGER DEFAULT 1,
+        premiere_slug TEXT,
+        premiere_password TEXT,
+        premiere_start_date TEXT,
+        premiere_end_date TEXT,
+        premiere_is_active INTEGER DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
@@ -553,9 +561,15 @@ async function ensureTables(db) {
 
   try {
     await db.prepare("ALTER TABLE support_tickets ADD COLUMN messages TEXT").run();
-  } catch (e) {
-    // Column already exists or table freshly created
-  }
+  } catch (e) { }
+
+  try {
+    await db.prepare("ALTER TABLE releases ADD COLUMN premiere_slug TEXT").run();
+    await db.prepare("ALTER TABLE releases ADD COLUMN premiere_password TEXT").run();
+    await db.prepare("ALTER TABLE releases ADD COLUMN premiere_start_date TEXT").run();
+    await db.prepare("ALTER TABLE releases ADD COLUMN premiere_end_date TEXT").run();
+    await db.prepare("ALTER TABLE releases ADD COLUMN premiere_is_active INTEGER DEFAULT 0").run();
+  } catch (e) { }
 }
 
 async function extractUserId(request) {
@@ -585,6 +599,33 @@ async function isAdmin(env, uid) {
   await env.DB.prepare(`INSERT INTO users (uid, role, plan_name, created_at, updated_at) VALUES (?, 'admin', 'pro', ?, ?) ON CONFLICT(uid) DO UPDATE SET role = 'admin'`).bind(uid, now, now).run();
 
   return true;
+}
+
+async function getPublicPremiere(env, url) {
+  const slug = url.searchParams.get("slug");
+  const artiste = url.searchParams.get("artiste");
+
+  if (!slug) {
+    return corsJson({ error: "Slug manquant" }, 400);
+  }
+
+  const row = await env.DB.prepare("SELECT * FROM releases WHERE premiere_slug = ?").bind(slug).first();
+  if (!row) {
+    return corsJson({ error: "Première introuvable" }, 404);
+  }
+
+  if (row.premiere_is_active === 0 || row.premiere_is_active === false) {
+    return corsJson({ error: "Première désactivée" }, 403);
+  }
+
+  if (artiste) {
+    const artistSlug = (row.artist_name || "").toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+    if (artistSlug !== artiste.toLowerCase()) {
+      return corsJson({ error: "Nom d'artiste non concordant" }, 403);
+    }
+  }
+
+  return corsJson(formatReleaseRow(row));
 }
 
 async function createSupportTicket(env, request) {
@@ -1216,7 +1257,7 @@ async function createRelease(env, uid, request) {
     ? JSON.stringify(data.territories)
     : (data.territories || "Tous les pays (Monde entier)");
 
-  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, show_on_mmcp_catalog, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
+  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date, premiere_end_date, premiere_is_active, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
     uid,
     data.title || "",
     data.type || "Single",
@@ -1252,6 +1293,11 @@ async function createRelease(env, uid, request) {
     data.spotifyUrl || null,
     data.appleUrl || null,
     data.showOnMmcpCatalog !== false ? 1 : 0,
+    data.premiereSlug || null,
+    data.premierePassword || null,
+    data.premiereStartDate || null,
+    data.premiereEndDate || null,
+    data.premiereIsActive ? 1 : 0,
     now,
     now
   ).run();
@@ -1270,7 +1316,7 @@ async function patchRelease(env, uid, releaseId, request) {
       : data.territories;
   }
 
-  await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), updated_at = ? WHERE id = ?`).bind(
+  await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), premiere_slug = COALESCE(?, premiere_slug), premiere_password = COALESCE(?, premiere_password), premiere_start_date = COALESCE(?, premiere_start_date), premiere_end_date = COALESCE(?, premiere_end_date), premiere_is_active = COALESCE(?, premiere_is_active), updated_at = ? WHERE id = ?`).bind(
     data.title !== undefined ? data.title : null,
     data.type !== undefined ? data.type : null,
     data.artistName !== undefined ? data.artistName : null,
@@ -1305,6 +1351,11 @@ async function patchRelease(env, uid, releaseId, request) {
     data.spotifyUrl !== undefined ? data.spotifyUrl : null,
     data.appleUrl !== undefined ? data.appleUrl : null,
     data.showOnMmcpCatalog !== undefined ? (data.showOnMmcpCatalog ? 1 : 0) : null,
+    data.premiereSlug !== undefined ? data.premiereSlug : null,
+    data.premierePassword !== undefined ? data.premierePassword : null,
+    data.premiereStartDate !== undefined ? data.premiereStartDate : null,
+    data.premiereEndDate !== undefined ? data.premiereEndDate : null,
+    data.premiereIsActive !== undefined ? (data.premiereIsActive ? 1 : 0) : null,
     now,
     releaseId
   ).run();
@@ -1393,6 +1444,11 @@ function formatReleaseRow(row) {
     spotifyUrl: row.spotify_url || null,
     appleUrl: row.apple_url || null,
     showOnMmcpCatalog: row.show_on_mmcp_catalog !== 0,
+    premiereSlug: row.premiere_slug || null,
+    premierePassword: row.premiere_password || null,
+    premiereStartDate: row.premiere_start_date || null,
+    premiereEndDate: row.premiere_end_date || null,
+    premiereIsActive: Boolean(row.premiere_is_active),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -1703,10 +1759,64 @@ async function getAllWithdrawals(env, userId, isAdminUser) {
 }
 
 async function patchWithdrawal(env, userId, path, request, isAdminUser) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+
   const id = path.split("/").pop();
   const data = await request.json();
+  const now = new Date().toISOString();
+
   try {
-    await env.DB.prepare("UPDATE withdrawals SET status = ? WHERE id = ?").bind(data.status, id).run();
-  } catch (e) { }
-  return corsJson({ success: true });
+    // 1. Récupérer les infos du retrait AVANT modification
+    const withdrawal = await env.DB.prepare("SELECT * FROM withdrawals WHERE id = ?").bind(id).first();
+
+    if (!withdrawal) {
+      return corsJson({ error: "Retrait introuvable" }, 404);
+    }
+
+    const oldStatus = withdrawal.status;
+    const newStatus = data.status;
+
+    // 2. Mettre à jour le statut du retrait dans la table
+    await env.DB.prepare("UPDATE withdrawals SET status = ? WHERE id = ?").bind(newStatus, id).run();
+
+    const amount = Math.abs(Number(withdrawal.amount));
+    const period = new Date().toISOString().substring(0, 7);
+
+    // 3. CAS A : Le statut passe à "envoyé" (et ne l'était pas avant) -> On SOUSTRAIT l'argent
+    if (newStatus === "envoyé" && oldStatus !== "envoyé") {
+      await env.DB.prepare(`
+        INSERT INTO finances (user_uid, amount, period, release_id, release_title, artist_name, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        withdrawal.user_uid,
+        -amount, // Montant négatif
+        period,
+        "RETRAIT",
+        `Retrait validé #${id}`,
+        "MMCP",
+        now
+      ).run();
+    }
+
+    // 4. CAS B : Le statut passe de "envoyé" à autre chose ("refusé" ou "demandé") -> On RECRÉDITE l'argent
+    if (oldStatus === "envoyé" && newStatus !== "envoyé") {
+      await env.DB.prepare(`
+        INSERT INTO finances (user_uid, amount, period, release_id, release_title, artist_name, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        withdrawal.user_uid,
+        amount, // Montant positif (remboursement / annulation)
+        period,
+        "RETRAIT_ANNULE",
+        `Annulation retrait #${id}`,
+        "MMCP",
+        now
+      ).run();
+    }
+
+    return corsJson({ success: true });
+  } catch (e) {
+    console.error("Erreur patchWithdrawal:", e);
+    return corsJson({ error: e.message }, 500);
+  }
 }

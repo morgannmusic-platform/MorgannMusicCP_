@@ -322,7 +322,7 @@
             color: white;
         }
 
-        /* --- MODAL DE CONFIRMATION PERSO (Sans alert/confirm) --- */
+        /* --- MODAL DE CONFIRMATION PERSO --- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -444,13 +444,7 @@
                         </svg>
                         Créer une sortie
                     </a>
-                    <button class="btn btn-success" onclick="creerSortieTest()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5">
-                            <path d="M12 5v14M5 12h14" />
-                        </svg>
-                        Créer une sortie test
-                    </button>
+
                 </div>
             </div>
 
@@ -485,9 +479,9 @@
             <div id="releases-list" class="releases-grid"></div>
 
             <div class="pagination">
-                <button id="btn-prev" class="page-btn" onclick="pagePrecedente()">&lt;</button>
+                <button id="btn-prev" class="page-btn" onclick="pagePrecedente()">◀</button>
                 <div id="page-numbers" style="display: flex; gap: 5px;"></div>
-                <button id="btn-next" class="page-btn" onclick="pageSuivante()">&gt;</button>
+                <button id="btn-next" class="page-btn" onclick="pageSuivante()">▶</button>
             </div>
         </div>
     </div>
@@ -512,7 +506,7 @@
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import { api } from "/assets/js/api.js";
 
-        const DEFAULT_COVER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'><rect width='100%' height='100%' fill='%23f1f5f9'/><path d='M120 100v70a25 25 0 1 0 20 24.5V120h40v-20h-60z' fill='%23FC8FB0'/><text x='50%' y='80%' font-family='sans-serif' font-size='14' fill='%2394a3b8' text-anchor='middle'>Pochette non disponible</text></svg>";
+        const DEFAULT_COVER = "/assets/img/icons/brouillon.png";
 
         const PAGE_SIZE = 8;
         let pageActuelle = 1;
@@ -647,7 +641,6 @@
                 const statutBrut = (release.status || "verification mmcp").toLowerCase();
                 const configBadge = configurationsBadges[statutBrut] || { texte: release.status || "Statut inconnu", classe: "status-verification-mmcp" };
 
-                // Utilisation de la méthode de résolution de pochette identique à sortie.html
                 const imageSrc = getCoverUrl(release);
 
                 const masquerModifier = [

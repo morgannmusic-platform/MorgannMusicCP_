@@ -49,7 +49,6 @@
 
         .card h1 {
             font-size: 32px;
-            /* Légèrement réduit pour éviter les débordements de texte long */
             font-weight: 800;
             color: #FC8FB0;
             margin: 0px;
@@ -66,7 +65,6 @@
             width: max-content;
             padding: 10px;
             margin-top: auto;
-            /* Pousse le bouton vers le bas de la carte proprement */
             border-radius: 40px;
         }
 
@@ -108,7 +106,6 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            /* Fond sombre transparent */
             backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
@@ -119,7 +116,6 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Classe CSS activée par le JavaScript si aucun artiste n'existe */
         .popup-overlay.show {
             opacity: 1;
             pointer-events: auto;
@@ -188,7 +184,7 @@
             gap: 0.75rem;
         }
 
-        /* Ligne de sortie unique */
+        /* Ligne de sortie unique transformée en lien propre */
         .release-item {
             display: flex;
             align-items: center;
@@ -200,6 +196,8 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.411);
             padding: 12px 20px;
             gap: 16px;
+            text-decoration: none;
+            color: inherit;
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
@@ -208,10 +206,12 @@
             box-shadow: 0 0 16px rgba(0, 0, 0, 0.322);
         }
 
-        /* Image de la pochette (coverUrl) */
+        /* Image de la pochette */
         .release-cover {
             width: 50px;
             height: 50px;
+            min-width: 50px;
+            min-height: 50px;
             border-radius: 13px;
             object-fit: cover;
             background-color: #e2e8f0;
@@ -222,6 +222,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            overflow: hidden;
         }
 
         .release-title {
@@ -229,12 +230,18 @@
             font-weight: 700;
             color: #1e293b;
             margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .release-meta {
             font-size: 12px;
             color: #64748b;
             margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Pastille de Statut dynamique */
@@ -244,6 +251,7 @@
             padding: 4px 10px;
             border-radius: 20px;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .status-brouillon {
@@ -347,20 +355,52 @@
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import { api } from "/assets/js/api.js";
 
+        const DEFAULT_COVER = "/assets/img/icons/brouillon.png";
+
+        function getCoverUrl(release) {
+            let rawCover = release.coverUrl || release.cover || release.cover_url || release.pochetteUrl;
+            if (!rawCover && release.data) {
+                rawCover = release.data.coverUrl || release.data.cover || release.data.cover_url || release.data.pochetteUrl;
+            }
+            if (!rawCover) return DEFAULT_COVER;
+
+            try {
+                if (typeof api.fileUrl === 'function') {
+                    return api.fileUrl(rawCover);
+                }
+            } catch (e) {
+                console.warn("Erreur résolution pochette via api.fileUrl :", e);
+            }
+
+            if (rawCover.startsWith("http://") || rawCover.startsWith("https://") || rawCover.startsWith("data:")) {
+                return rawCover;
+            }
+            return rawCover;
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = "/login.html";
                 return;
             }
 
-            // PARTIE A : Finance (calcul depuis API D1 si applicable ou 0€ par défaut)
+            // PARTIE A : Finance
             try {
-                document.getElementById("user-revenus-total").innerText = (0).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+                const finances = await api.get(`/api/users/${user.uid}/finances`);
+
+                // Calcul de la somme totale de la liste d'entrées financières
+                const total = Array.isArray(finances)
+                    ? finances.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+                    : 0;
+
+                document.getElementById("user-revenus-total").innerText = total.toLocaleString('fr-FR', {
+                    style: 'currency',
+                    currency: 'EUR'
+                });
             } catch (err) {
                 console.error("Erreur widget finances:", err);
-            }
-
-            // PARTIE B : Vérifier les artistes rattachés à l'utilisateur dans D1
+                document.getElementById("user-revenus-total").innerText = "Erreur";
+            }            // PARTIE B : Vérifier les artistes rattachés à l'utilisateur dans D1
             try {
                 const artistsList = await api.get(`/api/users/${user.uid}/artists`);
                 const elArtistName = document.getElementById("user-artist-name");
@@ -379,7 +419,7 @@
                 }
             }
 
-            // PARTIE C : Récupérer le plan et le rôle de l'utilisateur depuis D1
+            // PARTIE C : Récupérer le plan et le rôle
             try {
                 const userData = await api.get(`/api/users/${user.uid}`);
 
@@ -396,7 +436,8 @@
                 document.getElementById("plan").innerText = "Erreur";
                 document.getElementById("compte").innerText = "Erreur";
             }
-            // PARTIE D : Récupérer et lister les sorties (Releases) depuis D1
+
+            // PARTIE D : Récupérer et lister les sorties (Releases)
             try {
                 const allReleases = await api.get(`/api/users/${user.uid}/releases`);
                 const releasesList = Array.isArray(allReleases) ? allReleases : [];
@@ -417,7 +458,6 @@
             }
         });
 
-        // 3. Fonction pour appliquer dynamiquement les textes dans le HTML
         function adapterLesCartes(plan, role) {
             const elPlan = document.getElementById("plan");
             const elCompte = document.getElementById("compte");
@@ -427,12 +467,11 @@
             }
 
             if (elCompte) {
-                // Optionnel : Mettre une majuscule au rôle s'il est en minuscules dans la bdd
                 elCompte.innerText = role.charAt(0).toUpperCase() + role.slice(1);
             }
         }
 
-        // Fonction globale pour générer le code HTML des listes de sorties
+        // Fonction d'affichage homogène avec sorties.html
         function afficherSorties(liste, targetId, messageVide = "Aucune sortie trouvée.") {
             const container = document.getElementById(targetId);
             if (!container) return;
@@ -442,38 +481,32 @@
                 return;
             }
 
-            container.innerHTML = ""; // On vide le texte de chargement
+            container.innerHTML = "";
 
             liste.forEach(release => {
                 const title = release.title || "Sans titre";
                 const artist = release.artistName || "Artiste inconnu";
                 const type = release.type || "Single";
-                const cover = release.coverUrl || "/assets/img/icons/android-chrome-512x512.png"; // Image par défaut si vide
+                const cover = getCoverUrl(release);
                 const status = release.status || "brouillon";
 
-                // Adapte la couleur de la pastille selon le statut bdd
                 let statusClass = "status-brouillon";
                 if (status === "verification mmcp") statusClass = "status-verification";
                 if (status === "publié" || status === "validé") statusClass = "status-valide";
 
-                // Dans ta fonction afficherSorties() :
                 const itemHTML = `
-    <a href="sortie.html?id=${release.id}" style="text-decoration: none; color: inherit; display: block;">
-        <div class="release-item">
-            <img src="${cover}" alt="Pochette de ${title}" class="release-cover">
-            <div class="release-info">
-                <h3 class="release-title">${title}</h3>
-                <p class="release-meta">${artist} • ${type}</p>
-            </div>
-            <span class="release-status ${statusClass}">${status}</span>
-        </div>
-    </a>
-`;
+                    <a href="sortie.html?id=${release.id}" class="release-item">
+                        <img src="${cover}" alt="Pochette" class="release-cover" onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
+                        <div class="release-info">
+                            <h3 class="release-title">${title}</h3>
+                            <p class="release-meta">${artist} • ${type}</p>
+                        </div>
+                        <span class="release-status ${statusClass}">${status}</span>
+                    </a>
+                `;
                 container.insertAdjacentHTML("beforeend", itemHTML);
             });
         }
-
-
     </script>
 </body>
 

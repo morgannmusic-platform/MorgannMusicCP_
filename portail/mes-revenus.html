@@ -162,6 +162,16 @@
             color: #FC8FB0;
             font-weight: 700;
         }
+
+        /* Ajout de la classe CSS pour les montants négatifs (Retraits) */
+        .text-red {
+            color: #d32f2f;
+            font-weight: 700;
+        }
+
+        tr:hover .text-red {
+            color: #b71c1c;
+        }
     </style>
 </head>
 
@@ -330,14 +340,23 @@
 
             financesFiltrees.forEach((f) => {
                 const totalMoisKey = `${f.mois}`;
-                donneesGraphique[totalMoisKey] = (donneesGraphique[totalMoisKey] || 0) + Number(f.amount || 0);
+                const amount = Number(f.amount || 0);
+
+                donneesGraphique[totalMoisKey] = (donneesGraphique[totalMoisKey] || 0) + amount;
+
+                // Logique conditionnelle pour l'affichage visuel des gains/retraits
+                const isNegative = amount < 0;
+                const formattedAmount = isNegative
+                    ? `- ${Math.abs(amount).toFixed(2)} €`
+                    : `+ ${amount.toFixed(2)} €`;
+                const amountClass = isNegative ? 'text-red' : 'text-green';
 
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                 <td style="font-weight:600;">${f.period}</td>
                 <td>${f.releaseTitle || "Vente directe catalogue"}</td>
                 <td>${f.artistName || "-"}</td>
-                <td class="text-green">+ ${Number(f.amount || 0).toFixed(2)} €</td>
+                <td class="${amountClass}">${formattedAmount}</td>
             `;
                 tbody.appendChild(tr);
             });

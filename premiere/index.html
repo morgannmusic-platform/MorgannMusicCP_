@@ -126,43 +126,11 @@
             margin-top: 8px;
         }
 
-        /* Styles de la boîte de mot de passe */
         #password-overlay {
             display: none;
             text-align: center;
             max-width: 400px;
             margin: 100px auto;
-        }
-
-        .pw-input {
-            width: 100%;
-            padding: 12px 20px;
-            border-radius: 25px;
-            border: 1px solid #ccc;
-            font-size: 15px;
-            margin: 15px 0;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        .pw-input:focus {
-            border-color: #FC8FB0;
-        }
-
-        .btn-submit {
-            background: #FC8FB0;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 15px;
-            transition: opacity 0.2s;
-        }
-
-        .btn-submit:hover {
-            opacity: 0.9;
         }
 
         .error-msg {
@@ -171,12 +139,65 @@
             margin-top: 10px;
             display: none;
         }
+
+        :root {
+            --bg-nb: rgb(252, 143, 176);
+            --bg-nb-tl: rgba(252, 143, 176, 0.474);
+
+            --text-nb: #eaffc6;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-nb: rgb(108, 122, 83);
+                --bg-nb-tl: rgba(108, 122, 83, 0.338);
+
+                --text-nb: rgb(252, 143, 176);
+            }
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(180deg, var(--bg-nb), var(--bg-nb-tl));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 1;
+            /* Changed from 0 to 1 to make it visible */
+            gap: 15px;
+            /* Added gap between logo and text */
+        }
+
+        .navbar img {
+            height: 30px;
+            width: auto;
+        }
+
+        .navbar h1 {
+            color: var(--text-nb);
+            font-size: 20px;
+            margin: 0;
+            font-weight: 700;
+        }
     </style>
 </head>
 
 <body>
+    <nav class="navbar">
+        <img src="/assets/img/icons/premiere.png" alt="Logo Première"
+            onerror="this.src='https://placehold.co/40x40/FC8FB0/ffffff?text=MM'">
+        <h1>Morgann Music Première</h1>
+    </nav>
 
-    <div class="container">
+    <div class="container" style="margin-top: 100px;"> <!-- Added top margin to account for fixed navbar -->
         <!-- Écran de demande de mot de passe (si sécurisé) -->
         <div id="password-overlay" class="card">
             <h2>🔒 Accès Protégé</h2>
@@ -213,142 +234,129 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { api } from "/assets/js/api.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Récupérer le slug depuis l'URL (ex: /premiere/mon-slug ou paramètre ?slug=)
-        // Si tu utilises clean URLs avec Cloudflare / rewrite, on extrait le dernier segment :
-        // Récupérer le slug depuis les paramètres URL (?slug=...) ou le chemin
+        // Récupération des paramètres d'URL (?artiste=...&slug=...) ou de l'URL propre (/premiere/nom-artiste/slug)
         const urlParams = new URLSearchParams(window.location.search);
+        let artiste = urlParams.get('artiste');
         let slug = urlParams.get('slug');
 
-        if (!slug) {
+        if (!slug || !artiste) {
             const pathSegments = window.location.pathname.split('/').filter(Boolean);
-            slug = pathSegments[pathSegments.length - 1] === 'premiere.html' || pathSegments[pathSegments.length - 1] === 'premiere' ? null : pathSegments[pathSegments.length - 1];
+            // Si l'URL est de type /premiere/nom-artiste/mon-slug
+            const premiereIndex = pathSegments.indexOf('premiere');
+            if (premiereIndex !== -1 && pathSegments.length > premiereIndex + 2) {
+                artiste = decodeURIComponent(pathSegments[premiereIndex + 1]);
+                slug = pathSegments[premiereIndex + 2];
+            }
         }
+
         async function initPremiere() {
-            if (!slug) {
-                document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Lien de Première invalide.</h2>";
+            if (!slug || !artiste) {
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Lien de Première invalide (Nom d'artiste ou slug manquant).</h2>";
                 return;
             }
 
             try {
-                // 1. Récupérer le document de la première dans la collection "premieres"
-                const premiereRef = doc(db, "premieres", slug);
-                const premiereSnap = await getDoc(premiereRef);
+                // CORRECTION: Utilisation de l'API dédiée pour la première au lieu de fetch toute la liste
+                // Cela permet aussi de vérifier directement via le endpoint sécurisé si la première est active.
+                const res = await api.get(`/api/premiere?slug=${encodeURIComponent(slug)}&artiste=${encodeURIComponent(artiste)}`);
 
-                if (!premiereSnap.exists()) {
-                    document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Cette Première est introuvable ou a expiré.</h2>";
+                if (res && res.error) {
+                    document.body.innerHTML = `<h2 style='text-align:center; margin-top:100px;'>${res.error}</h2>`;
                     return;
                 }
 
-                const premiereData = premiereSnap.data();
-                const releaseId = premiereData.releaseId;
-                const ownerId = premiereData.userId;
-                const storedPassword = premiereData.password;
+                const release = res;
+                if (!release || !release.id) {
+                    document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Cette Première est introuvable, désactivée ou le nom d'artiste ne correspond pas.</h2>";
+                    return;
+                }
 
-                // 2. Gestion du mot de passe
-                if (storedPassword && storedPassword.trim() !== "") {
+                // Gestion du mot de passe
+                if (release.premierePassword && release.premierePassword.trim() !== "") {
                     document.getElementById("password-overlay").style.display = "block";
 
                     document.getElementById("btn-verify-pw").onclick = () => {
                         const enteredPw = document.getElementById("input-password").value;
-                        if (enteredPw === storedPassword) {
+                        if (enteredPw === release.premierePassword) {
                             document.getElementById("password-overlay").style.display = "none";
-                            chargerDonneesRelease(ownerId, releaseId);
+                            afficherDonneesRelease(release);
                         } else {
                             document.getElementById("pw-error").style.display = "block";
                         }
                     };
-                    return; // On attend que le mot de passe soit validé
+                    return;
                 }
 
-                // Pas de mot de passe, on charge direct
-                chargerDonneesRelease(ownerId, releaseId);
+                afficherDonneesRelease(release);
 
             } catch (err) {
                 console.error("Erreur chargement première :", err);
-                document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Erreur lors du chargement de la page.</h2>";
+                // Si l'API retourne une erreur 404/403, api.js peut throw une exception.
+                let msg = "Erreur de connexion. Veuillez réessayer.";
+                if (err.message && err.message.includes("404")) msg = "Cette Première est introuvable.";
+                if (err.message && (err.message.includes("403") || err.message.includes("401"))) msg = "Cette Première est désactivée ou le nom d'artiste ne correspond pas.";
+
+                document.body.innerHTML = `<h2 style='text-align:center; margin-top:100px;'>${msg}</h2>`;
             }
         }
 
-        async function chargerDonneesRelease(userId, releaseId) {
-            try {
-                const releaseRef = doc(db, "users", userId, "releases", releaseId);
-                const releaseSnap = await getDoc(releaseRef);
+        function afficherDonneesRelease(data) {
+            document.getElementById("premiere-content").style.display = "block";
 
-                if (!releaseSnap.exists()) {
-                    document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Sortie associée introuvable.</h2>";
-                    return;
-                }
-
-                const data = releaseSnap.data();
-                document.getElementById("premiere-content").style.display = "block";
-
-                // Pochette (Animée ou Statique)
-                const coverWrapper = document.getElementById("cover-wrapper");
-                const animatedCoverUrl = data.animatedCoverUrl || data.animatedCover;
-                if (animatedCoverUrl) {
-                    coverWrapper.innerHTML = `
-                        <video src="${animatedCoverUrl}" autoplay loop muted playsinline></video>
-                    `;
-                } else {
-                    const staticCover = data.coverUrl || data.cover || "/assets/img/icons/android-chrome-512x512.png";
-                    coverWrapper.innerHTML = `<img src="${staticCover}" alt="Pochette">`;
-                }
-
-                // Infos principales
-                document.getElementById("release-title").innerText = data.title || "Sans titre";
-                document.getElementById("release-artist").innerText = `${data.artistName || 'Artiste'} • ${data.type || 'Single'}`;
-
-                document.getElementById("release-meta").innerHTML = `
-                    <div><b>Date de sortie officielle :</b> ${data.releaseDate || 'Bientôt'}</div>
-                    <div><b>Genre :</b> ${data.primaryGenre || 'Non spécifié'}</div>
+            // Pochette (Animée ou Statique)
+            const coverWrapper = document.getElementById("cover-wrapper");
+            const animatedCoverUrl = data.animatedCoverUrl || data.animatedCover;
+            if (animatedCoverUrl) {
+                coverWrapper.innerHTML = `
+                    <video src="${api.fileUrl(animatedCoverUrl)}" autoplay loop muted playsinline></video>
+                    <div class="badge-animated-cover">Pochette animée</div>
                 `;
+            } else {
+                const staticCover = data.coverUrl || data.cover || "/assets/img/icons/android-chrome-512x512.png";
+                coverWrapper.innerHTML = `<img src="${api.fileUrl(staticCover)}" alt="Pochette">`;
+            }
 
-                // Pistes & Audio
-                const tracksContainer = document.getElementById("tracks-container");
-                tracksContainer.innerHTML = "";
-                const tracks = data.tracks || [];
+            // Infos principales
+            document.getElementById("release-title").innerText = data.title || "Sans titre";
+            document.getElementById("release-artist").innerText = `${data.artistName || 'Artiste'} • ${data.type || 'Single'}`;
 
-                if (tracks.length === 0) {
-                    tracksContainer.innerHTML = "<p style='color:#666;'>Aucune piste disponible pour le moment.</p>";
-                    return;
+            document.getElementById("release-meta").innerHTML = `
+                <div><b>Date de sortie officielle :</b> ${data.releaseDate || 'Bientôt'}</div>
+                <div><b>Genre :</b> ${data.primaryGenre || 'Non spécifié'}</div>
+            `;
+
+            // Pistes & Audio
+            const tracksContainer = document.getElementById("tracks-container");
+            tracksContainer.innerHTML = "";
+            const tracks = typeof data.tracks === 'string' ? JSON.parse(data.tracks || "[]") : (data.tracks || []);
+
+            if (tracks.length === 0) {
+                tracksContainer.innerHTML = "<p style='color:#666;'>Aucune piste disponible pour le moment.</p>";
+                return;
+            }
+
+            tracks.forEach((t, index) => {
+                let audioSourcesHtml = '';
+                const mainAudio = t.fileUrl || t.audioUrl;
+                const instAudio = t.instrumentalFileUrl || t.instrumentalAudioUrl;
+
+                if (mainAudio) {
+                    audioSourcesHtml += `<div style="margin-top:10px;"><span style="font-size:12px; font-weight:bold; color:#666;">Version Stéréo</span><audio controls src="${api.fileUrl(mainAudio)}"></audio></div>`;
+                }
+                if (instAudio) {
+                    audioSourcesHtml += `<div style="margin-top:10px;"><span style="font-size:12px; font-weight:bold; color:#666;">Version Instrumentale</span><audio controls src="${api.fileUrl(instAudio)}"></audio></div>`;
                 }
 
-                tracks.forEach((t, index) => {
-                    let audioSourcesHtml = '';
-                    if (t.audioUrl) {
-                        audioSourcesHtml += `<div style="margin-top:10px;"><span style="font-size:12px; font-weight:bold; color:#666;">Version Stéréo</span><audio controls src="${t.audioUrl}"></audio></div>`;
-                    }
-                    if (t.instrumentalAudioUrl) {
-                        audioSourcesHtml += `<div style="margin-top:10px;"><span style="font-size:12px; font-weight:bold; color:#666;">Version Instrumentale</span><audio controls src="${t.instrumentalAudioUrl}"></audio></div>`;
-                    }
-
-                    const trackEl = document.createElement("div");
-                    trackEl.className = "track-item";
-                    trackEl.innerHTML = `
-                        <div class="track-title"><span style="color:#aaa; margin-right:10px;">${String(index + 1).padStart(2, '0')}</span>${t.title || 'Sans titre'}</div>
-                        ${audioSourcesHtml || '<p style="font-size:13px; color:#999;">Audio non disponible</p>'}
-                    `;
-                    tracksContainer.appendChild(trackEl);
-                });
-
-            } catch (err) {
-                console.error("Erreur de récupération de la sortie :", err);
-            }
+                const trackEl = document.createElement("div");
+                trackEl.className = "track-item";
+                trackEl.innerHTML = `
+                    <div class="track-title"><span style="color:#aaa; margin-right:10px;">${String(index + 1).padStart(2, '0')}</span>${t.title || 'Sans titre'}</div>
+                    ${audioSourcesHtml || '<p style="font-size:13px; color:#999;">Audio non disponible</p>'}
+                `;
+                tracksContainer.appendChild(trackEl);
+            });
         }
 
         initPremiere();

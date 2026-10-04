@@ -61,12 +61,23 @@
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
         }
 
-        .card-cover {
+        .cover-wrapper {
             width: 100%;
             aspect-ratio: 1 / 1;
+            background: #f1f5f9;
             border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .release-cover {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            background-color: #e5e7eb;
+            display: block;
         }
 
         .card-info {
@@ -169,22 +180,32 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { api } from "/assets/js/api.js";
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
-        };
+        const DEFAULT_COVER = "/assets/img/icons/brouillon.png";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        function getCoverUrl(release) {
+            let rawCover = release.coverUrl || release.cover || release.cover_url || release.pochetteUrl;
+            if (!rawCover && release.data) {
+                rawCover = release.data.coverUrl || release.data.cover || release.data.cover_url || release.data.pochetteUrl;
+            }
+            if (!rawCover) return DEFAULT_COVER;
+
+            try {
+                if (typeof api.fileUrl === 'function') {
+                    return api.fileUrl(rawCover);
+                }
+            } catch (e) {
+                console.warn("Erreur résolution pochette via api.fileUrl :", e);
+            }
+
+            if (rawCover.startsWith("http://") || rawCover.startsWith("https://") || rawCover.startsWith("data:")) {
+                return rawCover;
+            }
+            return rawCover;
+        }
 
         // Copier le lien
         window.copierLien = function (url, btnId) {
@@ -212,27 +233,27 @@
             const grid = document.getElementById("smartlinks-grid");
 
             try {
-                const releasesRef = collection(db, "users", user.uid, "releases");
-                const snapshot = await getDocs(releasesRef);
+                const dataResponse = await api.get(`/api/users/${user.uid}/releases`);
+                const releases = Array.isArray(dataResponse) ? dataResponse : (dataResponse.releases || []);
 
                 let count = 0;
                 let htmlContent = "";
 
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-
+                releases.forEach((data, index) => {
                     // Filtrer uniquement les sorties avec un lien renseigné
                     if (data.releaseUrl && data.releaseUrl.trim() !== "") {
                         count++;
-                        const cover = data.coverUrl || data.cover || "/assets/img/icons/android-chrome-512x512.png";
+                        const cover = getCoverUrl(data);
                         const title = data.title || "Sans titre";
                         const artist = data.artistName || "Artiste";
                         const date = data.releaseDate ? `Sortie le : ${data.releaseDate}` : "";
-                        const btnId = `btn-copy-${docSnap.id}`;
+                        const btnId = `btn-copy-${data.id || index}`;
 
                         htmlContent += `
                             <div class="release-card">
-                                <img src="${cover}" class="card-cover" alt="Pochette ${title}">
+                                <div class="cover-wrapper">
+                                    <img src="${cover}" class="release-cover" alt="Pochette ${title}" onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
+                                </div>
                                 <div class="card-info">
                                     <h3 class="card-title">${title}</h3>
                                     <p class="card-artist">${artist}</p>

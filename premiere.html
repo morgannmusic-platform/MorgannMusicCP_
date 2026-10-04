@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description"
+        content="Découvrez Morgann Music Première - L'outil idéal pour partager vos avant-premières musicales en toute sécurité.">
+    <meta name="theme-color" content="#FC8FB0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#52303c" media="(prefers-color-scheme: dark)">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Morgann Music Première">
+    <meta property="og:description"
+        content="Partagez vos sorties avant tout le monde avec des liens sécurisés et des visuels animés.">
+    <meta property="og:image" content="/assets/img/Banières/accueil.png">
+    <meta property="og:locale" content="fr_FR">
+
+    <title>Morgann Music Première - Présentation</title>
+
+    <!-- Styles globaux -->
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
+
+    <!-- Styles spécifiques à cette page -->
+    <style>
+        /* STREAMING_CHUNK: Styling the custom hero and zigzag sections... */
+        .premiere-hero {
+            padding: 150px 20px 80px;
+            text-align: center;
+            background: radial-gradient(circle at top, rgba(252, 143, 176, 0.466) 0%, transparent 50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(252, 143, 176, 0.466);
+            border-radius: 36px;
+            margin: 10px;
+            margin-bottom: 20px;
+        }
+
+        .premiere-hero-badge {
+            background: rgba(252, 143, 176, 0.15);
+            color: #FC8FB0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(252, 143, 176, 0.3);
+        }
+
+        .premiere-hero h1 {
+            font-size: clamp(40px, 6vw, 70px);
+            font-weight: 800;
+            margin: 0 0 20px 0;
+            line-height: 1.1;
+        }
+
+        .premiere-hero h1 span {
+            color: #FC8FB0;
+        }
+
+        .premiere-hero p {
+            font-size: 18px;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto 40px auto;
+            line-height: 1.6;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .premiere-hero p {
+                color: #aaa;
+            }
+        }
+
+        /* Mockup de la page première */
+        .mockup-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto 80px auto;
+            border-radius: 30px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            transform: translateY(50px);
+            opacity: 0;
+        }
+
+        .mockup-card {
+            background-color: rgba(239, 255, 203, 0.321);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 0 30px #fc8fb06f;
+            border: 1px solid rgba(255, 255, 255, 0.592);
+            border-radius: 36px;
+            padding: 30px;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .mockup-cover {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #FC8FB0, #ffb6c1);
+            position: relative;
+        }
+
+        .mockup-badge {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            color: white;
+            font-size: 9px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .mockup-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .mockup-info p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .mockup-player {
+            margin-top: 15px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .mockup-container {
+                padding: 20px;
+            }
+
+            .mockup-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* STREAMING_CHUNK: Styling the ZigZag features section... */
+        .zigzag-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .zigzag-row {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+            margin-bottom: 120px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .zigzag-row:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .zigzag-text {
+            flex: 1;
+        }
+
+        .zigzag-text h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .zigzag-text p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .zigzag-text p {
+                color: #aaa;
+            }
+        }
+
+        .zigzag-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: rgba(252, 143, 176, 0.1);
+            color: #FC8FB0;
+            border-radius: 50px;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .zigzag-visual {
+            flex: 1;
+            position: relative;
+        }
+
+        .visual-box {
+            background: #fff9fa9c;
+            border: 1px solid var(--border-color, #eee);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.211);
+            position: relative;
+            z-index: 2;
+        }
+
+        .visual-blob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            background: #FC8FB0;
+            filter: blur(60px);
+            opacity: 0.15;
+            z-index: 1;
+        }
+
+        @media (max-width: 900px) {
+
+            .zigzag-row,
+            .zigzag-row:nth-child(even) {
+                flex-direction: column;
+                gap: 40px;
+                margin-bottom: 80px;
+            }
+        }
+
+        /* Fake UI Elements for Visuals */
+        .fake-input {
+            background: #ffdaf086;
+            border-radius: 50px;
+            padding: 12px 16px;
+            font-family: monospace;
+            color: #555;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.227);
+            transition: all 0.4s ease;
+
+        }
+
+        .fake-btn {
+            background: #FC8FB0;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            display: inline-block;
+            transition: all 0.4s ease;
+        }
+
+        .fake-input:hover {
+            transform: scale(1.02);
+        }
+
+        .fake-input:focus {
+            border: 4px solid #FC8FB0;
+        }
+
+        .fake-btn:hover {
+            transform: scale(1.06);
+        }
+    </style>
+
+    <!-- GSAP pour les animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="/assets/js/background.js"></script>
+    <script type="module" src="/assets/js/navbar.js" defer></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+</head>
+
+<body>
+    <!-- STREAMING_CHUNK: Building the HTML structure... -->
+    <div id="navbar"></div>
+
+    <div class="content-wrapper">
+
+        <!-- NOUVEAU HERO CUSTOM -->
+        <header class="premiere-hero">
+            <div class="premiere-hero-badge">L'outil indispensable</div>
+            <h1>Morgann Music <span>Première</span></h1>
+            <p>
+                Partagez vos futures sorties dans un écrin privé, élégant et sécurisé.
+                Donnez à vos médias, partenaires et fans VIP un accès anticipé exclusif sans jamais perdre le contrôle.
+            </p>
+            <a href="/portail/sorties.html" class="cta-button">Créer ma Première</a>
+        </header>
+
+        <!-- MOCKUP VISUEL DE LA PAGE PREMIERE -->
+        <div class="mockup-container" id="mockup-anim">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <span
+                    style="background: #FC8FB0; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Aperçu
+                    de la page publique</span>
+            </div>
+            <div class="mockup-card">
+                <div class="mockup-cover">
+                    <div class="mockup-badge">Pochette animée</div>
+                </div>
+                <div class="mockup-info" style="flex: 1;">
+                    <h3 style="color: #333;">Mon Nouveau Hit</h3>
+                    <p>Artiste Officiel • Single</p>
+                    <div style="font-size: 11px; color: #999; margin-top: 10px;">Date de sortie officielle : 12 Nov 2026
+                    </div>
+                    <div class="mockup-player"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION ZIGZAG -->
+        <section class="zigzag-section">
+
+            <!-- Bloc 1 : Sécurité et Liens -->
+            <div class="zigzag-row zigzag-anim">
+                <div class="zigzag-text">
+                    <div class="zigzag-icon">🔒</div>
+                    <h2>Le contrôle absolu sur vos exclusivités</h2>
+                    <p>Ne prenez plus de risques avec des liens cloud publics. Avec Morgann Music Première, vous générez
+                        un lien unique, élégant et entièrement sous votre contrôle.</p>
+                    <p>Définissez un mot de passe pour restreindre l'accès uniquement à vos contacts de confiance. C'est
+                        vous qui décidez qui écoute et quand.</p>
+                </div>
+                <div class="zigzag-visual">
+                    <div class="visual-blob"></div>
+                    <div class="visual-box">
+                        <div style="font-size: 12px; color: #888; font-weight: bold; margin-bottom: 8px;">Lien
+                            personnalisé</div>
+                        <div class="fake-input">mm-cp.uk/premiere/... <span style="font-size: 18px;">📋</span></div>
+                        <div style="font-size: 12px; color: #888; font-weight: bold; margin-bottom: 8px;">Mot de passe
+                            de protection</div>
+                        <div class="fake-input">•••••••••••• <span style="font-size: 18px;">👁️</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloc 2 : Design et Audio -->
+            <div class="zigzag-row zigzag-anim">
+                <div class="zigzag-text">
+                    <div class="zigzag-icon">✨</div>
+                    <h2>Une expérience visuelle et sonore premium</h2>
+                    <p>Dites adieu aux interfaces austères. Votre page Première met en valeur votre travail avec un
+                        design immersif (effet "glassmorphism") qui s'adapte au mode clair ou sombre de l'auditeur.</p>
+                    <p>Vos pochettes animées (Apple Motion Artwork) tournent en boucle, et vos masters stéréo et
+                        instrumentaux sont jouables en un clic avec une qualité optimale.</p>
+                </div>
+                <div class="zigzag-visual">
+                    <div class="visual-blob" style="background: #a855f7;"></div>
+                    <div class="visual-box"
+                        style="display: flex; flex-direction: column; gap: 15px; border-radius: 55px;">
+                        <div
+                            style="display: flex; align-items: center; gap: 15px; background: rgba(255, 210, 241, 0.49); padding: 15px; border-radius: 50px;">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 50px; background: #fc8fb05b; color: white; display: flex; align-items: center; justify-content: center;">
+                                🎵</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: bold; color: #333;">Master Stéréo (WAV)</div>
+                                <div style="font-size: 12px; color: #888;">Lecture sans perte</div>
+                            </div>
+                        </div>
+                        <div
+                            style="display: flex; align-items: center; gap: 15px; background: rgba(255, 210, 241, 0.429); padding: 15px; border-radius: 50px;">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 50px; background: #fc8fb05b; color: white; display: flex; align-items: center; justify-content: center;">
+                                🎹</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: bold; color: #333;">Version Instrumentale
+                                </div>
+                                <div style="font-size: 12px; color: #888;">Inclus automatiquement</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloc 3 : Calendrier -->
+            <div class="zigzag-row zigzag-anim">
+                <div class="zigzag-text">
+                    <div class="zigzag-icon">⏱️</div>
+                    <h2>Maîtrisez votre calendrier</h2>
+                    <p>Vous avez peur d'oublier de désactiver un lien promotionnel ? Ne vous inquiétez plus.</p>
+                    <p>Programmez très simplement une date et une heure de début, ainsi qu'une date de fin. L'accès à
+                        votre Première s'ouvrira et se verrouillera automatiquement à la seconde près.</p>
+                </div>
+                <div class="zigzag-visual">
+                    <div class="visual-blob" style="background: #3b82f6;"></div>
+                    <div class="visual-box">
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px; border-radius: 55px;">
+                            <div
+                                style="flex: 1; padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; text-align: center;">
+                                <div style="font-size: 24px; margin-bottom: 5px;">🟢</div>
+                                <div style="font-size: 12px; font-weight: bold; color: #166534;">DÉBUT</div>
+                                <div style="font-size: 13px; color: #15803d; margin-top: 5px;">10 Oct, 18:00</div>
+                            </div>
+                            <div
+                                style="flex: 1; padding: 15px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 16px; text-align: center;">
+                                <div style="font-size: 24px; margin-bottom: 5px;">🔴</div>
+                                <div style="font-size: 12px; font-weight: bold; color: #991b1b;">FIN</div>
+                                <div style="font-size: 13px; color: #b91c1c; margin-top: 5px;">24 Oct, 00:00</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <span class="fake-btn">Activer le lien</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- CTA SECTION (Conservée pour la cohérence globale) -->
+        <section class="cta-section">
+            <div class="cta-container">
+                <h2>Prêt à teaser votre prochain hit ?</h2>
+                <p>La fonctionnalité Première est incluse pour tous nos artistes. <a href="login.html"
+                        style="color:#FC8FB0; text-decoration: underline #FC8FB0 ;">Connectez-vous</a> à votre espace,
+                    allez
+                    sur la page d'une de <a href="/portail/sorties.html"
+                        style="color:#FC8FB0; text-decoration: underline #FC8FB0 ;">vos sorties</a> et déscendez jusqu'a
+                    Première.</p>
+                <a href="/portail/index.html" class="cta-button">Accéder à mon tableau de bord</a>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Pied de page global -->
+    <div id="footer"></div>
+
+    <!-- STREAMING_CHUNK: Initializing GSAP animations for the new layout... -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof gsap !== "undefined") {
+                const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+                if (reducedMotion) {
+                    gsap.set(["#mockup-anim", ".zigzag-anim"], { opacity: 1, y: 0 });
+                    return;
+                }
+
+                // Animation du héro
+                gsap.fromTo(".premiere-hero-badge", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.6, delay: 0.2 });
+                gsap.fromTo(".premiere-hero h1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.4, ease: "power3.out" });
+                gsap.fromTo(".premiere-hero p", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.6 });
+                gsap.fromTo(".premiere-hero .cta-button", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5, delay: 0.8, ease: "back.out(1.5)" });
+
+                // Animation d'entrée du Mockup (l'aperçu vert)
+                gsap.to("#mockup-anim", {
+                    opacity: 1,
+                    y: 0,
+                    duration: 1,
+                    delay: 1,
+                    ease: "power3.out"
+                });
+
+                // Animation au scroll pour la section ZigZag
+                const observerOptions = { threshold: 0.15 };
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            gsap.to(entry.target, {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.8,
+                                ease: "power3.out"
+                            });
+
+                            // Petite animation interne pour le visuel
+                            const visualBox = entry.target.querySelector('.visual-box');
+                            if (visualBox) {
+                                gsap.fromTo(visualBox, { scale: 0.95 }, { scale: 1, duration: 1, ease: "back.out(1.2)", delay: 0.2 });
+                            }
+
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, observerOptions);
+
+                document.querySelectorAll('.zigzag-anim').forEach(sec => observer.observe(sec));
+
+                // Observer classique pour le CTA final
+                const ctaObserver = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting) {
+                        gsap.fromTo(entries[0].target.querySelector(".cta-container"),
+                            { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1 }
+                        );
+                        ctaObserver.disconnect();
+                    }
+                }, { threshold: 0.2 });
+
+                const ctaSec = document.querySelector('.cta-section');
+                if (ctaSec) ctaObserver.observe(ctaSec);
+            }
+        });
+    </script>
+</body>
+
+</html>

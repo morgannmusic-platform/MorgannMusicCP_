@@ -299,33 +299,28 @@
         async function calculerSoldeEtHistorique(userId) {
             const tbody = document.getElementById("user-history-body");
             try {
-                // A. Récupérer les finances de l'utilisateur
+                // A. Récupérer toutes les entrées financières (les gains positifs ET les retraits négatifs générés par le backend)
                 const finances = await api.get(`/api/users/${userId}/finances`);
-                let totalGains = 0;
+                let soldeTotal = 0;
                 if (Array.isArray(finances)) {
                     finances.forEach(f => {
-                        totalGains += Number(f.amount || 0);
+                        soldeTotal += Number(f.amount || 0);
                     });
                 }
 
-                // B. Récupérer l'historique des retraits globaux
+                // On assigne le total calculé directement au solde disponible
+                soldeDisponible = soldeTotal;
+                if (soldeDisponible < 0) soldeDisponible = 0;
+
+                document.getElementById("wallet-balance-display").textContent = `${soldeDisponible.toFixed(2)} €`;
+
+                // B. Récupérer uniquement l'historique pour l'affichage du tableau
                 const withdrawals = await api.get(`/api/withdrawals`);
-                let totalRetraitsValides = 0;
                 let userWithdrawals = [];
 
                 if (Array.isArray(withdrawals)) {
                     userWithdrawals = withdrawals.filter(w => w.userId === userId || w.user_uid === userId || w.userEmail === currentUser.email);
-                    userWithdrawals.forEach(w => {
-                        if (w.status === "envoyé") {
-                            totalRetraitsValides += Number(w.amount || 0);
-                        }
-                    });
                 }
-
-                soldeDisponible = totalGains - totalRetraitsValides;
-                if (soldeDisponible < 0) soldeDisponible = 0;
-
-                document.getElementById("wallet-balance-display").textContent = `${soldeDisponible.toFixed(2)} €`;
 
                 // Remplir le tableau d'historique
                 tbody.innerHTML = "";
@@ -345,11 +340,11 @@
                     if (r.status === "refusé") badgeClass = "badge-refuse";
 
                     tr.innerHTML = `
-                        <td>${dateStr}</td>
-                        <td><strong>${Number(r.amount || 0).toFixed(2)} €</strong></td>
-                        <td style="font-family: monospace;">${r.iban || "-"}</td>
-                        <td><span class="badge ${badgeClass}">${r.status || "demandé"}</span></td>
-                    `;
+                <td>${dateStr}</td>
+                <td><strong>${Number(r.amount || 0).toFixed(2)} €</strong></td>
+                <td style="font-family: monospace;">${r.iban || "-"}</td>
+                <td><span class="badge ${badgeClass}">${r.status || "demandé"}</span></td>
+            `;
                     tbody.appendChild(tr);
                 });
 
@@ -358,7 +353,6 @@
                 tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Erreur de chargement</td></tr>`;
             }
         }
-
         document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 

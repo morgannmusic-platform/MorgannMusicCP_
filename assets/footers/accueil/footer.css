@@ -23,17 +23,18 @@
 }
 
 .footer-container {
-    max-width: 1100px;
+    max-width: 1250px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     flex-wrap: wrap;
     gap: 3rem;
 }
 
 .footer-brand {
     flex: 1;
-    min-width: 250px;
+    min-width: 220px;
 }
 
 .footer-logo {
@@ -53,7 +54,6 @@
     background-color: var(--footer-text);
     -webkit-mask: url("/assets/img/logo/logo-rose.svg") no-repeat center / contain;
     mask: url("/assets/img/logo/logo-rose.svg") no-repeat center / contain;
-    /* Remplace l'image source par un pixel transparent pour laisser voir la couleur du masque */
     content: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
 }
 
@@ -64,23 +64,26 @@
 
 .footer-nav {
     display: flex;
-    gap: 4rem;
-}
-
-.footer-nav-col h4 {
-    font-size: 0.85rem;
-        color: var(--footer-text);
-
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 1.5rem;
-    opacity: 0.5;
+    flex-wrap: wrap;
+    gap: 3rem;
+    flex: 3;
+    justify-content: space-between;
 }
 
 .footer-nav-col {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
+    min-width: 160px;
+}
+
+.footer-nav-col h4 {
+    font-size: 0.85rem;
+    color: var(--footer-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
 }
 
 .footer-nav-col a {
@@ -112,21 +115,25 @@
 }
 
 .footer-bottom {
-    max-width: 1100px;
+    max-width: 1250px;
     margin: 4rem auto 0;
     padding-top: 2rem;
-    border-top: 1px solid var(--border-subtle);
+    border-top: 1px solid var(--footer-border);
     text-align: center;
     font-size: 0.85rem;
     color: var(--footer-text);
     opacity: 0.6;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .footer-container {
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .footer-brand {
         text-align: center;
-        align-items: center;
+        margin-bottom: 1rem;
     }
 
     .footer-logo {
@@ -134,6 +141,20 @@
     }
 
     .footer-nav {
+        justify-content: space-around;
         gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-nav {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 2.5rem;
+    }
+
+    .footer-nav-col {
+        align-items: center;
     }
 }

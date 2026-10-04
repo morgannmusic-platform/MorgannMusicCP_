@@ -170,8 +170,25 @@
             margin-top: 2px;
         }
 
-        .tracks-section,
-        .premiere-section {
+        .btn-popup-trigger {
+            background: #FC8FB0;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 4px;
+            width: max-content;
+            transition: opacity 0.2s;
+        }
+
+        .btn-popup-trigger:hover {
+            opacity: 0.85;
+        }
+
+        .tracks-section {
             background-color: rgba(255, 255, 255, 0.397);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
@@ -180,6 +197,24 @@
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             padding: 30px;
             margin-bottom: 30px;
+        }
+
+        /* Nouveaux styles spécifiques pour la section Première */
+        .premiere-section {
+            background-color: #fff9fa;
+            border: 1px solid rgba(252, 143, 176, 0.2);
+            border-radius: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .premiere-section h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 0;
+            color: #333;
         }
 
         .track-row {
@@ -209,7 +244,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.105);
+            background: rgba(0, 0, 0, 0.25);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -227,12 +262,12 @@
         }
 
         .popup-content {
-            background-color: rgba(255, 255, 255, 0.877);
+            background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
             border: 1px solid rgba(189, 189, 189, 0.438);
             border-radius: 34px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             padding: 30px;
             width: 90%;
             max-width: 600px;
@@ -246,13 +281,16 @@
             top: 20px;
             right: 20px;
             background-color: #FC8FB0;
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: none;
             width: 30px;
             height: 30px;
             border-radius: 50%;
             cursor: pointer;
             font-weight: bold;
             color: rgb(255, 255, 255);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btmodif {
@@ -290,10 +328,31 @@
             font-size: 14px;
             background: rgba(255, 255, 255, 0.8);
             outline: none;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .form-group input:focus {
             border-color: #FC8FB0;
+        }
+
+        /* Styles améliorés pour les inputs de la section Première */
+        .premiere-section .form-group input {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .premiere-section .form-group input:focus {
+            border-color: #FC8FB0;
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.1);
+        }
+
+        .premiere-section .form-group label {
+            color: #4a5568;
+            letter-spacing: 0.5px;
         }
 
         .premiere-result {
@@ -304,6 +363,24 @@
             font-size: 13px;
             display: none;
             word-break: break-all;
+        }
+
+        .modal-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .modal-item-pill {
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            border: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -335,15 +412,19 @@
                 Modifier la sortie
             </button>
 
-            <!-- Section de gestion du lien Morgann Music Première -->
+            <!-- Section de gestion du lien Morgann Music Première (D1) avec le nouveau design -->
             <div class="premiere-section">
-                <h2>Lien Morgann Music Première</h2>
-                <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Configure l'accès en avant-première pour
-                    cette sortie (slug, mot de passe, planification et activation).</p>
+                <h2>
+                    <span
+                        style="background: #FC8FB0; color: white; border-radius: 8px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px;">🌟</span>
+                    Lien Morgann Music Première (D1)
+                </h2>
+                <p style="font-size: 14px; color: #64748b; margin-bottom: 25px;">Configure l'accès en avant-première
+                    pour cette sortie stocké dans Cloudflare D1.</p>
 
                 <div class="form-group">
                     <label for="premiere-custom-text">Texte personnalisé du lien (/premiere/?slug=...)</label>
-                    <input type="text" id="premiere-custom-text" placeholder="ex: mon-super-projet-exclu">
+                    <input type="text" id="premiere-custom-text" placeholder="ex: monex">
                 </div>
 
                 <div class="form-group">
@@ -351,7 +432,7 @@
                     <input type="password" id="premiere-password" placeholder="Mot de passe optionnel">
                 </div>
 
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px;">
                     <div class="form-group" style="flex: 1; min-width: 200px;">
                         <label for="premiere-start-date">Disponible à partir du (optionnel)</label>
                         <input type="datetime-local" id="premiere-start-date">
@@ -362,16 +443,21 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-top: 10px;">
-                    <input type="checkbox" id="premiere-is-active" style="width: 20px; height: 20px; cursor: pointer;">
+                <div class="form-group"
+                    style="flex-direction: row; align-items: center; gap: 12px; margin-top: 15px; margin-bottom: 25px; background: white; padding: 15px; border-radius: 16px; border: 1px solid #e2e8f0; width: max-content;">
+                    <input type="checkbox" id="premiere-is-active"
+                        style="width: 20px; height: 20px; cursor: pointer; accent-color: #007bff; margin: 0;">
                     <label for="premiere-is-active"
-                        style="cursor: pointer; margin: 0; font-weight: bold; color: #333;">Activer manuellement ce lien
-                        Première</label>
+                        style="cursor: pointer; margin: 0; font-weight: 700; color: #1e293b; font-size: 14px; text-transform: none;">Activer
+                        manuellement ce lien Première</label>
                 </div>
 
                 <button type="button" id="btn-save-premiere" class="btmodif"
-                    style="display: inline-block; margin-top: 15px;">Enregistrer / Mettre à jour la Première</button>
-                <div id="premiere-result-box" class="premiere-result"></div>
+                    style="display: inline-block; margin-top: 0; background-color: #f9a8d4; color: white; padding: 12px 24px; font-size: 15px;">Enregistrer
+                    dans D1</button>
+                <div id="premiere-result-box" class="premiere-result"
+                    style="background: white; border: 1px solid #e2e8f0; margin-top: 20px; padding: 15px; border-radius: 16px;">
+                </div>
             </div>
 
             <div class="tracks-section">
@@ -381,6 +467,7 @@
         </div>
     </div>
 
+    <!-- Popup Détails Piste -->
     <div id="track-popup" class="popup-overlay">
         <div class="popup-content">
             <button class="popup-close" onclick="fermerPopup()">✕</button>
@@ -388,6 +475,16 @@
             <div class="metadata-grid" id="popup-metadata" style="border:none; margin-top:20px;"></div>
             <h3 style="margin-top:20px; font-size:14px; color:#666; text-transform:uppercase;">Écoute Audio</h3>
             <div id="pop-audio-container"></div>
+        </div>
+    </div>
+
+    <!-- Popup Général (Territoires / Plateformes) -->
+    <div id="general-info-popup" class="popup-overlay">
+        <div class="popup-content">
+            <button class="popup-close" onclick="fermerInfoPopup()">✕</button>
+            <h2 id="general-popup-title" style="margin:0 0 10px 0; color:#222; font-size: 20px;">-</h2>
+            <p id="general-popup-count" style="font-size: 13px; color: #666; margin-bottom: 15px;"></p>
+            <div id="general-popup-grid" class="modal-list-grid"></div>
         </div>
     </div>
 
@@ -399,6 +496,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         const releaseId = urlParams.get('id');
         let listePistesGlobal = [];
+        let territoiresGlobal = [];
+        let plateformesGlobal = [];
+        let nomArtisteActuel = "";
 
         const configurationsBadges = {
             "verification mmcp": { texte: "Vérification MMCP", classe: "status-verification-mmcp" },
@@ -429,7 +529,9 @@
                     return;
                 }
 
-                // 1. Gestion de la pochette (image ou vidéo R2/CDN)
+                nomArtisteActuel = data.artistName || "artiste";
+
+                // 1. Gestion de la pochette
                 const coverContainer = document.getElementById("cover-container-wrapper");
                 const animatedCoverUrl = data.animatedCoverUrl || data.animatedCover;
 
@@ -446,14 +548,18 @@
                 // 2. Infos principales
                 document.getElementById("release-title").innerText = data.title || "Sans titre";
                 const chaineFeats = formaterLesFeaturings(data.feats);
-                document.getElementById("release-artist").innerText = `${data.artistName || 'Artiste'}${chaineFeats} • ${data.type || 'Single'}`;
+                document.getElementById("release-artist").innerText = `${nomArtisteActuel}${chaineFeats} • ${data.type || 'Single'}`;
 
                 const sb = (data.status || "verification mmcp").toLowerCase();
                 const conf = configurationsBadges[sb] || { texte: sb, classe: "status-verification-mmcp" };
                 document.getElementById("release-status").innerText = conf.texte;
                 document.getElementById("release-status").className = `badge ${conf.classe}`;
 
-                // 3. Grille de métadonnées
+                // 3. Extraction Territoires et Plateformes
+                territoiresGlobal = Array.isArray(data.territories) ? data.territories : (typeof data.territories === 'string' ? data.territories.split(',').map(s => s.trim()).filter(Boolean) : []);
+                plateformesGlobal = Array.isArray(data.selectedPlatforms) ? data.selectedPlatforms : (typeof data.selectedPlatforms === 'string' ? data.selectedPlatforms.split(',').map(s => s.trim()).filter(Boolean) : []);
+
+                // 4. Grille de métadonnées
                 const grid = document.getElementById("global-metadata");
                 const mapFields = [
                     { l: "Code UPC", v: data.upc }, { l: "Code Catalogue", v: data.catalogNumber }, { l: "Format", v: data.format }, { l: "Label", v: data.label },
@@ -461,12 +567,29 @@
                     { l: "Genre Principal", v: data.primaryGenre }, { l: "Genre Secondaire", v: data.secondaryGenre }, { l: "Langue", v: data.language },
                     { l: "Type de Licence", v: data.licenceType }, { l: "Copyright Standard", v: data.stdCopyright }, { l: "Copyright C", v: data.copyrightLineC },
                     { l: "Copyright P", v: data.copyrightLineP }, { l: "Heure Exacte", v: data.exactTime }, { l: "Fuseau Horaire", v: data.timezone },
-                    { l: "Territoires", v: data.territories }, { l: "Spotify URL", v: data.spotifyUrl }, { l: "Apple URL", v: data.appleUrl },
-                    { l: "Plateformes Sélectionnées", v: Array.isArray(data.selectedPlatforms) ? data.selectedPlatforms.join(", ") : data.selectedPlatforms },
+                    { l: "Spotify URL", v: data.spotifyUrl }, { l: "Apple URL", v: data.appleUrl },
                     { l: "Livraisons Additionnelles", v: Array.isArray(data.additionalDeliveries) ? data.additionalDeliveries.join(", ") : data.additionalDeliveries }
                 ];
 
                 let htmlGrid = mapFields.map(f => f.v ? `<div class="meta-item"><span class="meta-label">${f.l}</span><span class="meta-value">${f.v}</span></div>` : '').join('');
+
+                if (territoiresGlobal.length > 0) {
+                    htmlGrid += `
+                        <div class="meta-item">
+                            <span class="meta-label">Territoires (${territoiresGlobal.length})</span>
+                            <button class="btn-popup-trigger" onclick="ouvrirInfoPopup('territoires')">Voir les pays</button>
+                        </div>
+                    `;
+                }
+
+                if (plateformesGlobal.length > 0) {
+                    htmlGrid += `
+                        <div class="meta-item">
+                            <span class="meta-label">Plateformes (${plateformesGlobal.length})</span>
+                            <button class="btn-popup-trigger" onclick="ouvrirInfoPopup('plateformes')">Voir les plateformes</button>
+                        </div>
+                    `;
+                }
 
                 const isCatalog = data.showOnMmcpCatalog !== false;
                 htmlGrid += `
@@ -486,26 +609,25 @@
                         await api.patch(`/api/users/${user.uid}/releases/${releaseId}`, { showOnMmcpCatalog: newValue });
                     } catch (err) {
                         console.error("Erreur lors de la mise à jour :", err);
-                        alert("Erreur lors de la modification de la métadonnée.");
                     }
                 });
 
-                // 4. Pré-remplissage MM Première
-                const premiereData = (typeof data.data === 'string' ? JSON.parse(data.data || '{}') : data.data)?.premiereConfig || data.premiereConfig || {};
-                if (premiereData.slug) {
-                    document.getElementById("premiere-custom-text").value = premiereData.slug;
-                    document.getElementById("premiere-password").value = premiereData.password || "";
-                    document.getElementById("premiere-start-date").value = premiereData.startDate || "";
-                    document.getElementById("premiere-end-date").value = premiereData.endDate || "";
-                    document.getElementById("premiere-is-active").checked = premiereData.isActive !== false;
+                // 5. Chargement de la configuration Première depuis D1
+                if (data.premiereSlug) {
+                    document.getElementById("premiere-custom-text").value = data.premiereSlug;
+                    document.getElementById("premiere-password").value = data.premierePassword || "";
+                    document.getElementById("premiere-start-date").value = data.premiereStartDate || "";
+                    document.getElementById("premiere-end-date").value = data.premiereEndDate || "";
+                    document.getElementById("premiere-is-active").checked = data.premiereIsActive === true || data.premiereIsActive === 1;
 
-                    const fullLink = `${window.location.origin}/premiere/?slug=${premiereData.slug}`;
+                    const artisteSlug = nomArtisteActuel.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+                    const fullLink = `${window.location.origin}/premiere/?artiste=${encodeURIComponent(artisteSlug)}&slug=${data.premiereSlug}`;
                     const resultBox = document.getElementById("premiere-result-box");
                     resultBox.style.display = "block";
-                    resultBox.innerHTML = `Lien actuel : <br><a href="${fullLink}" target="_blank" style="color: #FC8FB0; font-weight: bold;">${fullLink}</a>`;
+                    resultBox.innerHTML = `Lien actuel (D1) : <br><a href="${fullLink}" target="_blank" style="color: #FC8FB0; font-weight: bold;">${fullLink}</a>`;
                 }
 
-                // 5. Enregistrement Première
+                // 6. Enregistrement direct dans D1 via l'API
                 document.getElementById("btn-save-premiere").onclick = async () => {
                     const rawCustomText = document.getElementById("premiere-custom-text").value.trim();
                     const password = document.getElementById("premiere-password").value;
@@ -521,32 +643,28 @@
 
                     const customSlug = rawCustomText.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
 
-                    const newPremiereConfig = {
-                        slug: customSlug,
-                        releaseId: releaseId,
-                        userId: user.uid,
-                        password: password || "",
-                        startDate: startDate || "",
-                        endDate: endDate || "",
-                        isActive: isActive,
-                        updatedAt: new Date().toISOString()
+                    const payloadD1 = {
+                        premiereSlug: customSlug,
+                        premierePassword: password || null,
+                        premiereStartDate: startDate || null,
+                        premiereEndDate: endDate || null,
+                        premiereIsActive: isActive ? 1 : 0
                     };
 
                     try {
-                        const currentData = (typeof data.data === 'string' ? JSON.parse(data.data || '{}') : data.data) || {};
-                        currentData.premiereConfig = newPremiereConfig;
-                        await api.patch(`/api/users/${user.uid}/releases/${releaseId}`, { data: currentData });
+                        await api.patch(`/api/users/${user.uid}/releases/${releaseId}`, payloadD1);
 
-                        const fullLink = `${window.location.origin}/premiere/?slug=${customSlug}`;
+                        const artisteSlug = nomArtisteActuel.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+                        const fullLink = `${window.location.origin}/premiere/?artiste=${encodeURIComponent(artisteSlug)}&slug=${customSlug}`;
                         resultBox.style.display = "block";
-                        resultBox.innerHTML = `Lien mis à jour et enregistré avec succès ! <br><a href="${fullLink}" target="_blank" style="color: #FC8FB0; font-weight: bold;">${fullLink}</a>`;
+                        resultBox.innerHTML = `Lien enregistré dans D1 avec succès ! <br><a href="${fullLink}" target="_blank" style="color: #FC8FB0; font-weight: bold;">${fullLink}</a>`;
                     } catch (err) {
-                        console.error("Erreur lors de l'enregistrement de la première :", err);
-                        alert("Erreur lors de l'enregistrement.");
+                        console.error("Erreur enregistrement D1 Première :", err);
+                        alert("Erreur lors de l'enregistrement dans D1.");
                     }
                 };
 
-                // 6. Liste des Pistes
+                // 7. Liste des Pistes
                 const tList = document.getElementById("tracks-list");
                 tList.innerHTML = "";
                 listePistesGlobal = typeof data.tracks === 'string' ? JSON.parse(data.tracks) : (data.tracks || []);
@@ -558,7 +676,7 @@
                     tList.appendChild(r);
                 });
 
-                // 7. Bouton Modifier
+                // 8. Bouton Modifier
                 const btnModifier = document.getElementById("btn-modifier-sortie");
                 if (btnModifier) {
                     btnModifier.style.display = "inline-block";
@@ -588,19 +706,24 @@
             pGrid.innerHTML = fields.map(f => f.v ? `<div class="meta-item" style="grid-column:${f.l === 'Paroles' ? '1/-1' : 'auto'}"><span class="meta-label">${f.l}</span><span class="meta-value" style="white-space:pre-wrap;">${f.v}</span></div>` : '').join('');
 
             let audioHTML = '';
-            if (t.audioUrl) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Principal</span><br><audio controls src="${api.fileUrl(t.audioUrl)}" style="width:100%; margin-top:4px;"></audio></div>`;
-            if (t.instrumentalAudioUrl) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Instrumental</span><br><audio controls src="${api.fileUrl(t.instrumentalAudioUrl)}" style="width:100%; margin-top:4px;"></audio></div>`;
+            const mainAudio = t.fileUrl || t.audioUrl;
+            const instAudio = t.instrumentalFileUrl || t.instrumentalAudioUrl;
+            const atmosMain = t.atmosFileUrl || t.atmosAudioUrl;
+            const atmosInst = t.atmosInstrumentalFileUrl || t.atmosInstrumentalAudioUrl;
 
-            if (t.atmosAudioUrl) {
+            if (mainAudio) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Principal</span><br><audio controls src="${api.fileUrl(mainAudio)}" style="width:100%; margin-top:4px;"></audio></div>`;
+            if (instAudio) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Instrumental</span><br><audio controls src="${api.fileUrl(instAudio)}" style="width:100%; margin-top:4px;"></audio></div>`;
+
+            if (atmosMain) {
                 audioHTML += `<div style="margin-bottom:12px; padding:10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd;">
                     <span class="meta-label" style="color:#0369a1;">🔊 Master Dolby Atmos (Principal)</span><br>
-                    <a href="${api.fileUrl(t.atmosAudioUrl)}" target="_blank" style="display:inline-block; margin-top:6px; font-size:13px; color:#0284c7; font-weight:bold; text-decoration:none;">🔗 Ouvrir / Télécharger le Master Atmos</a>
+                    <a href="${api.fileUrl(atmosMain)}" target="_blank" style="display:inline-block; margin-top:6px; font-size:13px; color:#0284c7; font-weight:bold; text-decoration:none;">🔗 Ouvrir / Télécharger le Master Atmos</a>
                   </div>`;
             }
-            if (t.atmosInstrumentalAudioUrl) {
+            if (atmosInst) {
                 audioHTML += `<div style="margin-bottom:12px; padding:10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd;">
                     <span class="meta-label" style="color:#0369a1;">🔊 Master Dolby Atmos (Instrumental)</span><br>
-                    <a href="${api.fileUrl(t.atmosInstrumentalAudioUrl)}" target="_blank" style="display:inline-block; margin-top:6px; font-size:13px; color:#0284c7; font-weight:bold; text-decoration:none;">🔗 Ouvrir / Télécharger l'Instrumental Atmos</a>
+                    <a href="${api.fileUrl(atmosInst)}" target="_blank" style="display:inline-block; margin-top:6px; font-size:13px; color:#0284c7; font-weight:bold; text-decoration:none;">🔗 Ouvrir / Télécharger l'Instrumental Atmos</a>
                   </div>`;
             }
 
@@ -610,6 +733,28 @@
 
         window.fermerPopup = function () {
             document.getElementById("track-popup").classList.remove("show");
+        };
+
+        window.ouvrirInfoPopup = function (type) {
+            const titleEl = document.getElementById("general-popup-title");
+            const countEl = document.getElementById("general-popup-count");
+            const gridEl = document.getElementById("general-popup-grid");
+
+            if (type === 'territoires') {
+                titleEl.innerText = "Territoires de diffusion";
+                countEl.innerText = `${territoiresGlobal.length} pays / territoires inclus`;
+                gridEl.innerHTML = territoiresGlobal.map(item => `<div class="modal-item-pill">${item}</div>`).join('');
+            } else if (type === 'plateformes') {
+                titleEl.innerText = "Plateformes de distribution";
+                countEl.innerText = `${plateformesGlobal.length} plateformes sélectionnées`;
+                gridEl.innerHTML = plateformesGlobal.map(item => `<div class="modal-item-pill">${item}</div>`).join('');
+            }
+
+            document.getElementById("general-info-popup").classList.add("show");
+        };
+
+        window.fermerInfoPopup = function () {
+            document.getElementById("general-info-popup").classList.remove("show");
         };
 
         function formaterLesFeaturings(listeFeats) {

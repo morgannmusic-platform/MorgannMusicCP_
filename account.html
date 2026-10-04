@@ -253,7 +253,7 @@
             <!-- SECTION 1 : PROFIL -->
             <section class="tab-panel is-active" data-panel="profile" role="tabpanel">
                 <div class="info-grid">
-                    <div class="profile-avatar-wrapper">
+                    <article class="profile-avatar-wrapper">
                         <img id="avatar-preview-img" src="/assets/img/photodeprofil/default-avatar.png"
                             class="avatar-preview" alt="Photo de profil">
                         <div>
@@ -262,7 +262,7 @@
                             <p style="font-size: 12px; color: #777; margin-top: 6px;">Format conseillé : JPG/PNG (Max
                                 2Mo)</p>
                         </div>
-                    </div>
+                    </article>
 
                     <article class="info-card">
                         <label class="label" for="first-name">Prénom</label>
@@ -332,8 +332,10 @@
                 <div class="security-box" style="margin-top: 2rem;">
                     <p>Gérez vos factures, changez de plan ou résiliez votre abonnement en toute sécurité via le portail
                         Stripe.</p>
-                    <div class="actions">
-                        <a href="#" id="manage-billing-btn" class="action-link" target="_blank">Gérer mon abonnement</a>
+                    <div class="actions" style="margin-top: 1rem;">
+                        <button id="manage-billing-btn" type="button" class="save-btn" style="background: #d0a75a;">
+                            💳 Gérer / Résilier mon abonnement
+                        </button>
                     </div>
                 </div>
             </section>
@@ -382,7 +384,7 @@
                     <!-- Bouton pour désactiver (masqué si 2FA inactif) -->
                     <div id="totp-disable-container" class="is-hidden" style="margin-top: 1rem;">
                         <button id="disable-totp-btn" type="button" class="save-btn" style="background: #c62828;">
-                            désactiver l'authentification à deux facteurs
+                            Désactiver l'authentification à deux facteurs
                         </button>
                     </div>
 
@@ -400,7 +402,7 @@
                         <!-- État 2 : Relié (Affichage mail + photo) -->
                         <div id="google-status-container" class="is-hidden"
                             style="display: flex; align-items: center; gap: 12px; background: #f5f5f5; padding: 12px 20px; border-radius: 16px; border: 1px solid #ddd;">
-                            <img id="google-avatar" src="" alt="Google Avatar"
+                            <img id="google-avatar" alt="Google Avatar"
                                 style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #4285f4;">
                             <div style="text-align: left;">
                                 <p style="margin: 0; font-size: 12px; color: #666; font-weight: 600;">Compte Google
@@ -484,6 +486,41 @@
                             avatarPreview.src = event.target.result;
                         };
                         reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // Gestion du portail client Stripe pour résilier/changer d'abonnement
+            const manageBillingBtn = document.getElementById("manage-billing-btn");
+            if (manageBillingBtn) {
+                manageBillingBtn.addEventListener("click", async () => {
+                    manageBillingBtn.disabled = true;
+                    manageBillingBtn.textContent = "Redirection vers Stripe...";
+
+                    try {
+                        const userEmailInput = document.getElementById("email");
+                        const userEmail = userEmailInput ? userEmailInput.value : null;
+
+                        if (!userEmail) {
+                            throw new Error("Email utilisateur introuvable sur la page.");
+                        }
+
+                        const response = await fetch('https://pay.mm-cp.uk/create-portal-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userEmail: userEmail })
+                        });
+
+                        const data = await response.json();
+                        if (data.url) {
+                            window.location.href = data.url;
+                        } else {
+                            throw new Error(data.error || "Impossible d'ouvrir le portail de facturation.");
+                        }
+                    } catch (err) {
+                        alert("Erreur : " + err.message);
+                        manageBillingBtn.disabled = false;
+                        manageBillingBtn.textContent = "💳 Gérer / Résilier mon abonnement";
                     }
                 });
             }
