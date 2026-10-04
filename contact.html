@@ -12,8 +12,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Morgann Music CP">
-
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://mm-cp.uk/contact.html">
     <meta property="og:title" content="Contact - Morgann Music CP">
@@ -22,201 +20,26 @@
     <meta property="og:image" content="assets/img/Banières/accueil.png">
     <meta property="og:locale" content="fr_FR">
     <meta property="og:site_name" content="Morgann Music CP">
-
-    <!-- Favicon & Icons -->
     <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png">
     <link rel="icon" type="image/png" href="/assets/img/icons/clair.png" media="(prefers-color-scheme: light)">
     <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png" media="(prefers-color-scheme: dark)">
     <link rel="apple-touch-icon" href="/assets/img/icons/accueil.png">
-
-    <!-- Canonical -->
     <link rel="canonical" href="https://mm-cp.uk/contact.html">
-
-    <title>Contact - Morgann Music CP</title>
+    <title>Contact | Morgann Music CP</title>
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
-
-    <!-- GSAP et ScrollTrigger -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
     <script src="/assets/js/background.js"></script>
     <script type="module" src="/assets/js/navbar.js" defer></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
-
-    <style>
-        .contact-hero {
-            min-height: 50vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 4rem 1rem 2rem 1rem;
-        }
-
-        .contact-hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            color: var(--rose, #FC8FB0);
-            margin-bottom: 1rem;
-            font-weight: 800;
-        }
-
-        .contact-hero p {
-            font-size: clamp(1.1rem, 2vw, 1.4rem);
-            color: var(--text-secondary, #64748b);
-            max-width: 600px;
-            line-height: 1.6;
-        }
-
-        .contact-container-grid {
-            max-width: 1100px;
-            margin: 0 auto 6rem auto;
-            padding: 0 1.5rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-        }
-
-        @media(max-width: 850px) {
-            .contact-container-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .contact-card-box {
-            background: linear-gradient(135deg, var(--container1, rgba(255, 255, 255, 0.85)), var(--container3, rgba(240, 240, 240, 0.85)));
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
-            border-radius: 30px;
-            padding: 3rem 2.5rem;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        .contact-card-box h2 {
-            font-size: 1.8rem;
-            color: var(--rose, #FC8FB0);
-            margin-bottom: 1.5rem;
-        }
-
-        /* Formulaire */
-        .form-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-primary, #1e293b);
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 1rem 1.2rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
-            border-radius: 12px;
-            color: var(--text-primary, #1e293b);
-            font-family: inherit;
-            font-size: 1rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            box-sizing: border-box;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--rose, #FC8FB0);
-            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.15);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 140px;
-        }
-
-        .submit-btn {
-            width: 100%;
-            background: var(--rose, #FC8FB0);
-            color: #ffffff;
-            border: none;
-            padding: 1rem;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
-        }
-
-        .submit-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-
-        #form-status {
-            margin-top: 1rem;
-            font-size: 0.95rem;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        /* Liste des e-mails */
-        .email-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-        }
-
-        .email-item {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
-            padding: 1.2rem 1.5rem;
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .email-item:hover {
-            transform: translateX(5px);
-            border-color: var(--rose, #FC8FB0);
-        }
-
-        .email-item .service-name {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary, #64748b);
-            font-weight: 700;
-        }
-
-        .email-item a {
-            font-size: 1.05rem;
-            color: var(--rose, #FC8FB0);
-            text-decoration: none;
-            font-weight: 600;
-            word-break: break-all;
-        }
-
-        .email-item a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/contact.css">
 </head>
 
 <body>
     <div id="navbar"></div>
     <div class="content-wrapper">
 
-        <!-- Hero -->
         <header class="contact-hero">
             <span class="hero-pill"
                 style="opacity: 1; background: var(--rose, #FC8FB0); color: #fff; padding: 0.3rem 1rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 1rem;">Support
@@ -228,10 +51,8 @@
             </p>
         </header>
 
-        <!-- Grille Contact (Formulaire + Adresses Mail) -->
         <section class="contact-container-grid">
 
-            <!-- Formulaire API Cloudflare D1 -->
             <div class="contact-card-box" id="form-box">
                 <span class="highlight-tag"
                     style="background: var(--rose, #FC8FB0); color: #fff; padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 1rem; text-transform: uppercase;">Direct</span>
@@ -251,7 +72,6 @@
                 </form>
             </div>
 
-            <!-- Liste des adresses e-mail -->
             <div class="contact-card-box" id="emails-box">
                 <span class="highlight-tag"
                     style="background: var(--rose, #FC8FB0); color: #fff; padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: inline-block; margin-bottom: 1rem; text-transform: uppercase;">Par
@@ -281,106 +101,8 @@
 
     </div>
     <div id="footer"></div>
-
-    <script type="module">
-        import { api } from "/assets/js/api.js";
-
-        const contactForm = document.getElementById("contact-form");
-        const formStatus = document.getElementById("form-status");
-        const submitBtn = document.getElementById("submit-button");
-
-        if (contactForm) {
-            contactForm.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const email = document.getElementById("contact-email").value.trim();
-                const message = document.getElementById("contact-message").value.trim();
-
-                if (!email || !message) return;
-
-                submitBtn.disabled = true;
-                submitBtn.textContent = "Envoi en cours...";
-                formStatus.style.color = "var(--text-secondary, #64748b)";
-                formStatus.textContent = "Enregistrement dans la base D1...";
-
-                try {
-                    // Utilisation de l'API centralisée qui cible https://api.worker.mm-cp.uk
-                    await api.post("/api/messages", {
-                        email: email,
-                        message: message
-                    });
-
-                    formStatus.style.color = "#4ade80";
-                    formStatus.textContent = "Message enregistré avec succès dans D1 ! Nous vous répondrons rapidement.";
-                    contactForm.reset();
-                } catch (error) {
-                    console.error("Erreur lors de l'enregistrement D1 :", error);
-                    formStatus.style.color = "#f87171";
-                    formStatus.textContent = "Une erreur est survenue. Veuillez réessayer ou utiliser nos e-mails.";
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = "Envoyer le message";
-                }
-            });
-        }
-    </script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (typeof gsap !== "undefined" && typeof ScrollTrigger !== "undefined") {
-                gsap.registerPlugin(ScrollTrigger);
-
-                const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                if (reducedMotion) {
-                    gsap.set([".contact-card-box", ".contact-hero h1", ".contact-hero p"], { opacity: 1, y: 0 });
-                    return;
-                }
-
-                gsap.from(".contact-hero h1", {
-                    opacity: 0,
-                    y: 40,
-                    duration: 1,
-                    ease: "power3.out",
-                    delay: 0.2
-                });
-
-                gsap.from(".contact-hero p", {
-                    opacity: 0,
-                    y: 30,
-                    duration: 1,
-                    ease: "power3.out",
-                    delay: 0.4
-                });
-
-                gsap.to("#form-box", {
-                    scrollTrigger: {
-                        trigger: "#form-box",
-                        start: "top 85%"
-                    },
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.8,
-                    ease: "power2.out"
-                });
-
-                gsap.to("#emails-box", {
-                    scrollTrigger: {
-                        trigger: "#emails-box",
-                        start: "top 85%"
-                    },
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.8,
-                    delay: 0.2,
-                    ease: "power2.out"
-                });
-            } else {
-                document.querySelectorAll(".contact-card-box").forEach(el => {
-                    el.style.opacity = "1";
-                    el.style.transform = "none";
-                });
-            }
-        });
-    </script>
+    <script type="module" src="/assets/js/contact.js"></script>
+    <script src="/assets/js/contact-gsap.js"></script>
 </body>
 
 </html>

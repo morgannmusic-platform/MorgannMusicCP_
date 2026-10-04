@@ -1,45 +1,124 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGV - Morgann Music CP</title>
+    <title>Conditions Générales de Vente (CGV) - Morgann Music CP</title>
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <link rel="stylesheet" href="/assets/navbars/accueil/navbar.css">
-    <style>
-        .legal-content { max-width: 800px; margin: 40px auto; padding: 2.5rem; background: var(--container1); border-radius: 32px; color: var(--text-secondary); box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-        h1, h2 { color: var(--rose); margin-top: 1.5rem; margin-bottom: 1rem; }
-        p, li { line-height: 1.7; margin-bottom: 0.8rem; }
-
-        @media (max-width: 768px) {
-            .legal-content { margin: 20px 15px; padding: 1.5rem; border-radius: 24px; }
-            h1 { font-size: 1.8rem; }
-            h2 { font-size: 1.4rem; margin-top: 1.8rem; }
-            p, li { font-size: 0.95rem; }
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/cgv.css">
 </head>
+
 <body>
     <div id="navbar"></div>
     <main class="content-wrapper">
         <div class="legal-content">
-            <h1>Conditions Générales de Vente</h1>
-            
-            <h2>1. Objet</h2>
-            <p>Les présentes CGV régissent les services de distribution musicale proposés par Morgann Music CP via ses différents abonnements (Starter, Pro, Label, Future Légende).</p>
+            <h1>Conditions Générales de Vente (CGV)</h1>
 
-            <h2>2. Tarifs et Paiement</h2>
-            <p>Les prix sont indiqués en euros. Le paiement s'effectue par carte bancaire via la plateforme sécurisée Stripe. L'abonnement est mensuel et reconductible tacitement.</p>
+            <!-- Page 1 : Champ d'application & Offres -->
+            <section class="cgv-page active" data-page="1">
+                <h2>1. Champ d'application et Acceptation</h2>
+                <p>Les présentes Conditions Générales de Vente (ci-après les « CGV ») régissent l'ensemble des offres de
+                    services payants et de distribution musicale proposés par la plateforme <strong>Morgann Music
+                        CP</strong> (accessible via <em>mm-cp.uk</em>).</p>
+                <p>Toute souscription d'un abonnement ou validation de commande implique l'adhésion sans réserve de
+                    l'utilisateur aux présentes CGV, à l'exclusion de tout autre document.</p>
 
-            <h2>3. Distribution et Droits</h2>
-            <p>L'artiste garantit détenir tous les droits sur les œuvres distribuées. Morgann Music CP agit en tant que distributeur et ne revendique aucun droit de propriété sur la musique.</p>
+                <h2>2. Présentation des Formules et Plans</h2>
+                <p>Morgann Music CP propose plusieurs abonnements aux fonctionnalités et tarifs distincts :</p>
+                <ul>
+                    <li><strong>Starter :</strong> Offre de base pour débuter la distribution et l'accès au catalogue.
+                    </li>
+                    <li><strong>Pro :</strong> Formule avancée pour les créateurs confirmés.</li>
+                    <li><strong>Label :</strong> Outils étendus pour la gestion de plusieurs artistes et structures.
+                    </li>
+                    <li><strong>Marque blanche (White-Label) :</strong> Solution personnalisée et sur-mesure.</li>
+                    <li><strong>Future-Legende :</strong> Offre pour mineur.</li>
+                </ul>
+            </section>
 
-            <h2>4. Résiliation</h2>
-            <p>L'utilisateur peut résilier son abonnement à tout moment depuis son espace compte. La résiliation prend effet à la fin de la période de facturation en cours.</p>
+            <!-- Page 2 : Tarifs, Commandes & Paiement Sécurisé -->
+            <section class="cgv-page" data-page="2">
+                <h2>3. Tarifs et Modalités Financières</h2>
+                <p>Les prix des abonnements sont indiqués en euros et s'entendent toutes taxes comprises (TTC) selon les
+                    dispositions applicables. Morgann Music CP se réserve le droit de modifier ses tarifs à tout moment,
+                    tout changement n'étant applicable qu'aux nouveaux abonnements ou aux renouvellements.</p>
+
+                <h2>4. Processus de Paiement Sécurisé (Stripe)</h2>
+                <p>Les paiements sont traités de manière entièrement sécurisée par notre prestataire tiers certifié
+                    <strong>Stripe</strong>. L'utilisateur garantit qu'il dispose des autorisations nécessaires pour
+                    utiliser le mode de paiement choisi lors de la validation de la souscription.
+                </p>
+                <p>En cas de défaut de paiement, de rejet de prélèvement ou de fraude bancaire, Morgann Music CP se
+                    réserve le droit de suspendre ou de résilier immédiatement l'accès aux services payants.</p>
+            </section>
+
+            <!-- Page 3 : Exécution, Engagements & Distribution -->
+            <section class="cgv-page" data-page="3">
+                <h2>5. Exécution des Services et Abonnements</h2>
+                <p>Les abonnements souscrits prennent effet dès la validation du paiement par Stripe. L'accès aux
+                    fonctionnalités du plan choisi est activé de manière automatisée sur le compte de l'utilisateur.</p>
+
+                <h2>6. Propriété Artistique et Garanties de Distribution</h2>
+                <p>L'artiste ou le client garantit formellement détenir l'intégralité des droits d'auteur, des droits
+                    voisins et des licences nécessaires sur les œuvres musicales, visuels et métadonnées distribués via
+                    Morgann Music CP.</p>
+                <p>Morgann Music CP agit en qualité de distributeur technique et intermédiaire, et ne revendique aucun
+                    droit de propriété intellectuelle sur les créations musicales des utilisateurs.</p>
+            </section>
+
+            <!-- Page 4 : Durée, Résiliation & Droit de Rétractation -->
+            <section class="cgv-page" data-page="4">
+                <h2>7. Durée et Reconduction Tacite</h2>
+                <p>Les abonnements sont conclus pour une durée mensuelle ou annuelle selon la formule souscrite et se
+                    renouvellent par tacite reconduction pour des périodes successives de même durée, sauf résiliation
+                    notifiée avant l'échéance.</p>
+
+                <h2>8. Résiliation et Gestion du Compte</h2>
+                <p>L'utilisateur peut à tout moment résilier son abonnement ou modifier sa formule en se rendant dans
+                    son espace « Mon compte » et en accédant au portail de facturation sécurisé Stripe.</p>
+                <p>La résiliation prend effet à la fin de la période de facturation en cours. Aucun remboursement
+                    prorata temporis ou partiel n'est accordé pour les périodes déjà entamées.</p>
+
+                <h2>9. Droit de Rétractation</h2>
+                <p>Conformément à la législation en vigueur, dès lors que le service numérique commence à être exécuté
+                    (accès au tableau de bord, aux outils ou début de la distribution) avec l'accord exprès de
+                    l'utilisateur, celui-ci renonce expressément à son droit de rétractation.</p>
+            </section>
+
+            <!-- Page 5 : Responsabilité & Service Client -->
+            <section class="cgv-page" data-page="5">
+                <h2>10. Limitation de Responsabilité</h2>
+                <p>Morgann Music CP ne saurait être tenu responsable des retards ou manquements aux obligations
+                    contractuelles en cas de force majeure, d'interruption des réseaux internet ou de pannes imputables
+                    aux plateformes de streaming partenaires.</p>
+
+                <h2>11. Service Client et Réclamations</h2>
+                <p>Pour toute question relative aux commandes, facturations ou abonnements, l'utilisateur peut joindre
+                    l'assistance de la plateforme directement depuis son espace membre ou via les canaux de contact
+                    officiels du site.</p>
+
+                <h2>12. Loi Applicable et Litiges</h2>
+                <p>Les présentes CGV sont soumises au droit français. En cas de différend relatif à la validité,
+                    l'interprétation ou l'exécution des présentes conditions, une solution amiable sera recherchée en
+                    priorité avant toute action judiciaire devant les tribunaux compétents.</p>
+            </section>
+
+            <!-- Navigation Pagination -->
+            <div class="pagination-nav">
+                <button id="prev-btn" class="page-btn" disabled>Précédent</button>
+                <div class="page-indicators" id="indicators"></div>
+                <button id="next-btn" class="page-btn">Suivant</button>
+            </div>
         </div>
     </main>
-    <script type="module" src="/assets/js/navbar.js"></script>
+
     <div id="footer"></div>
     <script src="/assets/footers/accueil/footer.js" defer></script>
+    <script type="module" src="/assets/js/navbar.js"></script>
+    <script src="/assets/js/cgv.js"></script>
+
 </body>
+
 </html>

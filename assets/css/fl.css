@@ -1,0 +1,232 @@
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #2b2b2b;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        :root {
+            --bg: #eaffc6;
+            --bg-rose: #FC8FB0;
+            --rose: #FC8FB0;
+            --text-secondary: #c76785;
+            --card-bg: #ffebf171;
+            --border-subtle: rgba(252, 143, 176, 0.22);
+            --container1: #f8fae17e;
+            --container2: #e2f2c391;
+            --container3: #d7ebac52;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #52303c;
+                --bg-rose: #6C7A53;
+                --rose: #FC8FB0;
+                --text-secondary: #fbb4cb;
+                --card-bg: rgba(0, 0, 0, 0.25);
+                --border-subtle: rgba(252, 143, 176, 0.25);
+                --container1: #6a4c57;
+                --container2: #4d5942;
+                --container3: #3f4a34;
+            }
+        }
+
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: #f1f1f1;
+            }
+        }
+
+        .stickers-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .sticker {
+            position: absolute;
+            width: 160px;
+            height: auto;
+            opacity: 1;
+            filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.25));
+            animation: floatSticker 5s ease-in-out infinite alternate;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+
+        }
+
+        @keyframes floatSticker {
+            0% {
+                transform: translateY(0px) rotate(var(--rot));
+            }
+
+            100% {
+                transform: translateY(-14px) rotate(calc(var(--rot) + 6deg));
+            }
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 120px 20px 60px 20px;
+        }
+
+        .hero-legende {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .badge-jeune {
+            display: inline-block;
+            background: linear-gradient(135deg, #FC8FB0 0%, #ff5288 100%);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 8px 18px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(252, 143, 176, 0.4);
+            margin-bottom: 20px;
+            transform: rotate(-2deg);
+        }
+
+        .hero-legende h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #000000 0%, #ff108f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-legende p {
+            font-size: 1.25rem;
+            max-width: 650px;
+            margin: 0 auto;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .card-main {
+            background: linear-gradient(135deg, var(--container1) 0%, var(--container3) 100%);
+            border: 2px solid rgba(252, 143, 176, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            margin-bottom: 40px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .card-main {
+                background: rgba(20, 20, 25, 0.88);
+                border-color: rgba(252, 143, 176, 0.35);
+            }
+        }
+
+        .price-tag {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .price-tag .amount {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #FC8FB0;
+        }
+
+        .price-tag .period {
+            font-size: 1.2rem;
+            font-weight: 700;
+            opacity: 0.7;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            background: rgba(252, 143, 176, 0.12);
+            border: 1px solid rgba(252, 143, 176, 0.3);
+            padding: 20px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feature-item span {
+            font-size: 1.4rem;
+        }
+
+        .cta-box {
+            text-align: center;
+            margin-top: 35px;
+        }
+
+        .btn-legende {
+            display: inline-block;
+            background: #FC8FB0;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 800;
+            padding: 16px 36px;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 8px 25px rgba(252, 143, 176, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-legende:hover {
+            transform: scale(1.05) rotate(-1deg);
+            box-shadow: 0 12px 30px rgba(252, 143, 176, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .hero-legende h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero-legende p {
+                font-size: 1rem;
+            }
+
+            .card-main {
+                padding: 25px;
+            }
+
+            .sticker {
+                width: 100px;
+            }
+        }

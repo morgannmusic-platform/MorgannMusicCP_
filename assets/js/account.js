@@ -6,12 +6,10 @@ const form = document.getElementById("account-form");
 const logoutBtn = document.getElementById("logout-btn");
 const linkGoogleBtn = document.getElementById("link-google-btn");
 
-// Éléments Google Status
 const googleStatusContainer = document.getElementById("google-status-container");
 const googleAvatar = document.getElementById("google-avatar");
 const googleEmail = document.getElementById("google-email");
 
-// Éléments 2FA / TOTP
 const enableTotpBtn = document.getElementById("enable-totp-btn");
 const disableTotpBtn = document.getElementById("disable-totp-btn");
 const verifyTotpBtn = document.getElementById("verify-totp-btn");
@@ -45,6 +43,14 @@ const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
 const roleLabelMap = { admin: "Admin", testeur: "Testeur", vip: "V.I.P", artiste: "Artiste", user: "User" };
 const roleClassMap = { admin: "role-admin", testeur: "role-testeur", vip: "role-vip", artiste: "role-artiste", user: "role-user" };
 
+const planDisplayNameMap = {
+    "starter": "Starter",
+    "pro": "Pro",
+    "label": "Label",
+    "white-label": "Marque blanche",
+    "future-legende": "Future-Legende"
+};
+
 const setFeedback = (message = "", type = "") => {
     const activePanel = document.querySelector(".tab-panel.is-active");
     if (!activePanel) return;
@@ -68,7 +74,6 @@ const selectTab = (tabId) => {
 
 tabButtons.forEach((button) => button.addEventListener("click", () => selectTab(button.dataset.tab)));
 
-// Fonction utilitaire pour générer une clé secrète aléatoire de test pour le TOTP
 const generateRandomSecret = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
     let secret = "";
@@ -86,7 +91,6 @@ onAuthStateChanged(auth, async (user) => {
 
     userUid.textContent = user.uid || "Non disponible";
 
-    // Mise à jour de l'affichage de la liaison Google
     const updateGoogleUI = () => {
         const googleData = user.providerData.find(p => p.providerId === "google.com");
 
@@ -121,10 +125,18 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         userArtist.textContent = data.artistName || "Non renseigné";
-        userPlan.textContent = data.planName || "Utilisateur Standard (Gratuit)";
-        subscriptionStatus.textContent = data.subscriptionStatus === "active" ? "Actif" : "Aucun abonnement actif";
 
-        // Gestion interface état 2FA (TOTP)
+        const rawPlanKey = (data.planName || "").trim().toLowerCase();
+        const isActive = data.subscriptionStatus === "active";
+
+        if (isActive && planDisplayNameMap[rawPlanKey]) {
+            userPlan.textContent = planDisplayNameMap[rawPlanKey];
+            subscriptionStatus.textContent = "Actif";
+        } else {
+            userPlan.textContent = "Aucun plan actif";
+            subscriptionStatus.textContent = "Aucun abonnement actif";
+        }
+
         let tempSecret = "";
         const updateTotpUI = (isConfigured) => {
             if (isConfigured) {
@@ -143,17 +155,14 @@ onAuthStateChanged(auth, async (user) => {
 
         updateTotpUI(data.totpEnabled);
 
-        // Action : Cliquer sur "Activer l'authentification" -> Génère un secret et affiche le QR Code
         enableTotpBtn?.addEventListener("click", () => {
             tempSecret = generateRandomSecret();
             totpSecretText.textContent = tempSecret;
 
-            // URL standard pour les applications d'authentification (OTPAuth)
             const issuer = "MorgannMusicCP";
             const accountName = user.email || "user";
             const otpauthUrl = `otpauth://totp/${issuer}:${accountName}?secret=${tempSecret}&issuer=${issuer}`;
 
-            // Vider et générer le QR Code
             qrcodeContainer.innerHTML = "";
             new QRCode(qrcodeContainer, {
                 text: otpauthUrl,
@@ -166,7 +175,6 @@ onAuthStateChanged(auth, async (user) => {
             setFeedback("Scannez le QR code avec votre application.", "info");
         });
 
-        // Action : Valider le code à 6 chiffres pour finaliser l'activation
         verifyTotpBtn?.addEventListener("click", async () => {
             const code = totpCodeInput.value.trim();
             if (code.length !== 6) {
@@ -190,7 +198,6 @@ onAuthStateChanged(auth, async (user) => {
             }
         });
 
-        // Action : Désactiver le 2FA
         disableTotpBtn?.addEventListener("click", async () => {
             if (!confirm("Voulez-vous vraiment désactiver l'authentification à deux facteurs ?")) return;
 
@@ -214,7 +221,6 @@ onAuthStateChanged(auth, async (user) => {
         roleBadge.textContent = roleLabelMap[safe];
         roleBadge.className = `role-badge ${roleClassMap[safe]}`;
 
-        // Sauvegarde du formulaire profil
         form?.addEventListener("submit", async (event) => {
             event.preventDefault();
             setFeedback("Enregistrement en cours...", "info");
@@ -231,7 +237,6 @@ onAuthStateChanged(auth, async (user) => {
             try {
                 let photoURL = data.photoURL || null;
 
-                // Upload avatar vers R2 si un fichier est sélectionné
                 if (avatarInput && avatarInput.files[0]) {
                     const uploadResult = await api.uploadFile("avatar", avatarInput.files[0]);
                     photoURL = uploadResult.key;
@@ -259,7 +264,6 @@ onAuthStateChanged(auth, async (user) => {
             }
         });
 
-        // Liaison du compte Google
         linkGoogleBtn?.addEventListener("click", async () => {
             try {
                 setFeedback("Association du compte Google en cours...", "info");

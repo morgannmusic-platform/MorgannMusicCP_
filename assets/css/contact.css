@@ -1,0 +1,162 @@
+        .contact-hero {
+            min-height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 4rem 1rem 2rem 1rem;
+        }
+
+        .contact-hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            color: var(--rose, #FC8FB0);
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .contact-hero p {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            color: var(--text-secondary, #64748b);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .contact-container-grid {
+            max-width: 1100px;
+            margin: 0 auto 6rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        @media(max-width: 850px) {
+            .contact-container-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .contact-card-box {
+            background: linear-gradient(135deg, var(--container1, rgba(255, 255, 255, 0.85)), var(--container3, rgba(240, 240, 240, 0.85)));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
+            border-radius: 30px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .contact-card-box h2 {
+            font-size: 1.8rem;
+            color: var(--rose, #FC8FB0);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary, #1e293b);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
+            border-radius: 12px;
+            color: var(--text-primary, #1e293b);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--rose, #FC8FB0);
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.15);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 140px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--rose, #FC8FB0);
+            color: #ffffff;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        #form-status {
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .email-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .email-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle, rgba(189, 189, 189, 0.438));
+            padding: 1.2rem 1.5rem;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .email-item:hover {
+            transform: translateX(5px);
+            border-color: var(--rose, #FC8FB0);
+        }
+
+        .email-item .service-name {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary, #64748b);
+            font-weight: 700;
+        }
+
+        .email-item a {
+            font-size: 1.05rem;
+            color: var(--rose, #FC8FB0);
+            text-decoration: none;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .email-item a:hover {
+            text-decoration: underline;
+        }

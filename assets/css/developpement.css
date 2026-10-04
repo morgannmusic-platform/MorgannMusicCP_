@@ -1,0 +1,94 @@
+        body {
+            background: black;
+        }
+
+        .dev-hero {
+            padding: 120px 20px 80px;
+            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .dev-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .dev-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .dev-section {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dev-section h2 {
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .service-card:hover {
+            border-color: #FC8FB0;
+            transform: translateY(-5px);
+        }
+
+        .service-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #FC8FB0;
+        }
+
+        .service-card p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+
+        .version-box {
+            background: rgba(108, 122, 83, 0.15);
+            border: 2px solid #e880af;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin: 60px auto;
+            max-width: 700px;
+        }
+
+        .version-box h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        #current-version-display {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #FC8FB0;
+            margin: 15px 0;
+        }
+
+        #current-version-desc {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-top: 15px;
+            padding: 0 15px;
+            font-style: italic;
+        }

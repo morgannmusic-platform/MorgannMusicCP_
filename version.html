@@ -11,176 +11,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Morgann Music CP">
 
-    <!-- Favicon & Icons -->
     <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png">
     <link rel="icon" type="image/png" href="/assets/img/icons/clair.png" media="(prefers-color-scheme: light)">
     <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png" media="(prefers-color-scheme: dark)">
     <link rel="apple-touch-icon" href="/assets/img/icons/accueil.png">
 
-    <!-- Canonical -->
     <link rel="canonical" href="https://mm-cp.uk/version.html">
 
     <title>Versions & Mises à jour - Morgann Music CP</title>
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
-    <!-- GSAP pour les animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script type="module" src="/assets/js/navbar.js" defer></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
-    <style>
-        .version-hero {
-            padding: 0px 20px 40px;
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .version-hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            font-weight: 800;
-        }
-
-        .version-hero p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-
-        .version-container {
-            padding: 20px 20px 80px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .current-version-card {
-            background: rgba(186, 252, 143, 0.33);
-            border: 1px solid rgba(252, 143, 176, 0.3);
-            border-radius: 24px;
-            padding: 35px;
-            margin-bottom: 40px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .current-badge {
-            display: inline-block;
-            background: #FC8FB0;
-            color: #111;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .current-version-card h2 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: #FC8FB0;
-        }
-
-        .version-date {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            margin-bottom: 20px;
-        }
-
-        .version-desc {
-            font-size: 1.05rem;
-            line-height: 1.6;
-            opacity: 0.95;
-        }
-
-        .history-title {
-            font-size: 1.5rem;
-            margin-bottom: 25px;
-            font-weight: 700;
-            border-left: 4px solid #FC8FB0;
-            padding-left: 12px;
-            border-radius: 5px;
-        }
-
-        .timeline {
-            position: relative;
-            padding-left: 30px;
-            min-height: 50px;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 7px;
-            top: 5px;
-            bottom: 5px;
-            width: 2px;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 30px;
-            background: rgba(186, 252, 143, 0.33);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.333);
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease;
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-
-        .timeline-item:hover {
-            transform: translateX(5px);
-            border-color: rgba(252, 143, 176, 0.3);
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -30px;
-            top: 25px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #FC8FB0;
-            border: 3px solid #111;
-        }
-
-        .timeline-version {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #FC8FB0;
-            margin-bottom: 5px;
-        }
-
-        .timeline-date {
-            font-size: 0.85rem;
-            opacity: 0.6;
-            margin-bottom: 12px;
-            color: #FC8FB0;
-        }
-
-        .timeline-desc {
-            font-size: 0.95rem;
-            line-height: 1.5;
-            opacity: 0.9;
-            color: #FC8FB0;
-        }
-
-        .empty-history {
-            text-align: center;
-            opacity: 0.6;
-            padding: 30px;
-            font-style: italic;
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/version.css">
 </head>
 
 <body>
@@ -215,76 +59,11 @@
     </div>
     <div id="footer"></div>
 
-    <!-- Script d'animation GSAP -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (typeof gsap !== "undefined") {
-                gsap.fromTo(".version-hero", { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 1, ease: "power4.out" });
-                gsap.fromTo(".current-version-card", { opacity: 0, scale: 0.95, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 1, delay: 0.2, ease: "power3.out" });
-            }
-        });
+    <script src="/assets/js/version-gsap.js">
+
     </script>
 
-    <!-- Script de chargement des versions depuis D1 -->
-    <script type="module">
-        import { api } from "/assets/js/api.js";
-
-        function formerDateLisible(item) {
-            if (typeof item.date === 'string' && item.date) {
-                return item.date;
-            }
-            if (item.createdAt) {
-                return new Date(item.createdAt).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-            }
-            return "Date non spécifiée";
-        }
-
-        async function chargerVersions() {
-            const timelineList = document.getElementById("timeline-list");
-
-            try {
-                const versionsList = await api.get("/api/versions");
-
-                if (!Array.isArray(versionsList) || versionsList.length === 0) {
-                    document.getElementById("current-v-title").textContent = "Aucune version";
-                    document.getElementById("current-v-date").textContent = "--";
-                    document.getElementById("current-v-desc").textContent = "Aucune version enregistrée dans la base de données pour le moment.";
-                    timelineList.innerHTML = `<div class="empty-history">Aucun historique disponible.</div>`;
-                    return;
-                }
-
-                // Carte principale (le premier élément est le plus récent via ORDER BY date DESC)
-                const latest = versionsList[0];
-                const dateLatest = formerDateLisible(latest);
-                document.getElementById("current-v-title").textContent = latest.version || "v1.0.0";
-                document.getElementById("current-v-date").textContent = dateLatest !== "Date non spécifiée" ? "Déployé le " + dateLatest : dateLatest;
-                document.getElementById("current-v-desc").textContent = latest.description || "";
-
-                // Génération HTML de l'historique
-                let htmlTimeline = "";
-                versionsList.forEach((item) => {
-                    const dateFormatted = formerDateLisible(item);
-                    htmlTimeline += `
-                        <div class="timeline-item">
-                            <div class="timeline-version">${item.version || "v1.0.0"}</div>
-                            <div class="timeline-date">${dateFormatted}</div>
-                            <div class="timeline-desc">${item.description || ""}</div>
-                        </div>
-                    `;
-                });
-
-                timelineList.innerHTML = htmlTimeline;
-
-            } catch (error) {
-                console.error("Erreur API D1 :", error);
-                document.getElementById("current-v-title").textContent = "Erreur";
-                document.getElementById("current-v-date").textContent = "--";
-                document.getElementById("current-v-desc").textContent = "Impossible de récupérer les données.";
-                timelineList.innerHTML = `<div class="empty-history" style="color: #ef4444;">Erreur API D1 : ${error.message}</div>`;
-            }
-        }
-
-        chargerVersions();
+    <script type="module" src="/assets/js/version.js">
     </script>
 </body>
 

@@ -11,52 +11,17 @@
 <body
     style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; font-family: sans-serif; background: #fff0f5;">
     <div
-        style="background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        style="background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 500px;">
         <h1 id="status-title" style="color: #ff4b72;">Validation en cours...</h1>
         <p id="status-desc" style="color: #666; margin-top: 10px;">Veuillez patienter pendant que nous activons votre
             abonnement.</p>
-        <a href="/index.html" id="home-btn"
-            style="display: none; margin-top: 20px; padding: 10px 20px; background: #ff4b72; color: white; text-decoration: none; border-radius: 10px;">Retour
-            à l'accueil</a>
+        <a href="/account.html?tab=subscription" id="home-btn"
+            style="display: none; margin-top: 20px; padding: 12px 24px; background: #d0a75a; color: white; text-decoration: none; border-radius: 10px; font-weight: 600;">Voir
+            mon abonnement</a>
     </div>
 
-    <script>
-        async function verifyPayment() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const sessionId = urlParams.get('session_id');
+    <script src="/assets/js/succes-stripepayment.js"></script>
 
-            const titleEl = document.getElementById('status-title');
-            const descEl = document.getElementById('status-desc');
-            const btnEl = document.getElementById('home-btn');
-
-            if (!sessionId) {
-                titleEl.textContent = "Erreur";
-                descEl.textContent = "Aucune session de paiement détectée.";
-                btnEl.style.display = 'inline-block';
-                return;
-            }
-
-            try {
-                const response = await fetch(`https://pay.mm-cp.uk/verify-session?session_id=${sessionId}`);
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    titleEl.textContent = "Paiement réussi ! 🎉";
-                    descEl.textContent = `Merci ! Votre abonnement "${data.planName || data.planId}" a bien été activé et enregistré.`;
-                } else {
-                    titleEl.textContent = "Oups...";
-                    descEl.textContent = "Impossible de valider la session : " + (data.error || "Erreur inconnue");
-                }
-            } catch (err) {
-                titleEl.textContent = "Erreur de connexion";
-                descEl.textContent = "Impossible de joindre le serveur de validation.";
-            } finally {
-                btnEl.style.display = 'inline-block';
-            }
-        }
-
-        verifyPayment();
-    </script>
 </body>
 
 </html>

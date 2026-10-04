@@ -3,13 +3,10 @@
     --text-and-logo: #ffead5;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        
-    }
-}
 
-.login-page .navbar {
+
+.login-page,
+.navbar {
     background-color: #d0a75a !important;
     border-bottom: 1px solid rgba(255, 234, 213, 0.28) !important;
 }

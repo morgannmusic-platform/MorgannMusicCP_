@@ -9,248 +9,33 @@
     <link rel="stylesheet" href="/assets/css/account.css">
     <link rel="stylesheet" href="/assets/navbars/accueil/navbar-login.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="icon" type="image/png" href="/assets/img/icons/clair.png">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <!-- Librairie pour générer le QR code 2FA -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script type="module" src="/assets/js/navbar.js"></script>
-    <style>
-        .tabs {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin: 2rem auto 2.5rem auto;
-            max-width: fit-content;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 999px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
-            flex-wrap: wrap;
-            top: 80px;
-        }
-
-        .tab-btn {
-            padding: 0.8rem 1.8rem;
-            border-radius: 999px;
-            border: none;
-            background: transparent;
-            color: #666;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            outline: none;
-        }
-
-        .tab-btn:hover {
-            color: #d0a75a;
-            background: rgba(255, 246, 216, 0.881);
-        }
-
-        .tab-btn.is-active {
-            background: #d0a75a;
-            color: white;
-            box-shadow: 0 8px 20px rgba(255, 197, 52, 0.35);
-        }
-
-        .profile-avatar-wrapper {
-            grid-column: 1 / -1;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 18px;
-            background: rgba(252, 143, 176, 0.05);
-            border-radius: 28px;
-            border: 1px dashed #d0a75a;
-            margin-bottom: 10px;
-        }
-
-        .avatar-preview {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #d0a75a;
-            background: #eee;
-        }
-
-        .avatar-upload-btn {
-            padding: 10px 20px;
-            background: #d0a75a;
-            color: white;
-            border-radius: 999px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            display: inline-block;
-            transition: transform 0.2s, background 0.2s;
-        }
-
-        .avatar-upload-btn:hover {
-            background: #a18044;
-            transform: translateY(-2px);
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            opacity: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-
-        .modal-card {
-            background: white;
-            padding: 3rem;
-            border-radius: 40px;
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(252, 143, 176, 0.2);
-        }
-
-        .modal-icon {
-            font-size: 4.5rem;
-            margin-bottom: 1.5rem;
-            display: block;
-        }
-
-        .modal-card h2 {
-            color: #FC8FB0;
-            margin-bottom: 1rem;
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .modal-card p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 2.5rem;
-            font-size: 1.1rem;
-        }
-
-        .modal-card .actions {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .modal-close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 2rem;
-            color: #aaa;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-
-        .modal-btn {
-            display: inline-block;
-            padding: 1.1rem 2.5rem;
-            background: #FC8FB0;
-            color: white;
-            text-decoration: none;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border: none;
-            cursor: pointer;
-        }
-
-        .modal-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 30px rgba(252, 143, 176, 0.4);
-        }
-
-        .is-hidden {
-            display: none !important;
-        }
-
-        .section-actions {
-            margin-top: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 10px;
-        }
-
-        .feedback {
-            font-size: 14px;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 12px;
-            display: none;
-            transition: all 0.3s ease;
-        }
-
-        .feedback.info {
-            display: inline-block;
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .feedback.success {
-            display: inline-block;
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-
-        .feedback.error {
-            display: inline-block;
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .modal-btn:hover {
-                transform: none;
-            }
-        }
-    </style>
 </head>
 
 <body class="login-page">
     <div id="navbar"></div>
-
     <main class="account-wrap">
         <header class="account-header">
-            <p class="account-kicker">Espace membre</p>
+            <p class="account-kicker">Espace compte</p>
             <div class="account-title-row">
                 <h1>Mon compte</h1>
                 <span id="role-badge" class="role-badge role-user">User</span>
             </div>
-            <p class="account-subtitle">Gère vos informations, vos coordonnées et la sécurité de votre compte.</p>
+            <p class="account-subtitle">Gérez vos informations, vos coordonnées et la sécurité de votre compte.</p>
         </header>
-
         <nav class="tabs" role="tablist" aria-label="Sections du compte">
-            <button class="tab-btn is-active" data-tab="profile" role="tab" aria-selected="true">Profil</button>
+            <button class="tab-btn is-active" data-tab="profile" role="tab" aria-selected="true">Compte</button>
             <button class="tab-btn" data-tab="contact" role="tab" aria-selected="false">Coordonnées</button>
             <button class="tab-btn" data-tab="subscription" role="tab" aria-selected="false">Abonnement</button>
             <button class="tab-btn" data-tab="security" role="tab" aria-selected="false">Sécurité</button>
         </nav>
-
         <form id="account-form">
-            <!-- SECTION 1 : PROFIL -->
             <section class="tab-panel is-active" data-panel="profile" role="tabpanel">
                 <div class="info-grid">
                     <article class="profile-avatar-wrapper">
@@ -258,12 +43,10 @@
                             class="avatar-preview" alt="Photo de profil">
                         <div>
                             <label for="avatar-input" class="avatar-upload-btn">Changer la photo</label>
-                            <input type="file" id="avatar-input" name="avatar" accept="image/*" style="display: none;">
-                            <p style="font-size: 12px; color: #777; margin-top: 6px;">Format conseillé : JPG/PNG (Max
-                                2Mo)</p>
+                            <p style="font-size: 12px; color: #777; margin-top: 6px;">Format conseillé : JPEG/PNG (Max
+                                4Mo)</p>
                         </div>
                     </article>
-
                     <article class="info-card">
                         <label class="label" for="first-name">Prénom</label>
                         <input id="first-name" name="first_name" class="value-input" type="text">
@@ -273,7 +56,7 @@
                         <input id="last-name" name="last_name" class="value-input" type="text">
                     </article>
                     <article class="info-card">
-                        <p class="label">Nom d'artiste</p>
+                        <p class="label">Nom d'artiste/Label</p>
                         <p class="value" id="user-artist">Chargement...</p>
                     </article>
                     <article class="info-card">
@@ -290,8 +73,6 @@
                     <p class="account-feedback feedback" role="status" aria-live="polite"></p>
                 </div>
             </section>
-
-            <!-- SECTION 2 : COORDONNÉES -->
             <section class="tab-panel" data-panel="contact" role="tabpanel">
                 <div class="info-grid">
                     <article class="info-card">
@@ -316,8 +97,6 @@
                     <p class="account-feedback feedback" role="status" aria-live="polite"></p>
                 </div>
             </section>
-
-            <!-- SECTION 3 : ABONNEMENT -->
             <section class="tab-panel" data-panel="subscription" role="tabpanel">
                 <div class="info-grid">
                     <article class="info-card">
@@ -330,8 +109,12 @@
                     </article>
                 </div>
                 <div class="security-box" style="margin-top: 2rem;">
-                    <p>Gérez vos factures, changez de plan ou résiliez votre abonnement en toute sécurité via le portail
-                        Stripe.</p>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1rem;">
+                        <img src="/assets/img/icons/stripe.webp" alt="Stripe Logo"
+                            style="width: 32px; height: 32px; object-fit: contain;">
+                        <p style="margin: 0;">Gérez vos factures, changez de plan ou résiliez votre abonnement en toute
+                            sécurité via le portail Stripe.</p>
+                    </div>
                     <div class="actions" style="margin-top: 1rem;">
                         <button id="manage-billing-btn" type="button" class="save-btn" style="background: #d0a75a;">
                             💳 Gérer / Résilier mon abonnement
@@ -339,25 +122,18 @@
                     </div>
                 </div>
             </section>
-
-            <!-- SECTION 4 : SÉCURITÉ -->
             <section class="tab-panel" data-panel="security" role="tabpanel">
                 <div class="security-box">
                     <h3>Application d'authentification (2FA)</h3>
-                    <p>Sécurisez votre compte avec une application comme Google Authenticator ou Authy.</p>
-
+                    <p>Sécurisez votre compte avec une application comme Apple Password ou Authy.</p>
                     <div id="totp-status-container" style="margin: 1rem 0;">
                         <p>Statut : <strong id="totp-status-text">Inactif</strong></p>
                     </div>
-
-                    <!-- Bouton pour activer / afficher le QR code -->
                     <div id="totp-setup-actions" class="actions" style="margin-top: 1rem; margin-bottom: 1rem;">
                         <button id="enable-totp-btn" type="button" class="save-btn" style="background: #d0a75a;">
                             📱 Activer l'authentification à deux facteurs
                         </button>
                     </div>
-
-                    <!-- Conteneur QR Code (masqué par défaut) -->
                     <div id="totp-qr-section" class="is-hidden"
                         style="background: #fafafa; padding: 20px; border-radius: 16px; border: 1px solid #ddd; margin: 1rem 0; text-align: center;">
                         <p style="margin-bottom: 10px; font-weight: 600;">1. Scannez ce QR code avec votre application
@@ -369,7 +145,6 @@
                             <code id="totp-secret-text"
                                 style="background: #eee; padding: 4px 8px; border-radius: 4px; font-weight: bold;"></code>
                         </p>
-
                         <div style="max-width: 300px; margin: 0 auto; text-align: left;">
                             <label for="totp-code-input" class="label" style="display: block; margin-bottom: 5px;">2.
                                 Entrez le code à 6 chiffres généré :</label>
@@ -380,26 +155,19 @@
                                 style="width: 100%; background: #2e7d32;">Valider et Activer</button>
                         </div>
                     </div>
-
-                    <!-- Bouton pour désactiver (masqué si 2FA inactif) -->
                     <div id="totp-disable-container" class="is-hidden" style="margin-top: 1rem;">
                         <button id="disable-totp-btn" type="button" class="save-btn" style="background: #c62828;">
                             Désactiver l'authentification à deux facteurs
                         </button>
                     </div>
-
                     <hr style="border: 0; border-top: 1px solid #eee; margin: 2rem 0;">
-
                     <h3>Liaison de compte</h3>
                     <p>Associez votre compte Google pour vous connecter en un clic sur la page de connexion, quelle que
                         soit votre adresse mail.</p>
                     <div class="actions" style="margin-top: 1rem; margin-bottom: 2rem;">
-                        <!-- État 1 : Non relié -->
                         <button id="link-google-btn" type="button" class="save-btn" style="background: #4285F4;">
                             🔗 Associer mon compte Google
                         </button>
-
-                        <!-- État 2 : Relié (Affichage mail + photo) -->
                         <div id="google-status-container" class="is-hidden"
                             style="display: flex; align-items: center; gap: 12px; background: #f5f5f5; padding: 12px 20px; border-radius: 16px; border: 1px solid #ddd;">
                             <img id="google-avatar" alt="Google Avatar"
@@ -413,7 +181,6 @@
                         </div>
                     </div>
                     <hr style="border: 0; border-top: 1px solid #eee; margin: 2rem 0;">
-
                     <h3>Session</h3>
                     <p>Vous pouvez vous déconnecter de votre session en toute sécurité à tout moment.</p>
                     <div class="actions" style="margin-top: 1rem;">
@@ -428,7 +195,6 @@
             </section>
         </form>
     </main>
-
     <div id="success-modal" class="modal-overlay is-hidden">
         <div class="modal-card" id="success-card">
             <button class="modal-close-btn" id="modal-close-btn">&times;</button>
@@ -441,93 +207,8 @@
             </div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const tabBtns = document.querySelectorAll(".tab-btn");
-            const tabPanels = document.querySelectorAll(".tab-panel");
-
-            function switchTab(tabName) {
-                tabBtns.forEach(btn => {
-                    const isActive = btn.getAttribute("data-tab") === tabName;
-                    btn.classList.toggle("is-active", isActive);
-                    btn.setAttribute("aria-selected", isActive ? "true" : "false");
-                });
-
-                tabPanels.forEach(panel => {
-                    const isActive = panel.getAttribute("data-panel") === tabName;
-                    panel.classList.toggle("is-active", isActive);
-                });
-
-                const url = new URL(window.location);
-                url.searchParams.set("tab", tabName);
-                window.history.replaceState({}, "", url);
-            }
-
-            const params = new URLSearchParams(window.location.search);
-            const activeTabParam = params.get("tab") || "profile";
-            switchTab(activeTabParam);
-
-            tabBtns.forEach(btn => {
-                btn.addEventListener("click", () => {
-                    switchTab(btn.getAttribute("data-tab"));
-                });
-            });
-
-            const avatarInput = document.getElementById("avatar-input");
-            const avatarPreview = document.getElementById("avatar-preview-img");
-
-            if (avatarInput) {
-                avatarInput.addEventListener("change", (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            avatarPreview.src = event.target.result;
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
-
-            // Gestion du portail client Stripe pour résilier/changer d'abonnement
-            const manageBillingBtn = document.getElementById("manage-billing-btn");
-            if (manageBillingBtn) {
-                manageBillingBtn.addEventListener("click", async () => {
-                    manageBillingBtn.disabled = true;
-                    manageBillingBtn.textContent = "Redirection vers Stripe...";
-
-                    try {
-                        const userEmailInput = document.getElementById("email");
-                        const userEmail = userEmailInput ? userEmailInput.value : null;
-
-                        if (!userEmail) {
-                            throw new Error("Email utilisateur introuvable sur la page.");
-                        }
-
-                        const response = await fetch('https://pay.mm-cp.uk/create-portal-session', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userEmail: userEmail })
-                        });
-
-                        const data = await response.json();
-                        if (data.url) {
-                            window.location.href = data.url;
-                        } else {
-                            throw new Error(data.error || "Impossible d'ouvrir le portail de facturation.");
-                        }
-                    } catch (err) {
-                        alert("Erreur : " + err.message);
-                        manageBillingBtn.disabled = false;
-                        manageBillingBtn.textContent = "💳 Gérer / Résilier mon abonnement";
-                    }
-                });
-            }
-        });
-    </script>
-
     <script type="module" src="/assets/js/account.js"></script>
+    <script src="/assets/js/portail-stripe-accounthtml.js"></script>
 </body>
 
 </html>

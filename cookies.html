@@ -4,89 +4,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Cookies - Morgann Music CP</title>
+    <title>Gestion des Cookies | Morgann Music CP</title>
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <link rel="stylesheet" href="/assets/navbars/accueil/navbar.css">
-    <style>
-        .legal-content {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 2.5rem;
-            background: var(--container1);
-            border-radius: 32px;
-            color: var(--text-secondary);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-        }
-
-        h1,
-        h2 {
-            color: var(--rose);
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        p,
-        li {
-            line-height: 1.7;
-            margin-bottom: 0.8rem;
-        }
-
-        @media (max-width: 768px) {
-            .legal-content {
-                margin: 20px 15px;
-                padding: 1.5rem;
-                border-radius: 24px;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            h2 {
-                font-size: 1.4rem;
-                margin-top: 1.8rem;
-            }
-
-            p,
-            li {
-                font-size: 0.95rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/cookies.css">
 </head>
 
 <body>
     <div id="navbar"></div>
     <main class="content-wrapper">
         <div class="legal-content">
-            <h1>Gestion des Cookies</h1>
+            <h1>Politique de Gestion des Cookies</h1>
 
-            <h2>1. Utilisation des cookies</h2>
-            <p>Le site Morgann Music CP utilise exclusivement des cookies et technologies de stockage local strictement
-                nécessaires à son bon fonctionnement et à sa sécurité.</p>
+            <section class="cookies-page active" data-page="1">
+                <h2>1. Qu'est-ce qu'un cookie ?</h2>
+                <p>Un cookie est un petit fichier texte stocké sur votre terminal (ordinateur, tablette, smartphone)
+                    lors de la visite d'un site internet. Il permet de mémoriser des informations relatives à votre
+                    navigation et à vos préférences.</p>
+                <p>Sur la plateforme <strong>Morgann Music CP</strong>, nous utilisons des technologies de stockage
+                    local et des cookies stricts afin de garantir le bon fonctionnement, la sécurité et la performance
+                    de nos services numériques.</p>
+            </section>
 
-            <h2>2. Cookies strictement nécessaires</h2>
-            <p>Ces fichiers sont indispensables pour naviguer sur le site et accéder aux fonctionnalités sécurisées. Ils
-                permettent notamment :</p>
-            <ul>
-                <li>De maintenir votre session utilisateur active (via Firebase Auth) ;</li>
-                <li>De sécuriser l'accès à vos données et au portail ;</li>
-                <li>De mémoriser vos préférences d'affichage (thème, langue).</li>
-            </ul>
+            <section class="cookies-page" data-page="2">
+                <h2>2. Cookies et Stockage Essentiels</h2>
+                <p>Ces éléments sont indispensables à la navigation sur notre site et ne peuvent pas être désactivés
+                    dans nos systèmes. Ils sont généralement établis en réponse à des actions effectuées par vous :</p>
+                <ul>
+                    <li><strong>Maintien de session (Firebase Auth) :</strong> Permet de garder l'utilisateur connecté
+                        de manière sécurisée lors de sa navigation entre les pages.</li>
+                    <li><strong>Sécurité des accès :</strong> Permet de prévenir les fraudes, de sécuriser les sessions
+                        et de valider l'authentification à deux facteurs (2FA).</li>
+                    <li><strong>Préférences d'interface :</strong> Mémorisation temporaire de vos choix d'affichage ou
+                        paramètres de navigation.</li>
+                </ul>
+            </section>
 
-            <h2>3. Absence de cookies tiers et publicitaires</h2>
-            <p>Morgann Music CP ne collecte aucune donnée à des fins publicitaires ou de ciblage commercial. Aucun
-                cookie de suivi tiers ou de réseau social n'est déposé lors de votre navigation.</p>
+            <section class="cookies-page" data-page="3">
+                <h2>3. Absence de Cookies Tiers et Publicitaires</h2>
+                <p><strong>Morgann Music CP ne dépose aucun cookie publicitaire, de traçage commercial ou de ciblage
+                        marketing.</strong></p>
+                <p>Aucun traceur tiers provenant de régies publicitaires ou de réseaux sociaux n'est exploité sur notre
+                    plateforme. Vos habitudes de navigation restent strictement confidentielles et ne sont jamais
+                    monétisées ou partagées à des fins publicitaires.</p>
+            </section>
 
-            <h2>4. Gestion via votre navigateur</h2>
-            <p>Les cookies essentiels au fonctionnement ne nécessitent pas votre consentement préalable conformément aux
-                recommandations de la CNIL. Vous pouvez toutefois configurer votre navigateur pour bloquer les cookies,
-                mais certaines parties du site risquent de ne plus fonctionner correctement.</p>
+            <section class="cookies-page" data-page="4">
+                <h2>4. Comment gérer ou désactiver les cookies ?</h2>
+                <p>Conformément aux recommandations des autorités de régulation (telles que la CNIL), les cookies
+                    strictement nécessaires au fonctionnement du service ne requièrent pas de consentement préalable.
+                </p>
+                <p>Cependant, vous avez la liberté de configurer à tout moment votre navigateur internet pour bloquer ou
+                    supprimer les cookies. Veuillez noter que la désactivation complète des cookies essentiels peut
+                    altérer ou empêcher l'accès à certaines fonctionnalités sécurisées de votre compte (connexion,
+                    espace membre, paiements).</p>
+            </section>
+
+            <section class="cookies-page" data-page="5">
+                <h2>5. Mises à jour et Contact</h2>
+                <p>La présente politique relative aux cookies peut être modifiée à tout moment pour refléter les
+                    évolutions techniques ou réglementaires de la plateforme.</p>
+                <p>Pour toute question concernant l'utilisation des cookies sur le site <strong>Morgann Music
+                        CP</strong>, vous pouvez nous contacter par courrier électronique à l'adresse :
+                    <strong>contact@mm-cp.uk</strong>.
+                </p>
+            </section>
+
+            <div class="pagination-nav">
+                <button id="prev-btn" class="page-btn" disabled>Précédent</button>
+                <div class="page-indicators" id="indicators"></div>
+                <button id="next-btn" class="page-btn">Suivant</button>
+            </div>
         </div>
     </main>
-    <script type="module" src="/assets/js/navbar.js"></script>
+
     <div id="footer"></div>
     <script src="/assets/footers/accueil/footer.js" defer></script>
+    <script type="module" src="/assets/js/navbar.js"></script>
+
+    <script src="/assets/js/cookies.js"></script>
 </body>
 
 </html>

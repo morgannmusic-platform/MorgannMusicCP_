@@ -60,6 +60,12 @@ export default {
 
         if (userEmail) {
           sessionConfig.customer_email = userEmail;
+          // IMPORTANT : On demande à Stripe de créer ou de réutiliser le client basé sur cet email pour le retrouver facilement ensuite
+          const existingCustomers = await stripe.customers.list({ email: userEmail, limit: 1 });
+          if (existingCustomers.data.length > 0) {
+            sessionConfig.customer = existingCustomers.data[0].id;
+            delete sessionConfig.customer_email; // Évite les conflits si customer_id est fourni directement
+          }
         }
 
         const session = await stripe.checkout.sessions.create(sessionConfig);
@@ -119,6 +125,7 @@ export default {
     }
 
     // --- VÉRIFICATION DE SESSION ET MISE À JOUR D1 ---
+    // --- VÉRIFICATION DE SESSION ET MISE À JOUR D1 ---
     if (request.method === "GET" && url.pathname === "/verify-session") {
       const sessionId = url.searchParams.get("session_id");
       if (!sessionId) {
@@ -139,16 +146,18 @@ export default {
           const planId = session.metadata?.planId;
           const planName = session.metadata?.planName;
           const userEmail = session.customer_email || session.customer_details?.email;
+          const stripeCustomerId = session.customer; // <-- L'ID client Stripe (cus_...)
           const assignedPlan = planId || planName;
 
           if (userEmail && env.DB) {
+            // Met à jour à la fois le plan ET l'ID client Stripe dans la table users
             await env.DB.prepare(
               `UPDATE users 
-               SET plan_name = ?
+               SET plan_name = ?, stripe_customer_id = ?
                WHERE email = ?`
-            ).bind(assignedPlan, userEmail).run();
+            ).bind(assignedPlan, stripeCustomerId, userEmail).run();
 
-            console.log(`[D1 Success] Utilisateur ${userEmail} mis à jour avec plan_name = ${assignedPlan}`);
+            console.log(`[D1 Success] Utilisateur ${userEmail} mis à jour : plan = ${assignedPlan}, customer = ${stripeCustomerId}`);
           }
 
           return new Response(JSON.stringify({ success: true, planName: assignedPlan }), {
@@ -167,7 +176,8 @@ export default {
         });
       }
     }
-
+    // --- WEBHOOK STRIPE (Mise à jour D1 en cas de résiliation ou changement) ---
+    // ... existing code ...
     // --- WEBHOOK STRIPE (Mise à jour D1 en cas de résiliation ou changement) ---
     if (request.method === "POST" && url.pathname === "/webhook") {
       const signature = request.headers.get("stripe-signature");
@@ -194,29 +204,25 @@ export default {
       // Gestion des événements de résiliation ou d'annulation d'abonnement
       if (event.type === "customer.subscription.deleted" || event.type === "customer.subscription.updated") {
         const subscription = event.data.object;
-        const customerId = subscription.customer;
+        const customerId = subscription.customer; // 'cus_...'
 
         try {
-          const stripe = new Stripe(env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
-          const customer = await stripe.customers.retrieve(customerId);
-          const customerEmail = customer.email;
-
-          if (customerEmail && env.DB) {
+          if (env.DB && customerId) {
             let newPlan = 'starter'; // Plan par défaut si résilié
 
-            // Si l'abonnement est actif, on peut récupérer le produit/plan associé si besoin, 
-            // mais s'il est supprimé/annulé, on le rétrograde.
+            // Si l'abonnement est supprimé ou marqué pour annulation à la fin de la période
             if (event.type === "customer.subscription.deleted" || subscription.cancel_at_period_end) {
               newPlan = 'starter';
             }
 
+            // On met à jour directement en cherchant par stripe_customer_id
             await env.DB.prepare(
               `UPDATE users 
                SET plan_name = ?
-               WHERE email = ?`
-            ).bind(newPlan, customerEmail).run();
+               WHERE stripe_customer_id = ?`
+            ).bind(newPlan, customerId).run();
 
-            console.log(`[D1 Webhook] Utilisateur ${customerEmail} mis à jour suite à l'événement ${event.type}`);
+            console.log(`[D1 Webhook] Utilisateur avec customer_id ${customerId} mis à jour suite à l'événement ${event.type}`);
           }
         } catch (dbErr) {
           console.error("Erreur Webhook D1:", dbErr.message);

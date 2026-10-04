@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,41 +8,107 @@
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <link rel="stylesheet" href="/assets/navbars/accueil/navbar.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <style>
-        .legal-content { max-width: 800px; margin: 40px auto; padding: 2.5rem; background: var(--container1); border-radius: 32px; color: var(--text-secondary); box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-        h1, h2 { color: var(--rose); margin-bottom: 1rem; }
-        p { margin-bottom: 1.2rem; line-height: 1.7; }
-
-        @media (max-width: 768px) {
-            .legal-content { margin: 20px 15px; padding: 1.5rem; border-radius: 24px; }
-            h1 { font-size: 1.8rem; }
-            h2 { font-size: 1.4rem; margin-top: 2rem; }
-            p { font-size: 0.95rem; }
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/mentions-legales.css">
 </head>
+
 <body>
     <div id="navbar"></div>
     <main class="content-wrapper">
         <div class="legal-content">
             <h1>Mentions Légales</h1>
-            
-            <h2>1. Éditeur du site</h2>
-            <p>Le site Morgann Music CP est édité par Morgann Rachedi, dont le siège social est situé à Chemin De Zonas, immatriculée au RCS de Condrieu sous le numéro 50798773300023.</p>
-            <p>Email : contact@mm-cp.uk</p>
 
-            <h2>2. Hébergement</h2>
-            <p>Le site est hébergé par CloudFlare Pages avec comme base de donnéesFirebase (Google Cloud Platform) et les fonctions serveurs sont opérées par Cloudflare Workers.</p>
+            <!-- Page 1 : Édition & Identification -->
+            <section class="mentions-page active" data-page="1">
+                <h2>1. Identification et Édition du Site</h2>
+                <p>Le site internet <strong>Morgann Music CP</strong> (accessible notamment à l'adresse
+                    <em>mm-cp.uk</em>) est édité par :
+                </p>
+                <ul>
+                    <li><strong>Nom / Responsable légal :</strong> Morgann Rachedi</li>
+                    <li><strong>Adresse du siège :</strong> Chemin De Zonas, Condrieu, France</li>
+                    <li><strong>Immatriculation :</strong> RCS de Condrieu sous le numéro 50798773300023</li>
+                    <li><strong>Adresse électronique de contact :</strong> contact@mm-cp.uk</li>
+                </ul>
 
-            <h2>3. Propriété intellectuelle</h2>
-            <p>L'ensemble du contenu de ce site (textes, images, logos) est la propriété exclusive de Morgann Music CP, sauf mention contraire.</p>
+                <h2>2. Direction de la Publication</h2>
+                <p>Le directeur de la publication et responsable légal des contenus édités sur le site est Morgann
+                    Rachedi.</p>
+            </section>
 
-            <h2>4. Données personnelles</h2>
-            <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour plus d'informations, consultez notre Politique de Confidentialité.</p>
+            <!-- Page 2 : Hébergement & Infrastructure technique -->
+            <section class="mentions-page" data-page="2">
+                <h2>3. Hébergement et Infrastructure</h2>
+                <p>La plateforme et les services numériques de Morgann Music CP reposent sur une architecture cloud
+                    moderne et sécurisée :</p>
+                <ul>
+                    <li><strong>Hébergement web et frontend :</strong> Cloudflare Pages (Cloudflare, Inc.)</li>
+                    <li><strong>Fonctions serveurs et API (Workers) :</strong> Cloudflare Workers</li>
+                    <li><strong>Base de données et services cloud :</strong> Cloudflare D1 & R2</li>
+                    <li><strong>Nom de domaine :</strong> Enregistré et géré via Cloudflare</li>
+                </ul>
+                <p>Pour toute question relative à l'infrastructure technique, vous pouvez contacter le support via
+                    l'adresse officielle de contact.</p>
+            </section>
+
+            <!-- Page 3 : Propriété intellectuelle & Copyright -->
+            <section class="mentions-page" data-page="3">
+                <h2>4. Propriété Intellectuelle</h2>
+                <p>L'ensemble de la structure, des textes, des visuels, des chartes graphiques, des logos, des
+                    interfaces, des bases de données et des codes sources constituant le site <strong>Morgann Music
+                        CP</strong> est la propriété exclusive de l'éditeur, sauf mention contraire explicite.</p>
+                <p>Toute reproduction, représentation, modification, diffusion ou exploitation, totale ou partielle, de
+                    l'un quelconque de ces éléments, par quelque moyen que ce soit, sans l'autorisation écrite préalable
+                    et expresse de Morgann Rachedi, est strictement interdite et constitutive d'une contrefaçon.</p>
+            </section>
+
+            <!-- Page 4 : Données personnelles, Cookies & RGPD -->
+            <section class="mentions-page" data-page="4">
+                <h2>5. Protection des Données Personnelles (RGPD)</h2>
+                <p>Conformément au Règlement Général sur la Protection des Données (RGPD) et à la législation française
+                    en vigueur, les informations collectées sur le site (lors de la création de compte, de
+                    l'authentification ou de l'utilisation des services) font l'objet d'un traitement informatique
+                    destiné à la gestion des utilisateurs et des abonnements.</p>
+                <p>L'utilisateur dispose d'un droit permanent d'accès, de rectification, de portabilité et de
+                    suppression des données le concernant, qu'il peut exercer en se rendant directement dans son espace
+                    « Mon compte » ou en contactant le support.</p>
+
+                <h2>6. Gestion des Cookies</h2>
+                <p>Le site peut utiliser des cookies techniques indispensables au bon fonctionnement de la session
+                    utilisateur, de l'authentification sécurisée (Firebase Auth) et du panier/paiement (Stripe). Aucun
+                    traçage publicitaire intrusif n'est opéré sans consentement.</p>
+            </section>
+
+            <!-- Page 5 : Limitation de responsabilité & Contact -->
+            <section class="mentions-page" data-page="5">
+                <h2>7. Limitation de Responsabilité</h2>
+                <p>L'éditeur s'efforce d'assurer au mieux de ses possibilités l'exactitude et la mise à jour des
+                    informations diffusées sur le site. Toutefois, Morgann Music CP décline toute responsabilité en cas
+                    d'erreurs, d'omissions, d'indisponibilité temporaire des services ou de piratage informatique
+                    indépendant de sa volonté.</p>
+
+                <h2>8. Droit Applicable</h2>
+                <p>Les présentes mentions légales sont régies par le droit français. En cas de litige et à défaut de
+                    résolution amiable, les tribunaux français seront seuls compétents.</p>
+
+                <h2>9. Contact</h2>
+                <p>Pour toute réclamation, signalement de contenu illicite ou demande d'information, vous pouvez nous
+                    écrire à l'adresse suivante : <strong>contact@mm-cp.uk</strong>.</p>
+            </section>
+
+            <!-- Navigation Pagination -->
+            <div class="pagination-nav">
+                <button id="prev-btn" class="page-btn" disabled>Précédent</button>
+                <div class="page-indicators" id="indicators"></div>
+                <button id="next-btn" class="page-btn">Suivant</button>
+            </div>
         </div>
     </main>
-    <script type="module" src="/assets/js/navbar.js"></script>
+
     <div id="footer"></div>
     <script src="/assets/footers/accueil/footer.js" defer></script>
+    <script type="module" src="/assets/js/navbar.js"></script>
+
+    <script src="/assets/js/mentions-legales.js"></script>
 </body>
+
 </html>

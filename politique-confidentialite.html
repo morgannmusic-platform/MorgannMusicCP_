@@ -1,45 +1,123 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confidentialité - Morgann Music CP</title>
+    <title>Politique de Confidentialité - Morgann Music CP</title>
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <link rel="stylesheet" href="/assets/navbars/accueil/navbar.css">
-    <style>
-        .legal-content { max-width: 800px; margin: 40px auto; padding: 2.5rem; background: var(--container1); border-radius: 32px; color: var(--text-secondary); box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-        h1, h2 { color: var(--rose); margin-top: 1.5rem; margin-bottom: 1rem; }
-        p { line-height: 1.7; margin-bottom: 1rem; }
-
-        @media (max-width: 768px) {
-            .legal-content { margin: 20px 15px; padding: 1.5rem; border-radius: 24px; }
-            h1 { font-size: 1.8rem; }
-            h2 { font-size: 1.4rem; margin-top: 1.8rem; }
-            p { font-size: 0.95rem; }
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/pc.css">
 </head>
+
 <body>
     <div id="navbar"></div>
     <main class="content-wrapper">
         <div class="legal-content">
             <h1>Politique de Confidentialité</h1>
-            
-            <h2>Collecte des données</h2>
-            <p>Nous collectons les informations nécessaires à la création de votre compte (Nom, Prénom, Email, Nom d'artiste) et à la distribution de votre musique.</p>
 
-            <h2>Utilisation des données</h2>
-            <p>Vos données sont utilisées pour gérer vos abonnements, traiter vos paiements via Stripe et envoyer vos métadonnées aux plateformes de streaming.</p>
+            <!-- Page 1 : Introduction & Responsable -->
+            <section class="pc-page active" data-page="1">
+                <h2>1. Introduction et Engagement</h2>
+                <p>La présente Politique de Confidentialité (ci-après la « Politique ») décrit la manière dont
+                    <strong>Morgann Music CP</strong> (accessible via <em>mm-cp.uk</em>) collecte, traite, utilise et
+                    protège vos données personnelles lorsque vous naviguez sur la plateforme ou utilisez nos services.
+                </p>
+                <p>Nous attachons une importance capitale à la protection de votre vie privée et nous engageons à
+                    respecter scrupuleusement la réglementation en vigueur, notamment le Règlement Général sur la
+                    Protection des Données (RGPD).</p>
 
-            <h2>Sécurité</h2>
-            <p>Vos données sont stockées de manière sécurisée via Firebase (Google Cloud). Nous ne vendons jamais vos données à des tiers.</p>
+                <h2>2. Responsable du Traitement</h2>
+                <p>Le traitement des données personnelles collectées sur le site est sous la responsabilité de
+                    <strong>Morgann Rachedi</strong>, éditeur de la plateforme Morgann Music CP (siège social à
+                    Condrieu, contact : <em>contact@mm-cp.uk</em>).
+                </p>
+            </section>
 
-            <h2>Cookies</h2>
-            <p>Nous utilisons des cookies essentiels au fonctionnement du site et à la persistance de votre session utilisateur.</p>
+            <!-- Page 2 : Données Collectées -->
+            <section class="pc-page" data-page="2">
+                <h2>3. Données Personnelles Collectées</h2>
+                <p>Dans le cadre de votre utilisation de nos services, nous sommes amenés à collecter différentes
+                    catégories de données :</p>
+                <ul>
+                    <li><strong>Informations d'identification et de compte :</strong> Nom, prénom, adresse e-mail, nom
+                        d'artiste ou de label.</li>
+                    <li><strong>Coordonnées et facturation :</strong> Adresse postale, ville, code postal, IBAN (si
+                        renseigné) et données de transaction gérées via Stripe.</li>
+                    <li><strong>Données de sécurité :</strong> Clés secrètes d'authentification à deux facteurs
+                        (2FA/TOTP) et journaux de connexion sécurisés.</li>
+                    <li><strong>Données techniques et de navigation :</strong> Adresse IP, type de navigateur, données
+                        de session et cookies essentiels.</li>
+                </ul>
+            </section>
+
+            <!-- Page 3 : Finalités & Utilisation des Données -->
+            <section class="pc-page" data-page="3">
+                <h2>4. Finalités du Traitement des Données</h2>
+                <p>Les informations que nous recueillons sont utilisées exclusivement pour les finalités légitimes
+                    suivantes :</p>
+                <ul>
+                    <li>Gestion, création et sécurisation de votre compte utilisateur et de vos accès.</li>
+                    <li>Exécution des abonnements, traitement des paiements sécurisés via notre partenaire Stripe et
+                        gestion de la facturation.</li>
+                    <li>Fourniture des services de distribution musicale et mise en relation avec nos plateformes
+                        partenaires.</li>
+                    <li>Amélioration continue de l'expérience utilisateur, support technique et envoi de notifications
+                        importantes relatives à votre compte.</li>
+                </ul>
+            </section>
+
+            <!-- Page 4 : Sécurité, Hébergement & Non-cession -->
+            <section class="pc-page" data-page="4">
+                <h2>5. Sécurité et Hébergement des Données</h2>
+                <p>Vos données personnelles sont stockées et traitées avec un haut niveau de sécurité au sein
+                    d'infrastructures cloud de confiance :</p>
+                <ul>
+                    <li><strong>Hébergement et base de données :</strong> Stockage sécurisé via Cloudflare D1, R2 &
+                        Workers.</li>
+                    <li><strong>Protection des accès :</strong> Chiffrement des communications, mesures anti-fraude et
+                        options de sécurité avancées (2FA).</li>
+                </ul>
+
+                <h2>6. Non-cession et Partage des Données</h2>
+                <p><strong>Morgann Music CP ne vend, ne loue et ne cède jamais vos données personnelles à des
+                        tiers.</strong> Vos données ne sont partagées qu'avec nos prestataires techniques indispensables
+                    au fonctionnement du service (comme Stripe pour les paiements) ou sur réquisition judiciaire.</p>
+            </section>
+
+            <!-- Page 5 : Droits des Utilisateurs & Cookies -->
+            <section class="pc-page" data-page="5">
+                <h2>7. Vos Droits Informatiques et Libertés</h2>
+                <p>Conformément au RGPD, vous disposez des droits suivants concernant vos données personnelles :</p>
+                <ul>
+                    <li>Droit d'accès, de rectification et de mise à jour de vos informations depuis votre espace « Mon
+                        compte ».</li>
+                    <li>Droit à l'effacement (droit à l'oubli) et à la limitation du traitement.</li>
+                    <li>Droit d'opposition et de portabilité de vos données.</li>
+                </ul>
+                <p>Pour exercer ces droits, vous pouvez nous contacter directement à l'adresse e-mail :
+                    <strong>contact@mm-cp.uk</strong>.
+                </p>
+
+                <h2>8. Politique relative aux Cookies</h2>
+                <p>Le site utilise exclusivement des cookies techniques et de session indispensables au bon
+                    fonctionnement de l'authentification (Firebase Auth) et de votre navigation.</p>
+            </section>
+
+            <!-- Navigation Pagination -->
+            <div class="pagination-nav">
+                <button id="prev-btn" class="page-btn" disabled>Précédent</button>
+                <div class="page-indicators" id="indicators"></div>
+                <button id="next-btn" class="page-btn">Suivant</button>
+            </div>
         </div>
     </main>
-    <script type="module" src="/assets/js/navbar.js"></script>
+
     <div id="footer"></div>
     <script src="/assets/footers/accueil/footer.js" defer></script>
+    <script type="module" src="/assets/js/navbar.js"></script>
+
+    <script src="/assets/js/pc.js"></script>
 </body>
+
 </html>

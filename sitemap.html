@@ -7,110 +7,17 @@
     <meta name="description" content="Plan du site - Morgann Music CP">
     <meta name="theme-color" content="#FC8FB0" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#6C7A53" media="(prefers-color-scheme: dark)">
-
     <title>Plan du site - Morgann Music CP</title>
-    
-    <!-- CSS de la page d'accueil et styles spécifiques -->
+
     <link rel="stylesheet" href="/assets/css/styles-accueil.css">
     <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
-    
+    <link rel="canonical" href="https://mm-cp.uk/sitemap.html">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="/assets/js/background.js"></script>
     <script type="module" src="/assets/js/navbar.js" defer></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
-
-    <style>
-        .sitemap-section {
-            max-width: 1200px;
-            margin: 2rem auto 5rem;
-            padding: 0 1rem;
-        }
-
-        .sitemap-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .sitemap-header h1 {
-            font-size: clamp(2.2rem, 5vw, 3.5rem);
-            color: var(--rose);
-            margin-bottom: 0.5rem;
-        }
-
-        .sitemap-header p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-        }
-
-        .sitemap-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.8rem;
-        }
-
-        .sitemap-card {
-            background: linear-gradient(140deg, var(--container1) 0%, var(--container3) 100%);
-            border: 1px solid var(--border-subtle);
-            border-radius: 24px;
-            padding: 1.8rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
-        }
-
-        .sitemap-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 26px 72px rgba(0, 0, 0, 0.14);
-            border-color: rgba(252, 143, 176, 0.35);
-        }
-
-        .sitemap-card h2 {
-            font-size: 1.35rem;
-            color: var(--rose);
-            margin-bottom: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: 0.6rem;
-        }
-
-        .sitemap-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-        }
-
-        .sitemap-list li {
-            font-size: 0.95rem;
-        }
-
-        .sitemap-list a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.25s ease, padding-left 0.25s ease;
-            display: inline-block;
-        }
-
-        .sitemap-list a:hover {
-            color: var(--rose);
-            padding-left: 6px;
-        }
-
-        .badge-sub {
-            font-size: 0.72rem;
-            background: var(--container2);
-            color: var(--rose);
-            padding: 0.15rem 0.5rem;
-            border-radius: 999px;
-            margin-left: 0.4rem;
-            border: 1px solid var(--border-subtle);
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/sitemap.css">
 </head>
 
 <body>
@@ -119,109 +26,120 @@
     <div class="content-wrapper">
         <section class="sitemap-section">
             <div class="sitemap-header">
-                <div class="hero-pill" style="opacity:1; margin-bottom: 1rem;">Navigation & Structure</div>
+                <div class="hero-pill" style="opacity:1; margin-bottom: 1rem;">Navigation & structure</div>
                 <h1>Plan du site</h1>
-                <p>Retrouvez toutes les pages de Morgann Music CP en un clin d'œil.</p>
+                <p>Retrouvez toutes les pages principales, les portails et les pages légales de Morgann Music CP en un
+                    seul endroit.</p>
+                <div class="sitemap-actions">
+                    <a class="primary-link" href="/sitemap.xml">Voir le sitemap XML</a>
+                    <a class="secondary-link" href="/index.html">Retour à l'accueil</a>
+                </div>
             </div>
 
             <div class="sitemap-grid">
-                <!-- Main Pages -->
                 <div class="sitemap-card">
-                    <h2>🌐 Pages Principales</h2>
+                    <h2>🌐 Pages principales</h2>
                     <ul class="sitemap-list">
                         <li><a href="/index.html">Accueil</a></li>
-                        <li><a href="/pourquoi-nous.html">Pourquoi Nous</a></li>
-                        <li><a href="/tarifs.html">Tarifs & Offres</a></li>
+                        <li><a href="/pourquoi-nous.html">Pourquoi nous</a></li>
+                        <li><a href="/tarifs.html">Tarifs & offres</a></li>
                         <li><a href="/mmcp-futurelegende.html">Offre Future Légende</a></li>
-                        <li><a href="/distribution.html">Distribution Musicale</a></li>
-                        <li><a href="/developpement.html">Développement & Services</a></li>
-                        <li><a href="/avis.html">Avis Clients</a></li>
-                        <li><a href="/faq.html">Foire Aux Questions (FAQ)</a></li>
+                        <li><a href="/distribution.html">Distribution musicale</a></li>
+                        <li><a href="/developpement.html">Développement & services</a></li>
+                        <li><a href="/avis.html">Avis clients</a></li>
                         <li><a href="/contact.html">Contact</a></li>
-                        <li><a href="/version.html">Notes de Version</a></li>
+                        <li><a href="/premiere.html">présentation MMPremière</a></li>
+                        <li><a href="/premiere/index.html">Espace Première</a></li>
+                        <li><a href="/version.html">Version du site</a></li>
                     </ul>
                 </div>
 
-                <!-- Auth & Account -->
                 <div class="sitemap-card">
-                    <h2>🔐 Compte & Authentification</h2>
+                    <h2>🔐 Compte & inscription</h2>
                     <ul class="sitemap-list">
                         <li><a href="/login.html">Connexion</a></li>
                         <li><a href="/signin.html">Inscription</a></li>
-                        <li><a href="/account.html">Mon Compte</a></li>
-                        <li><a href="/paiement.html">Paiement & Facturation</a></li>
-                        <li><a href="/premiere/index.html">Première Connexion</a></li>
+                        <li><a href="/account.html">Mon compte</a></li>
                     </ul>
                 </div>
 
-                <!-- Catalogue -->
                 <div class="sitemap-card">
                     <h2>🎵 Catalogue</h2>
                     <ul class="sitemap-list">
-                        <li><a href="/catalogue/index.html">Accueil Catalogue</a></li>
-                        <li><a href="/catalogue/artistes.html">Tous les Artistes</a></li>
-                        <li><a href="/catalogue/artiste.html">Fiche Artiste</a></li>
-                        <li><a href="/catalogue/sorties.html">Toutes les Sorties</a></li>
-                        <li><a href="/catalogue/sortie.html">Détail d'une Sortie</a></li>
-                        <li><a href="/catalogue/dernierement.html">Dernières Nouveautés</a></li>
-                        <li><a href="/catalogue/prochainement.html">Prochaines Sorties</a></li>
+                        <li><a href="/catalogue/index.html">Catalogue</a></li>
+                        <li><a href="/catalogue/artistes.html">Artistes</a></li>
+                        <li><a href="/catalogue/artiste.html">Fiche artiste</a></li>
+                        <li><a href="/catalogue/sorties.html">Toutes les sorties</a></li>
+                        <li><a href="/catalogue/sortie.html">Détail d'une sortie</a></li>
+                        <li><a href="/catalogue/dernierement.html">Dernières nouveautés</a></li>
+                        <li><a href="/catalogue/prochainement.html">Prochaines sorties</a></li>
                     </ul>
                 </div>
 
-                <!-- User Portal -->
                 <div class="sitemap-card">
-                    <h2>🚀 Portail Utilisateur</h2>
+                    <h2>🚀 Portail artiste</h2>
                     <ul class="sitemap-list">
-                        <li><a href="/portail/index.html">Tableau de Bord</a></li>
-                        <li><a href="/portail/profil.html">Profil Artiste</a></li>
-                        <li><a href="/portail/artistes.html">Gestion des Artistes</a></li>
-                        <li><a href="/portail/sorties.html">Mes Sorties</a></li>
-                        <li><a href="/portail/nouvelle.html">Créer une Sortie</a></li>
-                        <li><a href="/portail/edition.html">Édition de Sortie</a></li>
-                        <li><a href="/portail/mes-revenus.html">Mes Revenus</a></li>
-                        <li><a href="/portail/retraits.html">Demandes de Retrait</a></li>
-                        <li><a href="/portail/liens-sorties.html">Smartlinks & Liens</a></li>
-                        <li><a href="/portail/notification.html">Centre de Notifications</a></li>
+                        <li><a href="/portail/index.html">Tableau de bord</a></li>
+                        <li><a href="/portail/profil.html">Profil artiste</a></li>
+                        <li><a href="/portail/artistes.html">Gestion des artistes</a></li>
+                        <li><a href="/portail/sorties.html">Mes sorties</a></li>
+                        <li><a href="/portail/nouvelle.html">Créer une sortie</a></li>
+                        <li><a href="/portail/edition.html">Édition de sortie</a></li>
+                        <li><a href="/portail/mes-revenus.html">Mes revenus</a></li>
+                        <li><a href="/portail/retraits.html">Retraits</a></li>
+                        <li><a href="/portail/liens-sorties.html">Liens & smartlinks</a></li>
+                        <li><a href="/portail/notification.html">Notifications</a></li>
                     </ul>
                 </div>
 
-                <!-- Label Portal -->
                 <div class="sitemap-card">
-                    <h2>🏷️ Portail Label</h2>
+                    <h2>🏷️ Portail label</h2>
                     <ul class="sitemap-list">
-                        <li><a href="/label/index.html">Tableau de Bord Label</a></li>
-                        <li><a href="/portail-label/creation-compte.html">Création Compte Label</a></li>
-                        <li><a href="/label/profil.html">Profil Label</a></li>
-                        <li><a href="/label/artistes.html">Artistes du Label</a></li>
-                        <li><a href="/label/sorties.html">Catalogue du Label</a></li>
-                        <li><a href="/label/nouvelle.html">Nouvelle Sortie Label</a></li>
-                        <li><a href="/label/mes-revenus.html">Revenus Global Label</a></li>
-                        <li><a href="/label/retraits.html">Gestion Retraits Label</a></li>
+                        <li><a href="/label/index.html">Tableau de bord label</a></li>
+                        <li><a href="/label/label.html">Espace label</a></li>
+                        <li><a href="/label/portail.html">Portail label</a></li>
+                        <li><a href="/label/profil.html">Profil label</a></li>
+                        <li><a href="/label/artistes.html">Artistes du label</a></li>
+                        <li><a href="/label/sorties.html">Catalogue du label</a></li>
+                        <li><a href="/label/nouvelle.html">Nouvelle sortie</a></li>
+                        <li><a href="/label/edition.html">Édition</a></li>
+                        <li><a href="/label/mes-revenus.html">Revenus</a></li>
+                        <li><a href="/label/retraits.html">Retraits</a></li>
+                        <li><a href="/label/notification.html">Notifications</a></li>
                     </ul>
                 </div>
 
-                <!-- Administration -->
                 <div class="sitemap-card">
                     <h2>🛠️ Administration</h2>
                     <ul class="sitemap-list">
-                        <li><a href="/portail/admin/index.html">Dashboard Admin</a></li>
-                        <li><a href="/portail/admin/comptes.html">Gestion des Comptes</a></li>
-                        <li><a href="/portail/admin/compte.html">Détail Compte Utilisateur</a></li>
-                        <li><a href="/portail/admin/sorties.html">Valider les Sorties</a></li>
-                        <li><a href="/portail/admin/uploader.html">Uploader Global Admin</a></li>
-                        <li><a href="/portail/admin/revenus.html">Gestion Financière</a></li>
-                        <li><a href="/portail/admin/retraits.html">Validation des Retraits</a></li>
-                        <li><a href="/portail/admin/contact-accueil.html">Messages & Support</a></li>
+                        <li><a href="/portail/admin/index.html">Dashboard admin</a></li>
+                        <li><a href="/portail/admin/comptes.html">Gestion des comptes</a></li>
+                        <li><a href="/portail/admin/compte.html">Détail compte</a></li>
+                        <li><a href="/portail/admin/sorties.html">Validation des sorties</a></li>
+                        <li><a href="/portail/admin/revenus.html">Gestion financière</a></li>
+                        <li><a href="/portail/admin/retraits.html">Validation des retraits</a></li>
+                        <li><a href="/portail/admin/contact-accueil.html">Messages & support</a></li>
+                        <li><a href="/portail/admin/uploader.html">Uploader global</a></li>
                     </ul>
                 </div>
 
-                <!-- Legal Pages -->
                 <div class="sitemap-card">
-                    <h2>⚖️ Informations Légales</h2>
+                    <h2>⚖️ Informations légales</h2>
                     <ul class="sitemap-list">
-                        <li><a href="/mentions-legales.html">Mentions Légales</a></li>
-                        <li><a href="/cgv.html">Conditions Générales de Vente (CGV)</a></li>
-                        <li><a href="/politique-confidentialite.html">Politique de Confidentialité</a></li>
+                        <li><a href="/mentions-legales.html">Mentions légales</a></li>
+                        <li><a href="/cgu.html">Conditions générales d'utilisation</a></li>
+                        <li><a href="/cgv.html">Conditions générales de vente</a></li>
+                        <li><a href="/politique-confidentialite.html">Politique de confidentialité</a></li>
+                        <li><a href="/cookies.html">Politique cookies</a></li>
+                    </ul>
+                </div>
+
+                <div class="sitemap-card">
+                    <h2>📦 Autres pages</h2>
+                    <ul class="sitemap-list">
+                        <li><a href="/success.html">Page de succès</a></li>
+                        <li><a href="/sitemap.html">Plan du site</a></li>
+                        <li><a href="/sitemap.xml">Sitemap XML</a></li>
                     </ul>
                 </div>
             </div>
@@ -230,19 +148,7 @@
 
     <div id="footer"></div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (typeof gsap !== "undefined") {
-                gsap.from(".sitemap-card", {
-                    opacity: 0,
-                    y: 30,
-                    duration: 0.8,
-                    stagger: 0.1,
-                    ease: "power3.out"
-                });
-            }
-        });
-    </script>
+    <script src="/assets/js/sitemap-gsap.js"></script>
 </body>
 
 </html>
