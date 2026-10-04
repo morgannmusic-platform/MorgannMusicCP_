@@ -91,12 +91,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 attachMobileMenuLinkListeners();
             };
 
-            const renderConnected = (user, isAdmin, customPhotoURL) => {
+            const renderConnected = (user, isAdmin, customPhotoURL, planName) => {
                 const photo = customPhotoURL ? api.fileUrl(customPhotoURL) : (user.photoURL || "/assets/img/icons/pdp-compte.png");
 
                 const adminItem = isAdmin
                     ? `<a href="/portail/admin/index.html">Tableau de bord admin</a>`
                     : "";
+
+                // Vérification stricte ou insensible à la casse
+                const isLabel = planName && planName.toLowerCase() === "label";
+                const portalHref = isLabel ? "/portail/label/index.html" : "/portail/index.html";
+                const portalText = isLabel ? "Portail Label" : "Portail Utilisateur";
 
                 const profileHtml = `
                     <div class="profile-wrap">
@@ -104,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <img src="${photo}" alt="Photo de profil">
                         </button>
                         <div class="profile-menu" id="profile-menu">
-                            <a href="/portail/index.html">Portail Utilisateur</a>
+                            <a href="${portalHref}">${portalText}</a>
                             <a href="/account.html">Espace compte</a>
                             ${adminItem}
                             <button type="button" class="danger" id="logout-button">Se déconnecter</button>
@@ -118,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <img src="${photo}" alt="Photo de profil" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--text-nb);">
                             <span style="color: var(--text-nb); font-weight: 600; font-size: 0.95rem;">Mon Compte</span>
                         </div>
-                        <a href="/portail/index.html">Portail Utilisateur</a>
+                        <a href="${portalHref}">${portalText}</a>
                         <a href="/account.html">Espace compte</a>
                         ${adminItem}
                         <button type="button" class="danger" id="mobile-logout-button" style="background:none; border:none; color:#ffdde8; text-align:left; padding:8px 0; font-size:1rem; cursor:pointer;">Se déconnecter</button>
@@ -211,18 +216,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 let isAdmin = false;
                 let customPhotoURL = null;
+                let planName = null;
 
                 try {
                     const userData = await api.get(`/api/users/${user.uid}`);
                     if (userData) {
                         isAdmin = userData.role === "admin";
                         customPhotoURL = userData.photoURL || null;
+                        planName = userData.planName || null; // Utilisation de planName (camelCase renvoyé par l'API)
                     }
                 } catch (error) {
                     console.error("Erreur récupération profil D1:", error);
                 }
 
-                renderConnected(user, isAdmin, customPhotoURL);
+                renderConnected(user, isAdmin, customPhotoURL, planName);
             });
 
             animateNavbar();

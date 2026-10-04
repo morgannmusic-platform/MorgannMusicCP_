@@ -39,6 +39,77 @@ export default {
         return await getPublicPremiere(env, url);
       }
 
+      // ROUTE PUBLIQUE POUR UN LABEL SPÉCIFIQUE PAR SON ID (accessible sans authentification)
+      const labelItemMatch = path.match(/^\/api\/labels\/(\d+)$/);
+      if (labelItemMatch) {
+        const labelId = labelItemMatch[1];
+        if (method === "GET") {
+          try {
+            const row = await env.DB.prepare("SELECT * FROM labels WHERE id = ?").bind(labelId).first();
+            if (!row) return corsJson({ error: "Label non trouvé" }, 404);
+            return corsJson(row);
+          } catch (err) {
+            return corsJson({ error: err.message }, 500);
+          }
+        }
+      }
+
+      // Routes pour les artistes invités par les labels (GET et POST)
+      // Routes pour les artistes invités par les labels (GET et POST)
+      if (path === "/api/artists-labels") {
+        if (method === "GET") {
+          try {
+            const labelId = url.searchParams.get("label_id");
+            let query = 'SELECT * FROM "artistes-labels"';
+            let params = [];
+            if (labelId) {
+              query += ' WHERE id_label = ?';
+              params.push(labelId);
+            }
+            query += ' ORDER BY created_at DESC';
+            const { results } = await env.DB.prepare(query).bind(...params).all();
+            return corsJson(results || []);
+          } catch (err) {
+            return corsJson({ error: err.message }, 500);
+          }
+        }
+        if (method === "POST") {
+          try {
+            const data = await request.json();
+            const now = new Date().toISOString();
+
+            // 1. Enregistrer ou mettre à jour dans "artistes-labels"
+            const res = await env.DB.prepare(`
+              INSERT INTO "artistes-labels" (nom, prenom, email, uid, id_label, created_at)
+              VALUES (?, ?, ?, ?, ?, ?)
+            `).bind(
+              data.nom || "",
+              data.prenom || "",
+              data.email || "",
+              data.uid || "",
+              String(data.id_label || ""),
+              now
+            ).run();
+
+            // 2. IMPORTANT : Créer l'artiste dans la table 'artists' du label pour qu'il apparaisse dans "Artistes enregistrés"
+            if (data.id_label) {
+              const labelRow = await env.DB.prepare("SELECT uid FROM labels WHERE id = ?").bind(data.id_label).first();
+              if (labelRow) {
+                const artistName = data.artiste || `${data.prenom} ${data.nom}`;
+                await env.DB.prepare(`
+                  INSERT INTO artists (user_uid, name, contact_email, created_at)
+                  VALUES (?, ?, ?, ?)
+                `).bind(labelRow.uid, artistName, data.email, now).run();
+              }
+            }
+
+            return corsJson({ id: res.meta.last_row_id, success: true }, 201);
+          } catch (err) {
+            return corsJson({ error: err.message }, 500);
+          }
+        }
+      }
+
       // Routes versions publiques et sécurisées
       if (method === "GET" && path === "/api/versions") {
         return await getAllVersions(env);
@@ -171,6 +242,16 @@ export default {
         if (method === "GET") return await getUser(env, uid);
         if (method === "PUT") return await upsertUser(env, uid, request);
         if (method === "PATCH") return await patchUser(env, uid, request);
+      }
+
+      // ROUTE POUR LES LABELS
+      const userLabelsMatch = path.match(/^\/api\/users\/([^/]+)\/labels$/);
+      if (userLabelsMatch) {
+        const uid = userLabelsMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "POST") return await createLabel(env, uid, request);
+        if (method === "GET") return await getUserLabels(env, uid);
       }
 
       const userFinanceItemMatch = path.match(/^\/api\/users\/([^/]+)\/finances\/([^/]+)$/);
@@ -556,6 +637,26 @@ async function ensureTables(db) {
         artist_name TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS labels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        uid TEXT NOT NULL,
+        nom TEXT NOT NULL,
+        url TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS "artistes-labels" (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nom TEXT NOT NULL,
+        prenom TEXT NOT NULL,
+        email TEXT NOT NULL,
+        uid TEXT NOT NULL,
+        id_label TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
     `)
   ]);
 
@@ -599,6 +700,37 @@ async function isAdmin(env, uid) {
   await env.DB.prepare(`INSERT INTO users (uid, role, plan_name, created_at, updated_at) VALUES (?, 'admin', 'pro', ?, ?) ON CONFLICT(uid) DO UPDATE SET role = 'admin'`).bind(uid, now, now).run();
 
   return true;
+}
+
+async function createLabel(env, uid, request) {
+  try {
+    const data = await request.json();
+    const nom = data.nom;
+    const url = data.url || "";
+    const now = new Date().toISOString();
+
+    if (!nom) {
+      return corsJson({ error: "Le nom du label est obligatoire" }, 400);
+    }
+
+    const res = await env.DB.prepare(`
+      INSERT INTO labels (uid, nom, url, created_at)
+      VALUES (?, ?, ?, ?)
+    `).bind(uid, nom, url, now).run();
+
+    return corsJson({ id: res.meta.last_row_id, success: true }, 201);
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function getUserLabels(env, uid) {
+  try {
+    const { results } = await env.DB.prepare("SELECT * FROM labels WHERE uid = ? ORDER BY created_at DESC").bind(uid).all();
+    return corsJson(results || []);
+  } catch (err) {
+    return corsJson([], 200);
+  }
 }
 
 async function getPublicPremiere(env, url) {
@@ -1766,7 +1898,6 @@ async function patchWithdrawal(env, userId, path, request, isAdminUser) {
   const now = new Date().toISOString();
 
   try {
-    // 1. Récupérer les infos du retrait AVANT modification
     const withdrawal = await env.DB.prepare("SELECT * FROM withdrawals WHERE id = ?").bind(id).first();
 
     if (!withdrawal) {
@@ -1776,20 +1907,18 @@ async function patchWithdrawal(env, userId, path, request, isAdminUser) {
     const oldStatus = withdrawal.status;
     const newStatus = data.status;
 
-    // 2. Mettre à jour le statut du retrait dans la table
     await env.DB.prepare("UPDATE withdrawals SET status = ? WHERE id = ?").bind(newStatus, id).run();
 
     const amount = Math.abs(Number(withdrawal.amount));
     const period = new Date().toISOString().substring(0, 7);
 
-    // 3. CAS A : Le statut passe à "envoyé" (et ne l'était pas avant) -> On SOUSTRAIT l'argent
     if (newStatus === "envoyé" && oldStatus !== "envoyé") {
       await env.DB.prepare(`
         INSERT INTO finances (user_uid, amount, period, release_id, release_title, artist_name, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `).bind(
         withdrawal.user_uid,
-        -amount, // Montant négatif
+        -amount,
         period,
         "RETRAIT",
         `Retrait validé #${id}`,
@@ -1798,14 +1927,13 @@ async function patchWithdrawal(env, userId, path, request, isAdminUser) {
       ).run();
     }
 
-    // 4. CAS B : Le statut passe de "envoyé" à autre chose ("refusé" ou "demandé") -> On RECRÉDITE l'argent
     if (oldStatus === "envoyé" && newStatus !== "envoyé") {
       await env.DB.prepare(`
         INSERT INTO finances (user_uid, amount, period, release_id, release_title, artist_name, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `).bind(
         withdrawal.user_uid,
-        amount, // Montant positif (remboursement / annulation)
+        amount,
         period,
         "RETRAIT_ANNULE",
         `Annulation retrait #${id}`,

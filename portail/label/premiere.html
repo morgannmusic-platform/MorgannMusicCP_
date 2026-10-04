@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Première - Morgann Music CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background: #f7f9fc;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 60px auto;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 40px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .release-header {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .cover-container {
+            width: 280px;
+            height: 280px;
+            border-radius: 29px;
+            overflow: hidden;
+            background: #eee;
+            position: relative;
+        }
+
+        .cover-container img,
+        .cover-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .badge-animated-cover {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 12px;
+            text-transform: uppercase;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+        }
+
+        .release-info {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .release-info h1 {
+            font-size: 32px;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+
+        .artist-name {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .badge-premiere {
+            display: inline-block;
+            background: #FC8FB0;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .tracks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .track-item {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(189, 189, 189, 0.4);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .track-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        /* Styles de la boîte de mot de passe */
+        #password-overlay {
+            display: none;
+            text-align: center;
+            max-width: 400px;
+            margin: 100px auto;
+        }
+
+        .pw-input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+            margin: 15px 0;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .pw-input:focus {
+            border-color: #FC8FB0;
+        }
+
+        .btn-submit {
+            background: #FC8FB0;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+        .error-msg {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Écran de demande de mot de passe (si sécurisé) -->
+        <div id="password-overlay" class="card">
+            <h2>🔒 Accès Protégé</h2>
+            <p style="font-size: 14px; color: #666; margin-top: 5px;">Cette première nécessite un mot de passe pour y
+                accéder.</p>
+            <input type="password" id="input-password" class="pw-input" placeholder="Entrez le mot de passe...">
+            <button id="btn-verify-pw" class="btn-submit">Valider</button>
+            <div id="pw-error" class="error-msg">Mot de passe incorrect.</div>
+        </div>
+
+        <!-- Contenu de la Première (masqué par défaut si protégé) -->
+        <div id="premiere-content" style="display: none;">
+            <div class="card">
+                <div class="badge-premiere">Morgann Music Première</div>
+                <div class="release-header">
+                    <div class="cover-container" id="cover-wrapper">
+                        <!-- Inséré dynamiquement -->
+                    </div>
+                    <div class="release-info">
+                        <h1 id="release-title">Chargement...</h1>
+                        <div class="artist-name" id="release-artist">-</div>
+                        <div id="release-meta" style="font-size: 13px; color: #555; line-height: 1.6;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-top:0; font-size: 20px;">Pistes en Avant-Première</h2>
+                <div class="tracks-list" id="tracks-container">
+                    <!-- Inséré dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
+            authDomain: "morgann-music-cp.firebaseapp.com",
+            projectId: "morgann-music-cp",
+            storageBucket: "morgann-music-cp.firebasestorage.app",
+            messagingSenderId: "666812685196",
+            appId: "1:666812685196:web:fe3df6749ae768d68494a9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Récupérer le slug depuis l'URL (ex: /premiere/mon-slug ou paramètre ?slug=)
+        // Si tu utilises clean URLs avec Cloudflare / rewrite, on extrait le dernier segment :
+        // Récupérer le slug depuis les paramètres URL (?slug=...) ou le chemin
+        const urlParams = new URLSearchParams(window.location.search);
+        let slug = urlParams.get('slug');
+
+        if (!slug) {
+            const pathSegments = window.location.pathname.split('/').filter(Boolean);
+            slug = pathSegments[pathSegments.length - 1] === 'premiere.html' || pathSegments[pathSegments.length - 1] === 'premiere' ? null : pathSegments[pathSegments.length - 1];
+        }
+        async function initPremiere() {
+            if (!slug) {
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Lien de Première invalide.</h2>";
+                return;
+            }
+
+            try {
+                // 1. Récupérer le document de la première dans la collection "premieres"
+                const premiereRef = doc(db, "premieres", slug);
+                const premiereSnap = await getDoc(premiereRef);
+
+                if (!premiereSnap.exists()) {
+                    document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Cette Première est introuvable ou a expiré.</h2>";
+                    return;
+                }
+
+                const premiereData = premiereSnap.data();
+                const releaseId = premiereData.releaseId;
+                const ownerId = premiereData.userId;
+                const storedPassword = premiereData.password;
+
+                // 2. Gestion du mot de passe
+                if (storedPassword && storedPassword.trim() !== "") {
+                    document.getElementById("password-overlay").style.display = "block";
+
+                    document.getElementById("btn-verify-pw").onclick = () => {
+                        const enteredPw = document.getElementById("input-password").value;
+                        if (enteredPw === storedPassword) {
+                            document.getElementById("password-overlay").style.display = "none";
+                            chargerDonneesRelease(ownerId, releaseId);
+                        } else {
+                            document.getElementById("pw-error").style.display = "block";
+                        }
+                    };
+                    return; // On attend que le mot de passe soit validé
+                }
+
+                // Pas de mot de passe, on charge direct
+                chargerDonneesRelease(ownerId, releaseId);
+
+            } catch (err) {
+                console.error("Erreur chargement première :", err);
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Erreur lors du chargement de la page.</h2>";
+            }
+        }
+
+        async function chargerDonneesRelease(userId, releaseId) {
+            try {
+                const releaseRef = doc(db, "users", userId, "releases", releaseId);
+                const releaseSnap = await getDoc(releaseRef);
+
+                if (!releaseSnap.exists()) {
+                    document.body.innerHTML = "<h2 style='text-align:center; margin-top:100px;'>Sortie associée introuvable.</h2>";
+                    return;
+                }
+
+                const data = releaseSnap.data();
+                document.getElementById("premiere-content").style.display = "block";
+
+                // Pochette (Animée ou Statique)
+                const coverWrapper = document.getElementById("cover-wrapper");
+                const animatedCoverUrl = data.animatedCoverUrl || data.animatedCover;
+                if (animatedCoverUrl) {
+                    coverWrapper.innerHTML = `
+                        <video src="${animatedCoverUrl}" autoplay loop muted playsinline></video>
+                        <div class="badge-animated-cover">Pochette animée</div>
+                    `;
+                } else {
+                    const staticCover = data.coverUrl || data.cover || "/assets/img/icons/android-chrome-512x512.png";
+                    coverWrapper.innerHTML = `<img src="${staticCover}" alt="Pochette">`;
+                }
+
+                // Infos principales
+                document.getElementById("release-title").innerText = data.title || "Sans titre";
+                document.getElementById("release-artist").innerText = `${data.artistName || 'Artiste'} • ${data.type || 'Single'}`;
+
+                document.getElementById("release-meta").innerHTML = `
+                    <div><b>Date de sortie officielle :</b> ${data.releaseDate || 'Bientôt'}</div>
+                    <div><b>Genre :</b> ${data.primaryGenre || 'Non spécifié'}</div>
+                `;
+
+                // Pistes & Audio
+                const tracksContainer = document.getElementById("tracks-container");
+                tracksContainer.innerHTML = "";
+                const tracks = data.tracks || [];
+
+                if (tracks.length === 0) {
+                    tracksContainer.innerHTML = "<p style='color:#666;'>Aucune piste disponible pour le moment.</p>";
+                    return;
+                }
+
+                tracks.forEach((t, index) => {
+                    let audioSourcesHtml = '';
+                    if (t.audioUrl) {
+                        audioSourcesHtml += `<div style="margin-top:10px;"><span style="font-size:12px; font-weight:bold; color:#666;">Version Stéréo</span><audio controls src="${t.audioUrl}"></audio></div>`;
+                    }
+                    if (t.instrumentalAudioUrl) {
+                        audioSourcesHtml += `<div style="margin-top:10px;"><span style="font-size:12px; font-weight:bold; color:#666;">Version Instrumentale</span><audio controls src="${t.instrumentalAudioUrl}"></audio></div>`;
+                    }
+
+                    const trackEl = document.createElement("div");
+                    trackEl.className = "track-item";
+                    trackEl.innerHTML = `
+                        <div class="track-title"><span style="color:#aaa; margin-right:10px;">${String(index + 1).padStart(2, '0')}</span>${t.title || 'Sans titre'}</div>
+                        ${audioSourcesHtml || '<p style="font-size:13px; color:#999;">Audio non disponible</p>'}
+                    `;
+                    tracksContainer.appendChild(trackEl);
+                });
+
+            } catch (err) {
+                console.error("Erreur de récupération de la sortie :", err);
+            }
+        }
+
+        initPremiere();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Artiste | Label | Morgann Music CP</title>
+    <link rel="stylesheet" href="/portail/label/js/reponsive.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #1e293b;
+            background-color: #f8fafc;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 40px 30px;
+            border-radius: 34px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            text-align: center;
+        }
+
+        h1 {
+            color: #3e2837;
+            font-size: 26px;
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #3e2837;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: #FC8FB0;
+        }
+
+        .form-input:disabled {
+            background-color: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: #FC8FB0;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #d01159;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1 id="welcome-title">Chargement...</h1>
+        <p id="welcome-subtitle">Récupération des informations du label...</p>
+
+        <div id="error-box" class="error-msg"></div>
+
+        <form id="signup-form">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email-input" class="form-input" disabled>
+            </div>
+
+            <div class="form-group">
+                <label>Mot de passe *</label>
+                <input type="password" id="password-input" class="form-input" required
+                    placeholder="Votre mot de passe sécurisé">
+            </div>
+
+            <button type="submit" id="submit-btn" class="btn-submit">Créer mon compte artiste</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const nom = urlParams.get("nom") || "";
+        const prenom = urlParams.get("prenom") || "";
+        const email = urlParams.get("email") || "";
+        const labelId = urlParams.get("label_id") || "";
+        const artisteNom = urlParams.get("artiste") || "";
+
+        const welcomeTitle = document.getElementById("welcome-title");
+        const welcomeSubtitle = document.getElementById("welcome-subtitle");
+        const emailInput = document.getElementById("email-input");
+        const passwordInput = document.getElementById("password-input");
+        const signupForm = document.getElementById("signup-form");
+        const errorBox = document.getElementById("error-box");
+
+        emailInput.value = email;
+
+        async function initPage() {
+            if (prenom || nom) {
+                welcomeTitle.innerText = `Bonjour ${prenom} ${nom} !`;
+            } else {
+                welcomeTitle.innerText = `Bonjour !`;
+            }
+
+            let labelNom = labelId ? `le label #${labelId}` : `le label`;
+
+            if (labelId) {
+                try {
+                    const labelData = await api.get(`/api/labels/${labelId}`);
+                    if (labelData && labelData.nom) {
+                        labelNom = `le label "${labelData.nom}"`;
+                    }
+                } catch (e) {
+                    console.error("Erreur récupération nom du label:", e);
+                }
+            }
+
+            welcomeSubtitle.innerText = `Vous êtes invité/e à créer un compte pour ${labelNom} !`;
+        }
+
+        initPage();
+
+        signupForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            errorBox.style.display = "none";
+            errorBox.innerText = "";
+
+            const password = passwordInput.value.trim();
+            if (!email || !password) {
+                errorBox.innerText = "Veuillez remplir tous les champs.";
+                errorBox.style.display = "block";
+                return;
+            }
+
+            try {
+                // 1. Création du compte Firebase Auth (email / mot de passe)
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 2. Enregistrement dans la table D1 artistes-labels via l'API
+                const payload = {
+                    nom: nom,
+                    prenom: prenom,
+                    email: email,
+                    uid: user.uid,
+                    id_label: labelId,
+                    artiste: artisteNom
+                };
+
+                const response = await api.post(`/api/artists-labels`, payload);
+
+                if (response && response.success) {
+                    alert("Compte créé avec succès !");
+                    window.location.href = "/portail/label/index.html";
+                } else {
+                    throw new Error(response?.error || "Erreur lors de l'enregistrement en base.");
+                }
+
+            } catch (err) {
+                console.error("Erreur inscription artiste:", err);
+                errorBox.innerText = err.message || "Une erreur est survenue lors de la création du compte.";
+                errorBox.style.display = "block";
+            }
+        });
+    </script>
+</body>
+
+</html>

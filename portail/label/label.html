@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Label | Morgann Music CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #1e293b;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #f8fafc;
+        }
+
+        .main-content {
+            max-width: 900px;
+            margin: 4rem auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #3e2837;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 18px;
+        }
+
+        .label-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid #ffffff;
+            border-radius: 24px;
+            padding: 30px;
+            margin-top: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            text-align: left;
+            display: inline-block;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        .label-card h3 {
+            margin-top: 0;
+            color: #3e2837;
+            font-size: 22px;
+        }
+
+        .label-card p {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+
+        .label-card a {
+            color: #d01159;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .label-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- STYLE DU POP-UP DE CONFIGURATION --- */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            background: #ffffff;
+            padding: 35px 30px;
+            border-radius: 34px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            box-sizing: border-box;
+            border: 1px solid rgba(189, 189, 189, 0.438);
+        }
+
+        .popup-content h2 {
+            margin-top: 0;
+            color: #3e2837;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .popup-content p {
+            color: #64748b;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        .popup-input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .popup-input:focus {
+            border-color: #FC8FB0;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-popup {
+            display: inline-block;
+            background-color: #FC8FB0;
+            color: #ffffff;
+            border: none;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-popup:hover {
+            background-color: #d01159;
+        }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+
+        .choice-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .choice-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #cbd5e1;
+            background: #fff;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .choice-btn.selected {
+            border-color: #FC8FB0;
+            background: rgba(252, 143, 176, 0.1);
+            color: #d01159;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="/portail/label/js/sidebar.js"></script>
+
+    <div class="main-content">
+        <h1>Portail Label</h1>
+        <p>Gérez et configurez les informations officielles de votre label musical.</p>
+
+        <!-- Affichage des infos du label si existant -->
+        <div id="label-info-container" style="display: none;">
+            <div class="label-card">
+                <h3 id="display-label-name">Chargement...</h3>
+                <p><strong>Site web :</strong> <a id="display-label-url" href="#" target="_blank">Aucun site</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- POP-UP MULTI-ÉTAPES CONFIGURATION LABEL -->
+    <div id="label-popup-overlay" class="popup-overlay">
+        <div class="popup-content">
+
+            <!-- ÉTAPE 1 : Nom du Label -->
+            <div id="step-1" class="popup-step">
+                <h2>Votre Label</h2>
+                <p>Quel est le nom de votre label ?</p>
+                <input type="text" id="label-name-input" class="popup-input" placeholder="Ex: Mon Super Label">
+                <div class="popup-actions">
+                    <button type="button" id="next-to-step-2" class="btn-popup">Suivant</button>
+                </div>
+            </div>
+
+            <!-- ÉTAPE 2 : Avez-vous un site web ? -->
+            <div id="step-2" class="popup-step" style="display: none;">
+                <h2>Présence Web</h2>
+                <p>Avez-vous un site internet pour votre label ?</p>
+
+                <div class="choice-group">
+                    <button type="button" class="choice-btn" id="has-site-no">Non</button>
+                    <button type="button" class="choice-btn selected" id="has-site-yes">Oui</button>
+                </div>
+
+                <div id="url-container">
+                    <input type="url" id="label-url-input" class="popup-input" placeholder="https://www.monlabel.com">
+                </div>
+
+                <div class="popup-actions">
+                    <button type="button" id="back-to-step-1" class="btn-popup btn-secondary">Retour</button>
+                    <button type="button" id="submit-label" class="btn-popup">Enregistrer</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        let labelData = {
+            nom: "",
+            hasSite: true,
+            url: ""
+        };
+
+        const step1 = document.getElementById("step-1");
+        const step2 = document.getElementById("step-2");
+        const nameInput = document.getElementById("label-name-input");
+        const urlInput = document.getElementById("label-url-input");
+
+        const btnNext = document.getElementById("next-to-step-2");
+        const btnBack = document.getElementById("back-to-step-1");
+        const btnSubmit = document.getElementById("submit-label");
+
+        const btnYes = document.getElementById("has-site-yes");
+        const btnNo = document.getElementById("has-site-no");
+        const urlContainer = document.getElementById("url-container");
+
+        const popupOverlay = document.getElementById("label-popup-overlay");
+        const labelInfoContainer = document.getElementById("label-info-container");
+        const displayLabelName = document.getElementById("display-label-name");
+        const displayLabelUrl = document.getElementById("display-label-url");
+
+        // Gestion choix Site Web Oui/Non
+        btnYes.addEventListener("click", () => {
+            btnYes.classList.add("selected");
+            btnNo.classList.remove("selected");
+            labelData.hasSite = true;
+            urlContainer.style.display = "block";
+        });
+
+        btnNo.addEventListener("click", () => {
+            btnNo.classList.add("selected");
+            btnYes.classList.remove("selected");
+            labelData.hasSite = false;
+            urlContainer.style.display = "none";
+            urlInput.value = "";
+        });
+
+        // Passer à l'étape 2
+        btnNext.addEventListener("click", () => {
+            const val = nameInput.value.trim();
+            if (!val) {
+                alert("Veuillez entrer le nom de votre label.");
+                return;
+            }
+            labelData.nom = val;
+            step1.style.display = "none";
+            step2.style.display = "block";
+        });
+
+        // Revenir à l'étape 1
+        btnBack.addEventListener("click", () => {
+            step2.style.display = "none";
+            step1.style.display = "block";
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "/login.html";
+                return;
+            }
+
+            console.log("UID Utilisateur connecté :", user.uid);
+
+            try {
+                const response = await api.get(`/api/users/${user.uid}/labels`);
+                console.log("Réponse API /labels :", response);
+
+                // Gérer le cas où la réponse est un tableau ou un objet unique
+                let existingLabel = null;
+                if (Array.isArray(response) && response.length > 0) {
+                    existingLabel = response[0];
+                } else if (response && response.nom) {
+                    existingLabel = response;
+                }
+
+                if (existingLabel && existingLabel.nom) {
+                    console.log("Label trouvé, affichage des infos :", existingLabel);
+                    displayLabelName.innerText = existingLabel.nom;
+                    if (existingLabel.url) {
+                        displayLabelUrl.href = existingLabel.url;
+                        displayLabelUrl.innerText = existingLabel.url;
+                        displayLabelUrl.parentElement.style.display = "block";
+                    } else {
+                        displayLabelUrl.parentElement.style.display = "none";
+                    }
+                    labelInfoContainer.style.display = "block";
+                    popupOverlay.classList.remove("show");
+                } else {
+                    console.log("Aucun label trouvé, affichage du pop-up.");
+                    popupOverlay.classList.add("show");
+                }
+            } catch (err) {
+                console.error("Erreur récupération label:", err);
+                popupOverlay.classList.add("show");
+            }
+
+            // Enregistrement final
+            btnSubmit.addEventListener("click", async () => {
+                if (labelData.hasSite && !urlInput.value.trim()) {
+                    alert("Veuillez entrer l'URL de votre site web.");
+                    return;
+                }
+                labelData.url = labelData.hasSite ? urlInput.value.trim() : "";
+
+                try {
+                    const response = await api.post(`/api/users/${user.uid}/labels`, {
+                        nom: labelData.nom,
+                        url: labelData.url
+                    });
+
+                    if (response && response.success) {
+                        popupOverlay.classList.remove("show");
+                        alert("Label enregistré avec succès !");
+                        window.location.reload();
+                    } else {
+                        alert("Erreur lors de l'enregistrement.");
+                    }
+                } catch (err) {
+                    console.error("Erreur API label:", err);
+                    alert("Une erreur est survenue.");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

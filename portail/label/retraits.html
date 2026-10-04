@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de Retrait - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            color: #333;
+            margin: 4rem 0 0 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: rgba(232, 232, 232, 0.35);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(189, 189, 189, 0.44);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h2,
+        h3 {
+            margin-top: 0;
+            color: #482732;
+        }
+
+        h2 {
+            border-bottom: 1px solid #482732;
+            padding-bottom: 10px;
+        }
+
+        /* Encadré Portefeuille */
+        .wallet-card {
+            background: #ffffff;
+            border: 1px solid #FC8FB0;
+            border-radius: 16px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wallet-title {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .wallet-balance {
+            font-size: 22px;
+            font-weight: 700;
+            color: #FC8FB0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #FC8FB0;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            box-shadow: 0 0 5px rgba(252, 143, 176, 0.5);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #FC8FB0;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #e07495;
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert-error {
+            background: #ffe0e0;
+            color: #d32f2f;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #FC8FB0;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Tableau d'historique */
+        .history-section {
+            margin-top: 35px;
+            border-top: 1px solid rgba(72, 39, 50, 0.2);
+            padding-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #FC8FB0;
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .badge-demande {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-envoye {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-refuse {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class="main-content">
+
+        <div class="container">
+            <a href="mes-revenus.html" class="back-link">← Retour aux rapports</a>
+            <h2>Demander un retrait</h2>
+
+            <div class="wallet-card">
+                <div>
+                    <div class="wallet-title">Solde disponible</div>
+                    <div style="font-size: 11px; color: #888;">Gains accumulés - retraits validés (envoyés)</div>
+                </div>
+                <div class="wallet-balance" id="wallet-balance-display">... €</div>
+            </div>
+
+            <div id="alert-box" class="alert"></div>
+
+            <form id="withdraw-form">
+                <div class="form-group">
+                    <label for="amount">Montant à retirer (€) :</label>
+                    <input type="number" id="amount" min="3" step="0.01" placeholder="Ex: 50.00" required>
+                    <small style="color: #666; font-size: 12px;">Minimum 3,00 € par retrait.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="iban">Votre IBAN :</label>
+                    <input type="text" id="iban" placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX" required>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="save-iban">
+                    <label for="save-iban" style="margin:0; font-weight: normal;">Enregistrer cet IBAN pour mes
+                        prochains retraits</label>
+                </div>
+
+                <button type="submit" id="btn-submit" class="btn-submit">Valider la demande</button>
+            </form>
+
+            <div class="history-section">
+                <h3>Mes demandes effectuées</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Montant</th>
+                            <th>IBAN</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-history-body">
+                        <tr>
+                            <td colspan="4" style="text-align:center; color:#999;">Chargement de votre historique...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        let currentUser = null;
+        let soldeDisponible = 0;
+        const alertBox = document.getElementById('alert-box');
+
+        function showAlert(msg, isError = false) {
+            alertBox.textContent = msg;
+            alertBox.className = `alert ${isError ? 'alert-error' : 'alert-success'}`;
+            alertBox.style.display = 'block';
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+
+                try {
+                    // 1. Charger Profil utilisateur pour l'IBAN
+                    const userData = await api.get(`/api/users/${user.uid}`);
+                    if (userData && userData.iban) {
+                        document.getElementById('iban').value = userData.iban;
+                    }
+
+                    // 2. Calculer le solde et charger l'historique
+                    await calculerSoldeEtHistorique(user.uid);
+                } catch (err) {
+                    console.error("Erreur d'initialisation :", err);
+                }
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function calculerSoldeEtHistorique(userId) {
+            const tbody = document.getElementById("user-history-body");
+            try {
+                // A. Récupérer toutes les entrées financières (les gains positifs ET les retraits négatifs générés par le backend)
+                const finances = await api.get(`/api/users/${userId}/finances`);
+                let soldeTotal = 0;
+                if (Array.isArray(finances)) {
+                    finances.forEach(f => {
+                        soldeTotal += Number(f.amount || 0);
+                    });
+                }
+
+                // On assigne le total calculé directement au solde disponible
+                soldeDisponible = soldeTotal;
+                if (soldeDisponible < 0) soldeDisponible = 0;
+
+                document.getElementById("wallet-balance-display").textContent = `${soldeDisponible.toFixed(2)} €`;
+
+                // B. Récupérer uniquement l'historique pour l'affichage du tableau
+                const withdrawals = await api.get(`/api/withdrawals`);
+                let userWithdrawals = [];
+
+                if (Array.isArray(withdrawals)) {
+                    userWithdrawals = withdrawals.filter(w => w.userId === userId || w.user_uid === userId || w.userEmail === currentUser.email);
+                }
+
+                // Remplir le tableau d'historique
+                tbody.innerHTML = "";
+                if (userWithdrawals.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Aucune demande effectuée pour le moment.</td></tr>`;
+                    return;
+                }
+
+                userWithdrawals.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
+
+                userWithdrawals.forEach(r => {
+                    const tr = document.createElement("tr");
+                    let dateStr = r.created_at || r.createdAt ? new Date(r.created_at || r.createdAt).toLocaleDateString("fr-FR") : "-";
+
+                    let badgeClass = "badge-demande";
+                    if (r.status === "envoyé") badgeClass = "badge-envoye";
+                    if (r.status === "refusé") badgeClass = "badge-refuse";
+
+                    tr.innerHTML = `
+                <td>${dateStr}</td>
+                <td><strong>${Number(r.amount || 0).toFixed(2)} €</strong></td>
+                <td style="font-family: monospace;">${r.iban || "-"}</td>
+                <td><span class="badge ${badgeClass}">${r.status || "demandé"}</span></td>
+            `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error("Erreur chargement solde/historique :", err);
+                tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Erreur de chargement</td></tr>`;
+            }
+        }
+        document.getElementById('withdraw-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const amount = parseFloat(document.getElementById('amount').value);
+            const iban = document.getElementById('iban').value.trim();
+            const saveIban = document.getElementById('save-iban').checked;
+
+            if (amount < 3) {
+                showAlert("Le montant minimum pour effectuer un retrait est de 3 €.", true);
+                return;
+            }
+
+            if (amount > soldeDisponible) {
+                showAlert(`Vous ne pouvez pas demander un montant supérieur à votre solde disponible (${soldeDisponible.toFixed(2)} €).`, true);
+                return;
+            }
+
+            if (!iban) {
+                showAlert("Veuillez renseigner un IBAN valide.", true);
+                return;
+            }
+
+            try {
+                if (saveIban) {
+                    await api.patch(`/api/users/${currentUser.uid}`, { iban: iban });
+                }
+
+                // Envoi effectif de la demande de retrait vers le Worker
+                const response = await api.post('/api/withdrawals', {
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email || "",
+                    amount: amount,
+                    iban: iban
+                });
+
+                if (response && response.error) {
+                    throw new Error(response.error);
+                }
+
+                showAlert("Votre demande de retrait a été enregistrée avec succès !");
+                document.getElementById('amount').value = '';
+
+                await calculerSoldeEtHistorique(currentUser.uid);
+
+            } catch (err) {
+                showAlert("Erreur lors de la demande : " + err.message, true);
+            }
+        });
+    </script>
+</body>
+
+</html>

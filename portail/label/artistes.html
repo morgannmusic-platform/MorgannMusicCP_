@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mes artistes | Morgann Music CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="theme-color" content="">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            margin: 4rem 0 0 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #FC8FB0;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #fff7fa;
+            color: #FC8FB0;
+            border: 2px solid #FC8FB0;
+        }
+
+        .artist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .artist-card {
+            background-color: rgba(232, 232, 232, 0.50);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 22px rgba(0, 0, 0, 0.385);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .artist-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ddd;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: #3e2837;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #FC8FB0;
+            padding-bottom: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.119);
+            justify-content: center;
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            padding: 30px;
+            width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.418);
+            backdrop-filter: blur(42px);
+            -webkit-backdrop-filter: blur(42px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 22px rgba(0, 0, 0, 0.385);
+        }
+
+        .form-section {
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #444;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #FC8FB0;
+            border-radius: 50px;
+            font-size: 14px;
+        }
+
+        /* Animation de rotation du logo Litual */
+        @keyframes litualRotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .litual-spinner {
+            animation: litualRotate 2s linear infinite;
+        }
+
+        /* Animation du texte "..." clignotant point par point */
+        .dots::after {
+            content: '';
+            animation: blinkDots 1.5s infinite steps(4);
+        }
+
+        @keyframes blinkDots {
+            0% {
+                content: '';
+            }
+
+            25% {
+                content: '.';
+            }
+
+            50% {
+                content: '..';
+            }
+
+            75% {
+                content: '...';
+            }
+
+            100% {
+                content: '';
+            }
+        }
+
+        /* Style des pilules de noms d'artistes */
+        .artist-pill {
+            background: #f0f2f5;
+            border: 1px solid #ddd;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .artist-pill:hover {
+            background: #E8FDC4;
+            border-color: #FC8FB0;
+            color: #333;
+            transform: scale(1.03);
+        }
+
+        .link-box {
+            background: #f8fafc;
+            border: 1px dashed #FC8FB0;
+            padding: 15px;
+            border-radius: 16px;
+            margin-top: 15px;
+            word-break: break-all;
+            font-size: 13px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+    <div class="main-content">
+
+        <div class="container">
+            <div class="header-actions">
+                <h2>Mes Artistes <span id="artist-count" style="font-size: 14px; color: #6c757d;"></span></h2>
+                <button class="btn btn-primary" onclick="ouvrirModalAjout()">+ Ajouter un artiste</button>
+            </div>
+
+            <h3 class="section-title">Artistes enregistrés</h3>
+            <div id="artist-list" class="artist-grid">
+                <p style="color: #777; font-size: 14px;">Chargement des artistes...</p>
+            </div>
+
+            <h3 class="section-title">Artistes invités (En attente de création de compte)</h3>
+            <div id="pending-artist-list" class="artist-grid">
+                <p style="color: #777; font-size: 14px;">Chargement des artistes invités...</p>
+            </div>
+        </div>
+
+        <div id="artist-modal" class="modal">
+            <div class="modal-content">
+                <h2 id="modal-title">Créer un Artiste</h2>
+                <form id="artist-form" onsubmit="soumettreFormulaire(event)">
+                    <div id="form-inputs-container">
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label>Nom de l'artiste *</label>
+                                <input type="text" id="artist-name" required placeholder="Ex: Morgann Music">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email de l'artiste *</label>
+                                <input type="email" id="artist-email" required placeholder="artiste@email.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Prénom de l'artiste *</label>
+                                <input type="text" id="artist-firstname" required placeholder="Prénom">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Nom de famille *</label>
+                                <input type="text" id="artist-lastname" required placeholder="Nom">
+                            </div>
+
+                            <div class="litual-ai-section"
+                                style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+                                <label style="font-weight: bold; font-size: 13px; display: block; margin-bottom: 8px;">
+                                    <img src="/assets/img/litual/litual-logo.png" alt="Litual"
+                                        style="height: 16px; vertical-align: middle; margin-right: 5px;">
+                                    Générateur de nom d'artiste
+                                </label>
+
+                                <div style="display: flex; gap: 15px; margin-bottom: 10px; font-size: 13px;">
+                                    <label><input type="radio" name="ai-mode" value="classic" checked> Style
+                                        libre</label>
+                                    <label><input type="radio" name="ai-mode" value="with-name"> Inclure mon
+                                        prénom</label>
+                                    <label><input type="radio" name="ai-mode" value="derive-name"> Variantes de mon
+                                        prénom</label>
+                                </div>
+
+                                <button type="button" id="btn-generate-ai" class="btn btn-primary"
+                                    style="background: linear-gradient(135deg, #FC8FB0, #be63ff); width: 100%;">
+                                    Générer des propositions
+                                </button>
+
+                                <div id="litual-loading"
+                                    style="display: none; text-align: center; margin-top: 15px; align-items: center; justify-content: center; gap: 10px;">
+                                    <img src="/assets/img/litual/litual-logo.png" class="litual-spinner"
+                                        alt="Logo Litual" style="width: 24px; height: 24px;">
+                                    <span style="font-size: 14px; font-weight: 500;">Litual réfléchit<span
+                                            class="dots"></span></span>
+                                </div>
+
+                                <div id="litual-results"
+                                    style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="success-link-container" style="display: none; text-align: center;">
+                        <p style="font-size: 14px; color: #1e293b; margin-bottom: 10px;">
+                            Artiste créé avec succès ! Dès que l'artiste aura créé son compte via le lien ci-dessous, il
+                            s'affichera dans la liste en dessous.
+                        </p>
+                        <div class="link-box" id="invitation-link-text"></div>
+                        <button type="button" class="btn btn-primary" style="margin-top: 15px;"
+                            onclick="copierLienInvitation()">Copier le lien</button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="fermerModal()">Fermer</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit-form">Créer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        let uidConnecte = null;
+        let userPlan = "starter";
+        let maxArtistsAllowed = 1;
+        let generatedLink = "";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                uidConnecte = user.uid;
+                await verifierPlanEtLimites(user.uid);
+                chargerArtistes(user.uid);
+                chargerArtistesInvites(user.uid);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        document.getElementById('btn-generate-ai').addEventListener('click', async () => {
+            const loadingDiv = document.getElementById('litual-loading');
+            const resultsDiv = document.getElementById('litual-results');
+            const btnGenerate = document.getElementById('btn-generate-ai');
+
+            let firstName = "";
+            try {
+                if (uidConnecte) {
+                    const userData = await api.get(`/api/users/${uidConnecte}`);
+                    if (userData && !userData.error) {
+                        firstName = userData.firstName || "";
+                    }
+                }
+            } catch (e) {
+                console.error("Erreur récupération prénom:", e);
+            }
+
+            const mode = document.querySelector('input[name="ai-mode"]:checked').value;
+            let prompt = "Génère exactement 10 propositions de noms d'artistes musicaux originaux. Ne met pas de vrai prenom de personne dans tes proposition, invente les.";
+
+            if (mode === "with-name" && firstName) {
+                prompt += `Inclus obligatoirement le prénom "${firstName}" tel quel dans toutes tes propositions. `;
+            } else if (mode === "derive-name" && firstName) {
+                prompt += `Crée des variantes, anagrammes ou jeux de mots originaux à partir du prénom "${firstName}". `;
+            }
+
+            prompt += "Réponds UNIQUEMENT sous la forme d'une liste brute séparée par des virgules, sans numérotation, sans texte avant ou après, et sans guillemets. Exemple: Nom Un, Nom Deux, Nom Trois";
+
+            resultsDiv.innerHTML = "";
+            loadingDiv.style.display = "flex";
+            btnGenerate.disabled = true;
+
+            try {
+                const response = await fetch("https://api.ia.litual.dev.mm-cp.uk/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                if (!response.ok) throw new Error("Erreur serveur IA");
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let completeText = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split("\n");
+
+                    for (let line of lines) {
+                        let cleanLine = line.trim();
+                        if (cleanLine.startsWith("data: ")) {
+                            cleanLine = cleanLine.replace("data: ", "").trim();
+                        }
+
+                        if (cleanLine && cleanLine !== "[DONE]") {
+                            try {
+                                const parsed = JSON.parse(cleanLine);
+                                if (parsed.response) completeText += parsed.response;
+                                else if (parsed.text) completeText += parsed.text;
+                                else if (parsed.token) completeText += parsed.token;
+                            } catch {
+                                if (!cleanLine.startsWith("{") && !cleanLine.includes('"usage"')) {
+                                    completeText += " " + cleanLine;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const names = completeText
+                    .replace(/[\n\r]/g, ' ')
+                    .split(',')
+                    .map(name => {
+                        let clean = name.split('{')[0];
+                        return clean.trim().replace(/^["'-]|["'-]$/g, '');
+                    })
+                    .filter(name => {
+                        const lower = name.toLowerCase();
+                        return (
+                            name.length > 1 &&
+                            !name.includes(':') &&
+                            !lower.includes('token') &&
+                            !lower.includes('prompt')
+                        );
+                    });
+
+                resultsDiv.innerHTML = "";
+                if (names.length === 0) {
+                    resultsDiv.innerHTML = `<span style="color:orange; font-size:12px;">L'IA a répondu dans un format instable. Réessayez.</span>`;
+                } else {
+                    names.forEach(name => {
+                        const pill = document.createElement('div');
+                        pill.className = 'artist-pill';
+                        pill.textContent = name;
+
+                        pill.addEventListener('click', () => {
+                            const inputName = document.getElementById('artist-name');
+                            if (inputName) {
+                                inputName.value = name;
+                            }
+                        });
+                        resultsDiv.appendChild(pill);
+                    });
+                }
+            } catch (error) {
+                console.error("Erreur IA:", error);
+                resultsDiv.innerHTML = `<span style="color:red; font-size:12px;">Erreur lors de la génération.</span>`;
+            } finally {
+                loadingDiv.style.display = "none";
+                btnGenerate.disabled = false;
+            }
+        });
+
+        async function verifierPlanEtLimites(uid) {
+            try {
+                const userData = await api.get(`/api/users/${uid}`);
+                if (userData && !userData.error) {
+                    const planName = (userData.planName || "").toLowerCase().trim();
+
+                    if (planName === "future légende" || planName === "future legende") {
+                        userPlan = "future-legende";
+                    } else if (planName === "starter") {
+                        userPlan = "starter";
+                    } else if (planName === "pro") {
+                        userPlan = "pro";
+                    } else if (planName === "label") {
+                        userPlan = "label";
+                    } else if (planName === "white-label") {
+                        userPlan = "white-label";
+                    } else {
+                        userPlan = "starter";
+                    }
+                }
+            } catch (err) {
+                console.error("Erreur récupération plan D1:", err);
+            }
+
+            if (userPlan === "future-legende" || userPlan === "starter") {
+                maxArtistsAllowed = 1;
+            } else if (userPlan === "pro") {
+                maxArtistsAllowed = 2;
+            } else if (userPlan === "label" || userPlan === "white-label") {
+                maxArtistsAllowed = Infinity;
+            } else {
+                maxArtistsAllowed = 1;
+            }
+        }
+
+        async function chargerArtistes(uid) {
+            const listContainer = document.getElementById("artist-list");
+            listContainer.innerHTML = "";
+
+            try {
+                // 1. Récupérer les artistes enregistrés (table artists + artistes-labels ayant un compte créé)
+                let labelId = "2";
+                try {
+                    const labelResponse = await api.get(`/api/users/${uid}/labels`);
+                    const labelData = Array.isArray(labelResponse) ? labelResponse[0] : labelResponse;
+                    if (labelData?.id) labelId = labelData.id;
+                } catch (e) { }
+
+                const artistsFromDb = await api.get(`/api/users/${uid}/artists`);
+                let registeredList = Array.isArray(artistsFromDb) ? artistsFromDb : (artistsFromDb?.artists || []);
+
+                // Récupérer aussi les artistes de artistes-labels qui ont déjà un compte (uid != "")
+                try {
+                    const invitedResponse = await api.get(`/api/artists-labels?label_id=${labelId}`);
+                    if (Array.isArray(invitedResponse)) {
+                        invitedResponse.forEach(item => {
+                            if (item.uid && item.uid.trim() !== "") {
+                                // Éviter les doublons
+                                const exists = registeredList.some(a => a.name.toLowerCase() === (item.artiste || "").toLowerCase());
+                                if (!exists) {
+                                    registeredList.push({
+                                        id: item.id,
+                                        name: item.artiste || `${item.prenom} ${item.nom}`,
+                                        primaryGenre: "Artiste du label",
+                                        photo: ""
+                                    });
+                                }
+                            }
+                        });
+                    }
+                } catch (e) { }
+
+                document.getElementById("artist-count").innerText = `(${registeredList.length} / ${maxArtistsAllowed === Infinity ? 'Illimité' : maxArtistsAllowed})`;
+
+                if (registeredList.length === 0) {
+                    listContainer.innerHTML = `<p style="color:#777; font-size:14px; grid-column: 1/-1;">Aucun artiste enregistré pour le moment.</p>`;
+                    return;
+                }
+
+                registeredList.forEach((artist) => {
+                    const card = document.createElement("div");
+                    card.className = "artist-card";
+                    card.onclick = () => {
+                        window.location.href = `artiste.html?id=${artist.id}`;
+                    };
+
+                    const photoUrl = artist.photo ? api.fileUrl(artist.photo) : "/assets/img/icons/pdp.png";
+
+                    card.innerHTML = `
+                        <img src="${photoUrl}" alt="${artist.name}">
+                        <h3>${artist.name}</h3>
+                        <p style="font-size:12px; color:#777;">${artist.primaryGenre || 'Aucun genre'}</p>
+                    `;
+                    listContainer.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Erreur chargement artistes:", err);
+                listContainer.innerHTML = `<p style="color:red; font-size:14px; grid-column: 1/-1;">Erreur lors du chargement des artistes.</p>`;
+            }
+        }
+
+        async function chargerArtistesInvites(uid) {
+            const pendingContainer = document.getElementById("pending-artist-list");
+            pendingContainer.innerHTML = "";
+
+            try {
+                let labelId = "2";
+                try {
+                    const labelResponse = await api.get(`/api/users/${uid}/labels`);
+                    const labelData = Array.isArray(labelResponse) ? labelResponse[0] : labelResponse;
+                    if (labelData?.id) labelId = labelData.id;
+                } catch (e) { }
+
+                const response = await api.get(`/api/artists-labels?label_id=${labelId}`);
+                const allInvited = Array.isArray(response) ? response : [];
+
+                // Ne garder que ceux qui N'ONT PAS encore créé leur compte (uid vide ou non défini)
+                const pendingArtists = allInvited.filter(item => !item.uid || item.uid.trim() === "");
+
+                if (pendingArtists.length === 0) {
+                    pendingContainer.innerHTML = `<p style="color:#777; font-size:14px; grid-column: 1/-1;">Aucun artiste invité en attente.</p>`;
+                    return;
+                }
+
+                pendingArtists.forEach((item) => {
+                    const card = document.createElement("div");
+                    card.className = "artist-card";
+                    card.style.borderColor = "#FC8FB0";
+
+                    card.innerHTML = `
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: #fdf2f8; margin: 0 auto 10px auto; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #FC8FB0; font-weight: bold;">
+                            ${(item.artiste || item.nom || "A")[0].toUpperCase()}
+                        </div>
+                        <h3>${item.artiste || "Artiste invité"}</h3>
+                        <p style="font-size:12px; color:#64748b;">${item.prenom} ${item.nom}</p>
+                        <p style="font-size:11px; color:#f59e0b; margin-top:5px; font-weight:600;">En attente de création de compte</p>
+                    `;
+                    pendingContainer.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Erreur chargement artistes invités:", err);
+                pendingContainer.innerHTML = `<p style="color:red; font-size:14px; grid-column: 1/-1;">Erreur lors du chargement des artistes invités.</p>`;
+            }
+        }
+
+        window.ouvrirModalAjout = async function () {
+            try {
+                const currentUserId = auth.currentUser ? auth.currentUser.uid : uidConnecte;
+                if (!currentUserId) return;
+
+                const artistsList = await api.get(`/api/users/${currentUserId}/artists`);
+                const count = Array.isArray(artistsList) ? artistsList.length : (artistsList?.artists?.length || 0);
+
+                if (count >= maxArtistsAllowed) {
+                    alert("Vous avez atteint la limite d'artistes pour votre plan.");
+                    return;
+                }
+
+                document.getElementById("artist-form").reset();
+                document.getElementById("litual-results").innerHTML = "";
+                document.getElementById("form-inputs-container").style.display = "block";
+                document.getElementById("success-link-container").style.display = "none";
+                document.getElementById("btn-submit-form").style.display = "inline-block";
+                document.getElementById("modal-title").innerText = "Créer un Artiste";
+                document.getElementById("artist-modal").style.display = "flex";
+            } catch (e) {
+                console.error("Erreur ouverture modal ajout :", e);
+            }
+        }
+
+        window.soumettreFormulaire = async function (e) {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const artistName = document.getElementById("artist-name").value.trim();
+            const artistEmail = document.getElementById("artist-email").value.trim();
+            const artistFirstname = document.getElementById("artist-firstname").value.trim();
+            const artistLastname = document.getElementById("artist-lastname").value.trim();
+
+            if (!artistName || !artistEmail || !artistFirstname || !artistLastname) return;
+
+            try {
+                let labelId = "2";
+                try {
+                    const labelResponse = await api.get(`/api/users/${user.uid}/labels`);
+                    const labelData = Array.isArray(labelResponse) ? labelResponse[0] : labelResponse;
+                    if (labelData?.id) labelId = labelData.id;
+                } catch (e) { }
+
+                const invitationPayload = {
+                    nom: artistLastname,
+                    prenom: artistFirstname,
+                    email: artistEmail,
+                    uid: "",
+                    id_label: labelId,
+                    artiste: artistName
+                };
+                await api.post(`/api/artists-labels`, invitationPayload);
+
+                const baseUrl = window.location.origin;
+                generatedLink = `${baseUrl}/portail/label/artiste/inscription.html?nom=${encodeURIComponent(artistLastname)}&prenom=${encodeURIComponent(artistFirstname)}&email=${encodeURIComponent(artistEmail)}&label_id=${encodeURIComponent(labelId)}&artiste=${encodeURIComponent(artistName)}`;
+
+                document.getElementById("form-inputs-container").style.display = "none";
+                document.getElementById("success-link-container").style.display = "block";
+                document.getElementById("btn-submit-form").style.display = "none";
+                document.getElementById("modal-title").innerText = "Lien d'invitation généré";
+                document.getElementById("invitation-link-text").innerText = generatedLink;
+
+                chargerArtistes(user.uid);
+                chargerArtistesInvites(user.uid);
+
+            } catch (error) {
+                console.error("Erreur lors de la création de l'artiste :", error);
+                alert("Une erreur est survenue lors de la création.");
+            }
+        }
+
+        window.copierLienInvitation = function () {
+            if (generatedLink) {
+                navigator.clipboard.writeText(generatedLink).then(() => {
+                    alert("Lien copié dans le presse-papier !");
+                });
+            }
+        }
+
+        window.fermerModal = function () {
+            document.getElementById("artist-modal").style.display = "none";
+            location.reload();
+        }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const currentPath = window.location.pathname.split("/").pop();
+            const navLinks = document.querySelectorAll(".responsive-nav a");
+
+            navLinks.forEach(link => {
+                const linkPath = link.getAttribute("href").split("/").pop();
+                if (currentPath === linkPath) {
+                    link.classList.add("active");
+                } else {
+                    link.classList.remove("active");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
