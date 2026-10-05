@@ -56,7 +56,7 @@
         max-width: 1200px;
         /* S'adapte à ton conteneur si nécessaire */
 
-        background-color: rgba(232, 232, 232, 0.50);
+        background-color: rgba(255, 255, 255, 0.5);
         backdrop-filter: blur(62px);
         -webkit-backdrop-filter: blur(62px);
         border: 1px solid rgba(189, 189, 189, 0.438);
@@ -98,7 +98,7 @@
     }
 
     .btn-create-trigger {
-        background: #FC8FB0;
+        background: var(--label-accent, #FC8FB0) !important;
         color: white;
         border: none;
         padding: 10px 18px;
@@ -107,7 +107,7 @@
         font-size: 13px;
         cursor: pointer;
         transition: background 0.2s;
-        box-shadow: 0 4px 10px rgba(208, 17, 89, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
     }
 
     .btn-create-trigger:hover {

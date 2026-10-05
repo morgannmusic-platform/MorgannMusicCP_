@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portail Label | Morgann Music CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
+    <script src="js/responsive.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -96,34 +97,49 @@
             padding: 35px 30px;
             border-radius: 34px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-            text-align: center;
-            max-width: 420px;
+            text-align: left;
+            max-width: 480px;
             width: 90%;
             box-sizing: border-box;
             border: 1px solid rgba(189, 189, 189, 0.438);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .popup-content h2 {
             margin-top: 0;
             color: #3e2837;
             font-size: 24px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            text-align: center;
         }
 
         .popup-content p {
             color: #64748b;
-            font-size: 15px;
+            font-size: 14px;
             margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #3e2837;
         }
 
         .popup-input {
             width: 100%;
-            padding: 12px 18px;
+            padding: 10px 15px;
             border: 1px solid #cbd5e1;
-            border-radius: 20px;
-            font-size: 16px;
+            border-radius: 15px;
+            font-size: 14px;
             box-sizing: border-box;
-            margin-bottom: 20px;
             outline: none;
             transition: border-color 0.2s;
         }
@@ -132,10 +148,20 @@
             border-color: #FC8FB0;
         }
 
+        .color-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .color-group .form-group {
+            flex: 1;
+        }
+
         .popup-actions {
             display: flex;
             gap: 10px;
             justify-content: center;
+            margin-top: 25px;
         }
 
         .btn-popup {
@@ -169,15 +195,15 @@
             display: flex;
             gap: 15px;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .choice-btn {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border: 2px solid #cbd5e1;
             background: #fff;
-            border-radius: 20px;
+            border-radius: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -187,6 +213,12 @@
             border-color: #FC8FB0;
             background: rgba(252, 143, 176, 0.1);
             color: #d01159;
+        }
+
+        .file-preview {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -207,36 +239,84 @@
             <div class="label-card">
                 <h3 id="display-label-name">Chargement...</h3>
                 <p><strong>Site web :</strong> <a id="display-label-url" href="#" target="_blank">Aucun site</a></p>
+                <div id="display-branding" style="margin-top: 15px; display: flex; gap: 15px; align-items: center;">
+                </div>
+                <div style="margin-top: 20px; text-align: right;">
+                    <button type="button" id="open-edit-popup" class="btn-popup"
+                        style="padding: 8px 16px; font-size: 14px;">Modifier les informations</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- POP-UP MULTI-ÉTAPES CONFIGURATION LABEL -->
+    <!-- POP-UP CONFIGURATION & MODIFICATION LABEL -->
     <div id="label-popup-overlay" class="popup-overlay">
         <div class="popup-content">
 
-            <!-- ÉTAPE 1 : Nom du Label -->
+            <!-- ÉTAPE 1 : Informations Générales & Web -->
             <div id="step-1" class="popup-step">
                 <h2>Votre Label</h2>
-                <p>Quel est le nom de votre label ?</p>
-                <input type="text" id="label-name-input" class="popup-input" placeholder="Ex: Mon Super Label">
+                <p>Configurez l'identité de base de votre label.</p>
+
+                <div class="form-group">
+                    <label>Nom du label *</label>
+                    <input type="text" id="label-name-input" class="popup-input" placeholder="Ex: Mon Super Label">
+                </div>
+
+                <div class="form-group">
+                    <label>Avez-vous un site internet ?</label>
+                    <div class="choice-group">
+                        <button type="button" class="choice-btn" id="has-site-no">Non</button>
+                        <button type="button" class="choice-btn selected" id="has-site-yes">Oui</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="url-container">
+                    <label>URL du site web</label>
+                    <input type="url" id="label-url-input" class="popup-input" placeholder="https://www.monlabel.com">
+                </div>
+
                 <div class="popup-actions">
+                    <button type="button" id="cancel-popup" class="btn-popup btn-secondary"
+                        style="display: none;">Annuler</button>
                     <button type="button" id="next-to-step-2" class="btn-popup">Suivant</button>
                 </div>
             </div>
 
-            <!-- ÉTAPE 2 : Avez-vous un site web ? -->
+            <!-- ÉTAPE 2 : Couleurs et Visuels -->
             <div id="step-2" class="popup-step" style="display: none;">
-                <h2>Présence Web</h2>
-                <p>Avez-vous un site internet pour votre label ?</p>
+                <h2>Design & Branding</h2>
+                <p>Personnalisez les couleurs et les graphismes.</p>
 
-                <div class="choice-group">
-                    <button type="button" class="choice-btn" id="has-site-no">Non</button>
-                    <button type="button" class="choice-btn selected" id="has-site-yes">Oui</button>
+                <div class="color-group">
+                    <div class="form-group">
+                        <label>Couleur d'accentuation</label>
+                        <input type="color" id="label-accent-color" class="popup-input" value="#FC8FB0"
+                            style="height: 42px; padding: 2px; cursor: pointer;">
+                    </div>
+                    <div class="form-group">
+                        <label>Couleur du fond</label>
+                        <input type="color" id="label-bg-color" class="popup-input" value="#ffffff"
+                            style="height: 42px; padding: 2px; cursor: pointer;">
+                    </div>
                 </div>
 
-                <div id="url-container">
-                    <input type="url" id="label-url-input" class="popup-input" placeholder="https://www.monlabel.com">
+                <div class="form-group">
+                    <label>Logo (PNG / SVG avec fond transparent requis)</label>
+                    <input type="file" id="label-logo-file" class="popup-input" accept=".png,.svg">
+                    <div id="current-logo-preview" class="file-preview"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Apple Touch Icon</label>
+                    <input type="file" id="label-icon-file" class="popup-input" accept="image/*">
+                    <div id="current-icon-preview" class="file-preview"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Favicon (.ico ou image)</label>
+                    <input type="file" id="label-favicon-file" class="popup-input" accept=".ico,.png,.jpg">
+                    <div id="current-favicon-preview" class="file-preview"></div>
                 </div>
 
                 <div class="popup-actions">
@@ -254,19 +334,37 @@
         import { api } from "/assets/js/api.js";
 
         let labelData = {
+            id: null,
             nom: "",
             hasSite: true,
-            url: ""
+            url: "",
+            accentColor: "#FC8FB0",
+            bgColor: "#ffffff",
+            iconUrl: "",
+            faviconUrl: "",
+            logoUrl: ""
         };
 
         const step1 = document.getElementById("step-1");
         const step2 = document.getElementById("step-2");
         const nameInput = document.getElementById("label-name-input");
         const urlInput = document.getElementById("label-url-input");
+        const accentInput = document.getElementById("label-accent-color");
+        const bgInput = document.getElementById("label-bg-color");
+
+        const logoFile = document.getElementById("label-logo-file");
+        const iconFile = document.getElementById("label-icon-file");
+        const faviconFile = document.getElementById("label-favicon-file");
+
+        const currentLogoPreview = document.getElementById("current-logo-preview");
+        const currentIconPreview = document.getElementById("current-icon-preview");
+        const currentFaviconPreview = document.getElementById("current-favicon-preview");
 
         const btnNext = document.getElementById("next-to-step-2");
         const btnBack = document.getElementById("back-to-step-1");
         const btnSubmit = document.getElementById("submit-label");
+        const btnCancel = document.getElementById("cancel-popup");
+        const btnOpenEdit = document.getElementById("open-edit-popup");
 
         const btnYes = document.getElementById("has-site-yes");
         const btnNo = document.getElementById("has-site-no");
@@ -276,8 +374,8 @@
         const labelInfoContainer = document.getElementById("label-info-container");
         const displayLabelName = document.getElementById("display-label-name");
         const displayLabelUrl = document.getElementById("display-label-url");
+        const displayBranding = document.getElementById("display-branding");
 
-        // Gestion choix Site Web Oui/Non
         btnYes.addEventListener("click", () => {
             btnYes.classList.add("selected");
             btnNo.classList.remove("selected");
@@ -293,7 +391,6 @@
             urlInput.value = "";
         });
 
-        // Passer à l'étape 2
         btnNext.addEventListener("click", () => {
             const val = nameInput.value.trim();
             if (!val) {
@@ -305,11 +402,42 @@
             step2.style.display = "block";
         });
 
-        // Revenir à l'étape 1
         btnBack.addEventListener("click", () => {
             step2.style.display = "none";
             step1.style.display = "block";
         });
+
+        btnCancel.addEventListener("click", () => {
+            popupOverlay.classList.remove("show");
+        });
+
+        btnOpenEdit.addEventListener("click", () => {
+            nameInput.value = labelData.nom || "";
+            if (labelData.url) {
+                btnYes.click();
+                urlInput.value = labelData.url;
+            } else {
+                btnNo.click();
+            }
+            accentInput.value = labelData.accentColor || "#FC8FB0";
+            bgInput.value = labelData.bgColor || "#ffffff";
+
+            currentLogoPreview.innerText = labelData.logoUrl ? "Actuel : Fichier enregistré" : "Aucun fichier";
+            currentIconPreview.innerText = labelData.iconUrl ? "Actuel : Fichier enregistré" : "Aucun fichier";
+            currentFaviconPreview.innerText = labelData.faviconUrl ? "Actuel : Fichier enregistré" : "Aucun fichier";
+
+            step1.style.display = "block";
+            step2.style.display = "none";
+            btnCancel.style.display = "inline-block";
+            popupOverlay.classList.add("show");
+        });
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            const res = await api.post("/api/upload", formData);
+            return res.url || res.key || "";
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -317,13 +445,8 @@
                 return;
             }
 
-            console.log("UID Utilisateur connecté :", user.uid);
-
             try {
                 const response = await api.get(`/api/users/${user.uid}/labels`);
-                console.log("Réponse API /labels :", response);
-
-                // Gérer le cas où la réponse est un tableau ou un objet unique
                 let existingLabel = null;
                 if (Array.isArray(response) && response.length > 0) {
                     existingLabel = response[0];
@@ -332,7 +455,15 @@
                 }
 
                 if (existingLabel && existingLabel.nom) {
-                    console.log("Label trouvé, affichage des infos :", existingLabel);
+                    labelData.id = existingLabel.id;
+                    labelData.nom = existingLabel.nom;
+                    labelData.url = existingLabel.url || "";
+                    labelData.accentColor = existingLabel.accent_color || "#FC8FB0";
+                    labelData.bgColor = existingLabel.bg_color || "#ffffff";
+                    labelData.iconUrl = existingLabel.icon_url || "";
+                    labelData.faviconUrl = existingLabel.favicon_url || "";
+                    labelData.logoUrl = existingLabel.logo_url || "";
+
                     displayLabelName.innerText = existingLabel.nom;
                     if (existingLabel.url) {
                         displayLabelUrl.href = existingLabel.url;
@@ -341,34 +472,70 @@
                     } else {
                         displayLabelUrl.parentElement.style.display = "none";
                     }
+                    let logoDisplayUrl = "";
+                    if (existingLabel.logo_url) {
+                        if (existingLabel.logo_url.startsWith('http')) {
+                            logoDisplayUrl = existingLabel.logo_url;
+                        } else {
+                            const cleanPath = existingLabel.logo_url.replace(/^\/?api\/files\//, '').replace(/^\/+/, '');
+                            logoDisplayUrl = `https://api.worker.mm-cp.uk/api/files/${cleanPath}`;
+                        }
+                    }
+                    displayBranding.innerHTML = `
+                        ${logoDisplayUrl ? `<img src="${logoDisplayUrl}" alt="Logo" style="height: 40px; object-fit: contain;">` : '<span style="font-size:13px; color:#888;">Pas de logo</span>'}
+                        <div style="display:flex; align-items:center; gap:5px; font-size:13px;">
+                            Accent : <span style="display:inline-block; width: 20px; height: 20px; border-radius: 50%; background: ${existingLabel.accent_color || '#FC8FB0'}; border: 1px solid #ccc;"></span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:5px; font-size:13px;">
+                            Fond : <span style="display:inline-block; width: 20px; height: 20px; border-radius: 50%; background: ${existingLabel.bg_color || '#ffffff'}; border: 1px solid #ccc;"></span>
+                        </div>
+                    `;
                     labelInfoContainer.style.display = "block";
                     popupOverlay.classList.remove("show");
                 } else {
-                    console.log("Aucun label trouvé, affichage du pop-up.");
+                    btnCancel.style.display = "none";
                     popupOverlay.classList.add("show");
                 }
             } catch (err) {
                 console.error("Erreur récupération label:", err);
+                btnCancel.style.display = "none";
                 popupOverlay.classList.add("show");
             }
 
-            // Enregistrement final
             btnSubmit.addEventListener("click", async () => {
                 if (labelData.hasSite && !urlInput.value.trim()) {
                     alert("Veuillez entrer l'URL de votre site web.");
                     return;
                 }
                 labelData.url = labelData.hasSite ? urlInput.value.trim() : "";
+                labelData.accentColor = accentInput.value;
+                labelData.bgColor = bgInput.value;
 
                 try {
+                    if (logoFile.files[0]) {
+                        labelData.logoUrl = await uploadFile(logoFile.files[0]);
+                    }
+                    if (iconFile.files[0]) {
+                        labelData.iconUrl = await uploadFile(iconFile.files[0]);
+                    }
+                    if (faviconFile.files[0]) {
+                        labelData.faviconUrl = await uploadFile(faviconFile.files[0]);
+                    }
+
                     const response = await api.post(`/api/users/${user.uid}/labels`, {
+                        id: labelData.id,
                         nom: labelData.nom,
-                        url: labelData.url
+                        url: labelData.url,
+                        accentColor: labelData.accentColor,
+                        bgColor: labelData.bgColor,
+                        iconUrl: labelData.iconUrl,
+                        faviconUrl: labelData.faviconUrl,
+                        logoUrl: labelData.logoUrl
                     });
 
                     if (response && response.success) {
                         popupOverlay.classList.remove("show");
-                        alert("Label enregistré avec succès !");
+                        alert("Informations du label enregistrées avec succès !");
                         window.location.reload();
                     } else {
                         alert("Erreur lors de l'enregistrement.");

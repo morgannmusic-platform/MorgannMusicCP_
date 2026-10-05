@@ -328,7 +328,6 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 uidConnecte = user.uid;
-                await verifierPlanEtLimites(user.uid);
                 chargerArtistes(user.uid);
                 chargerArtistesInvites(user.uid);
             } else {
@@ -453,41 +452,6 @@
             }
         });
 
-        async function verifierPlanEtLimites(uid) {
-            try {
-                const userData = await api.get(`/api/users/${uid}`);
-                if (userData && !userData.error) {
-                    const planName = (userData.planName || "").toLowerCase().trim();
-
-                    if (planName === "future légende" || planName === "future legende") {
-                        userPlan = "future-legende";
-                    } else if (planName === "starter") {
-                        userPlan = "starter";
-                    } else if (planName === "pro") {
-                        userPlan = "pro";
-                    } else if (planName === "label") {
-                        userPlan = "label";
-                    } else if (planName === "white-label") {
-                        userPlan = "white-label";
-                    } else {
-                        userPlan = "starter";
-                    }
-                }
-            } catch (err) {
-                console.error("Erreur récupération plan D1:", err);
-            }
-
-            if (userPlan === "future-legende" || userPlan === "starter") {
-                maxArtistsAllowed = 1;
-            } else if (userPlan === "pro") {
-                maxArtistsAllowed = 2;
-            } else if (userPlan === "label" || userPlan === "white-label") {
-                maxArtistsAllowed = Infinity;
-            } else {
-                maxArtistsAllowed = 1;
-            }
-        }
-
         async function chargerArtistes(uid) {
             const listContainer = document.getElementById("artist-list");
             listContainer.innerHTML = "";
@@ -525,7 +489,6 @@
                     }
                 } catch (e) { }
 
-                document.getElementById("artist-count").innerText = `(${registeredList.length} / ${maxArtistsAllowed === Infinity ? 'Illimité' : maxArtistsAllowed})`;
 
                 if (registeredList.length === 0) {
                     listContainer.innerHTML = `<p style="color:#777; font-size:14px; grid-column: 1/-1;">Aucun artiste enregistré pour le moment.</p>`;
@@ -606,10 +569,6 @@
                 const artistsList = await api.get(`/api/users/${currentUserId}/artists`);
                 const count = Array.isArray(artistsList) ? artistsList.length : (artistsList?.artists?.length || 0);
 
-                if (count >= maxArtistsAllowed) {
-                    alert("Vous avez atteint la limite d'artistes pour votre plan.");
-                    return;
-                }
 
                 document.getElementById("artist-form").reset();
                 document.getElementById("litual-results").innerHTML = "";

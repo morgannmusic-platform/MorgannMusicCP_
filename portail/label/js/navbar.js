@@ -78,41 +78,54 @@ function activerLienNavbar() {
     });
 }
 
-function chargerProfilEtAuth() {
+async function chargerProfilEtAuth() {
     onAuthStateChanged(auth, async (user) => {
+        const navAvatar = document.getElementById("nav-avatar");
         if (!user) {
-            const navAvatar = document.getElementById("nav-avatar");
             if (navAvatar) navAvatar.src = "/assets/img/icons/pdp-compte.png";
             return;
         }
 
-        let isAdmin = false;
-
         try {
-            const userData = await api.get(`/api/users/${user.uid}`);
+            // 1. Récupérer d'abord l'icône du label pour l'afficher en priorité si elle existe
+            const labelsRes = await api.get(`/api/users/${user.uid}/labels`);
+            let label = Array.isArray(labelsRes) ? labelsRes[0] : labelsRes;
 
-            if (userData && !userData.error) {
-                const customPhoto = userData.photoURL;
-                const navAvatar = document.getElementById("nav-avatar");
-                if (customPhoto && navAvatar) {
-                    navAvatar.src = api.fileUrl(customPhoto);
-                }
-
-                if (userData.role === "admin" || userData.role === "Admin") {
-                    isAdmin = true;
+            let avatarUrl = null;
+            if (label && label.icon_url) {
+                avatarUrl = label.icon_url;
+            } else {
+                // Sinon, vérifier le profil utilisateur standard
+                const userData = await api.get(`/api/users/${user.uid}`);
+                if (userData && userData.photoURL) {
+                    avatarUrl = userData.photoURL;
                 }
             }
 
-            if (!isAdmin) {
+            if (avatarUrl && navAvatar) {
+                if (!avatarUrl.startsWith('http')) {
+                    const cleanPath = avatarUrl.replace(/^\/?api\/files\//, '').replace(/^\/+/, '');
+                    avatarUrl = `https://api.worker.mm-cp.uk/api/files/${cleanPath}`;
+                }
+                navAvatar.src = avatarUrl;
+            } else if (navAvatar) {
+                navAvatar.src = "/assets/img/icons/pdp-compte.png";
+            }
+
+            // Gestion des droits Admin
+            let isAdmin = false;
+            const userDataAdmin = await api.get(`/api/users/${user.uid}`);
+            if (userDataAdmin && (userDataAdmin.role === "admin" || userDataAdmin.role === "Admin")) {
+                isAdmin = true;
+            } else {
                 const tokenResult = await getIdTokenResult(user);
                 isAdmin = tokenResult?.claims?.role === "admin" || tokenResult?.claims?.admin === true;
             }
 
             const dropdownProfile = document.getElementById("dropdown-profile");
-            if (dropdownProfile) {
+            if (dropdownProfile && isAdmin) {
                 const existingAdminLink = dropdownProfile.querySelector(".admin-link-item");
-
-                if (isAdmin && !existingAdminLink) {
+                if (!existingAdminLink) {
                     const adminLink = document.createElement("a");
                     adminLink.href = "admin/index.html";
                     adminLink.className = "admin-link-item";
@@ -130,11 +143,11 @@ function chargerProfilEtAuth() {
             }
 
         } catch (error) {
-            console.error("Erreur récupération profil D1:", error);
+            console.error("Erreur chargement profil/label:", error);
+            if (navAvatar) navAvatar.src = "/assets/img/icons/pdp-compte.png";
         }
     });
 }
-
 function configurerDeconnexion() {
     document.addEventListener("click", (e) => {
         if (e.target && e.target.id === "btn-logout") {

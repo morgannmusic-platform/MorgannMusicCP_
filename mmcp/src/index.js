@@ -54,8 +54,7 @@ export default {
         }
       }
 
-      // Routes pour les artistes invités par les labels (GET et POST)
-      // Routes pour les artistes invités par les labels (GET et POST)
+      // Routes pour les artistes invités par les labels (GET, POST et PUT/PATCH)
       if (path === "/api/artists-labels") {
         if (method === "GET") {
           try {
@@ -77,25 +76,27 @@ export default {
           try {
             const data = await request.json();
             const now = new Date().toISOString();
+            const nomArtiste = data.artiste || data.nom_artiste || "";
 
             // 1. Enregistrer ou mettre à jour dans "artistes-labels"
             const res = await env.DB.prepare(`
-              INSERT INTO "artistes-labels" (nom, prenom, email, uid, id_label, created_at)
-              VALUES (?, ?, ?, ?, ?, ?)
+              INSERT INTO "artistes-labels" (nom, prenom, email, uid, id_label, artiste, created_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?)
             `).bind(
               data.nom || "",
               data.prenom || "",
               data.email || "",
               data.uid || "",
               String(data.id_label || ""),
+              nomArtiste,
               now
             ).run();
 
-            // 2. IMPORTANT : Créer l'artiste dans la table 'artists' du label pour qu'il apparaisse dans "Artistes enregistrés"
-            if (data.id_label) {
+            // 2. Créer l'artiste dans la table 'artists' du label pour qu'il apparaisse dans "Artistes enregistrés" si l'UID est présent
+            if (data.id_label && data.uid) {
               const labelRow = await env.DB.prepare("SELECT uid FROM labels WHERE id = ?").bind(data.id_label).first();
               if (labelRow) {
-                const artistName = data.artiste || `${data.prenom} ${data.nom}`;
+                const artistName = nomArtiste || `${data.prenom} ${data.nom}`;
                 await env.DB.prepare(`
                   INSERT INTO artists (user_uid, name, contact_email, created_at)
                   VALUES (?, ?, ?, ?)
@@ -104,6 +105,34 @@ export default {
             }
 
             return corsJson({ id: res.meta.last_row_id, success: true }, 201);
+          } catch (err) {
+            return corsJson({ error: err.message }, 500);
+          }
+        }
+      }
+
+      const artistLabelItemMatch = path.match(/^\/api\/artists-labels\/(\d+)$/);
+      if (artistLabelItemMatch) {
+        const inviteId = artistLabelItemMatch[1];
+        if (method === "PUT" || method === "PATCH") {
+          try {
+            const data = await request.json();
+            await env.DB.prepare(`
+              UPDATE "artistes-labels" 
+              SET nom = COALESCE(?, nom), 
+                  prenom = COALESCE(?, prenom), 
+                  email = COALESCE(?, email), 
+                  artiste = COALESCE(?, artiste)
+              WHERE id = ?
+            `).bind(
+              data.nom || null,
+              data.prenom || null,
+              data.email || null,
+              data.artiste || data.nom_artiste || null,
+              inviteId
+            ).run();
+
+            return corsJson({ success: true });
           } catch (err) {
             return corsJson({ error: err.message }, 500);
           }
@@ -644,6 +673,11 @@ async function ensureTables(db) {
         uid TEXT NOT NULL,
         nom TEXT NOT NULL,
         url TEXT,
+        accent_color TEXT,
+        bg_color TEXT,
+        icon_url TEXT,
+        favicon_url TEXT,
+        logo_url TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `),
@@ -655,6 +689,7 @@ async function ensureTables(db) {
         email TEXT NOT NULL,
         uid TEXT NOT NULL,
         id_label TEXT NOT NULL,
+        artiste TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `)
@@ -662,6 +697,10 @@ async function ensureTables(db) {
 
   try {
     await db.prepare("ALTER TABLE support_tickets ADD COLUMN messages TEXT").run();
+  } catch (e) { }
+
+  try {
+    await db.prepare('ALTER TABLE "artistes-labels" ADD COLUMN artiste TEXT').run();
   } catch (e) { }
 
   try {
@@ -707,6 +746,11 @@ async function createLabel(env, uid, request) {
     const data = await request.json();
     const nom = data.nom;
     const url = data.url || "";
+    const accentColor = data.accentColor || "";
+    const bgColor = data.bgColor || "";
+    const iconUrl = data.iconUrl || "";
+    const faviconUrl = data.faviconUrl || "";
+    const logoUrl = data.logoUrl || "";
     const now = new Date().toISOString();
 
     if (!nom) {
@@ -714,9 +758,9 @@ async function createLabel(env, uid, request) {
     }
 
     const res = await env.DB.prepare(`
-      INSERT INTO labels (uid, nom, url, created_at)
-      VALUES (?, ?, ?, ?)
-    `).bind(uid, nom, url, now).run();
+      INSERT INTO labels (uid, nom, url, accent_color, bg_color, icon_url, favicon_url, logo_url, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(uid, nom, url, accentColor, bgColor, iconUrl, faviconUrl, logoUrl, now).run();
 
     return corsJson({ id: res.meta.last_row_id, success: true }, 201);
   } catch (err) {
