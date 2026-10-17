@@ -119,6 +119,24 @@
             background: #059669;
         }
 
+        .btn-action-audio {
+            background: #FC8FB0;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-right: 8px;
+            margin-top: 6px;
+        }
+
+        .btn-action-audio:hover {
+            background: #e07898;
+        }
+
         .btn-save {
             background: #FC8FB0;
             color: #ffffff;
@@ -296,6 +314,54 @@
         let pistesActuelles = [];
         let ancienStatut = "";
 
+        // Fonction d'encodage audio natif pour convertir tout fichier en WAV haute qualité
+        async function convertAudioToWavNative(fileOrBlob) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const arrayBuffer = await fileOrBlob.arrayBuffer();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+            const numOfChan = audioBuffer.numberOfChannels;
+            const sampleRate = audioBuffer.sampleRate;
+            const length = audioBuffer.length * numOfChan * 2 + 44;
+            const buffer = new ArrayBuffer(length);
+            const view = new DataView(buffer);
+            const channels = [];
+            let offset = 0;
+            let pos = 0;
+
+            function setUint16(data) { view.setUint16(offset, data, true); offset += 2; }
+            function setUint32(data) { view.setUint32(offset, data, true); offset += 4; }
+
+            setUint32(0x46464952); // "RIFF"
+            setUint32(length - 8);
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt " chunk
+            setUint32(16);
+            setUint16(1);
+            setUint16(numOfChan);
+            setUint32(sampleRate);
+            setUint32(sampleRate * 2 * numOfChan);
+            setUint16(numOfChan * 2);
+            setUint16(16);
+            setUint32(0x61746164); // "data" 
+            setUint32(length - pos - 4);
+
+            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                channels.push(audioBuffer.getChannelData(i));
+            }
+
+            while (pos < audioBuffer.length) {
+                for (let i = 0; i < numOfChan; i++) {
+                    let sample = Math.max(-1, Math.min(1, channels[i][pos]));
+                    sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+                    view.setInt16(offset, sample, true);
+                    offset += 2;
+                }
+                pos++;
+            }
+            return new Blob([buffer], { type: "audio/wav" });
+        }
+
         // Fonction utilitaire pour s'assurer que les URL relatives pointent vers le bon Worker
         function corrigerUrlFichier(url) {
             if (!url) return "";
@@ -374,6 +440,90 @@
             });
         }
 
+        // Déclencheur d'importation de fichier local avec conversion WAV
+        window.importerAudioLocal = function (index) {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "audio/*, .mp3, .wav, .flac, .m4a, .aac";
+            fileInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                try {
+                    alert("Conversion et encodage du fichier en WAV en cours...");
+                    const wavBlob = await convertAudioToWavNative(file);
+                    const safeName = file.name.replace(/\.[^/.]+$/, "") + ".wav";
+                    const convertedFile = new File([wavBlob], safeName, { type: "audio/wav" });
+
+                    const formData = new FormData();
+                    formData.append("file", convertedFile);
+                    const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : "";
+
+                    const resp = await fetch(`${WORKER_URL}/api/upload/track`, {
+                        method: "POST",
+                        headers: { "Authorization": `Bearer ${idToken}` },
+                        body: formData
+                    });
+                    const resJson = await resp.json();
+                    if (!resp.ok) throw new Error(resJson.error || "Erreur de téléversement");
+
+                    const finalUrl = resJson.url || `/api/files/${resJson.key}`;
+                    document.getElementById(`t-audio-${index}`).value = finalUrl;
+                    capturerSaisiesPistes();
+                    afficherPistesHTML();
+                    alert("Fichier converti en WAV et importé avec succès !");
+                } catch (err) {
+                    alert("Erreur lors de l'import : " + err.message);
+                }
+            };
+            fileInput.click();
+        };
+
+        // Déclencheur d'importation via lien distant avec téléchargement proxy et conversion WAV
+        window.importerAudioLien = async function (index) {
+            const urlDistant = prompt("Entrez le lien direct du fichier audio (MP3, WAV, S3...) :");
+            if (!urlDistant) return;
+            try {
+                alert("Téléchargement et conversion en WAV via le proxy en cours...");
+                const proxyUrl = `${WORKER_URL}/api/proxy-download?url=${encodeURIComponent(urlDistant)}`;
+                const response = await fetch(proxyUrl);
+                if (!response.ok) {
+                    const errJson = await response.json().catch(() => ({}));
+                    throw new Error(errJson.error || `Erreur HTTP ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                const wavBlob = await convertAudioToWavNative(blob);
+
+                let fileName = "piste_distante.wav";
+                try {
+                    const uObj = new URL(urlDistant);
+                    const seg = uObj.pathname.split('/').pop();
+                    if (seg && seg.includes('.')) fileName = seg.replace(/\.[^/.]+$/, "") + ".wav";
+                } catch (e) { }
+
+                const convertedFile = new File([wavBlob], fileName, { type: "audio/wav" });
+                const formData = new FormData();
+                formData.append("file", convertedFile);
+                const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : "";
+
+                const resp = await fetch(`${WORKER_URL}/api/upload/track`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${idToken}` },
+                    body: formData
+                });
+                const resJson = await resp.json();
+                if (!resp.ok) throw new Error(resJson.error || "Erreur de téléversement");
+
+                const finalUrl = resJson.url || `/api/files/${resJson.key}`;
+                document.getElementById(`t-audio-${index}`).value = finalUrl;
+                capturerSaisiesPistes();
+                afficherPistesHTML();
+                alert("Lien distant converti en WAV et importé avec succès !");
+            } catch (err) {
+                alert("Erreur lors de l'import par lien : " + err.message);
+            }
+        };
+
         function afficherPistesHTML() {
             const container = document.getElementById("admin-tracks-list");
             container.innerHTML = "";
@@ -404,7 +554,15 @@
                         <div class="form-group"><label>TikTok Start (Sec)</label><input type="number" id="t-tk-s-${i}" class="form-control" value="${t.tiktokStart?.second || 0}"></div>
                         <div class="form-group full-width"><label>Texte des Paroles</label><textarea id="t-lyrics-${i}" class="form-control" rows="2">${t.lyricsText || ''}</textarea></div>
                         
-                        <div class="form-group full-width"><label>Audio URL (Stéréo Principal)</label><input type="text" id="t-audio-${i}" class="form-control" value="${t.audioUrl || ''}"><div class="audio-preview">${audioSrc ? `<audio controls src="${audioSrc}"></audio>` : 'Aucun'}</div></div>
+                        <div class="form-group full-width">
+                            <label>Audio URL (Stéréo Principal)</label>
+                            <div style="display:flex; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+                                <button type="button" class="btn-action-audio" onclick="importerAudioLocal(${i})">+ Importer fichier (Convertir en WAV)</button>
+                                <button type="button" class="btn-action-audio" style="background:#555;" onclick="importerAudioLien(${i})">+ Importer via lien (Convertir en WAV)</button>
+                            </div>
+                            <input type="text" id="t-audio-${i}" class="form-control" value="${t.audioUrl || ''}">
+                            <div class="audio-preview">${audioSrc ? `<audio controls src="${audioSrc}"></audio>` : 'Aucun'}</div>
+                        </div>
                         <div class="form-group full-width"><label>Instrumental Audio URL (Stéréo)</label><input type="text" id="t-inst-${i}" class="form-control" value="${t.instrumentalAudioUrl || ''}"><div class="audio-preview">${instSrc ? `<audio controls src="${instSrc}"></audio>` : 'Aucun'}</div></div>
                         
                         <div class="form-group full-width"><label style="color:#60a5fa;">Dolby Atmos Audio URL (Principal)</label><input type="text" id="t-atmos-${i}" class="form-control" value="${t.atmosAudioUrl || ''}" placeholder="Lien vers le fichier .wav / .caf ou dossier Atmos master"><div class="audio-preview">${t.atmosAudioUrl ? `<span style="color:#34d399; font-weight:bold;">✓ Master Atmos configuré</span>` : 'Aucun'}</div></div>

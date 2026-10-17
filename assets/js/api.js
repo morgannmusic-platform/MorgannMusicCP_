@@ -239,10 +239,22 @@ export const api = {
    * @returns {string}
    */
   fileUrl(key) {
-    if (!key) return "";
-    // Si c'est déjà une URL complète (migration), la retourner telle quelle
-    if (key.startsWith("http://") || key.startsWith("https://")) return key;
-    return `${API_BASE}/api/files/${encodeURIComponent(key)}`;
+    if (!key || typeof key !== "string") return "";
+
+    const value = key.trim();
+    if (!value) return "";
+
+    // URLs déjà complètes ou données inline : les garder telles quelles.
+    if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:")) return value;
+
+    // Normaliser les chemins relatifs et les URLs déjà exposées par le worker.
+    const normalized = value.replace(/^\/+/, "");
+    if (!normalized) return "";
+    if (normalized.startsWith("api/files/")) {
+      return `${API_BASE}/${normalized}`;
+    }
+
+    return `${API_BASE}/api/files/${encodeURIComponent(normalized)}`;
   },
 
   /** L'URL de base, exposée pour usage externe si nécessaire */

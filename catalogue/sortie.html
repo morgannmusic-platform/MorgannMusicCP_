@@ -349,23 +349,22 @@
 
         // Helper function to turn relative API keys/paths into full Worker URLs
         function corrigerUrlFichier(url) {
-            if (!url) return null;
-            const value = String(url).trim();
+            if (!url || typeof url !== "string") return null;
 
+            const value = String(url).trim();
             if (!value) return "";
+
             if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:")) {
                 return value;
             }
 
-            if (value.startsWith("/")) {
-                return `${WORKER_URL}${value}`;
-            }
-
             if (typeof api.fileUrl === "function") {
-                return api.fileUrl(value);
+                const normalized = value.replace(/^\/+/, "");
+                return api.fileUrl(normalized);
             }
 
-            return `${WORKER_URL}/api/files/${encodeURIComponent(value)}`;
+            const normalized = value.replace(/^\/+/, "");
+            return `${WORKER_URL}/api/files/${encodeURIComponent(normalized)}`;
         }
 
         async function loadReleaseDetails() {
@@ -464,21 +463,29 @@
                     if (typeof track === 'string') {
                         trackTitle = track;
                     } else if (typeof track === 'object' && track !== null) {
-                        trackTitle = track.title || (track.artists && track.artists[0] ? track.artists[0].name : 'Piste ' + (index + 1));
-                        audioUrlRaw = track.audioUrl || track.fileUrl || track.mp3Url || track.previewUrl || null;
+                        trackTitle = track.title || track.name || (track.artists && track.artists[0] ? track.artists[0].name : 'Piste ' + (index + 1));
+                        audioUrlRaw = [
+                            track.audioUrl,
+                            track.audio_url,
+                            track.fileUrl,
+                            track.file_url,
+                            track.mp3Url,
+                            track.mp3_url,
+                            track.previewUrl,
+                            track.preview_url,
+                            track.url,
+                            track.src
+                        ].find(value => typeof value === 'string' && value.trim()) || null;
                     }
 
-                    // CORRECTION: Utilisation directe de api.fileUrl() pour l'audio au lieu de corrigerUrlFichier()
-                    const audioUrl = (audioUrlRaw && typeof api.fileUrl === 'function') ? api.fileUrl(audioUrlRaw) : audioUrlRaw;
-
+                    const audioUrl = corrigerUrlFichier(audioUrlRaw);
                     let playerHtml = "";
 
                     if (isLivree) {
                         playerHtml = `<span class="audio-unavailable">Extrait indisponible (en préparation)</span>`;
                     } else if (audioUrl) {
                         playerHtml = `
-                        <audio controls controlsList="nodownload" preload="metadata">
-                            <source src="${audioUrl}">
+                        <audio controls controlsList="nodownload" preload="metadata" src="${audioUrl}">
                             Votre navigateur ne supporte pas la lecture audio.
                         </audio>
                     `;

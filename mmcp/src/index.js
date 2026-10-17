@@ -17,6 +17,30 @@ export default {
     const method = request.method;
 
     try {
+      // Route Proxy dédiée pour télécharger des fichiers distants (contourne CORS)
+      if (method === "GET" && path === "/api/proxy-download") {
+        const targetUrl = url.searchParams.get("url");
+        if (!targetUrl) {
+          return corsJson({ error: "URL cible manquante" }, 400);
+        }
+        try {
+          const resp = await fetch(targetUrl);
+          if (!resp.ok) {
+            return corsJson({ error: `Erreur HTTP distante: ${resp.status}` }, resp.status);
+          }
+          const contentType = resp.headers.get("content-type") || "application/octet-stream";
+          const buffer = await resp.arrayBuffer();
+          return new Response(buffer, {
+            headers: {
+              ...corsHeaders(),
+              "Content-Type": contentType,
+            },
+          });
+        } catch (err) {
+          return corsJson({ error: `Erreur proxy: ${err.message}` }, 500);
+        }
+      }
+
       if (method === "GET" && path === "/api/platforms") {
         return corsJson(LISTE_PLATFORMES);
       }
@@ -39,7 +63,6 @@ export default {
         return await getPublicPremiere(env, url);
       }
 
-      // ROUTE PUBLIQUE POUR UN LABEL SPÉCIFIQUE PAR SON ID
       const labelItemMatch = path.match(/^\/api\/labels\/(\d+)$/);
       if (labelItemMatch) {
         const labelId = labelItemMatch[1];
@@ -54,7 +77,6 @@ export default {
         }
       }
 
-      // Routes pour les artistes invités par les labels
       if (path === "/api/artists-labels") {
         if (method === "GET") {
           try {
@@ -1768,8 +1790,20 @@ async function completeChunkUpload(env, userId, request) {
   }
 }
 
-async function serveFile(env, key) {
+async function serveFile(env, rawKey) {
   try {
+    let key = decodeURIComponent(String(rawKey || "")).trim();
+    key = key.replace(/^\/+/, "");
+    if (key.startsWith("api/files/")) {
+      key = key.replace(/^api\/files\//, "");
+    }
+    if (key.startsWith("/api/files/")) {
+      key = key.replace(/^\/api\/files\//, "");
+    }
+    if (!key) {
+      return new Response("Fichier non trouvé", { status: 404 });
+    }
+
     const isMediaKey = /^(track|atmos|inst|motion|cover|pochette)\//.test(key);
     const bucket = isMediaKey ? (env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2) : (env.BUCKET || env.MEDIA_BUCKET || env.STORAGE || env.R2);
 

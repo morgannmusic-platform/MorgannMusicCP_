@@ -6,7 +6,6 @@
     <title>Éditeur de Sortie - MM-CP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#FFEFF4">
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
     <style>
         :root {
             --primary: #FC8FB0;
@@ -605,86 +604,6 @@
                 </div>
             </div>
 
-            <!-- MODAL NOUVEAU FEAT -->
-            <div id="modal-nouveau-feat" class="modal">
-                <div class="modal-content">
-                    <h3>Créer un nouvel Artiste (Feat)</h3>
-                    <p style="font-size:12px; color:#666;">Créer un artiste invité pour cette sortie uniquement. Il ne
-                        sera pas ajouté en tant qu'artiste principal du compte.</p>
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label>Nom de l'artiste *</label>
-                        <input type="text" id="feat-new-name" class="form-control"
-                            placeholder="Nom de scène de l'artiste">
-                    </div>
-
-                    <h4>Profils Plateformes</h4>
-
-                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Apple Music</span>
-                            <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
-                                onclick="toggleFeatInput('apple')">Lier un profil</button>
-                        </div>
-                        <div id="div-feat-apple" style="display:none; margin-top:5px;">
-                            <input type="text" id="url-feat-apple" class="form-control"
-                                placeholder="music.apple.com/...">
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Spotify</span>
-                            <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
-                                onclick="toggleFeatInput('spotify')">Lier un profil</button>
-                        </div>
-                        <div id="div-feat-spotify" style="display:none; margin-top:5px;">
-                            <input type="text" id="url-feat-spotify" class="form-control"
-                                placeholder="open.spotify.com/artist/...">
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Amazon Music</span>
-                            <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
-                                onclick="toggleFeatInput('amazon')">Lier un profil</button>
-                        </div>
-                        <div id="div-feat-amazon" style="display:none; margin-top:5px;">
-                            <input type="text" id="url-feat-amazon" class="form-control"
-                                placeholder="music.amazon.com/...">
-                        </div>
-                    </div>
-
-                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                        <button type="button" class="btn-side btn-save" style="width:100px;"
-                            onclick="fermerPopupFeat('nouveau')">Annuler</button>
-                        <button type="button" class="btn-side btn-pub" style="width:120px;"
-                            onclick="sauvegarderNouveauFeat()">Enregistrer</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL FEAT EXISTANT -->
-            <div id="modal-existant-feat" class="modal">
-                <div class="modal-content">
-                    <h3>Sélectionner un Artiste existant</h3>
-                    <p style="font-size:12px; color:#666;">Liste incluant les artistes de votre compte ainsi que les
-                        feats précédemment créés.</p>
-                    <div class="search-box">
-                        <input type="text" id="search-feat-input" class="form-control"
-                            placeholder="Rechercher un artiste..." oninput="filtrerArtistesExistants()">
-                    </div>
-                    <div id="liste-feat-existants"
-                        style="max-height:300px; overflow-y:auto; margin:15px 0; border:1px solid #eee; padding:10px; border-radius:15px;">
-                        <p style="color:#777; font-size:14px;">Chargement des artistes...</p>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end; gap:10px;">
-                        <button type="button" class="btn-side btn-save" style="width:100px;"
-                            onclick="fermerPopupFeat('existant')">Fermer</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- SECTION POCHETTES -->
             <div id="sec-pochettes" class="section-panel">
                 <h2>Pochettes & Arts Visuels</h2>
@@ -727,7 +646,6 @@
 
             <!-- SECTION INFORMATION SORTIE -->
             <div id="sec-sortie" class="section-panel">
-
                 <!-- SUBSEC DATE -->
                 <div id="subsec-date" class="sub-section-panel active">
                     <h2>Date de sortie</h2>
@@ -735,14 +653,10 @@
                         <label>Date de Sortie Principale *</label>
                         <input type="date" id="date-release" class="form-control"
                             onchange="validerStructuresDates(); analyserConsole();">
-
-                        <!-- Badges et pastilles pour les dates -->
-                        <div id="date-release-pastille" class="badge-pastille badge-warning" style="display:none;">
-                            ⚠️ Délai &lt; 14 jours : Les plateformes n'auront pas toutes reçu la sortie à temps.
-                        </div>
-                        <div id="date-release-error" class="badge-pastille badge-danger" style="display:none;">
-                            ❌ La date de sortie ne peut pas être dans le passé.
-                        </div>
+                        <div id="date-release-pastille" class="badge-pastille badge-warning" style="display:none;">⚠️
+                            Délai &lt; 14 jours : Les plateformes n'auront pas toutes reçu la sortie à temps.</div>
+                        <div id="date-release-error" class="badge-pastille badge-danger" style="display:none;">❌ La date
+                            de sortie ne peut pas être dans le passé.</div>
                     </div>
 
                     <label class="checkbox-label">
@@ -753,9 +667,8 @@
                         <label>Date de sortie originale (doit être antérieure à aujourd'hui)</label>
                         <input type="date" id="date-original" class="form-control"
                             onchange="validerStructuresDates(); analyserConsole();">
-                        <div id="date-original-error" class="badge-pastille badge-danger" style="display:none;">
-                            ❌ La date originale doit être avant la date du jour.
-                        </div>
+                        <div id="date-original-error" class="badge-pastille badge-danger" style="display:none;">❌ La
+                            date originale doit être avant la date du jour.</div>
                     </div>
 
                     <label class="checkbox-label">
@@ -766,9 +679,8 @@
                         <label>Date de précommande (doit être après aujourd'hui et avant la date de sortie)</label>
                         <input type="date" id="date-preorder" class="form-control"
                             onchange="validerStructuresDates(); analyserConsole();">
-                        <div id="date-preorder-error" class="badge-pastille badge-danger" style="display:none;">
-                            ❌ La date de précommande doit être après aujourd'hui et avant la date de sortie.
-                        </div>
+                        <div id="date-preorder-error" class="badge-pastille badge-danger" style="display:none;">❌ La
+                            date de précommande doit être après aujourd'hui et avant la date de sortie.</div>
                     </div>
 
                     <label class="checkbox-label">
@@ -923,15 +835,17 @@
             <!-- SECTION PISTES -->
             <div id="sec-pistes" class="section-panel">
                 <h2>Pistes & Catalogue Sonore</h2>
-                <div style="display:flex; gap:15px; margin-bottom:20px;">
-                    <button type="button" class="btn-add-track" onclick="ouvrirLancementFichierAudio()">+ Importer de
-                        nouvelles pistes (.wav)</button>
+                <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap: wrap;">
+                    <button type="button" class="btn-add-track" onclick="ouvrirLancementFichierAudio()">+ Importer des
+                        fichiers audio</button>
+                    <button type="button" class="btn-add-track" style="background:#555;"
+                        onclick="ouvrirPopupLienAudio()">+ Importer depuis un lien</button>
                     <button type="button" class="btn-nav-exit" onclick="ouvrirModalCataloguePistes()">Sélectionner des
-                        pistes existantes (Bibliothèque)</button>
+                        pistes (Bibliothèque)</button>
                 </div>
 
-                <input type="file" id="file-audio-main" accept=".wav, audio/wav" style="display:none;" multiple
-                    onchange="traiterUploadFichierAudio()">
+                <input type="file" id="file-audio-main" accept="audio/*, .wav, .mp3, .flac, .aac, .m4a, .alac"
+                    style="display:none;" multiple onchange="traiterUploadFichierAudio()">
                 <div class="progress-bar" id="progress-main-container">
                     <div class="progress-fill" id="progress-main-fill"></div>
                 </div>
@@ -942,13 +856,105 @@
     </div>
 
 
+    <!-- MODAL NOUVEAU FEAT -->
+    <div id="modal-nouveau-feat" class="modal">
+        <div class="modal-content">
+            <h3>Créer un nouvel Artiste (Feat)</h3>
+            <p style="font-size:12px; color:#666;">Créer un artiste invité pour cette sortie uniquement. Il ne sera pas
+                ajouté en tant qu'artiste principal du compte.</p>
+            <div class="form-group" style="margin-bottom:15px;">
+                <label>Nom de l'artiste *</label>
+                <input type="text" id="feat-new-name" class="form-control" placeholder="Nom de scène de l'artiste">
+            </div>
+            <h4>Profils Plateformes</h4>
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Apple Music</span>
+                    <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                        onclick="toggleFeatInput('apple')">Lier un profil</button>
+                </div>
+                <div id="div-feat-apple" style="display:none; margin-top:5px;">
+                    <input type="text" id="url-feat-apple" class="form-control" placeholder="music.apple.com/...">
+                </div>
+            </div>
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Spotify</span>
+                    <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                        onclick="toggleFeatInput('spotify')">Lier un profil</button>
+                </div>
+                <div id="div-feat-spotify" style="display:none; margin-top:5px;">
+                    <input type="text" id="url-feat-spotify" class="form-control"
+                        placeholder="open.spotify.com/artist/...">
+                </div>
+            </div>
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Amazon Music</span>
+                    <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                        onclick="toggleFeatInput('amazon')">Lier un profil</button>
+                </div>
+                <div id="div-feat-amazon" style="display:none; margin-top:5px;">
+                    <input type="text" id="url-feat-amazon" class="form-control" placeholder="music.amazon.com/...">
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button type="button" class="btn-side btn-save" style="width:100px;"
+                    onclick="fermerPopupFeat('nouveau')">Annuler</button>
+                <button type="button" class="btn-side btn-pub" style="width:120px;"
+                    onclick="sauvegarderNouveauFeat()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FEAT EXISTANT -->
+    <div id="modal-existant-feat" class="modal">
+        <div class="modal-content">
+            <h3>Sélectionner un Artiste existant</h3>
+            <p style="font-size:12px; color:#666;">Liste incluant les artistes de votre compte ainsi que les feats
+                précédemment créés.</p>
+            <div class="search-box">
+                <input type="text" id="search-feat-input" class="form-control" placeholder="Rechercher un artiste..."
+                    oninput="filtrerArtistesExistants()">
+            </div>
+            <div id="liste-feat-existants"
+                style="max-height:300px; overflow-y:auto; margin:15px 0; border:1px solid #eee; padding:10px; border-radius:15px;">
+                <p style="color:#777; font-size:14px;">Chargement des artistes...</p>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" class="btn-side btn-save" style="width:100px;"
+                    onclick="fermerPopupFeat('existant')">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL IMPORT LIEN -->
+    <div class="modal" id="modal-import-link">
+        <div class="modal-content">
+            <h2>Importer une piste via un lien</h2>
+            <p style="font-size:12px; color:#666;">Collez le lien direct ou S3 Toolost vers le fichier audio. Il sera
+                téléchargé en toute sécurité par notre serveur et encodé dans notre format hautement qualitatif (.mmac).
+            </p>
+            <div class="form-group" style="margin-top:15px;">
+                <label>URL directe du fichier audio (S3, MP3, WAV...)</label>
+                <input type="url" id="input-audio-link" class="form-control"
+                    placeholder="https://toolost.s3.../mon-morceau.wav">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button type="button" class="btn-side btn-save" style="width:100px;"
+                    onclick="document.getElementById('modal-import-link').style.display='none'">Annuler</button>
+                <button type="button" class="btn-side btn-pub" style="width:120px;"
+                    onclick="importerDepuisLien()">Importer</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL POPUP PAYS -->
     <div class="modal" id="modal-pays">
         <div class="modal-content">
             <h2>Gestion des Territoires & Pays</h2>
             <p style="font-size:12px; color:#666;">Cochez/Décocher les pays dans lesquels votre musique sera disponible.
             </p>
-
             <div class="action-bar-small">
                 <span class="badge-count" id="count-selected-countries">0 sélectionné(s)</span>
                 <div style="display:flex; gap:8px;">
@@ -958,14 +964,11 @@
                         onclick="toutSelectionnerPays(false)">Tout décocher</button>
                 </div>
             </div>
-
             <div class="search-box">
                 <input type="text" id="search-country-input" class="form-control" placeholder="Rechercher un pays..."
                     oninput="filtrerPays()">
             </div>
-
             <div id="country-checkbox-list" class="country-grid"></div>
-
             <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
                 <button type="button" class="btn-side btn-pub" style="width:140px;"
                     onclick="validerSelectionPays()">Valider</button>
@@ -973,17 +976,15 @@
         </div>
     </div>
 
-    <!-- MODAL CATALOGUE PISTES (BIBLIOTHÈQUE) -->
+    <!-- MODAL CATALOGUE PISTES -->
     <div class="modal" id="modal-catalogue-pistes">
         <div class="modal-content">
             <h2>Bibliothèque Sonore (Pistes Existantes)</h2>
             <p style="font-size:12px; color:#666;">Sélectionnez une piste enregistrée dans votre bibliothèque. Toutes
                 ses métadonnées (ISRC, Dolby, Version, etc.) seront automatiquement conservées.</p>
-
             <div id="container-catalogue-pistes"
                 style="display:flex; flex-direction:column; gap:10px; max-height:350px; overflow-y:auto; margin:15px 0;">
             </div>
-
             <div style="display:flex; justify-content:flex-end; gap:10px;">
                 <button type="button" class="btn-side btn-save" style="width:120px;"
                     onclick="fermerModalCataloguePistes()">Fermer</button>
@@ -994,9 +995,9 @@
     <!-- MODAL UPLOAD PROGRESS -->
     <div class="modal" id="modal-upload-progress" style="z-index:99999;">
         <div class="modal-content" style="text-align:center; max-width:420px;">
-            <h2 id="modal-upload-title">Téléversement en cours</h2>
+            <h2 id="modal-upload-title">Traitement en cours</h2>
             <p id="modal-upload-text" style="font-size:14px; color:#555; margin-bottom:20px;">Veuillez patienter pendant
-                le téléversement de votre fichier...</p>
+                l'encodage et le téléversement...</p>
             <div
                 style="width:100%; height:14px; background:#eee; border-radius:7px; overflow:hidden; margin-bottom:12px;">
                 <div id="modal-upload-fill"
@@ -1024,7 +1025,6 @@
                     <li>Ratio 1:1 Carré ou Ratio 3:4 Portrait</li>
                 </ul>
             </div>
-
             <div style="display:flex; flex-direction:column; gap:15px;">
                 <div>
                     <label style="font-weight:bold; font-size:13px;">Pochette animée 1:1 Carré (Mac, iPad, Apple
@@ -1037,7 +1037,6 @@
                     <input type="file" id="file-motion-1-1" accept="video/quicktime, video/mp4, image/gif"
                         style="display:none;" onchange="traiterUploadMotion(1)">
                 </div>
-
                 <div>
                     <label style="font-weight:bold; font-size:13px;">Pochette animée 3:4 Portrait (iPhone)</label>
                     <div style="display:flex; gap:10px; margin-top:5px; align-items:center;">
@@ -1048,7 +1047,6 @@
                     <input type="file" id="file-motion-3-4" accept="video/quicktime, video/mp4, image/gif"
                         style="display:none;" onchange="traiterUploadMotion(2)">
                 </div>
-
                 <div style="margin-top:15px; display:flex; justify-content:flex-end;">
                     <button type="button" class="btn-side btn-pub" style="width:120px;"
                         onclick="document.getElementById('modal-motion').style.display='none'">Fermer</button>
@@ -1061,12 +1059,11 @@
     <div class="modal" id="modal-track-editor">
         <div class="modal-content">
             <h2 id="modal-track-title">Édition de la piste</h2>
-
             <div class="modal-nav">
                 <button type="button" class="modal-tab active"
                     onclick="switchTabTrack('t-info', this)">Information</button>
                 <button type="button" class="modal-tab" onclick="switchTabTrack('t-parts', this)">Participants</button>
-                <button type="button" class="modal-tab" onclick="switchTabTrack('t-audio', this)">Audio étendu</button>
+                <button type="button" class="modal-tab" onclick="switchTabTrack('t-audio', this)">Pistes Audio</button>
                 <button type="button" class="modal-tab" onclick="switchTabTrack('t-lyrics', this)">Paroles</button>
             </div>
 
@@ -1110,7 +1107,6 @@
                     <input type="text" id="t-writer-name" class="form-control"
                         placeholder="Nom Complet + Rôle (Ex: Parolier / Compositeur)">
                 </div>
-
                 <h4>Crédits Apple Music structurels</h4>
                 <div class="form-group">
                     <input type="text" id="t-apple-credit" class="form-control"
@@ -1119,6 +1115,12 @@
             </div>
 
             <div id="t-audio" class="modal-pane">
+                <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                    <label style="font-size:12px; font-weight:bold;">Piste Audio Principale</label>
+                    <div id="t-edit-main-audio-container">
+                        <!-- Le lecteur audio de la piste sera injecté ici -->
+                    </div>
+                </div>
                 <div style="display:flex; flex-direction:column; gap:15px;">
                     <div>
                         <label style="font-size:12px; font-weight:bold;">Version Spatial Audio Dolby Atmos</label>
@@ -1169,10 +1171,8 @@
         <div
             style="background-color: rgba(255, 255, 255, 0.95); border-radius: 34px; padding: 35px; width: 90%; max-width: 400px; text-align: center;">
             <h2 style="margin: 0 0 15px 0; color: #222; font-size: 22px; font-weight: bold;">Attention !</h2>
-            <p style="color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 30px;">
-                Êtes-vous sûr de vouloir quitter ? Toutes vos modifications non enregistrées seront définitivement
-                perdues.
-            </p>
+            <p style="color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 30px;">Êtes-vous sûr de vouloir
+                quitter ? Toutes vos modifications non enregistrées seront définitivement perdues.</p>
             <div style="display: flex; justify-content: center; gap: 15px;">
                 <button type="button" onclick="fermerPopupQuitter()" class="btn-side btn-save">Rester ici</button>
                 <button type="button" onclick="confirmerQuitter()" class="btn-side btn-pub"
@@ -1240,6 +1240,55 @@
             upc: "", territories: "Tous les pays (Monde entier)", tracks: [], feats: [],
             appleMotion11: null, appleMotion34: null
         };
+
+        // Encodeur Audio Natif (évite FFmpeg et l'erreur SharedArrayBuffer)
+        async function convertAudioToWavNative(fileOrBlob) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const arrayBuffer = await fileOrBlob.arrayBuffer();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+            const numOfChan = audioBuffer.numberOfChannels;
+            const sampleRate = audioBuffer.sampleRate;
+            const length = audioBuffer.length * numOfChan * 2 + 44;
+            const buffer = new ArrayBuffer(length);
+            const view = new DataView(buffer);
+            const channels = [];
+            let offset = 0;
+            let pos = 0;
+
+            function setUint16(data) { view.setUint16(offset, data, true); offset += 2; }
+            function setUint32(data) { view.setUint32(offset, data, true); offset += 4; }
+
+            setUint32(0x46464952); // "RIFF"
+            setUint32(length - 8);
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt " chunk
+            setUint32(16);
+            setUint16(1);
+            setUint16(numOfChan);
+            setUint32(sampleRate);
+            setUint32(sampleRate * 2 * numOfChan);
+            setUint16(numOfChan * 2);
+            setUint16(16);
+            setUint32(0x61746164); // "data" 
+            setUint32(length - pos - 4);
+
+            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+                channels.push(audioBuffer.getChannelData(i));
+            }
+
+            while (pos < audioBuffer.length) {
+                for (let i = 0; i < numOfChan; i++) {
+                    let sample = Math.max(-1, Math.min(1, channels[i][pos]));
+                    sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+                    view.setInt16(offset, sample, true);
+                    offset += 2;
+                }
+                pos++;
+            }
+            return new Blob([buffer], { type: "audio/wav" });
+        }
+
 
         window.analyserConsole = function () {
             const listElem = document.getElementById("console-items");
@@ -1502,7 +1551,6 @@
                 const data = await api.get(`/api/users/${user.uid}/releases/${currentReleaseId}`);
                 if (!data) return;
 
-                // Sérialisations JSON depuis la base D1
                 if (typeof data.tracks === 'string') {
                     try { data.tracks = JSON.parse(data.tracks); } catch (e) { data.tracks = []; }
                 }
@@ -1568,7 +1616,6 @@
                 document.getElementById("box-platform-selection").style.display = objetSortie.manualPlatforms ? "block" : "none";
                 remplirGrillePlateformes(listePlateformesToutes);
 
-                // Re-cocher les livraisons additionnelles
                 document.querySelectorAll(".cb-delivery").forEach(cb => {
                     cb.checked = objetSortie.additionalDeliveries.includes(cb.value);
                 });
@@ -1751,6 +1798,88 @@
         };
 
         window.ouvrirLancementFichierAudio = () => document.getElementById("file-audio-main").click();
+        window.ouvrirPopupLienAudio = () => document.getElementById("modal-import-link").style.display = "flex";
+
+        async function processAndUploadAudio(fileOrBlob, originalName, currentIndex = 1, totalFiles = 1) {
+            try {
+                afficherProgressUpload(true, `Encodage haute qualité (.mmac) en cours... (${currentIndex}/${totalFiles})`, 0);
+
+                const wavBlob = await convertAudioToWavNative(fileOrBlob);
+
+                const sanitizedName = originalName.replace(/\.[^/.]+$/, "") + ".wav";
+                const finalFile = new File([wavBlob], sanitizedName, { type: 'audio/wav' });
+
+                afficherProgressUpload(true, `Téléversement de la piste encodée... (${currentIndex}/${totalFiles})`, 0);
+
+                const res = await api.uploadFile("track", finalFile, (percent) => {
+                    afficherProgressUpload(true, `Téléversement de la piste encodée... (${currentIndex}/${totalFiles})`, percent);
+                });
+
+                const newTrack = {
+                    id: "track_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+                    title: originalName.replace(/\.[^/.]+$/, ""),
+                    fileUrl: res?.key || res?.url,
+                    version: "",
+                    isAiGenerated: false,
+                    language: objetSortie.language || "Français",
+                    isrc: "",
+                    iswc: "",
+                    writers: "",
+                    appleCredits: "",
+                    lyricsText: "",
+                    lyricType: "Clean",
+                    atmosUrl: null,
+                    instUrl: null
+                };
+
+                if (!Array.isArray(objetSortie.tracks)) objetSortie.tracks = [];
+                objetSortie.tracks.push(newTrack);
+                sauvegarderDansBibliothequePistes(newTrack);
+
+            } catch (err) {
+                console.error(`Erreur d'upload pour ${originalName}:`, err);
+                alert(`Erreur d'upload pour ${originalName} : ` + err.message);
+            }
+        }
+
+        window.importerDepuisLien = async function () {
+            const url = document.getElementById('input-audio-link').value.trim();
+            if (!url) return;
+            document.getElementById('modal-import-link').style.display = 'none';
+
+            try {
+                afficherProgressUpload(true, "Téléchargement du fichier distant (via proxy Worker)...", 0);
+
+                // Utilisation du proxy Cloudflare du Worker pour contourner le 403 / CORS de S3
+                const workerProxyUrl = `https://api.worker.mm-cp.uk/api/proxy-download?url=${encodeURIComponent(url)}`;
+                const response = await fetch(workerProxyUrl);
+
+                if (!response.ok) {
+                    const errJson = await response.json().catch(() => ({}));
+                    throw new Error(errJson.error || `Erreur HTTP ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                let fileName = "piste_distante.wav";
+                try {
+                    const urlObj = new URL(url);
+                    const pathSegments = urlObj.pathname.split('/');
+                    const lastSeg = pathSegments[pathSegments.length - 1];
+                    if (lastSeg && lastSeg.includes('.')) fileName = lastSeg;
+                } catch (e) { }
+
+                await processAndUploadAudio(blob, decodeURIComponent(fileName), 1, 1);
+
+            } catch (err) {
+                afficherProgressUpload(false);
+                alert("Erreur lors de l'importation via lien : " + err.message);
+            } finally {
+                afficherProgressUpload(false);
+                document.getElementById('input-audio-link').value = "";
+                renouvelerAffichageListePistes();
+                if (typeof window.analyserConsole === "function") window.analyserConsole();
+            }
+        };
 
         window.traiterUploadFichierAudio = async function () {
             const input = document.getElementById("file-audio-main");
@@ -1761,45 +1890,13 @@
                 if (!Array.isArray(objetSortie.tracks)) objetSortie.tracks = [];
 
                 for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    afficherProgressUpload(true, `Téléversement de la piste audio... (${i + 1}/${files.length})`, 0);
-
-                    try {
-                        const res = await api.uploadFile("track", file, (percent) => {
-                            afficherProgressUpload(true, `Téléversement de la piste audio... (${i + 1}/${files.length})`, percent);
-                        });
-                        const newTrack = {
-                            id: "track_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
-                            title: file.name.replace(/\.[^/.]+$/, ""),
-                            fileUrl: res?.key || res?.url,
-                            version: "",
-                            isAiGenerated: false,
-                            language: objetSortie.language || "Français",
-                            isrc: "",
-                            iswc: "",
-                            writers: "",
-                            appleCredits: "",
-                            lyricsText: "",
-                            lyricType: "Clean",
-                            atmosUrl: null,
-                            instUrl: null
-                        };
-
-                        objetSortie.tracks.push(newTrack);
-                        sauvegarderDansBibliothequePistes(newTrack);
-
-                    } catch (err) {
-                        console.error(`Erreur d'upload pour ${file.name}:`, err);
-                        alert(`Erreur d'upload pour ${file.name} : ` + err.message);
-                    }
+                    await processAndUploadAudio(files[i], files[i].name, i + 1, files.length);
                 }
             } finally {
                 afficherProgressUpload(false);
                 if (input) input.value = "";
                 renouvelerAffichageListePistes();
-                if (typeof window.analyserConsole === "function") {
-                    window.analyserConsole();
-                }
+                if (typeof window.analyserConsole === "function") window.analyserConsole();
             }
         };
 
@@ -1889,6 +1986,14 @@
             document.getElementById("t-writer-name").value = track.writers || "";
             document.getElementById("t-apple-credit").value = track.appleCredits || "";
             document.getElementById("t-lyrics-text").value = track.lyricsText || "";
+
+            const mainAudioContainer = document.getElementById("t-edit-main-audio-container");
+            if (track.fileUrl || track.audioUrl) {
+                const fileRef = track.fileUrl || track.audioUrl;
+                mainAudioContainer.innerHTML = `<audio controls src="${api.fileUrl(fileRef)}" style="width:100%; outline:none; height:36px; margin-top:8px;"></audio>`;
+            } else {
+                mainAudioContainer.innerHTML = `<p style="font-size:11px; color:#777; margin-top:8px;">Aucun fichier audio de base associé.</p>`;
+            }
 
             document.getElementById("status-atmos").innerText = track.atmosUrl ? "Dolby Atmos disponible ✓" : "";
             document.getElementById("status-inst").innerText = track.instUrl ? "Instrumental disponible ✓" : "";

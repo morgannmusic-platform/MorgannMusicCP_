@@ -706,10 +706,27 @@
             pGrid.innerHTML = fields.map(f => f.v ? `<div class="meta-item" style="grid-column:${f.l === 'Paroles' ? '1/-1' : 'auto'}"><span class="meta-label">${f.l}</span><span class="meta-value" style="white-space:pre-wrap;">${f.v}</span></div>` : '').join('');
 
             let audioHTML = '';
-            const mainAudio = t.fileUrl || t.audioUrl;
-            const instAudio = t.instrumentalFileUrl || t.instrumentalAudioUrl;
-            const atmosMain = t.atmosFileUrl || t.atmosAudioUrl;
-            const atmosInst = t.atmosInstrumentalFileUrl || t.atmosInstrumentalAudioUrl;
+            const resolveTrackSource = (...candidates) => {
+                for (const candidate of candidates) {
+                    if (typeof candidate === 'string' && candidate.trim()) {
+                        return candidate.trim();
+                    }
+                }
+                return "";
+            };
+
+            const mainAudio = resolveTrackSource(
+                t.fileUrl, t.file_url, t.audioUrl, t.audio_url, t.mp3Url, t.mp3_url, t.previewUrl, t.preview_url, t.url, t.src
+            );
+            const instAudio = resolveTrackSource(
+                t.instrumentalFileUrl, t.instrumental_file_url, t.instrumentalAudioUrl, t.instrumental_audio_url, t.instUrl, t.inst_url
+            );
+            const atmosMain = resolveTrackSource(
+                t.atmosFileUrl, t.atmos_file_url, t.atmosAudioUrl, t.atmos_audio_url, t.atmosUrl, t.atmos_url
+            );
+            const atmosInst = resolveTrackSource(
+                t.atmosInstrumentalFileUrl, t.atmos_instrumental_file_url, t.atmosInstrumentalAudioUrl, t.atmos_instrumental_audio_url, t.atmosInstUrl, t.atmos_inst_url
+            );
 
             if (mainAudio) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Principal</span><br><audio controls src="${api.fileUrl(mainAudio)}" style="width:100%; margin-top:4px;"></audio></div>`;
             if (instAudio) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Instrumental</span><br><audio controls src="${api.fileUrl(instAudio)}" style="width:100%; margin-top:4px;"></audio></div>`;
