@@ -79,6 +79,45 @@
             flex-shrink: 0;
         }
 
+        .media-shell {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #eee;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+            flex-shrink: 0;
+        }
+
+        .media-shell>.release-cover,
+        .media-shell>.release-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            border-radius: 24px;
+            object-fit: cover;
+            display: block;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .media-shell>.release-video {
+            opacity: 0;
+            visibility: hidden;
+            z-index: 2;
+        }
+
+        .media-shell.is-video-ready>.release-cover {
+            opacity: 0;
+        }
+
+        .media-shell.is-video-ready>.release-video {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .release-info {
             flex: 1;
             display: flex;
@@ -311,11 +350,22 @@
         // Helper function to turn relative API keys/paths into full Worker URLs
         function corrigerUrlFichier(url) {
             if (!url) return null;
-            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
-                return url;
+            const value = String(url).trim();
+
+            if (!value) return "";
+            if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:")) {
+                return value;
             }
-            const cleanPath = url.startsWith('/') ? url : '/' + url;
-            return `${WORKER_URL}${cleanPath}`;
+
+            if (value.startsWith("/")) {
+                return `${WORKER_URL}${value}`;
+            }
+
+            if (typeof api.fileUrl === "function") {
+                return api.fileUrl(value);
+            }
+
+            return `${WORKER_URL}/api/files/${encodeURIComponent(value)}`;
         }
 
         async function loadReleaseDetails() {
@@ -358,14 +408,13 @@
             // Vérification de la présence d'une pochette animée (vidéo)
             const animatedCoverRaw = data.animatedCoverUrl || data.animatedCover || data.appleMotion11;
             const animatedCoverUrl = corrigerUrlFichier(animatedCoverRaw);
-            let mediaHtml = "";
-
-            if (animatedCoverUrl) {
-                mediaHtml = `<video src="${animatedCoverUrl}" class="release-video" autoplay loop muted playsinline preload="metadata"></video>`;
-            } else {
-                const cover = corrigerUrlFichier(data.coverUrl) || "https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette";
-                mediaHtml = `<img src="${cover}" alt="Pochette de ${title}" class="release-cover" onerror="this.onerror=null; this.src='https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette';">`;
-            }
+            const cover = corrigerUrlFichier(data.coverUrl) || "/assets/img/icons/android-chrome-512x512.png";
+            const mediaHtml = `
+                <div class="media-shell" data-media-shell>
+                    <img src="${cover}" alt="Couverture de ${title}" class="release-cover" onerror="this.onerror=null; this.src='/assets/img/icons/android-chrome-512x512.png';">
+                    ${animatedCoverUrl ? `<video src="${animatedCoverUrl}" class="release-video" autoplay loop muted playsinline preload="metadata"></video>` : ''}
+                </div>
+            `;
 
             // Vérification du statut
             const statusRaw = (data.status || "Inconnu").trim();
@@ -419,7 +468,9 @@
                         audioUrlRaw = track.audioUrl || track.fileUrl || track.mp3Url || track.previewUrl || null;
                     }
 
-                    const audioUrl = corrigerUrlFichier(audioUrlRaw);
+                    // CORRECTION: Utilisation directe de api.fileUrl() pour l'audio au lieu de corrigerUrlFichier()
+                    const audioUrl = (audioUrlRaw && typeof api.fileUrl === 'function') ? api.fileUrl(audioUrlRaw) : audioUrlRaw;
+
                     let playerHtml = "";
 
                     if (isLivree) {
@@ -491,6 +542,16 @@
                 ${tracksHtml}
             </article>
         `;
+
+            const mediaShell = contentArea.querySelector('[data-media-shell]');
+            if (mediaShell) {
+                const video = mediaShell.querySelector('video');
+                if (video) {
+                    video.addEventListener('loadeddata', () => mediaShell.classList.add('is-video-ready'), { once: true });
+                    video.addEventListener('canplay', () => mediaShell.classList.add('is-video-ready'), { once: true });
+                    video.addEventListener('error', () => mediaShell.classList.remove('is-video-ready'), { once: true });
+                }
+            }
         }
 
         loadReleaseDetails();

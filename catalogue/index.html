@@ -186,6 +186,49 @@
             margin-bottom: 12px;
         }
 
+        .media-shell {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #eee;
+            margin-bottom: 12px;
+        }
+
+        .media-shell>.card-img,
+        .media-shell>.card-video,
+        .media-shell>.release-cover,
+        .media-shell>.release-video-cover {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            border-radius: 18px;
+            object-fit: cover;
+            display: block;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .media-shell>.card-video,
+        .media-shell>.release-video-cover {
+            opacity: 0;
+            visibility: hidden;
+            z-index: 2;
+        }
+
+        .media-shell.is-video-ready>.card-img,
+        .media-shell.is-video-ready>.release-cover {
+            opacity: 0;
+        }
+
+        .media-shell.is-video-ready>.card-video,
+        .media-shell.is-video-ready>.release-video-cover {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .card-title {
             font-weight: bold;
             font-size: 15px;
@@ -257,11 +300,22 @@
 
         function getFullMediaUrl(url) {
             if (!url) return null;
-            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
-                return url;
+            const value = String(url).trim();
+
+            if (!value) return null;
+            if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:")) {
+                return value;
             }
-            const cleanPath = url.startsWith('/') ? url : '/' + url;
-            return `${WORKER_URL}${cleanPath}`;
+
+            if (value.startsWith("/")) {
+                return `${WORKER_URL}${value}`;
+            }
+
+            if (typeof api.fileUrl === "function") {
+                return api.fileUrl(value);
+            }
+
+            return `${WORKER_URL}/api/files/${encodeURIComponent(value)}`;
         }
 
         async function initCatalogHome() {
@@ -344,21 +398,31 @@
                         card.className = "card";
                         card.onclick = () => window.location.href = `sortie.html?id=${rel.id}`;
 
+                        const cover = getFullMediaUrl(rel.coverUrl) || "/assets/img/icons/android-chrome-512x512.png";
                         const animatedCoverUrl = getFullMediaUrl(rel.animatedCoverUrl || rel.animatedCover || rel.appleMotion11);
-                        let mediaHTML = "";
-
-                        if (animatedCoverUrl) {
-                            mediaHTML = `<video src="${animatedCoverUrl}" class="card-video" autoplay loop muted playsinline preload="metadata"></video>`;
-                        } else {
-                            const cover = getFullMediaUrl(rel.coverUrl) || "/assets/img/icons/android-chrome-512x512.png";
-                            mediaHTML = `<img src="${cover}" class="card-img" alt="${rel.title || 'Pochette'}" onerror="this.onerror=null; this.src='/assets/img/icons/android-chrome-512x512.png';">`;
-                        }
+                        const mediaHTML = `
+                            <div class="media-shell" data-media-shell>
+                                <img src="${cover}" class="card-img" alt="${rel.title || 'Couverture'}" onerror="this.onerror=null; this.src='/assets/img/icons/android-chrome-512x512.png';">
+                                ${animatedCoverUrl ? `<video src="${animatedCoverUrl}" class="card-video" autoplay loop muted playsinline preload="metadata"></video>` : ''}
+                            </div>
+                        `;
 
                         card.innerHTML = `
                             ${mediaHTML}
                             <p class="card-title">${rel.title || 'Sans titre'}</p>
                             <p class="card-subtitle">${rel.artistName || 'Artiste inconnu'}</p>
                         `;
+
+                        const mediaShell = card.querySelector('[data-media-shell]');
+                        if (mediaShell) {
+                            const video = mediaShell.querySelector('video');
+                            if (video) {
+                                video.addEventListener('loadeddata', () => mediaShell.classList.add('is-video-ready'), { once: true });
+                                video.addEventListener('canplay', () => mediaShell.classList.add('is-video-ready'), { once: true });
+                                video.addEventListener('error', () => mediaShell.classList.remove('is-video-ready'), { once: true });
+                            }
+                        }
+
                         gridReleases.appendChild(card);
                     });
                 }

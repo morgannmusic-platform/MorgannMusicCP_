@@ -146,15 +146,50 @@
             flex-wrap: wrap;
         }
 
-        .release-cover,
-        .release-video-cover {
+        .media-shell {
+            position: relative;
             width: 220px;
             height: 220px;
             border-radius: 20px;
-            object-fit: cover;
+            overflow: hidden;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
             background: #eee;
             flex-shrink: 0;
+        }
+
+        .release-cover,
+        .release-video-cover {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            object-fit: cover;
+            display: block;
+            background: #eee;
+        }
+
+        .media-shell>.release-cover,
+        .media-shell>.release-video-cover {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .media-shell>.release-video-cover {
+            opacity: 0;
+            visibility: hidden;
+            z-index: 2;
+        }
+
+        .media-shell.is-video-ready>.release-cover {
+            opacity: 0;
+        }
+
+        .media-shell.is-video-ready>.release-video-cover {
+            opacity: 1;
+            visibility: visible;
         }
 
         .release-details {
@@ -305,11 +340,22 @@
 
         function getFullMediaUrl(url) {
             if (!url) return null;
-            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
-                return url;
+            const value = String(url).trim();
+
+            if (!value) return null;
+            if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:")) {
+                return value;
             }
-            const cleanPath = url.startsWith('/') ? url : '/' + url;
-            return `${WORKER_URL}${cleanPath}`;
+
+            if (value.startsWith("/")) {
+                return `${WORKER_URL}${value}`;
+            }
+
+            if (typeof api.fileUrl === "function") {
+                return api.fileUrl(value);
+            }
+
+            return `${WORKER_URL}/api/files/${encodeURIComponent(value)}`;
         }
 
         async function initRecentPage() {
@@ -358,6 +404,28 @@
             }
         }
 
+        function setupAnimatedMedia(container) {
+            if (!container) return;
+            const img = container.querySelector('img');
+            const video = container.querySelector('video');
+            if (!img || !video) return;
+
+            video.style.opacity = '0';
+            video.style.visibility = 'hidden';
+            img.style.opacity = '1';
+            img.style.visibility = 'visible';
+
+            video.addEventListener('loadeddata', () => {
+                container.classList.add('is-video-ready');
+            }, { once: true });
+            video.addEventListener('canplay', () => {
+                container.classList.add('is-video-ready');
+            }, { once: true });
+            video.addEventListener('error', () => {
+                container.classList.remove('is-video-ready');
+            }, { once: true });
+        }
+
         function renderRecentList() {
             const container = document.getElementById("recent-container");
             container.innerHTML = "";
@@ -381,15 +449,15 @@
                 const coverRaw = rel.coverUrl || rel.cover;
                 const animatedCoverRaw = rel.animatedCoverUrl || rel.animatedCover || rel.appleMotion11;
 
-                const cover = getFullMediaUrl(coverRaw) || "https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette";
+                const cover = getFullMediaUrl(coverRaw) || "/assets/img/icons/android-chrome-512x512.png";
                 const animatedCover = getFullMediaUrl(animatedCoverRaw);
 
-                let mediaHtml = "";
-                if (animatedCover) {
-                    mediaHtml = `<video src="${animatedCover}" class="release-video-cover" autoplay loop muted playsinline preload="metadata"></video>`;
-                } else {
-                    mediaHtml = `<img src="${cover}" class="release-cover" alt="${rel.title || 'Pochette'}" onerror="this.onerror=null; this.src='https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette';">`;
-                }
+                const mediaHtml = `
+                    <div class="media-shell" data-media-shell>
+                        <img src="${cover}" class="release-cover" alt="${rel.title || 'Couverture'}" onerror="this.onerror=null; this.src='/assets/img/icons/android-chrome-512x512.png';">
+                        ${animatedCover ? `<video src="${animatedCover}" class="release-video-cover" autoplay loop muted playsinline preload="metadata"></video>` : ''}
+                    </div>
+                `;
 
                 let formattedDate = "Date inconnue";
                 if (rel.effectiveReleaseDate) {
@@ -436,7 +504,10 @@
                     </div>
                     ${tracksHtml}
                 `;
-
+                const mediaShell = section.querySelector('[data-media-shell]');
+                if (mediaShell) {
+                    setupAnimatedMedia(mediaShell);
+                }
                 container.appendChild(section);
             });
         }
