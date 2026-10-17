@@ -237,8 +237,7 @@
         audio {
             height: 36px;
             outline: none;
-            width: 280px;
-            max-width: 100%;
+            max-width: 280px;
         }
 
         .audio-unavailable {
@@ -283,6 +282,7 @@
 
             audio {
                 width: 100%;
+                max-width: 100%;
             }
         }
     </style>
@@ -308,19 +308,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         const releaseId = urlParams.get('id');
 
-        // Normalisation dynamique de l'URL via api.fileUrl ou repli sur Worker URL
+        // Helper function to turn relative API keys/paths into full Worker URLs
         function corrigerUrlFichier(url) {
             if (!url) return null;
-
-            if (typeof api !== 'undefined' && typeof api.fileUrl === 'function') {
-                return api.fileUrl(url);
-            }
-
-            if (typeof url === 'object') {
-                url = url.url || url.path || url.src || null;
-                if (!url) return null;
-            }
-
             if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
                 return url;
             }
@@ -337,9 +327,10 @@
             }
 
             try {
+                // Récupération directe de la sortie par son identifiant auprès du Worker D1
                 const releaseRes = await api.get(`/api/releases/${releaseId}`);
 
-                if (!releaseRes || (!releaseRes.id && !releaseRes.title && !releaseRes.release)) {
+                if (!releaseRes || (!releaseRes.id && !releaseRes.title)) {
                     contentArea.innerHTML = `<div class="error-state">Sortie introuvable dans le catalogue.</div>`;
                     return;
                 }
@@ -361,8 +352,10 @@
             const genre = data.genre || data.primaryGenre || "Non renseigné";
             const upc = data.upc || data.barcode || "N/A";
 
+            // Récupération du lien de sortie (releaseUrl)
             const releaseUrl = data.releaseUrl || data.linkUrl || "";
 
+            // Vérification de la présence d'une pochette animée (vidéo)
             const animatedCoverRaw = data.animatedCoverUrl || data.animatedCover || data.appleMotion11;
             const animatedCoverUrl = corrigerUrlFichier(animatedCoverRaw);
             let mediaHtml = "";
@@ -370,19 +363,23 @@
             if (animatedCoverUrl) {
                 mediaHtml = `<video src="${animatedCoverUrl}" class="release-video" autoplay loop muted playsinline preload="metadata"></video>`;
             } else {
-                const cover = corrigerUrlFichier(data.coverUrl || data.cover) || "https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette";
+                const cover = corrigerUrlFichier(data.coverUrl) || "https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette";
                 mediaHtml = `<img src="${cover}" alt="Pochette de ${title}" class="release-cover" onerror="this.onerror=null; this.src='https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette';">`;
             }
 
+            // Vérification du statut
             const statusRaw = (data.status || "Inconnu").trim();
             const normalizedStatus = statusRaw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const isLivree = normalizedStatus === "livree";
             const isDirect = normalizedStatus === "direct";
+
             const badgeClass = isDirect ? "badge-status direct" : "badge-status";
 
             const artistHtml = artistName
                 ? `<a href="artiste.html?name=${encodeURIComponent(artistName)}" class="release-artist">${artistName}</a>`
                 : `<span class="release-artist" style="color:#666; cursor:default;">Artiste inconnu</span>`;
 
+            // Génération du bouton Écouter s'il y a un lien de sortie
             const listenButtonHtml = releaseUrl
                 ? `<a href="${releaseUrl}" target="_blank" rel="noopener noreferrer" class="listen-btn">écouter sur Apple Music et +</a>`
                 : "";
@@ -401,6 +398,7 @@
             let tracksHtml = "";
             let tracksList = data.tracks || [];
 
+            // Décodage si les pistes ont été envoyées sous forme de chaîne JSON depuis D1
             if (typeof tracksList === 'string') {
                 try {
                     tracksList = JSON.parse(tracksList);
@@ -417,30 +415,24 @@
                     if (typeof track === 'string') {
                         trackTitle = track;
                     } else if (typeof track === 'object' && track !== null) {
-                        trackTitle = track.title || track.name || (track.artists && track.artists[0] ? track.artists[0].name : 'Piste ' + (index + 1));
-
-                        // Utilisation exacte des propriétés recherchées dans le dashboard (fileUrl, audioUrl, etc.)
-                        audioUrlRaw = track.fileUrl
-                            || track.audioUrl
-                            || track.mp3Url
-                            || track.previewUrl
-                            || track.audio
-                            || track.file
-                            || (track.audioFile ? track.audioFile.url : null)
-                            || (track.fileObject ? track.fileObject.url : null);
+                        trackTitle = track.title || (track.artists && track.artists[0] ? track.artists[0].name : 'Piste ' + (index + 1));
+                        audioUrlRaw = track.audioUrl || track.fileUrl || track.mp3Url || track.previewUrl || null;
                     }
 
                     const audioUrl = corrigerUrlFichier(audioUrlRaw);
                     let playerHtml = "";
 
-                    if (audioUrl) {
+                    if (isLivree) {
+                        playerHtml = `<span class="audio-unavailable">Extrait indisponible (en préparation)</span>`;
+                    } else if (audioUrl) {
                         playerHtml = `
-                        <audio controls controlsList="nodownload" preload="metadata" src="${audioUrl}">
+                        <audio controls controlsList="nodownload" preload="metadata">
+                            <source src="${audioUrl}">
                             Votre navigateur ne supporte pas la lecture audio.
                         </audio>
                     `;
                     } else {
-                        playerHtml = `<span class="audio-unavailable">Aucun fichier audio disponible</span>`;
+                        playerHtml = `<span class="audio-unavailable">Aucun fichier audio lié</span>`;
                     }
 
                     return `
