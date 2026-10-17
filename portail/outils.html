@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outils & Gestion | Morgann Music CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #1e293b;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-container {
+            max-width: 1100px;
+            margin: 80px auto 40px auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .tabs-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 5rem;
+        }
+
+        .tab-btn {
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #ffffff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #3e2837;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background-color: #ffe4ed;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background-color: #FC8FB0;
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(252, 143, 176, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .panel-card {
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid #ffffff;
+            border-radius: 34px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+        }
+
+        .panel-card h2 {
+            margin-top: 0;
+            color: #3e2837;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .btn-primary {
+            background-color: #FC8FB0;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .tracklist-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #e2e8f0;
+            padding: 15px 20px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            cursor: grab;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            transition: background 0.2s;
+        }
+
+        .tracklist-item:active {
+            cursor: grabbing;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .cal-day-header {
+            text-align: center;
+            font-weight: 700;
+            color: #64748b;
+            font-size: 13px;
+            padding-bottom: 10px;
+        }
+
+        .cal-cell {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e2e8f0;
+            min-height: 100px;
+            border-radius: 16px;
+            padding: 8px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+        }
+
+        .cal-cell:hover {
+            border-color: #FC8FB0;
+        }
+
+        .cal-date-num {
+            font-weight: 700;
+            font-size: 13px;
+            color: #3e2837;
+        }
+
+        .cal-event-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .type-Sortie {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .type-Concert {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .type-Répétition {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .type-Anniversaire {
+            background: #fce7f3;
+            color: #831843;
+        }
+
+        #freeboard-canvas {
+            width: 100%;
+            height: 650px;
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
+            cursor: default;
+        }
+
+        /* Mode Plein Écran Global pour le FreeBoard (par-dessus tout, y compris navbar/sidebar) */
+        #tab-freeboard.fullscreen-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 99999 !important;
+            background: #fff5f8 !important;
+            padding: 20px !important;
+            box-sizing: border-box !important;
+            overflow-y: auto !important;
+        }
+
+        #tab-freeboard.fullscreen-mode .panel-card {
+            height: calc(100vh - 40px) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            margin-bottom: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        #tab-freeboard.fullscreen-mode #freeboard-canvas {
+            flex: 1 !important;
+            height: auto !important;
+        }
+
+        .fb-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .fb-tool-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 8px 14px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            color: #334155;
+        }
+
+        .fb-tool-btn:hover {
+            background: #f1f5f9;
+            border-color: #FC8FB0;
+        }
+
+        .fb-element {
+            position: absolute;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            min-width: 150px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .fb-element.postit {
+            background: #fef08a;
+            border-color: #fde047;
+        }
+
+        .fb-element.image-box {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .fb-element img {
+            max-width: 200px;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        /* Restriction mobile pour Calendrier & FreeBoard */
+        .mobile-restricted {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 34px;
+            border: 1px solid #ffffff;
+        }
+
+        .mobile-restricted h2 {
+            color: #3e2837;
+            margin-bottom: 10px;
+        }
+
+        .mobile-restricted p {
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-only-feature {
+                display: none !important;
+            }
+
+            .mobile-restricted {
+                display: flex !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+    <div class="main-content">
+
+        <div class="main-container">
+            <div class="tabs-bar">
+                <button class="tab-btn active" onclick="switchTab('tracklist', event)">🎵 Tracklist & Projets</button>
+                <button class="tab-btn" onclick="switchTab('calendar', event)">📅 Calendrier & Sorties</button>
+                <button class="tab-btn" onclick="switchTab('freeboard', event)">🎨 FreeBoard</button>
+            </div>
+
+            <!-- SECTION 1 : TRACKLIST -->
+            <div id="tab-tracklist" class="tab-content active">
+                <div class="panel-card">
+                    <h2>Créer un nouvel Album ou EP en préparation</h2>
+                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                        <input type="text" id="new-project-title" placeholder="Nom de l'album ou EP"
+                            style="padding: 10px 15px; border-radius: 16px; border: 1px solid #cbd5e1; flex: 1; min-width: 200px; box-sizing: border-box;">
+                        <select id="new-project-type"
+                            style="padding: 10px 15px; border-radius: 16px; border: 1px solid #cbd5e1; background: white;">
+                            <option value="Album">Album</option>
+                            <option value="EP">EP</option>
+                        </select>
+                        <button class="btn-primary" onclick="creerProjetTracklist()">Créer le projet</button>
+                    </div>
+                </div>
+
+                <div id="projects-container"></div>
+            </div>
+
+            <!-- SECTION 2 : CALENDRIER -->
+            <div id="tab-calendar" class="tab-content">
+                <div class="desktop-only-feature panel-card">
+                    <div class="calendar-header">
+                        <h2 id="cal-month-year" style="margin:0;">Chargement...</h2>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-primary" onclick="changerMois(-1)">Précédent</button>
+                            <button class="btn-primary" onclick="changerMois(1)">Suivant</button>
+                            <button class="btn-primary" onclick="ouvrirModalEvenement()" style="background:#10b981;">+
+                                Ajouter</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="cal-day-header">Lun</div>
+                        <div class="cal-day-header">Mar</div>
+                        <div class="cal-day-header">Mer</div>
+                        <div class="cal-day-header">Jeu</div>
+                        <div class="cal-day-header">Ven</div>
+                        <div class="cal-day-header">Sam</div>
+                        <div class="cal-day-header">Dim</div>
+                    </div>
+                    <div id="calendar-days-grid" class="calendar-grid" style="margin-top: 8px;"></div>
+                </div>
+                <!-- Restriction mobile -->
+                <div class="mobile-restricted">
+                    <h2>Accès restreint sur mobile</h2>
+                    <p>Le calendrier complet est uniquement accessible sur ordinateur pour une meilleure expérience
+                        d'utilisation.</p>
+                </div>
+            </div>
+
+            <!-- SECTION 3 : FREEBOARD -->
+            <div id="tab-freeboard" class="tab-content">
+                <div class="desktop-only-feature panel-card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h2 style="margin:0;">Tableau Blanc Infini (FreeBoard)</h2>
+                        <button class="btn-primary" id="btn-fullscreen-fb" onclick="toggleFreeBoardFullscreen()"
+                            style="background:#6366f1;">⛶ Plein écran</button>
+                    </div>
+                    <div class="fb-toolbar">
+                        <button class="fb-tool-btn" onclick="fbAjouterPostIt()">📝 Post-it</button>
+                        <button class="fb-tool-btn" onclick="fbAjouterTexte()">✍️ Texte</button>
+                        <button class="fb-tool-btn" onclick="fbAjouterImage()">🖼️ Image</button>
+                        <div style="height: 20px; width: 1px; background: #cbd5e1; margin: 0 5px;"></div>
+                        <button class="fb-tool-btn" style="font-weight: bold;"
+                            onclick="fbAppliquerStyle('bold')">Gras</button>
+                        <button class="fb-tool-btn" style="font-style: italic;"
+                            onclick="fbAppliquerStyle('italic')">Italique</button>
+                        <button class="fb-tool-btn" onclick="fbAppliquerStyle('h1')">Titre</button>
+                        <button class="fb-tool-btn" onclick="fbAppliquerStyle('h2')">Sous-titre</button>
+                    </div>
+                    <div id="freeboard-canvas" ondragover="event.preventDefault()">
+                        <p style="color: #94a3b8; text-align: center; margin-top: 300px; pointer-events: none;">Glisse,
+                            écris et organise tes idées librement ici.</p>
+                    </div>
+                </div>
+                <!-- Restriction mobile -->
+                <div class="mobile-restricted">
+                    <h2>Accès restreint sur mobile</h2>
+                    <p>Le tableau blanc FreeBoard nécessite un écran d'ordinateur pour fonctionner correctement.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="cal-modal" class="popup-overlay"
+            style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(6px); justify-content:center; align-items:center; z-index:9999;">
+            <div class="popup-content"
+                style="background:white; padding:30px; border-radius:24px; width:90%; max-width:400px; position:relative;">
+                <button onclick="fermerModalEvenement()"
+                    style="position:absolute; top:15px; right:15px; border:none; background:#FC8FB0; color:white; width:28px; height:28px; border-radius:50%; cursor:pointer; font-weight:bold;">✕</button>
+                <h3 id="modal-cal-title" style="margin-top:0; color:#3e2837;">Ajouter un événement</h3>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-size:12px; font-weight:700; color:#64748b;">Titre</label>
+                    <input type="text" id="ev-title" placeholder="Nom de l'événement"
+                        style="width:100%; padding:10px; border-radius:12px; border:1px solid #cbd5e1; box-sizing:border-box; margin-top:4px;">
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-size:12px; font-weight:700; color:#64748b;">Date</label>
+                    <input type="date" id="ev-date"
+                        style="width:100%; padding:10px; border-radius:12px; border:1px solid #cbd5e1; box-sizing:border-box; margin-top:4px;">
+                </div>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="font-size:12px; font-weight:700; color:#64748b;">Type</label>
+                    <select id="ev-type"
+                        style="width:100%; padding:10px; border-radius:12px; border:1px solid #cbd5e1; background:white; margin-top:4px;">
+                        <option value="Sortie">Sortie</option>
+                        <option value="Concert">Concert</option>
+                        <option value="Répétition">Répétition</option>
+                        <option value="Anniversaire">Anniversaire sortie</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="sauvegarderEvenement()" style="width:100%;">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        let currentUserUid = null;
+        let activeTab = 'tracklist';
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+        let calendarEvents = [];
+        let editingEventId = null;
+
+        window.switchTab = function (tabId, event) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+            activeTab = tabId;
+            if (tabId === 'calendar') renderCalendar();
+        };
+
+        window.toggleFreeBoardFullscreen = function () {
+            const tabFb = document.getElementById('tab-freeboard');
+            const btn = document.getElementById('btn-fullscreen-fb');
+            tabFb.classList.toggle('fullscreen-mode');
+            if (tabFb.classList.contains('fullscreen-mode')) {
+                btn.innerText = "✕ Quitter plein écran";
+                btn.style.background = "#ef4444";
+            } else {
+                btn.innerText = "⛶ Plein écran";
+                btn.style.background = "#6366f1";
+            }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "/login.html";
+                return;
+            }
+            currentUserUid = user.uid;
+            chargerProjetsTracklist();
+            chargerEvenementsCalendrier();
+        });
+
+        window.creerProjetTracklist = async function () {
+            const titre = document.getElementById('new-project-title').value.trim();
+            const type = document.getElementById('new-project-type').value;
+            if (!titre) return alert("Veuillez entrer un nom de projet.");
+
+            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            projets.push({ id: Date.now(), titre, type, pistes: [] });
+            localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
+            document.getElementById('new-project-title').value = '';
+            chargerProjetsTracklist();
+        };
+
+        function chargerProjetsTracklist() {
+            const container = document.getElementById('projects-container');
+            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            if (projets.length === 0) {
+                container.innerHTML = `<div class="panel-card"><p style="color:#64748b; font-style:italic; margin:0;">Aucun projet d'album ou EP en préparation.</p></div>`;
+                return;
+            }
+
+            container.innerHTML = projets.map(p => `
+                <div class="panel-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h2 style="margin:0;">${p.titre} <span style="font-size:13px; font-weight:normal; background:#ffe4ed; color:#d91159; padding:4px 10px; border-radius:10px;">${p.type}</span></h2>
+                        <button onclick="supprimerProjet(${p.id})" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:10px; cursor:pointer; font-weight:600;">Supprimer</button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <input type="text" id="track-input-${p.id}" placeholder="Nom de la nouvelle piste" style="padding:8px 12px; border-radius:12px; border:1px solid #cbd5e1; flex:1;">
+                        <button class="btn-primary" onclick="ajouterPiste(${p.id})">Ajouter la piste</button>
+                    </div>
+                    <div id="tracks-list-${p.id}">
+                        ${p.pistes.length === 0 ? '<p style="color:#94a3b8; font-size:13px; font-style:italic;">Aucune piste pour le moment.</p>' :
+                    p.pistes.map((t, idx) => `
+                            <div class="tracklist-item" draggable="true" ondragstart="dragStart(event, ${p.id},${idx})" ondragover="event.preventDefault()" ondrop="dropTrack(event, ${p.id},${idx})">
+                                <span><b>${idx + 1}.</b>${t}</span>
+                                <button onclick="supprimerPiste(${p.id},${idx})" style="border:none; background:none; color:#ef4444; font-weight:bold; cursor:pointer;">✕</button>
+                            </div>
+                          `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.supprimerProjet = function (id) {
+            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            projets = projets.filter(p => p.id !== id);
+            localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
+            chargerProjetsTracklist();
+        };
+
+        window.ajouterPiste = function (projetId) {
+            const input = document.getElementById(`track-input-${projetId}`);
+            const nomPiste = input.value.trim();
+            if (!nomPiste) return;
+
+            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            const p = projets.find(x => x.id === projetId);
+            if (p) {
+                p.pistes.push(nomPiste);
+                localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
+                chargerProjetsTracklist();
+            }
+        };
+
+        window.supprimerPiste = function (projetId, pisteIdx) {
+            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            const p = projets.find(x => x.id === projetId);
+            if (p) {
+                p.pistes.splice(pisteIdx, 1);
+                localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
+                chargerProjetsTracklist();
+            }
+        };
+
+        let draggedTrackInfo = null;
+        window.dragStart = function (e, projetId, trackIdx) {
+            draggedTrackInfo = { projetId, trackIdx };
+        };
+        window.dropTrack = function (e, projetId, targetIdx) {
+            e.preventDefault();
+            if (!draggedTrackInfo || draggedTrackInfo.projetId !== projetId) return;
+            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            const p = projets.find(x => x.id === projetId);
+            if (p) {
+                const moved = p.pistes.splice(draggedTrackInfo.trackIdx, 1)[0];
+                p.pistes.splice(targetIdx, 0, moved);
+                localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
+                chargerProjetsTracklist();
+            }
+            draggedTrackInfo = null;
+        };
+
+        async function chargerEvenementsCalendrier() {
+            try {
+                const releases = await api.get(`/api/users/${currentUserUid}/releases`);
+                let events = JSON.parse(localStorage.getItem(`mmcp_events_${currentUserUid}`) || "[]");
+
+                if (Array.isArray(releases)) {
+                    releases.forEach(r => {
+                        if (r.releaseDate) {
+                            const dateStr = r.releaseDate.split('T')[0];
+                            if (!events.some(e => e.releaseId === r.id)) {
+                                events.push({ id: `rel_${r.id}`, title: `Sortie : ${r.title}`, date: dateStr, type: 'Sortie', releaseId: r.id });
+                            }
+                        }
+                    });
+                }
+                calendarEvents = events;
+                if (activeTab === 'calendar') renderCalendar();
+            } catch (e) {
+                calendarEvents = JSON.parse(localStorage.getItem(`mmcp_events_${currentUserUid}`) || "[]");
+            }
+        }
+
+        window.changerMois = function (dir) {
+            currentMonth += dir;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar();
+        };
+
+        function renderCalendar() {
+            const months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+            document.getElementById('cal-month-year').innerText = `${months[currentMonth]} ${currentYear}`;
+
+            const grid = document.getElementById('calendar-days-grid');
+            grid.innerHTML = '';
+
+            const firstDayIndex = (new Date(currentYear, currentMonth, 1).getDay() + 6) % 7;
+            const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                grid.innerHTML += `<div class="cal-cell" style="opacity:0.3; background:transparent;"></div>`;
+            }
+
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayEvents = calendarEvents.filter(e => e.date === dateStr);
+
+                const cell = document.createElement('div');
+                cell.className = 'cal-cell';
+                cell.oncontextmenu = (e) => { e.preventDefault(); ouvrirModalEvenement(dateStr); };
+                cell.innerHTML = `<span class="cal-date-num">${day}</span>`;
+
+                dayEvents.forEach(ev => {
+                    const badge = document.createElement('div');
+                    badge.className = `cal-event-badge type-${ev.type.split(' ')[0]}`;
+                    badge.innerText = ev.title;
+                    badge.onclick = (e) => { e.stopPropagation(); editerOuSupprimerEvenement(ev); };
+                    badge.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); supprimerEvenement(ev.id); };
+                    cell.appendChild(badge);
+                });
+
+                grid.appendChild(cell);
+            }
+        }
+
+        window.ouvrirModalEvenement = function (dateDefault = '') {
+            editingEventId = null;
+            document.getElementById('modal-cal-title').innerText = "Ajouter un événement";
+            document.getElementById('ev-title').value = '';
+            document.getElementById('ev-date').value = dateDefault || new Date().toISOString().split('T')[0];
+            document.getElementById('cal-modal').style.display = 'flex';
+        };
+
+        window.fermerModalEvenement = function () {
+            document.getElementById('cal-modal').style.display = 'none';
+        };
+
+        window.sauvegarderEvenement = function () {
+            const title = document.getElementById('ev-title').value.trim();
+            const date = document.getElementById('ev-date').value;
+            const type = document.getElementById('ev-type').value;
+            if (!title || !date) return alert("Remplis tous les champs.");
+
+            let events = JSON.parse(localStorage.getItem(`mmcp_events_${currentUserUid}`) || "[]");
+            if (editingEventId) {
+                events = events.map(e => e.id === editingEventId ? { ...e, title, date, type } : e);
+            } else {
+                events.push({ id: `ev_${Date.now()}`, title, date, type });
+            }
+            localStorage.setItem(`mmcp_events_${currentUserUid}`, JSON.stringify(events));
+            fermerModalEvenement();
+            chargerEvenementsCalendrier();
+        };
+
+        window.editerOuSupprimerEvenement = function (ev) {
+            if (ev.releaseId) return alert("Ceci est une sortie officielle synchronisée (gérable depuis l'onglet Sorties).");
+            if (confirm(`Modifier ou supprimer "${ev.title}" ?\nOK pour modifier, Annuler pour supprimer.`)) {
+                editingEventId = ev.id;
+                document.getElementById('modal-cal-title').innerText = "Modifier l'événement";
+                document.getElementById('ev-title').value = ev.title;
+                document.getElementById('ev-date').value = ev.date;
+                document.getElementById('ev-type').value = ev.type;
+                document.getElementById('cal-modal').style.display = 'flex';
+            } else {
+                supprimerEvenement(ev.id);
+            }
+        };
+
+        window.supprimerEvenement = function (id) {
+            if (confirm("Supprimer cet événement ?")) {
+                let events = JSON.parse(localStorage.getItem(`mmcp_events_${currentUserUid}`) || "[]");
+                events = events.filter(e => e.id !== id);
+                localStorage.setItem(`mmcp_events_${currentUserUid}`, JSON.stringify(events));
+                chargerEvenementsCalendrier();
+            }
+        };
+
+        let activeSelection = null;
+
+        window.fbAjouterPostIt = function () {
+            creerElementFB({ type: 'postit', text: 'Nouveau Post-it', x: 50, y: 50 });
+        };
+        window.fbAjouterTexte = function () {
+            creerElementFB({ type: 'text', text: 'Titre ou description', x: 80, y: 80 });
+        };
+        window.fbAjouterImage = function () {
+            const url = prompt("URL de l'image :");
+            if (url) creerElementFB({ type: 'image', url, x: 100, y: 100 });
+        };
+
+        function creerElementFB(data) {
+            const canvas = document.getElementById('freeboard-canvas');
+            const el = document.createElement('div');
+            el.className = `fb-element ${data.type === 'postit' ? 'postit' : ''} ${data.type === 'image' ? 'image-box' : ''}`;
+            el.style.left = `${data.x}px`;
+            el.style.top = `${data.y}px`;
+
+            if (data.type === 'image') {
+                el.innerHTML = `<img src="${data.url}" alt="Board Image">`;
+            } else {
+                el.contentEditable = "true";
+                el.innerText = data.text;
+            }
+
+            el.onmousedown = function (e) {
+                activeSelection = el;
+                let shiftX = e.clientX - el.getBoundingClientRect().left;
+                let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+                function moveAt(pageX, pageY) {
+                    let rect = canvas.getBoundingClientRect();
+                    el.style.left = pageX - rect.left - shiftX + 'px';
+                    el.style.top = pageY - rect.top - shiftY + 'px';
+                }
+
+                function onMouseMove(event) {
+                    moveAt(event.pageX, event.pageY);
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.onmouseup = function () {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.onmouseup = null;
+                };
+            };
+
+            canvas.appendChild(el);
+            activeSelection = el;
+        }
+
+        window.fbAppliquerStyle = function (command) {
+            if (!activeSelection || activeSelection.classList.contains('image-box')) return;
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+
+            const span = document.createElement('span');
+            if (command === 'bold') span.style.fontWeight = 'bold';
+            if (command === 'italic') span.style.fontStyle = 'italic';
+            if (command === 'h1') { span.style.fontSize = '22px'; span.style.fontWeight = 'bold'; }
+            if (command === 'h2') { span.style.fontSize = '18px'; span.style.fontWeight = 'bold'; }
+
+            span.appendChild(selection.getRangeAt(0).extractContents());
+            selection.getRangeAt(0).insertNode(span);
+        };
+    </script>
+</body>
+
+</html>

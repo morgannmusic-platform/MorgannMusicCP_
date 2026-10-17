@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description"
+        content="Morgann Music CP - Découvrez la liste complète de nos pays de distribution partenaires à travers le monde.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="theme-color" content="#FC8FB0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#52303c" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#FC8FB0">
+    <meta name="apple-mobile-web-app-title" content="Morgann Music CP">
+
+    <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png">
+    <link rel="icon" type="image/png" href="/assets/img/icons/clair.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/assets/img/icons/icon.png">
+
+    <link rel="canonical" href="https://mm-cp.uk/pays.html">
+
+    <title>Nos Pays Partenaires | Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
+
+    <style>
+        .platforms-list-section {
+            max-width: 1200px;
+            margin: 2rem auto 5rem;
+            padding: 0 1rem;
+        }
+
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .platform-item-card {
+            background: linear-gradient(140deg, var(--container1) 0%, var(--container3) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 1.2rem;
+            text-align: center;
+            color: var(--rose);
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .platform-item-card:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+            border-color: rgba(252, 143, 176, 0.4);
+        }
+
+        @media (max-width: 1024px) {
+            .platforms-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .platforms-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .platforms-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <!-- Inclusion de GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="/assets/js/background.js"></script>
+    <script type="module" src="/assets/js/navbar.js" defer></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+</head>
+
+<body>
+    <div id="navbar"></div>
+    <div class="content-wrapper">
+
+        <header class="hero-section" style="grid-template-columns: 1fr; text-align: center;">
+            <div class="hero-content" style="align-items: center; width: 100%;">
+                <div class="hero-pill">🌍 Couverture Internationale</div>
+                <h1 class="banner-title" style="text-align: center;">
+                    <span class="word">Nos</span>
+                    <span class="word">Pays</span>
+                </h1>
+                <p class="banner-subtitle" style="text-align: center;">Votre musique écoutée aux quatre coins du globe.
+                </p>
+                <p class="hero-description" style="text-align: center; margin-inline: auto;">
+                    Morgann Music CP déploie vos créations musicales et vos sorties à travers l'ensemble des pays et
+                    territoires répertoriés ci-dessous pour maximiser votre portée internationale.
+                </p>
+            </div>
+        </header>
+
+        <section class="platforms-list-section">
+            <div class="platforms-grid" id="paysGrid">
+                <!-- Généré à partir de pays.md -->
+                <div class="platform-item-card">Afghanistan</div>
+                <div class="platform-item-card">Aland Islands</div>
+                <div class="platform-item-card">Albania</div>
+                <div class="platform-item-card">Algeria</div>
+                <div class="platform-item-card">American Samoa</div>
+                <div class="platform-item-card">Andorra</div>
+                <div class="platform-item-card">Angola</div>
+                <div class="platform-item-card">Anguilla</div>
+                <div class="platform-item-card">Antarctica</div>
+                <div class="platform-item-card">Antigua And Barbuda</div>
+                <div class="platform-item-card">Argentina</div>
+                <div class="platform-item-card">Armenia</div>
+                <div class="platform-item-card">Aruba</div>
+                <div class="platform-item-card">Australia</div>
+                <div class="platform-item-card">Austria</div>
+                <div class="platform-item-card">Azerbaijan</div>
+                <div class="platform-item-card">Bahamas</div>
+                <div class="platform-item-card">Bahrain</div>
+                <div class="platform-item-card">Bangladesh</div>
+                <div class="platform-item-card">Barbados</div>
+                <div class="platform-item-card">Belarus</div>
+                <div class="platform-item-card">Belgium</div>
+                <div class="platform-item-card">Belize</div>
+                <div class="platform-item-card">Benin</div>
+                <div class="platform-item-card">Bermuda</div>
+                <div class="platform-item-card">Bhutan</div>
+                <div class="platform-item-card">Bolivia</div>
+                <div class="platform-item-card">Bosnia And Herzegovina</div>
+                <div class="platform-item-card">Botswana</div>
+                <div class="platform-item-card">Bouvet Island</div>
+                <div class="platform-item-card">Brazil</div>
+                <div class="platform-item-card">Bonaire, Sint Eustatius And Saba</div>
+                <div class="platform-item-card">British Indian Ocean Territory</div>
+                <div class="platform-item-card">Brunei Darussalam</div>
+                <div class="platform-item-card">Bulgaria</div>
+                <div class="platform-item-card">Burkina Faso</div>
+                <div class="platform-item-card">Burundi</div>
+                <div class="platform-item-card">Cambodia</div>
+                <div class="platform-item-card">Cameroon</div>
+                <div class="platform-item-card">Canada</div>
+                <div class="platform-item-card">Cape Verde</div>
+                <div class="platform-item-card">Cayman Islands</div>
+                <div class="platform-item-card">Central African Republic</div>
+                <div class="platform-item-card">Chad</div>
+                <div class="platform-item-card">Chile</div>
+                <div class="platform-item-card">China</div>
+                <div class="platform-item-card">Christmas Island</div>
+                <div class="platform-item-card">Cocos (Keeling) Islands</div>
+                <div class="platform-item-card">Colombia</div>
+                <div class="platform-item-card">Curacao</div>
+                <div class="platform-item-card">Comoros</div>
+                <div class="platform-item-card">Congo</div>
+                <div class="platform-item-card">Congo, Democratic Republic</div>
+                <div class="platform-item-card">Cook Islands</div>
+                <div class="platform-item-card">Costa Rica</div>
+                <div class="platform-item-card">Cote D'Ivoire</div>
+                <div class="platform-item-card">Croatia</div>
+                <div class="platform-item-card">Cuba</div>
+                <div class="platform-item-card">Cyprus</div>
+                <div class="platform-item-card">Czech Republic</div>
+                <div class="platform-item-card">Denmark</div>
+                <div class="platform-item-card">Djibouti</div>
+                <div class="platform-item-card">Dominica</div>
+                <div class="platform-item-card">Dominican Republic</div>
+                <div class="platform-item-card">Ecuador</div>
+                <div class="platform-item-card">Egypt</div>
+                <div class="platform-item-card">El Salvador</div>
+                <div class="platform-item-card">Equatorial Guinea</div>
+                <div class="platform-item-card">Eritrea</div>
+                <div class="platform-item-card">Estonia</div>
+                <div class="platform-item-card">Ethiopia</div>
+                <div class="platform-item-card">Falkland Islands (Malvinas)</div>
+                <div class="platform-item-card">Faroe Islands</div>
+                <div class="platform-item-card">Fiji</div>
+                <div class="platform-item-card">Finland</div>
+                <div class="platform-item-card">France</div>
+                <div class="platform-item-card">French Guiana</div>
+                <div class="platform-item-card">French Polynesia</div>
+                <div class="platform-item-card">French Southern Territories</div>
+                <div class="platform-item-card">Gabon</div>
+                <div class="platform-item-card">Gambia</div>
+                <div class="platform-item-card">Georgia</div>
+                <div class="platform-item-card">Germany</div>
+                <div class="platform-item-card">Ghana</div>
+                <div class="platform-item-card">Gibraltar</div>
+                <div class="platform-item-card">Greece</div>
+                <div class="platform-item-card">Greenland</div>
+                <div class="platform-item-card">Grenada</div>
+                <div class="platform-item-card">Guadeloupe</div>
+                <div class="platform-item-card">Guam</div>
+                <div class="platform-item-card">Guatemala</div>
+                <div class="platform-item-card">Guernsey</div>
+                <div class="platform-item-card">Guinea</div>
+                <div class="platform-item-card">Guinea-Bissau</div>
+                <div class="platform-item-card">Guyana</div>
+                <div class="platform-item-card">Haiti</div>
+                <div class="platform-item-card">Heard Island & McDonald Islands</div>
+                <div class="platform-item-card">Holy See (Vatican City State)</div>
+                <div class="platform-item-card">Honduras</div>
+                <div class="platform-item-card">Hong Kong</div>
+                <div class="platform-item-card">Hungary</div>
+                <div class="platform-item-card">Iceland</div>
+                <div class="platform-item-card">India</div>
+                <div class="platform-item-card">Indonesia</div>
+                <div class="platform-item-card">Iran, Islamic Republic Of</div>
+                <div class="platform-item-card">Iraq</div>
+                <div class="platform-item-card">Ireland</div>
+                <div class="platform-item-card">Isle Of Man</div>
+                <div class="platform-item-card">Israel</div>
+                <div class="platform-item-card">Italy</div>
+                <div class="platform-item-card">Jamaica</div>
+                <div class="platform-item-card">Japan</div>
+                <div class="platform-item-card">Jersey</div>
+                <div class="platform-item-card">Jordan</div>
+                <div class="platform-item-card">Kosovo</div>
+                <div class="platform-item-card">Kazakhstan</div>
+                <div class="platform-item-card">Kenya</div>
+                <div class="platform-item-card">Kiribati</div>
+                <div class="platform-item-card">Democratic Korea</div>
+                <div class="platform-item-card">Korea</div>
+                <div class="platform-item-card">Kuwait</div>
+                <div class="platform-item-card">Kyrgyzstan</div>
+                <div class="platform-item-card">Lao People's Democratic Republic</div>
+                <div class="platform-item-card">Latvia</div>
+                <div class="platform-item-card">Lebanon</div>
+                <div class="platform-item-card">Lesotho</div>
+                <div class="platform-item-card">Liberia</div>
+                <div class="platform-item-card">Libyan Arab Jamahiriya</div>
+                <div class="platform-item-card">Liechtenstein</div>
+                <div class="platform-item-card">Lithuania</div>
+                <div class="platform-item-card">Luxembourg</div>
+                <div class="platform-item-card">Macao</div>
+                <div class="platform-item-card">Macedonia</div>
+                <div class="platform-item-card">Madagascar</div>
+                <div class="platform-item-card">Malawi</div>
+                <div class="platform-item-card">Malaysia</div>
+                <div class="platform-item-card">Maldives</div>
+                <div class="platform-item-card">Mali</div>
+                <div class="platform-item-card">Malta</div>
+                <div class="platform-item-card">Marshall Islands</div>
+                <div class="platform-item-card">Martinique</div>
+                <div class="platform-item-card">Mauritania</div>
+                <div class="platform-item-card">Mauritius</div>
+                <div class="platform-item-card">Mayotte</div>
+                <div class="platform-item-card">Mexico</div>
+                <div class="platform-item-card">Micronesia, Federated States Of</div>
+                <div class="platform-item-card">Moldova</div>
+                <div class="platform-item-card">Monaco</div>
+                <div class="platform-item-card">Mongolia</div>
+                <div class="platform-item-card">Montenegro</div>
+                <div class="platform-item-card">Montserrat</div>
+                <div class="platform-item-card">Morocco</div>
+                <div class="platform-item-card">Mozambique</div>
+                <div class="platform-item-card">Myanmar</div>
+                <div class="platform-item-card">Namibia</div>
+                <div class="platform-item-card">Nauru</div>
+                <div class="platform-item-card">Nepal</div>
+                <div class="platform-item-card">Netherlands</div>
+                <div class="platform-item-card">Netherlands Antilles</div>
+                <div class="platform-item-card">New Caledonia</div>
+                <div class="platform-item-card">New Zealand</div>
+                <div class="platform-item-card">Nicaragua</div>
+                <div class="platform-item-card">Niger</div>
+                <div class="platform-item-card">Nigeria</div>
+                <div class="platform-item-card">Niue</div>
+                <div class="platform-item-card">Norfolk Island</div>
+                <div class="platform-item-card">Northern Mariana Islands</div>
+                <div class="platform-item-card">Norway</div>
+                <div class="platform-item-card">Oman</div>
+                <div class="platform-item-card">Pakistan</div>
+                <div class="platform-item-card">Palau</div>
+                <div class="platform-item-card">Palestinian Territory, Occupied</div>
+                <div class="platform-item-card">Panama</div>
+                <div class="platform-item-card">Papua New Guinea</div>
+                <div class="platform-item-card">Paraguay</div>
+                <div class="platform-item-card">Peru</div>
+                <div class="platform-item-card">Philippines</div>
+                <div class="platform-item-card">Pitcairn</div>
+                <div class="platform-item-card">Poland</div>
+                <div class="platform-item-card">Portugal</div>
+                <div class="platform-item-card">Puerto Rico</div>
+                <div class="platform-item-card">Qatar</div>
+                <div class="platform-item-card">Reunion</div>
+                <div class="platform-item-card">Romania</div>
+                <div class="platform-item-card">Russian Federation</div>
+                <div class="platform-item-card">Rwanda</div>
+                <div class="platform-item-card">Saint Barthelemy</div>
+                <div class="platform-item-card">Saint Helena</div>
+                <div class="platform-item-card">Saint Kitts And Nevis</div>
+                <div class="platform-item-card">Saint Lucia</div>
+                <div class="platform-item-card">Saint Martin</div>
+                <div class="platform-item-card">Saint Pierre And Miquelon</div>
+                <div class="platform-item-card">Saint Vincent And the Grenadines</div>
+                <div class="platform-item-card">Samoa</div>
+                <div class="platform-item-card">San Marino</div>
+                <div class="platform-item-card">Sao Tome And Principe</div>
+                <div class="platform-item-card">Saudi Arabia</div>
+                <div class="platform-item-card">Sint Maarten</div>
+                <div class="platform-item-card">South Sudan</div>
+                <div class="platform-item-card">Senegal</div>
+                <div class="platform-item-card">Serbia</div>
+                <div class="platform-item-card">Seychelles</div>
+                <div class="platform-item-card">Sierra Leone</div>
+                <div class="platform-item-card">Singapore</div>
+                <div class="platform-item-card">Slovakia</div>
+                <div class="platform-item-card">Slovenia</div>
+                <div class="platform-item-card">Solomon Islands</div>
+                <div class="platform-item-card">Somalia</div>
+                <div class="platform-item-card">South Africa</div>
+                <div class="platform-item-card">South Georgia And The South Sandwich Islands</div>
+                <div class="platform-item-card">Spain</div>
+                <div class="platform-item-card">Sri Lanka</div>
+                <div class="platform-item-card">Sudan</div>
+                <div class="platform-item-card">Suriname</div>
+                <div class="platform-item-card">Svalbard And Jan Mayen</div>
+                <div class="platform-item-card">Swaziland</div>
+                <div class="platform-item-card">Sweden</div>
+                <div class="platform-item-card">Switzerland</div>
+                <div class="platform-item-card">Syrian Arab Republic</div>
+                <div class="platform-item-card">Taiwan</div>
+                <div class="platform-item-card">Tajikistan</div>
+                <div class="platform-item-card">Tanzania</div>
+                <div class="platform-item-card">Thailand</div>
+                <div class="platform-item-card">Timor-Leste</div>
+                <div class="platform-item-card">Togo</div>
+                <div class="platform-item-card">Tokelau</div>
+                <div class="platform-item-card">Tonga</div>
+                <div class="platform-item-card">Trinidad And Tobago</div>
+                <div class="platform-item-card">Tunisia</div>
+                <div class="platform-item-card">Turkey</div>
+                <div class="platform-item-card">Turkmenistan</div>
+                <div class="platform-item-card">Turks And Caicos Islands</div>
+                <div class="platform-item-card">Tuvalu</div>
+                <div class="platform-item-card">Uganda</div>
+                <div class="platform-item-card">Ukraine</div>
+                <div class="platform-item-card">United Arab Emirates</div>
+                <div class="platform-item-card">United Kingdom</div>
+                <div class="platform-item-card">United States</div>
+                <div class="platform-item-card">United States Minor Outlying Islands</div>
+                <div class="platform-item-card">Uruguay</div>
+                <div class="platform-item-card">Uzbekistan</div>
+                <div class="platform-item-card">Vanuatu</div>
+                <div class="platform-item-card">Venezuela</div>
+                <div class="platform-item-card">Viet Nam</div>
+                <div class="platform-item-card">Virgin Islands, British</div>
+                <div class="platform-item-card">Virgin Islands, U.S.</div>
+                <div class="platform-item-card">Wallis And Futuna</div>
+                <div class="platform-item-card">Western Sahara</div>
+                <div class="platform-item-card">Yemen</div>
+                <div class="platform-item-card">Zambia</div>
+                <div class="platform-item-card">Zimbabwe</div>
+            </div>
+        </section>
+
+    </div>
+    <div id="footer"></div>
+
+    <!-- Script GSAP optimisé avec un stagger très court pour éviter les latences d'affichage -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            gsap.to(".platform-item-card", {
+                opacity: 1,
+                y: 0,
+                duration: 0.3,
+                stagger: 0.001,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+
+</html>

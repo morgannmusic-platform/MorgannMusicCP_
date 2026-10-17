@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description"
+        content="Morgann Music CP - Découvrez la liste complète de nos plateformes de distribution partenaires à travers le monde.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="theme-color" content="#FC8FB0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#52303c" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#FC8FB0">
+    <meta name="apple-mobile-web-app-title" content="Morgann Music CP">
+
+    <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png">
+    <link rel="icon" type="image/png" href="/assets/img/icons/clair.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/assets/img/icons/icon.png">
+
+    <link rel="canonical" href="https://mm-cp.uk/plateformes.html">
+
+    <title>Nos Plateformes Partenaires | Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
+
+    <style>
+        .platforms-list-section {
+            max-width: 1200px;
+            margin: 2rem auto 5rem;
+            padding: 0 1rem;
+        }
+
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .platform-item-card {
+            background: linear-gradient(140deg, var(--container1) 0%, var(--container3) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: 18px;
+            padding: 1.2rem;
+            text-align: center;
+            color: var(--rose);
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .platform-item-card:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+            border-color: rgba(252, 143, 176, 0.4);
+        }
+
+        @media (max-width: 1024px) {
+            .platforms-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .platforms-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .platforms-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <!-- Inclusion de GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="/assets/js/background.js"></script>
+    <script type="module" src="/assets/js/navbar.js" defer></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+</head>
+
+<body>
+    <div id="navbar"></div>
+    <div class="content-wrapper">
+
+        <header class="hero-section" style="grid-template-columns: 1fr; text-align: center;">
+            <div class="hero-content" style="align-items: center; width: 100%;">
+                <div class="hero-pill">🌐 Réseau Mondial Partenaire</div>
+                <h1 class="banner-title" style="text-align: center;">
+                    <span class="word">Nos</span>
+                    <span class="word">Plateformes</span>
+                </h1>
+                <p class="banner-subtitle" style="text-align: center;">Diffusez votre art partout, sans limites.</p>
+                <p class="hero-description" style="text-align: center; margin-inline: auto;">
+                    Grâce à Morgann Music CP, votre musique est acheminée et mise en ligne sur l'ensemble des services
+                    de streaming, réseaux sociaux, boutiques numériques et canaux spécialisés répertoriés ci-dessous.
+                </p>
+            </div>
+        </header>
+
+        <section class="platforms-list-section">
+            <div class="platforms-grid" id="platformsGrid">
+                <!-- Liste générée depuis platforms.md -->
+                <div class="platform-item-card">7Digital</div>
+                <div class="platform-item-card">ACRCloud</div>
+                <div class="platform-item-card">Alibaba</div>
+                <div class="platform-item-card">AliGenie</div>
+                <div class="platform-item-card">Amazon Music</div>
+                <div class="platform-item-card">Anghami</div>
+                <div class="platform-item-card">AGEDI</div>
+                <div class="platform-item-card">Akazoo</div>
+                <div class="platform-item-card">Apple Music</div>
+                <div class="platform-item-card">ITunes</div>
+                <div class="platform-item-card">AMI Entertainment</div>
+                <div class="platform-item-card">Audible Magic - Fulfillment360</div>
+                <div class="platform-item-card">Audible Magic - Rights360</div>
+                <div class="platform-item-card">Audiomack</div>
+                <div class="platform-item-card">Ambients App</div>
+                <div class="platform-item-card">AWA</div>
+                <div class="platform-item-card">Boomplay</div>
+                <div class="platform-item-card">Beatsource</div>
+                <div class="platform-item-card">BMAT</div>
+                <div class="platform-item-card">Claro Música</div>
+                <div class="platform-item-card">ClickNClear</div>
+                <div class="platform-item-card">Deezer</div>
+                <div class="platform-item-card">Dubset</div>
+                <div class="platform-item-card">DISCO</div>
+                <div class="platform-item-card">Google Play</div>
+                <div class="platform-item-card">Curve</div>
+                <div class="platform-item-card">PEX Attribution Engine</div>
+                <div class="platform-item-card">Gaana</div>
+                <div class="platform-item-card">Gracenote</div>
+                <div class="platform-item-card">FLO</div>
+                <div class="platform-item-card">Hungama</div>
+                <div class="platform-item-card">IHeart</div>
+                <div class="platform-item-card">IMI Mobile</div>
+                <div class="platform-item-card">Jaxsta</div>
+                <div class="platform-item-card">JioSaavn</div>
+                <div class="platform-item-card">Discogs</div>
+                <div class="platform-item-card">JOOX</div>
+                <div class="platform-item-card">Kanjian</div>
+                <div class="platform-item-card">KDigital Media</div>
+                <div class="platform-item-card">KKBOX</div>
+                <div class="platform-item-card">LINE Music</div>
+                <div class="platform-item-card">Mixcloud</div>
+                <div class="platform-item-card">Medianet</div>
+                <div class="platform-item-card">MoodAgent</div>
+                <div class="platform-item-card">MusicToday</div>
+                <div class="platform-item-card">MELON</div>
+                <div class="platform-item-card">NetEase Cloud Music</div>
+                <div class="platform-item-card">Pandora</div>
+                <div class="platform-item-card">Peloton</div>
+                <div class="platform-item-card">PEX</div>
+                <div class="platform-item-card">Play Network</div>
+                <div class="platform-item-card">Pretzel Rocks</div>
+                <div class="platform-item-card">Qobuz</div>
+                <div class="platform-item-card">Qub Musique</div>
+                <div class="platform-item-card">Rebelation</div>
+                <div class="platform-item-card">Rockbot</div>
+                <div class="platform-item-card">Roxi</div>
+                <div class="platform-item-card">Resso</div>
+                <div class="platform-item-card">Rhapsody</div>
+                <div class="platform-item-card">Napster</div>
+                <div class="platform-item-card">Rakuten</div>
+                <div class="platform-item-card">Shazam</div>
+                <div class="platform-item-card">Rakuten Music</div>
+                <div class="platform-item-card">Slacker Radio</div>
+                <div class="platform-item-card">Snapchat</div>
+                <div class="platform-item-card">Spinlet</div>
+                <div class="platform-item-card">Soundtrack Your Brand</div>
+                <div class="platform-item-card">Sirius XM</div>
+                <div class="platform-item-card">Soundtrack By Twitch</div>
+                <div class="platform-item-card">Twitch</div>
+                <div class="platform-item-card">Spotify</div>
+                <div class="platform-item-card">Tencent</div>
+                <div class="platform-item-card">Tidal</div>
+                <div class="platform-item-card">Styngr</div>
+                <div class="platform-item-card">Tesla Music</div>
+                <div class="platform-item-card">TouchTunes</div>
+                <div class="platform-item-card">Jazzed</div>
+                <div class="platform-item-card">MyMelo</div>
+                <div class="platform-item-card">Fan Label</div>
+                <div class="platform-item-card">Soundhound</div>
+                <div class="platform-item-card">Soundmouse</div>
+                <div class="platform-item-card">Kuaishou</div>
+                <div class="platform-item-card">Supernatural</div>
+                <div class="platform-item-card">Grandpad</div>
+                <div class="platform-item-card">Traxsource</div>
+                <div class="platform-item-card">Triller</div>
+                <div class="platform-item-card">TikTok</div>
+                <div class="platform-item-card">Trackdrip</div>
+                <div class="platform-item-card">United Media Agency (UMA)</div>
+                <div class="platform-item-card">Yandex</div>
+                <div class="platform-item-card">VEVO</div>
+                <div class="platform-item-card">YouTube Music</div>
+                <div class="platform-item-card">Zvooq</div>
+                <div class="platform-item-card">VL Group</div>
+                <div class="platform-item-card">EMusic</div>
+                <div class="platform-item-card">Beat.no</div>
+                <div class="platform-item-card">Clone Digital</div>
+                <div class="platform-item-card">Music Reports</div>
+                <div class="platform-item-card">Mythical Games</div>
+                <div class="platform-item-card">JPay</div>
+                <div class="platform-item-card">Broadtime</div>
+                <div class="platform-item-card">Keefe Group</div>
+                <div class="platform-item-card">ViaPath</div>
+                <div class="platform-item-card">Turnkey Corrections</div>
+                <div class="platform-item-card">Adaptr</div>
+                <div class="platform-item-card">Artie</div>
+                <div class="platform-item-card">Oga Dance (MoveWorld)</div>
+                <div class="platform-item-card">DanceFight</div>
+                <div class="platform-item-card">Lickd</div>
+                <div class="platform-item-card">Pinterest</div>
+                <div class="platform-item-card">Samsung Music</div>
+                <div class="platform-item-card">Hyundaicard Music</div>
+                <div class="platform-item-card">Melon Kt</div>
+                <div class="platform-item-card">Olleh+Genie</div>
+                <div class="platform-item-card">Mnet</div>
+                <div class="platform-item-card">Soribada</div>
+                <div class="platform-item-card">Bugs!</div>
+                <div class="platform-item-card">Dalkom</div>
+                <div class="platform-item-card">Kakao</div>
+                <div class="platform-item-card">Cyworld</div>
+                <div class="platform-item-card">Daum</div>
+                <div class="platform-item-card">Monkey3</div>
+                <div class="platform-item-card">Iguplus</div>
+                <div class="platform-item-card">Acer</div>
+                <div class="platform-item-card">Artistxite</div>
+                <div class="platform-item-card">Audiojungle</div>
+                <div class="platform-item-card">B612</div>
+                <div class="platform-item-card">China Unicom</div>
+                <div class="platform-item-card">Wo Music</div>
+                <div class="platform-item-card">Bilibili</div>
+                <div class="platform-item-card">Bleep</div>
+                <div class="platform-item-card">CCA</div>
+                <div class="platform-item-card">CDON</div>
+                <div class="platform-item-card">Celcom</div>
+                <div class="platform-item-card">Changba</div>
+                <div class="platform-item-card">Chunghwa Mobile</div>
+                <div class="platform-item-card">Coolvox</div>
+                <div class="platform-item-card">CTS Eventim AG</div>
+                <div class="platform-item-card">Dance All Day</div>
+                <div class="platform-item-card">DiGi</div>
+                <div class="platform-item-card">Digitally Imported</div>
+                <div class="platform-item-card">Douban Music</div>
+                <div class="platform-item-card">Douyin</div>
+                <div class="platform-item-card">Dragonfly FM</div>
+                <div class="platform-item-card">Echo</div>
+                <div class="platform-item-card">ExLibris</div>
+                <div class="platform-item-card">FETnet</div>
+                <div class="platform-item-card">Findspire</div>
+                <div class="platform-item-card">Flipagram</div>
+                <div class="platform-item-card">FNAC</div>
+                <div class="platform-item-card">Forest Incentives</div>
+                <div class="platform-item-card">Friday Music (Omusic)</div>
+                <div class="platform-item-card">FUHU</div>
+                <div class="platform-item-card">Gismart</div>
+                <div class="platform-item-card">Global Radio</div>
+                <div class="platform-item-card">Hardstyle.com</div>
+                <div class="platform-item-card">High Res Audio</div>
+                <div class="platform-item-card">Himalayan FM</div>
+                <div class="platform-item-card">HMV</div>
+                <div class="platform-item-card">Hmv PLAY (Soliton)</div>
+                <div class="platform-item-card">HTC One</div>
+                <div class="platform-item-card">Huawei Music</div>
+                <div class="platform-item-card">Huawei Music - Hi Res</div>
+                <div class="platform-item-card">Huawei South Africa</div>
+                <div class="platform-item-card">Huawei Middle Eeast</div>
+                <div class="platform-item-card">Iam+ Dial</div>
+                <div class="platform-item-card">IFeng</div>
+                <div class="platform-item-card">Jeou Tai</div>
+                <div class="platform-item-card">Jinli Music</div>
+                <div class="platform-item-card">Kanjian Music</div>
+                <div class="platform-item-card">Koala FM</div>
+                <div class="platform-item-card">Kobo</div>
+                <div class="platform-item-card">Kuyin Ringtone</div>
+                <div class="platform-item-card">La Musica</div>
+                <div class="platform-item-card">Last FM</div>
+                <div class="platform-item-card">Lenovo Music</div>
+                <div class="platform-item-card">Lenovo Sound</div>
+                <div class="platform-item-card">Lequ Music</div>
+                <div class="platform-item-card">Lizhi FM</div>
+                <div class="platform-item-card">Love Music (China Telecom)</div>
+                <div class="platform-item-card">Mach By Mariposa</div>
+                <div class="platform-item-card">Maxis</div>
+                <div class="platform-item-card">Me2u Music</div>
+                <div class="platform-item-card">Media Markt</div>
+                <div class="platform-item-card">Medion</div>
+                <div class="platform-item-card">Mi Tracks</div>
+                <div class="platform-item-card">Migu Music (China Mobile)</div>
+                <div class="platform-item-card">Mixette</div>
+                <div class="platform-item-card">Mixpixie</div>
+                <div class="platform-item-card">Mixup Digital</div>
+                <div class="platform-item-card">Moi Mir</div>
+                <div class="platform-item-card">MOOV</div>
+                <div class="platform-item-card">MQA</div>
+                <div class="platform-item-card">MusicQubed</div>
+                <div class="platform-item-card">MyMusic</div>
+                <div class="platform-item-card">Naver</div>
+                <div class="platform-item-card">NMusic</div>
+                <div class="platform-item-card">Odnoklassniki</div>
+                <div class="platform-item-card">Onkyo</div>
+                <div class="platform-item-card">Open Live</div>
+                <div class="platform-item-card">Overmax</div>
+                <div class="platform-item-card">Pledge</div>
+                <div class="platform-item-card">Pono</div>
+                <div class="platform-item-card">Prodigium</div>
+                <div class="platform-item-card">Infogo</div>
+                <div class="platform-item-card">Psonar</div>
+                <div class="platform-item-card">Pubbles</div>
+                <div class="platform-item-card">Pulselocker</div>
+                <div class="platform-item-card">QNX CAR</div>
+                <div class="platform-item-card">Raku</div>
+                <div class="platform-item-card">ROK Mobile</div>
+                <div class="platform-item-card">Sainsburys</div>
+                <div class="platform-item-card">Saturn</div>
+                <div class="platform-item-card">Stellar</div>
+                <div class="platform-item-card">TDC</div>
+                <div class="platform-item-card">T Star</div>
+                <div class="platform-item-card">Qianqian Music</div>
+                <div class="platform-item-card">TaiHua</div>
+                <div class="platform-item-card">Taiwan Mobile</div>
+                <div class="platform-item-card">TDC/TDC Mobile</div>
+                <div class="platform-item-card">Technics Tracks</div>
+                <div class="platform-item-card">The Overflow</div>
+                <div class="platform-item-card">TingTing FM</div>
+                <div class="platform-item-card">Triplay</div>
+                <div class="platform-item-card">Tunewiki</div>
+                <div class="platform-item-card">Tuzhan</div>
+                <div class="platform-item-card">U-Mobile</div>
+                <div class="platform-item-card">Ucmba</div>
+                <div class="platform-item-card">Vibe</div>
+                <div class="platform-item-card">VUE</div>
+                <div class="platform-item-card">Walkgame</div>
+                <div class="platform-item-card">Wasu TV</div>
+                <div class="platform-item-card">Weibo Music</div>
+                <div class="platform-item-card">Weltbild DE</div>
+                <div class="platform-item-card">We Sing</div>
+                <div class="platform-item-card">WEYV</div>
+                <div class="platform-item-card">Xiaomi Music</div>
+                <div class="platform-item-card">Xiaoying</div>
+                <div class="platform-item-card">Xiumi</div>
+                <div class="platform-item-card">Xiutang</div>
+                <div class="platform-item-card">Yiqixiu</div>
+                <div class="platform-item-card">FriDay</div>
+                <div class="platform-item-card">Alibaba Group</div>
+                <div class="platform-item-card">Migu Music</div>
+                <div class="platform-item-card">Netease Music</div>
+                <div class="platform-item-card">Kugou</div>
+                <div class="platform-item-card">Kuwo</div>
+                <div class="platform-item-card">QQ Music</div>
+                <div class="platform-item-card">Love Music</div>
+                <div class="platform-item-card">China Telecom</div>
+                <div class="platform-item-card">HUAWEI Hi-Res</div>
+                <div class="platform-item-card">24-7 Entertainment</div>
+                <div class="platform-item-card">Huawei Global Radio</div>
+                <div class="platform-item-card">Orange France</div>
+                <div class="platform-item-card">Tigo</div>
+                <div class="platform-item-card">Deutsche Telekom Austria And Netherlands</div>
+                <div class="platform-item-card">Swisscom</div>
+                <div class="platform-item-card">Fastweb</div>
+                <div class="platform-item-card">Belgacom</div>
+                <div class="platform-item-card">Tango</div>
+                <div class="platform-item-card">Ex Libris</div>
+                <div class="platform-item-card">Vibo Telecom</div>
+                <div class="platform-item-card">Huawei Middle East</div>
+                <div class="platform-item-card">HighResAudio</div>
+                <div class="platform-item-card">Line Music (JP)</div>
+                <div class="platform-item-card">TIM Music</div>
+                <div class="platform-item-card">Kuack Media</div>
+                <div class="platform-item-card">Boomplay Music</div>
+                <div class="platform-item-card">Bugs Music</div>
+                <div class="platform-item-card">Naver Vibe</div>
+                <div class="platform-item-card">Slacker</div>
+                <div class="platform-item-card">Sunrise</div>
+                <div class="platform-item-card">Rhino</div>
+                <div class="platform-item-card">Bucher.de</div>
+                <div class="platform-item-card">Lissen</div>
+                <div class="platform-item-card">Mobilcom-Debitel</div>
+                <div class="platform-item-card">MePlaylist</div>
+                <div class="platform-item-card">CCI Distribution</div>
+                <div class="platform-item-card">Tonspion</div>
+                <div class="platform-item-card">Sonos</div>
+                <div class="platform-item-card">TELE2</div>
+                <div class="platform-item-card">Vodafone</div>
+                <div class="platform-item-card">3.DK</div>
+                <div class="platform-item-card">Bose</div>
+                <div class="platform-item-card">In8 Mobile</div>
+                <div class="platform-item-card">GHH Commerce</div>
+                <div class="platform-item-card">QNX CAR™</div>
+                <div class="platform-item-card">Music Worx</div>
+                <div class="platform-item-card">SberZvuk</div>
+                <div class="platform-item-card">Astro</div>
+                <div class="platform-item-card">T-Mobile</div>
+                <div class="platform-item-card">Spanish Broadcasting System</div>
+                <div class="platform-item-card">Turntable.fm</div>
+                <div class="platform-item-card">Tradebit</div>
+                <div class="platform-item-card">ShopTo</div>
+                <div class="platform-item-card">Senzari</div>
+                <div class="platform-item-card">RBS</div>
+                <div class="platform-item-card">NatWest</div>
+                <div class="platform-item-card">Gravity Mobile</div>
+                <div class="platform-item-card">DoubleTwist</div>
+                <div class="platform-item-card">Clip Interactive</div>
+                <div class="platform-item-card">Pure Music</div>
+                <div class="platform-item-card">Cyberlink</div>
+                <div class="platform-item-card">Huawei Ringtone</div>
+                <div class="platform-item-card">VIVO Hi-Res</div>
+                <div class="platform-item-card">KTV</div>
+                <div class="platform-item-card">Toutiao</div>
+                <div class="platform-item-card">Ooopic</div>
+                <div class="platform-item-card">Yunting</div>
+                <div class="platform-item-card">Yesoul</div>
+                <div class="platform-item-card">CIG</div>
+                <div class="platform-item-card">Kids+</div>
+                <div class="platform-item-card">CoSleep&Heartide</div>
+                <div class="platform-item-card">Wondershare</div>
+                <div class="platform-item-card">Tingxi</div>
+                <div class="platform-item-card">VCG</div>
+                <div class="platform-item-card">58pic</div>
+                <div class="platform-item-card">Qianku</div>
+                <div class="platform-item-card">Daily Yoga</div>
+                <div class="platform-item-card">Hidooro</div>
+                <div class="platform-item-card">Mangguofm</div>
+                <div class="platform-item-card">Kelakela</div>
+                <div class="platform-item-card">Jinshan</div>
+                <div class="platform-item-card">Gaoding</div>
+                <div class="platform-item-card">DOOLUU</div>
+                <div class="platform-item-card">Duitang</div>
+                <div class="platform-item-card">Dajiang</div>
+                <div class="platform-item-card">Bijian</div>
+                <div class="platform-item-card">Baotu</div>
+                <div class="platform-item-card">Babytree</div>
+                <div class="platform-item-card">AiyinsitanFM</div>
+                <div class="platform-item-card">Epub360</div>
+                <div class="platform-item-card">P.R.O. Agency</div>
+                <div class="platform-item-card">Litup</div>
+                <div class="platform-item-card">Lrts</div>
+                <div class="platform-item-card">Keep</div>
+                <div class="platform-item-card">Xiaohongshu</div>
+                <div class="platform-item-card">Audio Stock</div>
+                <div class="platform-item-card">Trebel</div>
+                <div class="platform-item-card">NEC</div>
+                <div class="platform-item-card">My Melo</div>
+                <div class="platform-item-card">Momople</div>
+                <div class="platform-item-card">Genie Music</div>
+                <div class="platform-item-card">WeSing</div>
+                <div class="platform-item-card">Tencent Video</div>
+                <div class="platform-item-card">Sohu Video</div>
+                <div class="platform-item-card">Sina Video</div>
+                <div class="platform-item-card">MGTV</div>
+                <div class="platform-item-card">Xplore Music Stores</div>
+                <div class="platform-item-card">PPTV</div>
+                <div class="platform-item-card">Youku&Tudou</div>
+                <div class="platform-item-card">IQiyi & PPS</div>
+                <div class="platform-item-card">RabbitPre</div>
+                <div class="platform-item-card">5sing</div>
+                <div class="platform-item-card">China Airlines</div>
+                <div class="platform-item-card">Jetstar</div>
+                <div class="platform-item-card">MOO</div>
+                <div class="platform-item-card">Nile Air</div>
+                <div class="platform-item-card">Qantas</div>
+                <div class="platform-item-card">Stardtb</div>
+                <div class="platform-item-card">UC</div>
+                <div class="platform-item-card">Viper HIFI</div>
+                <div class="platform-item-card">Babubabu</div>
+                <div class="platform-item-card">Rainbow Music</div>
+                <div class="platform-item-card">Duanku</div>
+                <div class="platform-item-card">Fliggy</div>
+                <div class="platform-item-card">Haitu</div>
+                <div class="platform-item-card">Hema</div>
+                <div class="platform-item-card">Huoshan</div>
+                <div class="platform-item-card">Viamaker</div>
+                <div class="platform-item-card">Whales</div>
+                <div class="platform-item-card">Juhuasuan</div>
+                <div class="platform-item-card">Ku FM</div>
+                <div class="platform-item-card">Kuwo Boom</div>
+                <div class="platform-item-card">Kuwo Juxing</div>
+                <div class="platform-item-card">Kuwo KTV</div>
+                <div class="platform-item-card">Kuwo Vedio</div>
+                <div class="platform-item-card">Kuwo Tingshu</div>
+                <div class="platform-item-card">QQ FM</div>
+                <div class="platform-item-card">Qingting</div>
+                <div class="platform-item-card">Virgin Australia</div>
+                <div class="platform-item-card">Kugou Sing</div>
+                <div class="platform-item-card">Kugou KTV</div>
+                <div class="platform-item-card">Kugou Ringtone</div>
+                <div class="platform-item-card">Kugou Live</div>
+                <div class="platform-item-card">Kugouzhibobanlv</div>
+                <div class="platform-item-card">Top Music</div>
+                <div class="platform-item-card">Meitu</div>
+                <div class="platform-item-card">Taobao</div>
+                <div class="platform-item-card">Tmall</div>
+                <div class="platform-item-card">Weishi</div>
+                <div class="platform-item-card">WeChat</div>
+                <div class="platform-item-card">Xigua Video</div>
+                <div class="platform-item-card">Intime</div>
+                <div class="platform-item-card">Intoo</div>
+                <div class="platform-item-card">Alipay</div>
+                <div class="platform-item-card">AirAsia</div>
+                <div class="platform-item-card">AirAsiaX</div>
+                <div class="platform-item-card">Air Vanuatu</div>
+                <div class="platform-item-card">Beijing Eye</div>
+                <div class="platform-item-card">Puxin</div>
+                <div class="platform-item-card">SUPERMONKEY</div>
+                <div class="platform-item-card">Alibaba Cloud Computing Co. Ltd.</div>
+                <div class="platform-item-card">Fanxian</div>
+                <div class="platform-item-card">Hym</div>
+                <div class="platform-item-card">Hunanzhangyue</div>
+                <div class="platform-item-card">SunExpress</div>
+                <div class="platform-item-card">VISTOPIA</div>
+                <div class="platform-item-card">Kuaijianji</div>
+                <div class="platform-item-card">Shiliu</div>
+                <div class="platform-item-card">Mylafe</div>
+                <div class="platform-item-card">Reload</div>
+                <div class="platform-item-card">Lutong</div>
+                <div class="platform-item-card">Manbo</div>
+                <div class="platform-item-card">Agora</div>
+                <div class="platform-item-card">Shipingyingye</div>
+                <div class="platform-item-card">Taomailang</div>
+                <div class="platform-item-card">Tuokeshangmao</div>
+                <div class="platform-item-card">Xinhua Zhiyun Technology Co.,Ltd.</div>
+                <div class="platform-item-card">Xinpianchang</div>
+                <div class="platform-item-card">Xinxun</div>
+                <div class="platform-item-card">DroitVision</div>
+                <div class="platform-item-card">Perfect World Co.,Ltd</div>
+                <div class="platform-item-card">ISHEJI</div>
+                <div class="platform-item-card">Pikbest</div>
+                <div class="platform-item-card">HELLORF</div>
+                <div class="platform-item-card">Bandcamp</div>
+                <div class="platform-item-card">Onmobile US</div>
+                <div class="platform-item-card">IMusica</div>
+                <div class="platform-item-card">VKontakte</div>
+                <div class="platform-item-card">Qishui Music</div>
+                <div class="platform-item-card">WAYZ</div>
+                <div class="platform-item-card">Jiadeyin</div>
+                <div class="platform-item-card">Wasu</div>
+                <div class="platform-item-card">SENYU</div>
+                <div class="platform-item-card">Shishuo</div>
+                <div class="platform-item-card">Aobai</div>
+                <div class="platform-item-card">Motie</div>
+                <div class="platform-item-card">Lefit</div>
+                <div class="platform-item-card">Wxduoduo</div>
+                <div class="platform-item-card">Perfectpark</div>
+                <div class="platform-item-card">Meishe</div>
+                <div class="platform-item-card">Videoshow</div>
+                <div class="platform-item-card">Xiquduoduo</div>
+                <div class="platform-item-card">Bzstech</div>
+                <div class="platform-item-card">Dianyin</div>
+                <div class="platform-item-card">Yingyintonghua</div>
+                <div class="platform-item-card">Thai Airways</div>
+                <div class="platform-item-card">Philippine Airlines</div>
+                <div class="platform-item-card">GMF AeroAsia</div>
+                <div class="platform-item-card">Kwai</div>
+                <div class="platform-item-card">Muserk</div>
+                <div class="platform-item-card">Snack Video</div>
+                <div class="platform-item-card">Fizy</div>
+                <div class="platform-item-card">Canva</div>
+                <div class="platform-item-card">Barstool Sports</div>
+                <div class="platform-item-card">Psycle</div>
+                <div class="platform-item-card">Plern</div>
+                <div class="platform-item-card">Deedo</div>
+                <div class="platform-item-card">PURE ENERGY GO</div>
+                <div class="platform-item-card">PortalDisc</div>
+                <div class="platform-item-card">Delta</div>
+                <div class="platform-item-card">Pizza Hut</div>
+                <div class="platform-item-card">Lululemon</div>
+                <div class="platform-item-card">Sona</div>
+                <div class="platform-item-card">BUBUKA</div>
+                <div class="platform-item-card">Beeline Music</div>
+                <div class="platform-item-card">Audioclub</div>
+                <div class="platform-item-card">Fonmix</div>
+                <div class="platform-item-card">Muztube</div>
+                <div class="platform-item-card">Tuned Global</div>
+                <div class="platform-item-card">Coda Music</div>
+                <div class="platform-item-card">Nuuday</div>
+                <div class="platform-item-card">Facebook/Instagram</div>
+                <div class="platform-item-card">Hangout</div>
+                <div class="platform-item-card">Musixmatch</div>
+                <div class="platform-item-card">Rythm</div>
+                <div class="platform-item-card">Soda Music</div>
+            </div>
+        </section>
+
+    </div>
+    <div id="footer"></div>
+
+    <!-- Script GSAP intégré directement dans la page -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            gsap.to(".platform-item-card", {
+                opacity: 1,
+                y: 0,
+                duration: 0.6,
+                stagger: 0.01,
+                ease: "power2.out"
+            });
+        });
+    </script>
+</body>
+
+</html>

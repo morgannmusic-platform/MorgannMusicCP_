@@ -41,6 +41,7 @@ export default {
         }
       }
 
+      // ... existing code ...
       if (method === "GET" && path === "/api/platforms") {
         return corsJson(LISTE_PLATFORMES);
       }
@@ -386,7 +387,28 @@ export default {
         }
       }
 
-      if (path === "/api/upload" && method === "POST") {
+      const userTracklistsMatch = path.match(/^\/api\/users\/([^/]+)\/tracklists$/);
+      if (userTracklistsMatch) {
+        const uid = userTracklistsMatch[1];
+        if (method === "GET") return await getUserTracklists(env, uid);
+        if (method === "POST") return await saveUserTracklists(env, uid, request);
+      }
+
+      const userEventsMatch = path.match(/^\/api\/users\/([^/]+)\/events$/);
+      if (userEventsMatch) {
+        const uid = userEventsMatch[1];
+        if (method === "GET") return await getUserEvents(env, uid);
+        if (method === "POST") return await saveUserEvents(env, uid, request);
+      }
+
+      const userFreeboardMatch = path.match(/^\/api\/users\/([^/]+)\/freeboard$/);
+      if (userFreeboardMatch) {
+        const uid = userFreeboardMatch[1];
+        if (method === "GET") return await getUserFreeboard(env, uid);
+        if (method === "POST") return await saveUserFreeboard(env, uid, request);
+      }
+
+      if (method === "POST" && path === "/api/upload") {
         return await uploadFile(env, userId, "file", request);
       }
       if (method === "POST" && path === "/api/upload/chunk") {
@@ -463,7 +485,7 @@ function corsJson(data, status = 200) {
 }
 
 function getBucket(env, type = "file") {
-  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette"].includes(type);
+  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette", "lrics", "lyrics"].includes(type);
   if (isMediaUpload) {
     return env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2 || null;
   }
@@ -483,6 +505,9 @@ function getContentType(ext) {
     webp: "image/webp",
     mp4: "video/mp4",
     mov: "video/quicktime",
+    lrc: "text/plain",
+    srt: "text/plain",
+    txt: "text/plain"
   };
   return map[ext.toLowerCase()] || "application/octet-stream";
 }
@@ -710,6 +735,15 @@ async function ensureTables(db) {
         artiste TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS user_tools_data (
+        user_uid TEXT PRIMARY KEY,
+        tracklists TEXT,
+        events TEXT,
+        freeboard TEXT,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
     `)
   ]);
 
@@ -757,6 +791,90 @@ async function isAdmin(env, uid) {
   await env.DB.prepare(`INSERT INTO users (uid, role, plan_name, created_at, updated_at) VALUES (?, 'admin', 'pro', ?, ?) ON CONFLICT(uid) DO UPDATE SET role = 'admin'`).bind(uid, now, now).run();
 
   return true;
+}
+
+async function getUserTracklists(env, uid) {
+  try {
+    const row = await env.DB.prepare("SELECT tracklists FROM user_tools_data WHERE user_uid = ?").bind(uid).first();
+    if (!row || !row.tracklists) return corsJson([]);
+    return corsJson(JSON.parse(row.tracklists));
+  } catch (err) {
+    return corsJson([]);
+  }
+}
+
+async function saveUserTracklists(env, uid, request) {
+  try {
+    const data = await request.json();
+    const tracklistsStr = JSON.stringify(data || []);
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+      INSERT INTO user_tools_data (user_uid, tracklists, updated_at)
+      VALUES (?, ?, ?)
+      ON CONFLICT(user_uid) DO UPDATE SET tracklists = excluded.tracklists, updated_at = excluded.updated_at
+    `).bind(uid, tracklistsStr, now).run();
+
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function getUserEvents(env, uid) {
+  try {
+    const row = await env.DB.prepare("SELECT events FROM user_tools_data WHERE user_uid = ?").bind(uid).first();
+    if (!row || !row.events) return corsJson([]);
+    return corsJson(JSON.parse(row.events));
+  } catch (err) {
+    return corsJson([]);
+  }
+}
+
+async function saveUserEvents(env, uid, request) {
+  try {
+    const data = await request.json();
+    const eventsStr = JSON.stringify(data || []);
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+      INSERT INTO user_tools_data (user_uid, events, updated_at)
+      VALUES (?, ?, ?)
+      ON CONFLICT(user_uid) DO UPDATE SET events = excluded.events, updated_at = excluded.updated_at
+    `).bind(uid, eventsStr, now).run();
+
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function getUserFreeboard(env, uid) {
+  try {
+    const row = await env.DB.prepare("SELECT freeboard FROM user_tools_data WHERE user_uid = ?").bind(uid).first();
+    if (!row || !row.freeboard) return corsJson([]);
+    return corsJson(JSON.parse(row.freeboard));
+  } catch (err) {
+    return corsJson([]);
+  }
+}
+
+async function saveUserFreeboard(env, uid, request) {
+  try {
+    const data = await request.json();
+    const freeboardStr = JSON.stringify(data || []);
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+      INSERT INTO user_tools_data (user_uid, freeboard, updated_at)
+      VALUES (?, ?, ?)
+      ON CONFLICT(user_uid) DO UPDATE SET freeboard = excluded.freeboard, updated_at = excluded.updated_at
+    `).bind(uid, freeboardStr, now).run();
+
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
 }
 
 async function createLabel(env, uid, request) {
@@ -1220,7 +1338,8 @@ async function createArtist(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
 
-  const res = await env.DB.prepare(`INSERT INTO artists ( user_uid, name, primary_genre, genre, feat, toolost_artist_id, spotify_id, apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, youtube_url, photo, banner_url, birthdate, birthplace, contact_email, uploader_option, writers, credits, secondary_genre, default_language, timezone, release_time, manual_platforms, manual_territories, line_copyright, line_phonogram, label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, created_at ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(
+  // On ajoute "RETURNING id" à la fin de la requête et on utilise .first() au lieu de .run()
+  const row = await env.DB.prepare(`INSERT INTO artists ( user_uid, name, primary_genre, genre, feat, toolost_artist_id, spotify_id, apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, youtube_url, photo, banner_url, birthdate, birthplace, contact_email, uploader_option, writers, credits, secondary_genre, default_language, timezone, release_time, manual_platforms, manual_territories, line_copyright, line_phonogram, label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, created_at ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`).bind(
     uid,
     data.name || "",
     data.primaryGenre || data.genre || null,
@@ -1270,9 +1389,10 @@ async function createArtist(env, uid, request) {
     data.idAllmusic || null,
     data.idIsni || null,
     now
-  ).run();
+  ).first();
 
-  return corsJson({ id: res.meta.last_row_id, success: true }, 201);
+  // On renvoie row.id directement
+  return corsJson({ id: row.id, success: true }, 201);
 }
 
 async function createFeat(env, uid, request) {
@@ -1804,7 +1924,7 @@ async function serveFile(env, rawKey) {
       return new Response("Fichier non trouvé", { status: 404 });
     }
 
-    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette)\//.test(key);
+    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette|lyrics|lrics)\//.test(key);
     const bucket = isMediaKey ? (env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2) : (env.BUCKET || env.MEDIA_BUCKET || env.STORAGE || env.R2);
 
     if (bucket) {
@@ -1816,6 +1936,8 @@ async function serveFile(env, rawKey) {
       const ext = key.split('.').pop();
       if (ext && ext.toLowerCase() === 'mp4') {
         headers.set("content-type", "video/mp4");
+      } else if (ext && (ext.toLowerCase() === 'lrc' || ext.toLowerCase() === 'srt')) {
+        headers.set("content-type", "text/plain; charset=utf-8");
       }
 
       headers.set("etag", object.httpEtag);
@@ -1827,7 +1949,7 @@ async function serveFile(env, rawKey) {
     if (env.FILES_KV) {
       const value = await env.FILES_KV.get(key, "arrayBuffer");
       if (!value) return new Response("Fichier non trouvé", { status: 404 });
-      return new Response(value, { headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "video/mp4" } });
+      return new Response(value, { headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "text/plain; charset=utf-8" } });
     }
     return new Response("Stockage non disponible", { status: 500 });
   } catch (err) {

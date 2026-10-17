@@ -356,6 +356,18 @@
             background: rgba(255, 255, 255, 0.8);
             border: 1px solid white;
             border-radius: 50px;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .track-item:active {
+            cursor: grabbing;
+        }
+
+        .track-item.drag-over {
+            border: 2px dashed var(--primary);
+            background: var(--primary-light);
+            transform: scale(1.02);
         }
 
         .modal {
@@ -1222,11 +1234,14 @@
 
         const listeGenres = ["Alternative", "Alternative/Experimental", "Ambient/New Age", "Blues", "Classical", "Country", "Dance", "Electronic", "Electronic/Deep House", "Electronic/Techno", "Hip-Hop/Rap", "House", "Jazz", "Latin", "Pop", "Pop/J-Pop", "Pop/K-Pop"];
         const listeLangues = ["Français", "Anglais", "Espagnol", "Allemand", "Italien", "Portugais", "Japonais", "Coréen", "Chinois", "Arabe", "Russe"];
-        const livraisonsAdditionnellesRefs = ["Beatport", "YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Tracklib", "Hook", "LyricFind", "EVEN", "Roblox"];
+
+        // Mise à jour de la liste des livraisons additionnelles (Ajout de Managed Media et Udio, suppression de Beatport)
+        const livraisonsAdditionnellesRefs = ["Managed Media", "Udio", "YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Tracklib", "Hook", "LyricFind", "EVEN", "Roblox"];
 
         let currentReleaseId = new URLSearchParams(window.location.search).get("sortie");
         let userPlan = "starter";
         let indexPisteEnCoursEdition = null;
+        let draggedTrackIndex = null;
         let featsSelectionnes = [];
         let paysSelectionnes = [...listeTousLesPays];
         let tousLesArtistesDisponibles = [];
@@ -1945,6 +1960,45 @@
 
         window.fermerModalCataloguePistes = () => document.getElementById("modal-catalogue-pistes").style.display = "none";
 
+        window.handleDragStart = function (e, index) {
+            draggedTrackIndex = index;
+            e.target.style.opacity = '0.5';
+        };
+
+        window.handleDragOver = function (e) {
+            e.preventDefault();
+        };
+
+        window.handleDragEnter = function (e) {
+            e.preventDefault();
+            const item = e.target.closest('.track-item');
+            if (item) item.classList.add('drag-over');
+        };
+
+        window.handleDragLeave = function (e) {
+            const item = e.target.closest('.track-item');
+            if (item) item.classList.remove('drag-over');
+        };
+
+        window.handleDrop = function (e, targetIndex) {
+            e.preventDefault();
+            const item = e.target.closest('.track-item');
+            if (item) item.classList.remove('drag-over');
+
+            if (draggedTrackIndex !== null && draggedTrackIndex !== targetIndex) {
+                const draggedTrack = objetSortie.tracks.splice(draggedTrackIndex, 1)[0];
+                objetSortie.tracks.splice(targetIndex, 0, draggedTrack);
+                renouvelerAffichageListePistes();
+                window.analyserConsole();
+            }
+        };
+
+        window.handleDragEnd = function (e) {
+            e.target.style.opacity = '1';
+            draggedTrackIndex = null;
+            document.querySelectorAll('.track-item').forEach(el => el.classList.remove('drag-over'));
+        };
+
         function renouvelerAffichageListePistes() {
             const container = document.getElementById("ui-track-list");
             container.innerHTML = "";
@@ -1952,11 +2006,22 @@
             objetSortie.tracks.forEach((track, index) => {
                 const item = document.createElement("div");
                 item.className = "track-item";
+                item.setAttribute("draggable", "true");
+                item.setAttribute("ondragstart", `handleDragStart(event, ${index})`);
+                item.setAttribute("ondragover", `handleDragOver(event)`);
+                item.setAttribute("ondragenter", `handleDragEnter(event)`);
+                item.setAttribute("ondragleave", `handleDragLeave(event)`);
+                item.setAttribute("ondrop", `handleDrop(event, ${index})`);
+                item.setAttribute("ondragend", `handleDragEnd(event)`);
+
                 item.innerHTML = `
-                    <div>
-                        <strong>#${index + 1} ${track.title}</strong> 
-                        <span style="font-size:11px; color:#777;">(${track.version || 'Original'})</span>
-                        ${track.isrc ? `<span style="font-size:10px; background:#eee; padding:2px 6px; border-radius:10px; margin-left:6px;">ISRC: ${track.isrc}</span>` : ''}
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="color:#aaa; font-size:20px;" title="Glisser pour réorganiser">☰</span>
+                        <div>
+                            <strong>#${index + 1} ${track.title}</strong> 
+                            <span style="font-size:11px; color:#777;">(${track.version || 'Original'})</span>
+                            ${track.isrc ? `<span style="font-size:10px; background:#eee; padding:2px 6px; border-radius:10px; margin-left:6px;">ISRC: ${track.isrc}</span>` : ''}
+                        </div>
                     </div>
                     <div style="display:flex; gap:8px;">
                         <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;" onclick="ouvrirEditeurPiste(${index})">Modifier</button>
@@ -2194,7 +2259,7 @@
                     const result = await api.post(`/api/users/${user.uid}/releases`, payload);
                     releaseId = result?.id;
                 }
-                window.location.href = `/sortie.html?id=${releaseId}`;
+                window.location.href = `/portail/sortie.html?id=${releaseId}`;
             } catch (err) {
                 alert("Erreur de publication : " + err.message);
             }

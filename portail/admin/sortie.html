@@ -440,6 +440,29 @@
             });
         }
 
+        // Fonction d'importation et de lecture d'un fichier .lrc de paroles synchronisées
+        window.importerFichierLrc = function (index) {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = ".lrc, text/plain";
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const contenuLrc = event.target.result;
+                    const textareaLyrics = document.getElementById(`t-lyrics-${index}`);
+                    if (textareaLyrics) {
+                        textareaLyrics.value = contenuLrc;
+                        capturerSaisiesPistes();
+                        alert("Fichier .lrc importé avec succès !");
+                    }
+                };
+                reader.readAsText(file);
+            };
+            fileInput.click();
+        };
+
         // Déclencheur d'importation de fichier local avec conversion WAV
         window.importerAudioLocal = function (index) {
             const fileInput = document.createElement("input");
@@ -552,7 +575,14 @@
                         <div class="form-group"><label>IA Générée</label><select id="t-ai-${i}" class="form-control"><option value="true" ${t.isAiGenerated ? 'selected' : ''}>Oui</option><option value="false" ${!t.isAiGenerated ? 'selected' : ''}>Non</option></select></div>
                         <div class="form-group"><label>TikTok Start (Min)</label><input type="number" id="t-tk-m-${i}" class="form-control" value="${t.tiktokStart?.minute || 0}"></div>
                         <div class="form-group"><label>TikTok Start (Sec)</label><input type="number" id="t-tk-s-${i}" class="form-control" value="${t.tiktokStart?.second || 0}"></div>
-                        <div class="form-group full-width"><label>Texte des Paroles</label><textarea id="t-lyrics-${i}" class="form-control" rows="2">${t.lyricsText || ''}</textarea></div>
+                        
+                        <div class="form-group full-width">
+                            <label>Texte des Paroles (ou fichier .lrc synchronisé)</label>
+                            <div style="display:flex; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+                                <button type="button" class="btn-action-audio" style="background:#10b981;" onclick="importerFichierLrc(${i})">+ Importer un fichier .lrc</button>
+                            </div>
+                            <textarea id="t-lyrics-${i}" class="form-control" rows="4" placeholder="Collez les paroles ou importez un fichier .lrc ici...">${t.lyricsText || ''}</textarea>
+                        </div>
                         
                         <div class="form-group full-width">
                             <label>Audio URL (Stéréo Principal)</label>

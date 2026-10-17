@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Music Sing Studio - Éditeur Manuel Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        apple: {
+                            bg: '#000000',
+                            card: '#1c1c1e',
+                            cardHover: '#2c2c2e',
+                            accent: '#ff2d55',
+                            accentHover: '#ff375f',
+                            secondary: '#8e8e93',
+                            border: '#38383a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #f5f5f7;
+            overflow-x: hidden;
+        }
+
+        .char {
+            transition: color 0.1s ease, text-shadow 0.1s ease;
+            display: inline-block;
+        }
+
+        .char.active {
+            color: #ffffff;
+            text-shadow: 0 0 12px rgba(255, 45, 85, 0.8), 0 0 25px rgba(255, 45, 85, 0.4);
+        }
+
+        .char.passed {
+            color: #ffffff;
+        }
+
+        .char.future {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        .choir-line {
+            font-size: 0.85em;
+            opacity: 0.85;
+            font-style: italic;
+            color: #0a84ff;
+        }
+
+        .choir-char.active {
+            color: #5ac8fa;
+            text-shadow: 0 0 10px rgba(90, 200, 250, 0.8);
+        }
+
+        .choir-char.future {
+            color: rgba(90, 200, 250, 0.35);
+        }
+
+        @keyframes pulse-dots {
+
+            0%,
+            20% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 1;
+                text-shadow: 0 0 15px #ff2d55;
+            }
+
+            80%,
+            100% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+        }
+
+        .apple-dot {
+            display: inline-block;
+            animation: pulse-dots 1.4s infinite ease-in-out;
+        }
+
+        .apple-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .apple-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1c1c1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3a3a3c;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col bg-apple-bg text-white">
+
+    <div id="modal-container"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden">
+        <div
+            class="bg-apple-card border border-apple-border p-6 rounded-2xl max-w-md w-full mx-4 shadow-2xl text-center">
+            <div id="modal-icon" class="text-4xl mb-3 text-apple-accent"></div>
+            <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
+            <p id="modal-text" class="text-apple-secondary text-sm mb-6"></p>
+            <button onclick="closeModal()"
+                class="w-full py-3 bg-apple-accent hover:bg-apple-accentHover font-semibold rounded-xl transition shadow-lg shadow-apple-accent/30">Compris</button>
+        </div>
+    </div>
+
+    <header
+        class="border-b border-apple-border bg-apple-card/60 backdrop-blur-xl sticky top-0 z-40 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center space-x-3">
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-tr from-apple-accent to-pink-400 flex items-center justify-center shadow-lg shadow-apple-accent/30 text-white font-bold text-xl">
+                <i class="fa-solid fa-microphone-lines"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight tracking-tight">Apple Music Sing Studio</h1>
+                <p class="text-xs text-apple-secondary">Éditeur Manuel Pro & Mode Musixmatch</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 bg-black/40 p-1.5 rounded-xl border border-apple-border">
+            <button onclick="switchTab('player')" id="btn-tab-player"
+                class="px-4 py-2 rounded-lg font-medium text-sm transition flex items-center space-x-2 bg-apple-accent text-white shadow">
+                <i class="fa-solid fa-play"></i><span>Lecteur Live</span>
+            </button>
+            <button onclick="switchTab('editor')" id="btn-tab-editor"
+                class="px-4 py-2 rounded-lg font-medium text-sm transition flex items-center space-x-2 text-apple-secondary hover:text-white">
+                <i class="fa-solid fa-pen-to-square"></i><span>Studio Éditeur (Manuel & Pro)</span>
+            </button>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <button onclick="exportProject()"
+                class="text-xs bg-apple-cardHover hover:bg-apple-border px-3 py-2 rounded-lg border border-apple-border transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-download text-apple-accent"></i><span>Exporter Projet</span>
+            </button>
+            <label
+                class="text-xs bg-apple-cardHover hover:bg-apple-border px-3 py-2 rounded-lg border border-apple-border transition flex items-center space-x-1.5 cursor-pointer">
+                <i class="fa-solid fa-upload text-blue-400"></i><span>Importer</span>
+                <input type="file" id="import-file" accept=".json" class="hidden" onchange="importProject(event)">
+            </label>
+        </div>
+    </header>
+
+    <audio id="main-audio" crossorigin="anonymous" ontimeupdate="onAudioTimeUpdate()" onended="onAudioEnded()"></audio>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col">
+
+        <!-- LECTEUR / PLAYER VIEW -->
+        <section id="view-player" class="flex-1 flex flex-col gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+
+                <!-- Colonne de gauche : Fichiers & Égaliseur -->
+                <div class="lg:col-span-1 flex flex-col gap-6">
+                    <div
+                        class="bg-apple-card border border-apple-border rounded-2xl p-5 flex flex-col items-center text-center shadow-xl relative overflow-hidden">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-b from-apple-accent/10 to-transparent pointer-events-none">
+                        </div>
+                        <div
+                            class="w-32 h-32 rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-apple-accent shadow-2xl flex items-center justify-center text-5xl text-white mb-4 relative z-10">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <h2 id="player-song-title" class="text-lg font-bold mb-1 relative z-10">Projet sans titre</h2>
+                        <p id="player-song-artist" class="text-apple-secondary text-xs mb-4 relative z-10">Artiste
+                            inconnu</p>
+
+                        <div class="w-full flex flex-col gap-2 relative z-10">
+                            <label class="text-xs text-left text-apple-secondary font-medium">Fichier Audio (MP3/WAV)
+                                :</label>
+                            <input type="file" id="audio-file-input" accept="audio/*"
+                                onchange="handleAudioUpload(event)"
+                                class="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-apple-cardHover file:text-white hover:file:bg-apple-border file:cursor-pointer cursor-pointer text-apple-secondary">
+                        </div>
+                    </div>
+
+                    <!-- Égaliseur Web Audio API -->
+                    <div class="bg-apple-card border border-apple-border rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-sliders text-apple-accent"></i>
+                                <h3 class="font-bold text-sm">Égaliseur & Boost Voix</h3>
+                            </div>
+                            <span id="eq-status-badge"
+                                class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold">Inactif</span>
+                        </div>
+                        <p class="text-xs text-apple-secondary">Ajustez les fréquences si vous n'entendez pas assez les
+                            paroles.</p>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setEqPreset('normal')"
+                                class="text-xs bg-apple-cardHover py-1.5 rounded-lg border border-apple-border hover:border-apple-accent transition">Normal</button>
+                            <button onclick="setEqPreset('vocal')"
+                                class="text-xs bg-apple-cardHover py-1.5 rounded-lg border border-apple-border hover:border-apple-accent transition text-apple-accent font-semibold">Boost
+                                Voix</button>
+                            <button onclick="setEqPreset('karaoke')"
+                                class="text-xs bg-apple-cardHover py-1.5 rounded-lg border border-apple-border hover:border-apple-accent transition">Karaoké</button>
+                        </div>
+
+                        <div class="space-y-3 pt-2">
+                            <div>
+                                <div class="flex justify-between text-xs text-apple-secondary mb-1">
+                                    <span>Graves (60Hz)</span>
+                                    <span id="gain-low-val">0 dB</span>
+                                </div>
+                                <input type="range" id="gain-low" min="-20" max="20" value="0" step="1"
+                                    oninput="updateEQ()" class="w-full accent-apple-accent cursor-pointer">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-apple-secondary mb-1">
+                                    <span>Voix / Médiums (1kHz)</span>
+                                    <span id="gain-mid-val">0 dB</span>
+                                </div>
+                                <input type="range" id="gain-mid" min="-20" max="20" value="0" step="1"
+                                    oninput="updateEQ()" class="w-full accent-apple-accent cursor-pointer">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-apple-secondary mb-1">
+                                    <span>Aigus (10kHz)</span>
+                                    <span id="gain-high-val">0 dB</span>
+                                </div>
+                                <input type="range" id="gain-high" min="-20" max="20" value="0" step="1"
+                                    oninput="updateEQ()" class="w-full accent-apple-accent cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colonne droite : Écran Karaoké Live -->
+                <div
+                    class="lg:col-span-2 bg-apple-card border border-apple-border rounded-2xl p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden min-h-[500px]">
+                    <div
+                        class="absolute -top-24 -right-24 w-72 h-72 bg-apple-accent/10 rounded-full blur-3xl pointer-events-none">
+                    </div>
+                    <div
+                        class="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none">
+                    </div>
+
+                    <div class="flex justify-between items-center z-10 border-b border-apple-border pb-4">
+                        <span
+                            class="text-xs uppercase tracking-widest text-apple-accent font-bold flex items-center space-x-1.5">
+                            <span class="w-2 h-2 rounded-full bg-apple-accent animate-ping"></span>
+                            <span>Apple Music Sing Live</span>
+                        </span>
+                        <div class="flex items-center space-x-4 text-sm">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="toggle-translation" checked onchange="renderLiveKaraoke()"
+                                    class="rounded accent-apple-accent">
+                                <span class="text-xs text-apple-secondary">Traductions</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="toggle-choir" checked onchange="renderLiveKaraoke()"
+                                    class="rounded accent-apple-accent">
+                                <span class="text-xs text-apple-secondary">Chœurs</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Écran des Paroles -->
+                    <div id="karaoke-screen"
+                        class="flex-1 flex flex-col items-center justify-center text-center my-8 relative z-10 overflow-y-auto max-h-[420px] p-4 space-y-8">
+                        <div class="text-apple-secondary text-lg italic">
+                            Importez un fichier audio et écrivez vos paroles dans le "Studio Éditeur" pour commencer.
+                        </div>
+                    </div>
+
+                    <!-- Barre de lecture -->
+                    <div
+                        class="bg-black/50 border border-apple-border rounded-2xl p-4 flex flex-col gap-3 z-10 backdrop-blur-md">
+                        <div class="flex items-center space-x-3 text-xs text-apple-secondary">
+                            <span id="current-time-display">00:00</span>
+                            <input type="range" id="seek-bar" value="0" min="0" max="100" step="0.1"
+                                oninput="seekAudio(this.value)"
+                                class="flex-1 accent-apple-accent cursor-pointer h-1.5 bg-apple-border rounded-lg">
+                            <span id="duration-display">00:00</span>
+                        </div>
+
+                        <div class="flex justify-center items-center space-x-6">
+                            <button onclick="skipTime(-5)"
+                                class="text-apple-secondary hover:text-white transition text-lg"><i
+                                    class="fa-solid fa-rotate-left"></i></button>
+                            <button onclick="togglePlayPause()" id="play-pause-btn"
+                                class="w-14 h-14 rounded-full bg-apple-accent hover:bg-apple-accentHover flex items-center justify-center text-white text-xl shadow-lg shadow-apple-accent/40 transition transform hover:scale-105">
+                                <i class="fa-solid fa-play ml-0.5" id="play-icon"></i>
+                            </button>
+                            <button onclick="skipTime(5)"
+                                class="text-apple-secondary hover:text-white transition text-lg"><i
+                                    class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-editor" class="flex-1 flex flex-col gap-6 hidden">
+            <div class="bg-apple-card border border-apple-border rounded-2xl p-6 shadow-xl flex flex-col gap-6">
+
+                <!-- En-tête & Barre de lecture intégrée façon Musixmatch Pro -->
+                <div
+                    class="bg-black/60 border border-apple-border p-4 rounded-2xl flex flex-col gap-3 shadow-inner sticky top-20 z-30 backdrop-blur-md">
+                    <div class="flex flex-wrap justify-between items-center gap-4">
+                        <div>
+                            <h2 class="text-base font-bold flex items-center space-x-2">
+                                <i class="fa-solid fa-headphones text-apple-accent"></i>
+                                <span>Studio Musixmatch Pro & Calage Manuels</span>
+                            </h2>
+                            <p class="text-[11px] text-apple-secondary">Cliquez sur n'importe quel timestamp ou lettre
+                                pour sauter instantanément à cet endroit précis de l'audio.</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="addNewLine()"
+                                class="bg-apple-cardHover hover:bg-apple-border px-3.5 py-2 rounded-xl text-xs font-semibold border border-apple-border transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-plus text-apple-accent"></i><span>Ajouter une ligne</span>
+                            </button>
+                            <button onclick="saveProject()"
+                                class="bg-apple-accent hover:bg-apple-accentHover px-4 py-2 rounded-xl text-xs font-semibold transition shadow-lg shadow-apple-accent/30 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-floppy-disk"></i><span>Sauvegarder</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mini barre de lecture dans l'éditeur -->
+                    <div class="flex items-center space-x-4 pt-2 border-t border-apple-border/50">
+                        <button onclick="togglePlayPause()"
+                            class="w-9 h-9 rounded-full bg-apple-accent text-white flex items-center justify-center text-sm shadow hover:scale-105 transition">
+                            <i class="fa-solid fa-play ml-0.5" id="editor-play-icon"></i>
+                        </button>
+                        <span id="editor-current-time" class="font-mono text-xs text-white">00:00.0</span>
+                        <input type="range" id="editor-seek-bar" value="0" min="0" max="100" step="0.1"
+                            oninput="seekAudio(this.value)"
+                            class="flex-1 accent-apple-accent cursor-pointer h-1 bg-apple-border rounded">
+                        <span id="editor-duration" class="font-mono text-xs text-apple-secondary">00:00</span>
+                    </div>
+                </div>
+
+                <!-- Métadonnées -->
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/40 p-4 rounded-xl border border-apple-border">
+                    <div>
+                        <label class="block text-xs font-medium text-apple-secondary mb-1">Titre de la chanson :</label>
+                        <input type="text" id="edit-song-title" placeholder="ex: Mon Morceau"
+                            class="w-full bg-apple-card border border-apple-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-apple-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-apple-secondary mb-1">Artiste :</label>
+                        <input type="text" id="edit-song-artist" placeholder="ex: Mon Nom"
+                            class="w-full bg-apple-card border border-apple-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-apple-accent">
+                    </div>
+                </div>
+
+                <!-- Liste des Lignes d'édition 100% Manuelles -->
+                <div id="editor-lines-container" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                    <!-- Généré dynamiquement -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-6 text-xs text-apple-secondary border-t border-apple-border">
+        Apple Music Sing Studio &bull; Éditeur 100% Manuel &bull; Zéro automatisation
+    </footer>
+
+    <!-- Script Application -->
+    <script>
+        let currentTab = 'player';
+        let audioContext = null;
+        let audioElement = null;
+        let sourceNode = null;
+        let lowFilter = null;
+        let midFilter = null;
+        let highFilter = null;
+        let isAudioInitialized = false;
+
+        // Projet initial STRICTEMENT VIERGE
+        let projectData = {
+            title: "",
+            artist: "",
+            lines: []
+        };
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const playerView = document.getElementById('view-player');
+            const editorView = document.getElementById('view-editor');
+            const btnPlayer = document.getElementById('btn-tab-player');
+            const btnEditor = document.getElementById('btn-tab-editor');
+
+            if (tab === 'player') {
+                playerView.classList.remove('hidden');
+                editorView.classList.add('hidden');
+                btnPlayer.className = "px-4 py-2 rounded-lg font-medium text-sm transition flex items-center space-x-2 bg-apple-accent text-white shadow";
+                btnEditor.className = "px-4 py-2 rounded-lg font-medium text-sm transition flex items-center space-x-2 text-apple-secondary hover:text-white";
+                renderLiveKaraoke();
+            } else {
+                playerView.classList.add('hidden');
+                editorView.classList.remove('hidden');
+                btnEditor.className = "px-4 py-2 rounded-lg font-medium text-sm transition flex items-center space-x-2 bg-apple-accent text-white shadow";
+                btnPlayer.className = "px-4 py-2 rounded-lg font-medium text-sm transition flex items-center space-x-2 text-apple-secondary hover:text-white";
+                renderEditor();
+            }
+        }
+
+        function showAlert(title, text, icon = "fa-solid fa-circle-info") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal-icon').innerHTML = `<i class="${icon}"></i>`;
+            document.getElementById('modal-container').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            audioElement = document.getElementById('main-audio');
+            renderLiveKaraoke();
+            renderEditor();
+        });
+
+        function handleAudioUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const fileURL = URL.createObjectURL(file);
+            audioElement.src = fileURL;
+            audioElement.load();
+            initAudioContext();
+            showAlert("Audio Chargé", `Le fichier "${file.name}" est prêt. Vous pouvez écouter et caler vos paroles.`, "fa-solid fa-file-audio");
+        }
+
+        function initAudioContext() {
+            if (isAudioInitialized) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioContext = new AudioContext();
+                sourceNode = audioContext.createMediaElementSource(audioElement);
+
+                lowFilter = audioContext.createBiquadFilter();
+                lowFilter.type = 'lowshelf';
+                lowFilter.frequency.setValueAtTime(100, audioContext.currentTime);
+                lowFilter.gain.setValueAtTime(0, audioContext.currentTime);
+
+                midFilter = audioContext.createBiquadFilter();
+                midFilter.type = 'peaking';
+                midFilter.frequency.setValueAtTime(1000, audioContext.currentTime);
+                midFilter.gain.setValueAtTime(0, audioContext.currentTime);
+                midFilter.Q.setValueAtTime(1, audioContext.currentTime);
+
+                highFilter = audioContext.createBiquadFilter();
+                highFilter.type = 'highshelf';
+                highFilter.frequency.setValueAtTime(8000, audioContext.currentTime);
+                highFilter.gain.setValueAtTime(0, audioContext.currentTime);
+
+                sourceNode.connect(lowFilter);
+                lowFilter.connect(midFilter);
+                midFilter.connect(highFilter);
+                highFilter.connect(audioContext.destination);
+
+                isAudioInitialized = true;
+                document.getElementById('eq-status-badge').innerText = "Actif";
+                document.getElementById('eq-status-badge').className = "text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-semibold";
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function updateEQ() {
+            const lowVal = parseFloat(document.getElementById('gain-low').value);
+            const midVal = parseFloat(document.getElementById('gain-mid').value);
+            const highVal = parseFloat(document.getElementById('gain-high').value);
+
+            document.getElementById('gain-low-val').innerText = lowVal + " dB";
+            document.getElementById('gain-mid-val').innerText = midVal + " dB";
+            document.getElementById('gain-high-val').innerText = highVal + " dB";
+
+            if (lowFilter && midFilter && highFilter && audioContext) {
+                lowFilter.gain.setValueAtTime(lowVal, audioContext.currentTime);
+                midFilter.gain.setValueAtTime(midVal, audioContext.currentTime);
+                highFilter.gain.setValueAtTime(highVal, audioContext.currentTime);
+            }
+        }
+
+        function setEqPreset(preset) {
+            if (preset === 'normal') {
+                document.getElementById('gain-low').value = 0;
+                document.getElementById('gain-mid').value = 0;
+                document.getElementById('gain-high').value = 0;
+            } else if (preset === 'vocal') {
+                document.getElementById('gain-low').value = -3;
+                document.getElementById('gain-mid').value = +8;
+                document.getElementById('gain-high').value = +4;
+            } else if (preset === 'karaoke') {
+                document.getElementById('gain-low').value = -5;
+                document.getElementById('gain-mid').value = +12;
+                document.getElementById('gain-high').value = +6;
+            }
+            updateEQ();
+        }
+
+        function togglePlayPause() {
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            const playIcon = document.getElementById('play-icon');
+            const editorPlayIcon = document.getElementById('editor-play-icon');
+
+            if (audioElement.paused) {
+                audioElement.play().then(() => {
+                    playIcon.className = "fa-solid fa-pause";
+                    editorPlayIcon.className = "fa-solid fa-pause";
+                }).catch(() => {
+                    showAlert("Lecteur Audio", "Veuillez d'abord importer un fichier audio MP3/WAV.", "fa-solid fa-music");
+                });
+            } else {
+                audioElement.pause();
+                playIcon.className = "fa-solid fa-play ml-0.5";
+                editorPlayIcon.className = "fa-solid fa-play ml-0.5";
+            }
+        }
+
+        function skipTime(sec) {
+            audioElement.currentTime = Math.max(0, audioElement.currentTime + sec);
+        }
+
+        function seekAudio(val) {
+            if (!audioElement.duration) return;
+            audioElement.currentTime = (val / 100) * audioElement.duration;
+        }
+
+        function jumpToTime(seconds) {
+            if (audioElement && !isNaN(seconds)) {
+                audioElement.currentTime = seconds;
+                if (audioElement.paused) {
+                    togglePlayPause();
+                }
+            }
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            const millis = Math.floor((seconds % 1) * 10);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${millis}`;
+        }
+
+        function onAudioTimeUpdate() {
+            if (!audioElement.duration) return;
+            const progressPercent = (audioElement.currentTime / audioElement.duration) * 100;
+
+            document.getElementById('seek-bar').value = progressPercent;
+            document.getElementById('current-time-display').innerText = formatTime(audioElement.currentTime).slice(0, 5);
+            document.getElementById('duration-display').innerText = formatTime(audioElement.duration).slice(0, 5);
+
+            document.getElementById('editor-seek-bar').value = progressPercent;
+            document.getElementById('editor-current-time').innerText = formatTime(audioElement.currentTime);
+            document.getElementById('editor-duration').innerText = formatTime(audioElement.duration).slice(0, 5);
+
+            updateKaraokeDisplay(audioElement.currentTime);
+        }
+
+        function onAudioEnded() {
+            document.getElementById('play-icon').className = "fa-solid fa-play ml-0.5";
+            document.getElementById('editor-play-icon').className = "fa-solid fa-play ml-0.5";
+        }
+
+        function updateKaraokeDisplay(currentTime) {
+            const lines = projectData.lines;
+            let activeLineIndex = -1;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const nextLine = lines[i + 1];
+                const endTime = nextLine ? nextLine.time : line.time + 6;
+                if (currentTime >= line.time && currentTime < endTime) {
+                    activeLineIndex = i;
+                    break;
+                }
+            }
+
+            const screen = document.getElementById('karaoke-screen');
+            if (activeLineIndex === -1) {
+                screen.innerHTML = `<div class="text-apple-secondary text-lg italic">Aucune parole active à ce moment...</div>`;
+                return;
+            }
+
+            const currentLine = lines[activeLineIndex];
+            const showTranslation = document.getElementById('toggle-translation').checked;
+            const showChoir = document.getElementById('toggle-choir').checked;
+
+            let htmlContent = '';
+
+            if (currentLine.type === 'silence') {
+                htmlContent = `
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <div class="flex space-x-3 text-apple-accent text-5xl">
+                            <span class="apple-dot">&bull;</span>
+                            <span class="apple-dot">&bull;</span>
+                            <span class="apple-dot">&bull;</span>
+                        </div>
+                        <p class="text-xs uppercase tracking-widest text-apple-secondary font-semibold">Silence / Attente</p>
+                    </div>
+                `;
+            } else {
+                let mainHtml = '<div class="text-2xl md:text-3xl font-extrabold tracking-wide flex flex-wrap justify-center gap-y-2">';
+                if (currentLine.chars && currentLine.chars.length > 0) {
+                    currentLine.chars.forEach(item => {
+                        let statusClass = 'future';
+                        if (currentTime >= item.time) statusClass = 'active';
+                        if (currentTime > item.time + 0.35) statusClass = 'passed';
+                        mainHtml += `<span class="char ${statusClass}">${item.char === ' ' ? '&nbsp;' : item.char}</span>`;
+                    });
+                } else {
+                    mainHtml += `<span>${currentLine.text || ''}</span>`;
+                }
+                mainHtml += '</div>';
+
+                let choirHtml = '';
+                if (showChoir && currentLine.choir && currentLine.choir.chars) {
+                    choirHtml += '<div class="choir-line mt-3 flex justify-center flex-wrap gap-1">';
+                    currentLine.choir.chars.forEach(item => {
+                        let statusClass = 'future';
+                        if (currentTime >= item.time) statusClass = 'active';
+                        choirHtml += `<span class="char choir-char ${statusClass}">${item.char === ' ' ? '&nbsp;' : item.char}</span>`;
+                    });
+                    choirHtml += '</div>';
+                }
+
+                let transHtml = '';
+                if (showTranslation && currentLine.translation) {
+                    transHtml += `<div class="text-sm font-medium text-apple-secondary mt-2 tracking-wide opacity-80">${currentLine.translation}</div>`;
+                }
+
+                htmlContent = `
+                    <div class="flex flex-col items-center justify-center">
+                        ${mainHtml}
+                        ${choirHtml}
+                        ${transHtml}
+                    </div>
+                `;
+            }
+
+            screen.innerHTML = htmlContent;
+        }
+
+        function renderLiveKaraoke() {
+            if (audioElement && audioElement.currentTime > 0) {
+                updateKaraokeDisplay(audioElement.currentTime);
+            } else {
+                document.getElementById('karaoke-screen').innerHTML = `<div class="text-apple-secondary text-lg italic">Importez un fichier audio et lancez la lecture.</div>`;
+            }
+        }
+
+        // --- GESTION DE L'ÉDITEUR 100% MANUEL & MUSIXMATCH STYLE ---
+        function renderEditor() {
+            document.getElementById('edit-song-title').value = projectData.title;
+            document.getElementById('edit-song-artist').value = projectData.artist;
+
+            const container = document.getElementById('editor-lines-container');
+            container.innerHTML = '';
+
+            if (projectData.lines.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 border-2 border-dashed border-apple-border rounded-2xl flex flex-col items-center justify-center gap-3">
+                        <i class="fa-solid fa-file-circle-plus text-3xl text-apple-secondary"></i>
+                        <p class="text-apple-secondary text-sm">Aucune ligne créée. Cliquez sur "Ajouter une ligne" pour tout composer manuellement.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            projectData.lines.forEach((line, index) => {
+                const isSilence = line.type === 'silence';
+                const lineDiv = document.createElement('div');
+                lineDiv.className = "bg-black/40 border border-apple-border p-4 rounded-xl flex flex-col gap-3 relative";
+
+                let html = `
+                    <div class="flex flex-wrap justify-between items-center gap-2 border-b border-apple-border/50 pb-2">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs font-bold text-apple-secondary">Ligne #${index + 1}</span>
+                            <select onchange="updateLineType(${index}, this.value)" class="bg-apple-card border border-apple-border rounded-lg px-2 py-1 text-xs text-white">
+                                <option value="main" ${!isSilence ? 'selected' : ''}>Chant (Principal)</option>
+                                <option value="silence" ${isSilence ? 'selected' : ''}>Silence (3 Points Apple Sing)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div>
+                                <label class="text-xs text-apple-secondary mr-1">Timestamp (s) :</label>
+                                <input type="number" step="0.01" value="${line.time}" onblur="updateLineTime(${index}, this.value)" class="w-20 bg-apple-card border border-apple-border rounded-lg px-2 py-1 text-xs text-center font-mono cursor-pointer" onclick="jumpToTime(${line.time})" title="Cliquer pour écouter ce timestamp">
+                            </div>
+                            <div class="flex items-center space-x-0.5 bg-apple-card border border-apple-border rounded-lg p-0.5">
+                                <button onclick="adjustLineTime(${index}, -0.1)" class="px-1.5 py-0.5 text-[10px] text-apple-secondary hover:text-white hover:bg-apple-border rounded" title="-0.1s">-0.1</button>
+                                <button onclick="adjustLineTime(${index}, -0.01)" class="px-1.5 py-0.5 text-[10px] text-apple-secondary hover:text-white hover:bg-apple-border rounded" title="-0.01s">-0.01</button>
+                                <button onclick="adjustLineTime(${index}, 0.01)" class="px-1.5 py-0.5 text-[10px] text-apple-secondary hover:text-white hover:bg-apple-border rounded" title="+0.01s">+0.01</button>
+                                <button onclick="adjustLineTime(${index}, 0.1)" class="px-1.5 py-0.5 text-[10px] text-apple-secondary hover:text-white hover:bg-apple-border rounded" title="+0.1s">+0.1</button>
+                            </div>
+                            <button onclick="captureCurrentTime(${index})" title="Capturer le time du lecteur audio actuel" class="bg-apple-accent/20 hover:bg-apple-accent/30 text-apple-accent text-xs px-2.5 py-1 rounded-lg border border-apple-accent/40 transition">Capturer t</button>
+                            <button onclick="deleteLine(${index})" class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded-lg bg-red-500/10 ml-2"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+
+                if (isSilence) {
+                    html += `
+                        <div class="text-xs text-apple-secondary italic py-2 flex items-center space-x-2">
+                            <i class="fa-solid fa-ellipsis text-apple-accent text-base"></i>
+                            <span>Affiche les 3 points d'attente Apple Music Sing à ce timestamp précis.</span>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-apple-secondary mb-1">Paroles principales :</label>
+                                <input type="text" value="${line.text || ''}" oninput="updateLineText(${index}, this.value)" placeholder="ex: Bonjour le monde" class="w-full bg-apple-card border border-apple-border rounded-lg px-3 py-1.5 text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-apple-secondary mb-1">Traduction (FR <-> EN) :</label>
+                                <input type="text" value="${line.translation || ''}" onchange="updateLineTranslation(${index}, this.value)" placeholder="ex: Hello world" class="w-full bg-apple-card border border-apple-border rounded-lg px-3 py-1.5 text-xs">
+                            </div>
+                        </div>
+
+                        <!-- Calage Lettre par Lettre style Musixmatch Pro -->
+                        <div class="bg-apple-card/60 p-3 rounded-lg border border-apple-border/60 flex flex-col gap-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-apple-accent">Syllabes / Lettres (Cliquez sur une lettre pour l'écouter dans l'audio) :</span>
+                                <button onclick="addCharToLine(${index})" class="text-[10px] bg-apple-cardHover hover:bg-apple-border px-2.5 py-1 rounded border border-apple-border text-apple-secondary hover:text-white transition">+ Ajouter une lettre</button>
+                            </div>
+                            <div class="text-[11px] text-apple-secondary font-mono bg-black/60 p-2 rounded max-h-40 overflow-y-auto flex flex-wrap gap-2">
+                                ${line.chars && line.chars.length > 0 ? line.chars.map((c, ci) => `
+                                    <div class="bg-apple-card px-2 py-1.5 rounded border border-apple-border flex items-center space-x-2">
+                                        <input type="text" maxlength="1" value="${c.char}" onchange="updateCharLetter(${index}, ${ci}, this.value)" class="w-6 bg-black border border-apple-border text-center text-white font-bold rounded">
+                                        <input type="number" step="0.01" value="${c.time}" onblur="updateCharTime(${index}, ${ci}, this.value)" class="w-16 bg-black border border-apple-border text-center text-[11px] rounded text-apple-secondary cursor-pointer" onclick="jumpToTime(${c.time})" title="Cliquer pour tester ce time dans l'audio">
+                                        <div class="flex items-center space-x-0.5 bg-black border border-apple-border rounded p-0.5">
+                                            <button onclick="adjustCharTime(${index}, ${ci}, -0.1)" class="px-1 text-[9px] text-apple-secondary hover:text-white">-0.1</button>
+                                            <button onclick="adjustCharTime(${index}, ${ci}, -0.01)" class="px-1 text-[9px] text-apple-secondary hover:text-white">-0.01</button>
+                                            <button onclick="adjustCharTime(${index}, ${ci}, 0.01)" class="px-1 text-[9px] text-apple-secondary hover:text-white">+0.01</button>
+                                            <button onclick="adjustCharTime(${index}, ${ci}, 0.1)" class="px-1 text-[9px] text-apple-secondary hover:text-white">+0.1</button>
+                                        </div>
+                                        <button onclick="deleteCharFromLine(${index}, ${ci})" class="text-red-400 hover:text-red-300 text-[10px] ml-1"><i class="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                `).join('') : '<span class="italic text-xs">Aucune lettre saisie. Cliquez sur "+ Ajouter une lettre" pour caler chaque caractère à la main.</span>'}
+                            </div>
+                        </div>
+
+                        <!-- Chœurs / Sous-paroles -->
+                        <div class="bg-apple-card/60 p-3 rounded-lg border border-apple-border/60 flex flex-col gap-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-blue-400">Sous-paroles / Chœurs (Séparables en CSS) :</span>
+                                <button onclick="addChoirCharToLine(${index})" class="text-[10px] bg-apple-cardHover hover:bg-apple-border px-2 py-1 rounded border border-apple-border text-apple-secondary hover:text-white transition">+ Lettre chœur</button>
+                            </div>
+                            <input type="text" value="${line.choir ? line.choir.text : ''}" onchange="updateChoirText(${index}, this.value)" placeholder="Texte de chœur global (ex: Ouh ouh)" class="bg-apple-card border border-apple-border rounded-lg px-3 py-1.5 text-xs mb-1">
+                            <div class="text-[11px] text-apple-secondary font-mono bg-black/60 p-2 rounded max-h-32 overflow-y-auto flex flex-wrap gap-2">
+                                ${line.choir && line.choir.chars && line.choir.chars.length > 0 ? line.choir.chars.map((cc, cci) => `
+                                    <div class="bg-apple-card px-2 py-1 rounded border border-apple-border flex items-center space-x-1">
+                                        <input type="text" maxlength="1" value="${cc.char}" onchange="updateChoirCharLetter(${index}, ${cci}, this.value)" class="w-5 bg-black text-center text-white text-xs font-bold rounded">
+                                        <input type="number" step="0.01" value="${cc.time}" onblur="updateChoirCharTime(${index}, ${cci}, this.value)" class="w-14 bg-black text-center text-[10px] rounded text-apple-secondary cursor-pointer" onclick="jumpToTime(${cc.time})">
+                                        <div class="flex items-center space-x-0.5 bg-black border border-apple-border rounded p-0.5">
+                                            <button onclick="adjustChoirCharTime(${index}, ${cci}, -0.1)" class="px-1 text-[8px] text-apple-secondary hover:text-white">-0.1</button>
+                                            <button onclick="adjustChoirCharTime(${index}, ${cci}, 0.1)" class="px-1 text-[8px] text-apple-secondary hover:text-white">+0.1</button>
+                                        </div>
+                                        <button onclick="deleteChoirChar(${index}, ${cci})" class="text-red-400 text-[10px] ml-1"><i class="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                `).join('') : '<span class="italic text-xs">Pas de chœur détaillé.</span>'}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                lineDiv.innerHTML = html;
+                container.appendChild(lineDiv);
+            });
+        }
+
+        function addNewLine() {
+            const lastTime = projectData.lines.length > 0 ? projectData.lines[projectData.lines.length - 1].time + 3.0 : 0.0;
+            projectData.lines.push({
+                time: parseFloat(lastTime.toFixed(2)),
+                type: "main",
+                text: "",
+                translation: "",
+                chars: [],
+                choir: { text: "", chars: [] }
+            });
+            renderEditor();
+        }
+
+        function deleteLine(index) {
+            projectData.lines.splice(index, 1);
+            renderEditor();
+        }
+
+        function updateLineType(index, type) {
+            projectData.lines[index].type = type;
+            renderEditor();
+        }
+
+        function updateLineTime(index, val) {
+            projectData.lines[index].time = parseFloat(parseFloat(val).toFixed(2)) || 0;
+            jumpToTime(projectData.lines[index].time);
+        }
+
+        function adjustLineTime(index, delta) {
+            let current = projectData.lines[index].time || 0;
+            projectData.lines[index].time = Math.max(0, parseFloat((current + delta).toFixed(2)));
+            renderEditor();
+            jumpToTime(projectData.lines[index].time);
+        }
+
+        function captureCurrentTime(index) {
+            if (audioElement) {
+                projectData.lines[index].time = parseFloat(audioElement.currentTime.toFixed(2));
+                renderEditor();
+            }
+        }
+
+        function updateLineText(index, val) {
+            projectData.lines[index].text = val;
+        }
+
+        function updateLineTranslation(index, val) {
+            projectData.lines[index].translation = val;
+        }
+
+        function addCharToLine(index) {
+            const currentTime = audioElement ? parseFloat(audioElement.currentTime.toFixed(2)) : 0;
+            if (!projectData.lines[index].chars) projectData.lines[index].chars = [];
+            projectData.lines[index].chars.push({ char: "", time: currentTime });
+            renderEditor();
+        }
+
+        function updateCharLetter(lineIdx, charIdx, val) {
+            projectData.lines[lineIdx].chars[charIdx].char = val;
+        }
+
+        function updateCharTime(lineIdx, charIdx, val) {
+            projectData.lines[lineIdx].chars[charIdx].time = parseFloat(parseFloat(val).toFixed(2)) || 0;
+            jumpToTime(projectData.lines[lineIdx].chars[charIdx].time);
+        }
+
+        function adjustCharTime(lineIdx, charIdx, delta) {
+            let current = projectData.lines[lineIdx].chars[charIdx].time || 0;
+            projectData.lines[lineIdx].chars[charIdx].time = Math.max(0, parseFloat((current + delta).toFixed(2)));
+            renderEditor();
+            jumpToTime(projectData.lines[lineIdx].chars[charIdx].time);
+        }
+
+        function deleteCharFromLine(lineIdx, charIdx) {
+            projectData.lines[lineIdx].chars.splice(charIdx, 1);
+            renderEditor();
+        }
+
+        function updateChoirText(index, val) {
+            if (!projectData.lines[index].choir) projectData.lines[index].choir = { text: "", chars: [] };
+            projectData.lines[index].choir.text = val;
+        }
+
+        function addChoirCharToLine(index) {
+            const currentTime = audioElement ? parseFloat(audioElement.currentTime.toFixed(2)) : 0;
+            if (!projectData.lines[index].choir) projectData.lines[index].choir = { text: "", chars: [] };
+            projectData.lines[index].choir.chars.push({ char: "", time: currentTime });
+            renderEditor();
+        }
+
+        function updateChoirCharLetter(lineIdx, cci, val) {
+            projectData.lines[lineIdx].choir.chars[cci].char = val;
+        }
+
+        function updateChoirCharTime(lineIdx, cci, val) {
+            projectData.lines[lineIdx].choir.chars[cci].time = parseFloat(parseFloat(val).toFixed(2)) || 0;
+            jumpToTime(projectData.lines[lineIdx].choir.chars[cci].time);
+        }
+
+        function adjustChoirCharTime(lineIdx, cci, delta) {
+            let current = projectData.lines[lineIdx].choir.chars[cci].time || 0;
+            projectData.lines[lineIdx].choir.chars[cci].time = Math.max(0, parseFloat((current + delta).toFixed(2)));
+            renderEditor();
+            jumpToTime(projectData.lines[lineIdx].choir.chars[cci].time);
+        }
+
+        function deleteChoirChar(lineIdx, cci) {
+            projectData.lines[lineIdx].choir.chars.splice(cci, 1);
+            renderEditor();
+        }
+
+        function saveProject() {
+            projectData.title = document.getElementById('edit-song-title').value || "Sans titre";
+            projectData.artist = document.getElementById('edit-song-artist').value || "Artiste inconnu";
+            document.getElementById('player-song-title').innerText = projectData.title;
+            document.getElementById('player-song-artist').innerText = projectData.artist;
+            showAlert("Projet Sauvegardé", "Toutes vos modifications manuelles ont été enregistrées avec succès.", "fa-solid fa-circle-check");
+            switchTab('player');
+        }
+
+        function exportProject() {
+            projectData.title = document.getElementById('edit-song-title').value || "projet";
+            projectData.artist = document.getElementById('edit-song-artist').value || "artiste";
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `${projectData.title.toLowerCase().replace(/\s+/g, '_')}_sing.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importProject(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.lines && Array.isArray(parsed.lines)) {
+                        projectData = parsed;
+                        document.getElementById('player-song-title').innerText = projectData.title || "Projet";
+                        document.getElementById('player-song-artist').innerText = projectData.artist || "Artiste";
+                        renderLiveKaraoke();
+                        if (currentTab === 'editor') renderEditor();
+                        showAlert("Importation Réussie", `Le fichier "${file.name}" a été chargé.`, "fa-solid fa-cloud-arrow-down");
+                    } else {
+                        showAlert("Erreur", "Format JSON invalide.", "fa-solid fa-triangle-exclamation");
+                    }
+                } catch (err) {
+                    showAlert("Erreur", "Impossible de lire le fichier.", "fa-solid fa-triangle-exclamation");
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+
+</html>
