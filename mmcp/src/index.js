@@ -1778,14 +1778,22 @@ async function serveFile(env, key) {
       if (!object) return new Response("Fichier non trouvé", { status: 404 });
       const headers = new Headers();
       object.writeHttpMetadata(headers);
+
+      const ext = key.split('.').pop();
+      if (ext && ext.toLowerCase() === 'mp4') {
+        headers.set("content-type", "video/mp4");
+      }
+
       headers.set("etag", object.httpEtag);
       headers.set("Access-Control-Allow-Origin", "*");
+      headers.set("Accept-Ranges", "bytes");
+
       return new Response(object.body, { headers });
     }
     if (env.FILES_KV) {
       const value = await env.FILES_KV.get(key, "arrayBuffer");
       if (!value) return new Response("Fichier non trouvé", { status: 404 });
-      return new Response(value, { headers: { "Access-Control-Allow-Origin": "*" } });
+      return new Response(value, { headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "video/mp4" } });
     }
     return new Response("Stockage non disponible", { status: 500 });
   } catch (err) {

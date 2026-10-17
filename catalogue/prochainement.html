@@ -298,12 +298,23 @@
     <script type="module">
         import { api } from "/assets/js/api.js";
 
+        const WORKER_URL = "https://api.worker.mm-cp.uk";
         let allUpcomingReleases = [];
         let filteredUpcomingReleases = [];
 
+        // Helper function for converting relative file paths to Worker URLs
+        function getFullMediaUrl(url) {
+            if (!url) return null;
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+                return url;
+            }
+            const cleanPath = url.startsWith('/') ? url : '/' + url;
+            return `${WORKER_URL}${cleanPath}`;
+        }
+
         async function initUpcomingPage() {
             try {
-                // Récupération des sorties à venir via l'API
+                // Récupération des sorties à venir via l'API D1
                 const releasesRes = await api.get('/api/releases');
                 const releasesData = releasesRes.releases || [];
                 const loadedReleases = [];
@@ -313,9 +324,15 @@
                     const normalizedStatus = rawStatus.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
                     if (normalizedStatus === "livree") {
+                        let tracksParsed = data.tracks;
+                        if (typeof tracksParsed === 'string') {
+                            try { tracksParsed = JSON.parse(tracksParsed); } catch (e) { tracksParsed = []; }
+                        }
+
                         loadedReleases.push({
                             id: data.id || data._id,
-                            ...data
+                            ...data,
+                            tracks: Array.isArray(tracksParsed) ? tracksParsed : []
                         });
                     }
                 });
@@ -354,14 +371,17 @@
                     window.location.href = `sortie.html?id=${rel.id}`;
                 });
 
-                const cover = rel.coverUrl || rel.cover || "https://via.placeholder.com/300?text=Prochainement";
-                const animatedCover = rel.animatedCoverUrl || rel.animatedCover || null;
+                const coverRaw = rel.coverUrl || rel.cover;
+                const animatedCoverRaw = rel.animatedCoverUrl || rel.animatedCover || rel.appleMotion11;
+
+                const cover = getFullMediaUrl(coverRaw) || "https://placehold.co/300x300/ffeff4/fc8fb0?text=Prochainement";
+                const animatedCover = getFullMediaUrl(animatedCoverRaw);
 
                 let mediaHtml = "";
                 if (animatedCover) {
-                    mediaHtml = `<video src="${animatedCover}" class="release-video-cover" autoplay loop muted playsinline></video>`;
+                    mediaHtml = `<video src="${animatedCover}" class="release-video-cover" autoplay loop muted playsinline preload="metadata"></video>`;
                 } else {
-                    mediaHtml = `<img src="${cover}" class="release-cover" alt="${rel.title || 'Prochainement'}">`;
+                    mediaHtml = `<img src="${cover}" class="release-cover" alt="${rel.title || 'Prochainement'}" onerror="this.onerror=null; this.src='https://placehold.co/300x300/ffeff4/fc8fb0?text=Prochainement';">`;
                 }
 
                 let formattedDate = "Date non spécifiée";

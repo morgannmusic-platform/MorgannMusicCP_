@@ -299,8 +299,18 @@
     <script type="module">
         import { api } from "/assets/js/api.js";
 
+        const WORKER_URL = "https://api.worker.mm-cp.uk";
         let allRecentReleases = [];
         let filteredRecentReleases = [];
+
+        function getFullMediaUrl(url) {
+            if (!url) return null;
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+                return url;
+            }
+            const cleanPath = url.startsWith('/') ? url : '/' + url;
+            return `${WORKER_URL}${cleanPath}`;
+        }
 
         async function initRecentPage() {
             try {
@@ -368,14 +378,17 @@
                     window.location.href = `sortie.html?id=${rel.id}`;
                 });
 
-                const cover = rel.coverUrl || rel.cover || "https://via.placeholder.com/300?text=Pochette";
-                const animatedCover = rel.animatedCoverUrl || rel.animatedCover || rel.appleMotion11 || null;
+                const coverRaw = rel.coverUrl || rel.cover;
+                const animatedCoverRaw = rel.animatedCoverUrl || rel.animatedCover || rel.appleMotion11;
+
+                const cover = getFullMediaUrl(coverRaw) || "https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette";
+                const animatedCover = getFullMediaUrl(animatedCoverRaw);
 
                 let mediaHtml = "";
                 if (animatedCover) {
-                    mediaHtml = `<video src="${animatedCover}" class="release-video-cover" autoplay loop muted playsinline></video>`;
+                    mediaHtml = `<video src="${animatedCover}" class="release-video-cover" autoplay loop muted playsinline preload="metadata"></video>`;
                 } else {
-                    mediaHtml = `<img src="${cover}" class="release-cover" alt="${rel.title || 'Pochette'}">`;
+                    mediaHtml = `<img src="${cover}" class="release-cover" alt="${rel.title || 'Pochette'}" onerror="this.onerror=null; this.src='https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette';">`;
                 }
 
                 let formattedDate = "Date inconnue";

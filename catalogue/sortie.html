@@ -304,8 +304,19 @@
     <script type="module">
         import { api } from "/assets/js/api.js";
 
+        const WORKER_URL = "https://api.worker.mm-cp.uk";
         const urlParams = new URLSearchParams(window.location.search);
         const releaseId = urlParams.get('id');
+
+        // Helper function to turn relative API keys/paths into full Worker URLs
+        function corrigerUrlFichier(url) {
+            if (!url) return null;
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+                return url;
+            }
+            const cleanPath = url.startsWith('/') ? url : '/' + url;
+            return `${WORKER_URL}${cleanPath}`;
+        }
 
         async function loadReleaseDetails() {
             const contentArea = document.getElementById("content-area");
@@ -319,12 +330,12 @@
                 // Récupération directe de la sortie par son identifiant auprès du Worker D1
                 const releaseRes = await api.get(`/api/releases/${releaseId}`);
 
-                if (!releaseRes || !releaseRes.id) {
+                if (!releaseRes || (!releaseRes.id && !releaseRes.title)) {
                     contentArea.innerHTML = `<div class="error-state">Sortie introuvable dans le catalogue.</div>`;
                     return;
                 }
 
-                renderRelease(releaseRes);
+                renderRelease(releaseRes.release || releaseRes);
 
             } catch (error) {
                 console.error("Erreur lors de la récupération de la sortie :", error);
@@ -337,7 +348,6 @@
 
             const title = data.title || "Sans titre";
             const artistName = data.artistName || "Artiste inconnu";
-            const artistId = data.artistUserId || data.artistId || "";
             const type = data.type || "Non spécifié";
             const genre = data.genre || data.primaryGenre || "Non renseigné";
             const upc = data.upc || data.barcode || "N/A";
@@ -346,14 +356,15 @@
             const releaseUrl = data.releaseUrl || data.linkUrl || "";
 
             // Vérification de la présence d'une pochette animée (vidéo)
-            const animatedCoverUrl = data.animatedCoverUrl || data.animatedCover;
+            const animatedCoverRaw = data.animatedCoverUrl || data.animatedCover || data.appleMotion11;
+            const animatedCoverUrl = corrigerUrlFichier(animatedCoverRaw);
             let mediaHtml = "";
 
             if (animatedCoverUrl) {
-                mediaHtml = `<video src="${animatedCoverUrl}" class="release-video" autoplay loop muted playsinline></video>`;
+                mediaHtml = `<video src="${animatedCoverUrl}" class="release-video" autoplay loop muted playsinline preload="metadata"></video>`;
             } else {
-                const cover = data.coverUrl || "https://via.placeholder.com/300?text=Pochette";
-                mediaHtml = `<img src="${cover}" alt="Pochette de ${title}" class="release-cover">`;
+                const cover = corrigerUrlFichier(data.coverUrl) || "https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette";
+                mediaHtml = `<img src="${cover}" alt="Pochette de ${title}" class="release-cover" onerror="this.onerror=null; this.src='https://placehold.co/300x300/ffeff4/fc8fb0?text=Pochette';">`;
             }
 
             // Vérification du statut
@@ -384,7 +395,6 @@
                 });
             }
 
-            // Génération de la tracklist
             let tracksHtml = "";
             let tracksList = data.tracks || [];
 
@@ -400,15 +410,16 @@
             if (Array.isArray(tracksList) && tracksList.length > 0) {
                 const itemsHtml = tracksList.map((track, index) => {
                     let trackTitle = "Piste " + (index + 1);
-                    let audioUrl = null;
+                    let audioUrlRaw = null;
 
                     if (typeof track === 'string') {
                         trackTitle = track;
                     } else if (typeof track === 'object' && track !== null) {
                         trackTitle = track.title || (track.artists && track.artists[0] ? track.artists[0].name : 'Piste ' + (index + 1));
-                        audioUrl = track.mp3Url || track.fileUrl || track.audioUrl || track.previewUrl || null;
+                        audioUrlRaw = track.audioUrl || track.fileUrl || track.mp3Url || track.previewUrl || null;
                     }
 
+                    const audioUrl = corrigerUrlFichier(audioUrlRaw);
                     let playerHtml = "";
 
                     if (isLivree) {
@@ -416,8 +427,7 @@
                     } else if (audioUrl) {
                         playerHtml = `
                         <audio controls controlsList="nodownload" preload="metadata">
-                            <source src="${audioUrl}" type="audio/mpeg">
-                            <source src="${audioUrl}" type="audio/wav">
+                            <source src="${audioUrl}">
                             Votre navigateur ne supporte pas la lecture audio.
                         </audio>
                     `;

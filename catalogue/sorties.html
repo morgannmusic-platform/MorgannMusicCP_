@@ -240,10 +240,21 @@
     <script type="module">
         import { api } from "/assets/js/api.js";
 
+        const WORKER_URL = "https://api.worker.mm-cp.uk";
         const ITEMS_PER_PAGE = 8;
         let currentPage = 1;
         let allReleases = [];
         let filteredReleases = [];
+
+        // Helper pour préfixer correctement les fichiers provenant du Worker Cloudflare
+        function corrigerUrlFichier(url) {
+            if (!url) return "";
+            if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
+                return url;
+            }
+            const cleanPath = url.startsWith('/') ? url : '/' + url;
+            return `${WORKER_URL}${cleanPath}`;
+        }
 
         async function initReleasesPage() {
             try {
@@ -301,9 +312,10 @@
                 let mediaHTML = "";
 
                 if (animatedCoverUrl) {
-                    mediaHTML = `<video src="${animatedCoverUrl}" class="card-video" autoplay loop muted playsinline></video>`;
+                    const fullVideoUrl = corrigerUrlFichier(animatedCoverUrl);
+                    mediaHTML = `<video src="${fullVideoUrl}" class="card-video" autoplay loop muted playsinline preload="metadata"></video>`;
                 } else {
-                    const cover = rel.coverUrl || "/assets/img/icons/android-chrome-512x512.png";
+                    const cover = corrigerUrlFichier(rel.coverUrl) || "/assets/img/icons/android-chrome-512x512.png";
                     mediaHTML = `<img src="${cover}" class="card-img" alt="${rel.title}">`;
                 }
 
