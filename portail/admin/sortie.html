@@ -509,6 +509,7 @@
 
             let animatedCoverUrl = document.getElementById("edit-animatedCoverUrl").value;
             const fileInput = document.getElementById("edit-animatedCoverFile");
+
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
                 if (file.type !== "video/mp4") {
@@ -518,8 +519,22 @@
                 try {
                     const formData = new FormData();
                     formData.append("file", file);
+
+                    const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : "";
+
                     alert("Importation de la pochette animée en cours...");
-                    const res = await api.upload("/api/upload/cover", formData);
+
+                    const response = await fetch(`${WORKER_URL}/api/upload/motion`, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${idToken}`
+                        },
+                        body: formData
+                    });
+
+                    const res = await response.json();
+                    if (!response.ok) throw new Error(res.error || "Erreur lors de l'upload");
+
                     animatedCoverUrl = res.url || `/api/files/${res.key}`;
                     document.getElementById("edit-animatedCoverUrl").value = animatedCoverUrl;
                 } catch (e) {

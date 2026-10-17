@@ -39,7 +39,7 @@ export default {
         return await getPublicPremiere(env, url);
       }
 
-      // ROUTE PUBLIQUE POUR UN LABEL SPÉCIFIQUE PAR SON ID (accessible sans authentification)
+      // ROUTE PUBLIQUE POUR UN LABEL SPÉCIFIQUE PAR SON ID
       const labelItemMatch = path.match(/^\/api\/labels\/(\d+)$/);
       if (labelItemMatch) {
         const labelId = labelItemMatch[1];
@@ -54,7 +54,7 @@ export default {
         }
       }
 
-      // Routes pour les artistes invités par les labels (GET, POST et PUT/PATCH)
+      // Routes pour les artistes invités par les labels
       if (path === "/api/artists-labels") {
         if (method === "GET") {
           try {
@@ -78,7 +78,6 @@ export default {
             const now = new Date().toISOString();
             const nomArtiste = data.artiste || data.nom_artiste || "";
 
-            // 1. Enregistrer ou mettre à jour dans "artistes-labels"
             const res = await env.DB.prepare(`
               INSERT INTO "artistes-labels" (nom, prenom, email, uid, id_label, artiste, created_at)
               VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -92,7 +91,6 @@ export default {
               now
             ).run();
 
-            // 2. Créer l'artiste dans la table 'artists' du label pour qu'il apparaisse dans "Artistes enregistrés" si l'UID est présent
             if (data.id_label && data.uid) {
               const labelRow = await env.DB.prepare("SELECT uid FROM labels WHERE id = ?").bind(data.id_label).first();
               if (labelRow) {
@@ -139,7 +137,6 @@ export default {
         }
       }
 
-      // Routes versions publiques et sécurisées
       if (method === "GET" && path === "/api/versions") {
         return await getAllVersions(env);
       }
@@ -273,7 +270,6 @@ export default {
         if (method === "PATCH") return await patchUser(env, uid, request);
       }
 
-      // ROUTE POUR LES LABELS
       const userLabelsMatch = path.match(/^\/api\/users\/([^/]+)\/labels$/);
       if (userLabelsMatch) {
         const uid = userLabelsMatch[1];
@@ -445,8 +441,8 @@ function corsJson(data, status = 200) {
 }
 
 function getBucket(env, type = "file") {
-  const isAudioUpload = ["track", "atmos", "inst", "motion", "cover", "pochette"].includes(type);
-  if (isAudioUpload) {
+  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette"].includes(type);
+  if (isMediaUpload) {
     return env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2 || null;
   }
   return env.BUCKET || env.MEDIA_BUCKET || env.STORAGE || env.R2 || null;
@@ -1774,8 +1770,8 @@ async function completeChunkUpload(env, userId, request) {
 
 async function serveFile(env, key) {
   try {
-    const isAudioKey = /^(track|atmos|inst|motion|cover|pochette)\//.test(key);
-    const bucket = isAudioKey ? (env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2) : (env.BUCKET || env.MEDIA_BUCKET || env.STORAGE || env.R2);
+    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette)\//.test(key);
+    const bucket = isMediaKey ? (env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2) : (env.BUCKET || env.MEDIA_BUCKET || env.STORAGE || env.R2);
 
     if (bucket) {
       const object = await bucket.get(key);
