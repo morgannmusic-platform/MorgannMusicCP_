@@ -14,3 +14,7 @@ bucket_name = "morgann-music-files"
 [vars]
 FIREBASE_PROJECT_ID = "morgann-music-cp"
 CORS_ORIGIN = "*"
+
+[[services]]
+binding = "NOTIF_SERVICE"
+service = "mon-site-notifications"

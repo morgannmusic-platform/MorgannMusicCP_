@@ -116,8 +116,6 @@ function chargerProfilEtAuth() {
                     const adminLink = document.createElement("a");
                     adminLink.href = "admin/index.html";
                     adminLink.className = "admin-link-item";
-                    adminLink.style.color = "var(--primary-color, #e0aaff)";
-                    adminLink.style.fontWeight = "bold";
                     adminLink.innerHTML = `<i class="fa-solid fa-user-shield"></i> Administration`;
 
                     const logoutBtn = dropdownProfile.querySelector("#btn-logout");

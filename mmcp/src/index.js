@@ -1,5 +1,151 @@
+function makeConversationTitle(input) {
+  const raw = String(input || "").replace(/\s+/g, " ").trim();
+  if (!raw) return "Nouvelle conversation";
+
+  const cleaned = raw.replace(/[^\p{L}\p{N}\s-]/gu, "").trim();
+  const words = cleaned.split(/\s+/).filter(Boolean).slice(0, 5);
+  if (!words.length) return "Nouvelle conversation";
+
+  const title = words.join(" ");
+  return title.length > 42 ? `${title.slice(0, 39).trim()}…` : title;
+}
+
+async function listUserLitualConversations(env, uid) {
+  const { results } = await env.DB.prepare(`
+    SELECT * FROM litual_conversations
+    WHERE user_uid = ?
+    ORDER BY updated_at DESC, id DESC
+  `).bind(uid).all();
+
+  const conversations = await Promise.all((results || []).map(async (conversation) => {
+    const msgRows = await env.DB.prepare(`
+      SELECT id, role, content, created_at
+      FROM litual_conversation_messages
+      WHERE conversation_id = ?
+      ORDER BY id ASC
+    `).bind(conversation.id).all();
+
+    return {
+      ...conversation,
+      messages: msgRows.results || []
+    };
+  }));
+
+  return corsJson(conversations);
+}
+
+async function createUserLitualConversation(env, uid, payload = {}) {
+  const now = new Date().toISOString();
+  const title = String(payload.title || makeConversationTitle(payload.first_message || payload.initial_message || "Nouvelle conversation")).trim();
+  const firstMessage = payload.first_message || payload.initial_message || "";
+
+  const insert = await env.DB.prepare(`
+    INSERT INTO litual_conversations (user_uid, title, created_at, updated_at)
+    VALUES (?, ?, ?, ?)
+  `).bind(uid, title || "Nouvelle conversation", now, now).run();
+
+  const conversationId = insert.meta.last_row_id;
+
+  if (firstMessage) {
+    await env.DB.prepare(`
+      INSERT INTO litual_conversation_messages (conversation_id, role, content, created_at)
+      VALUES (?, 'user', ?, ?)
+    `).bind(conversationId, firstMessage, now).run();
+  }
+
+  return corsJson({
+    id: conversationId,
+    user_uid: uid,
+    title: title || "Nouvelle conversation",
+    created_at: now,
+    updated_at: now,
+    messages: firstMessage ? [{ role: "user", content: firstMessage, created_at: now }] : []
+  }, 201);
+}
+
+async function getUserLitualConversation(env, uid, conversationId) {
+  const conversation = await env.DB.prepare(`
+    SELECT * FROM litual_conversations
+    WHERE id = ? AND user_uid = ?
+  `).bind(conversationId, uid).first();
+
+  if (!conversation) {
+    return corsJson({ error: "Conversation introuvable" }, 404);
+  }
+
+  const { results: messages = [] } = await env.DB.prepare(`
+    SELECT id, role, content, created_at
+    FROM litual_conversation_messages
+    WHERE conversation_id = ?
+    ORDER BY id ASC
+  `).bind(conversationId).all();
+
+  return corsJson({
+    ...conversation,
+    messages
+  });
+}
+
+async function renameUserLitualConversation(env, uid, conversationId, payload = {}) {
+  const title = String(payload.title || "").trim();
+  if (!title) return corsJson({ error: "Titre invalide" }, 400);
+
+  const conversation = await env.DB.prepare(`
+    SELECT id FROM litual_conversations WHERE id = ? AND user_uid = ?
+  `).bind(conversationId, uid).first();
+
+  if (!conversation) {
+    return corsJson({ error: "Conversation introuvable" }, 404);
+  }
+
+  const now = new Date().toISOString();
+  await env.DB.prepare(`
+    UPDATE litual_conversations
+    SET title = ?, updated_at = ?
+    WHERE id = ? AND user_uid = ?
+  `).bind(title, now, conversationId, uid).run();
+
+  return corsJson({ success: true, title, updated_at: now });
+}
+
+async function addUserLitualMessage(env, uid, conversationId, payload = {}) {
+  const conversation = await env.DB.prepare(`
+    SELECT id FROM litual_conversations WHERE id = ? AND user_uid = ?
+  `).bind(conversationId, uid).first();
+
+  if (!conversation) {
+    return corsJson({ error: "Conversation introuvable" }, 404);
+  }
+
+  const role = String(payload.role || "user");
+  const content = String(payload.content || "").trim();
+  if (!content) {
+    return corsJson({ error: "Contenu vide" }, 400);
+  }
+
+  const now = new Date().toISOString();
+  const result = await env.DB.prepare(`
+    INSERT INTO litual_conversation_messages (conversation_id, role, content, created_at)
+    VALUES (?, ?, ?, ?)
+  `).bind(conversationId, role, content, now).run();
+
+  await env.DB.prepare(`
+    UPDATE litual_conversations
+    SET updated_at = ?
+    WHERE id = ?
+  `).bind(now, conversationId).run();
+
+  return corsJson({
+    id: result.meta.last_row_id,
+    conversation_id: conversationId,
+    role,
+    content,
+    created_at: now
+  }, 201);
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return corsResponse(null, 204);
     }
@@ -41,7 +187,19 @@ export default {
         }
       }
 
-      // ... existing code ...
+      // --- ROUTES PUBLIQUE POUR L'INSCRIPTION NEWSLETTER ---
+      if (method === "POST" && path === "/api/newsletter/subscribe") {
+        return await handlePublicNewsletterSubscribe(env, request, ctx);
+      }
+
+      // --- ROUTES ADMIN POUR L'ENVOI D'EMAILS & NEWSLETTERS ---
+      if (method === "POST" && path === "/api/admin/send-email") {
+        return await handleAdminSendEmail(env, request);
+      }
+      if (method === "GET" && path === "/api/admin/newsletter-recipients") {
+        return await handleGetNewsletterRecipients(env);
+      }
+
       if (method === "GET" && path === "/api/platforms") {
         return corsJson(LISTE_PLATFORMES);
       }
@@ -62,6 +220,25 @@ export default {
       }
       if (method === "GET" && path === "/api/premiere") {
         return await getPublicPremiere(env, url);
+      }
+
+      // Public / Global list endpoints for GreenList and BlackList
+      if (method === "GET" && (path === "/api/greenlist" || path === "/api/admin/greenlist")) {
+        return await getAllGreenlist(env);
+      }
+      if (method === "GET" && (path === "/api/blacklist" || path === "/api/admin/blacklist")) {
+        return await getAllBlacklist(env);
+      }
+
+      // --- ROUTES ADMIN POUR L'ENVOI D'EMAILS & NEWSLETTERS ---
+      if (method === "POST" && path === "/api/admin/send-email") {
+        return await handleAdminSendEmail(env, request);
+      }
+      if (method === "GET" && path === "/api/admin/newsletter") {
+        return await handleGetNewsletterRecipients(env);
+      }
+      if (method === "GET" && path === "/api/admin/newsletter-recipients") {
+        return await handleGetNewsletterRecipients(env);
       }
 
       const labelItemMatch = path.match(/^\/api\/labels\/(\d+)$/);
@@ -122,6 +299,16 @@ export default {
                   INSERT INTO artists (user_uid, name, contact_email, created_at)
                   VALUES (?, ?, ?, ?)
                 `).bind(labelRow.uid, artistName, data.email, now).run();
+
+                await sendNotification(
+                  env,
+                  ctx,
+                  labelRow.uid,
+                  "Nouvel artiste rejoint le label",
+                  `${artistName} a rejoint votre label.`,
+                  "label",
+                  "/artistes.html"
+                );
               }
             }
 
@@ -180,20 +367,20 @@ export default {
       }
 
       if (path === "/api/support/tickets") {
-        if (method === "POST") return await createSupportTicket(env, request);
+        if (method === "POST") return await createSupportTicket(env, request, ctx);
         if (method === "GET") return await getSupportTickets(env, request);
       }
 
       const ticketMessagesMatch = path.match(/^\/api\/support\/tickets\/(\d+)\/messages$/);
       if (ticketMessagesMatch) {
         const ticketId = ticketMessagesMatch[1];
-        if (method === "POST") return await addTicketMessage(env, ticketId, request);
+        if (method === "POST") return await addTicketMessage(env, ticketId, request, ctx);
       }
 
       const ticketUpdateMatch = path.match(/^\/api\/support\/tickets\/(\d+)$/);
       if (ticketUpdateMatch) {
         const ticketId = ticketUpdateMatch[1];
-        if (method === "PUT" || method === "PATCH") return await updateTicketStatus(env, ticketId, request);
+        if (method === "PUT" || method === "PATCH") return await updateTicketStatus(env, ticketId, request, ctx);
       }
 
       if (method === "GET" && path.startsWith("/api/files/")) {
@@ -237,7 +424,7 @@ export default {
         if (method === "POST") {
           const userId = await extractUserId(request);
           const isAdminUser = userId ? await isAdmin(env, userId) : true;
-          return await createUserFinance(env, uid, request, isAdminUser);
+          return await createUserFinance(env, uid, request, isAdminUser, ctx);
         }
       }
 
@@ -247,12 +434,128 @@ export default {
       }
       const isAdminUser = await isAdmin(env, userId);
 
+      // --- GREENLIST ROUTES ---
+      const userGreenlistMatch = path.match(/^\/api\/users\/([^/]+)\/greenlist$/);
+      if (userGreenlistMatch) {
+        const uid = userGreenlistMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "GET") return await getUserGreenlist(env, uid);
+        if (method === "POST") return await createUserGreenlist(env, uid, request, ctx);
+      }
+
+      const userGreenlistItemMatch = path.match(/^\/api\/users\/([^/]+)\/greenlist\/(\d+)$/);
+      if (userGreenlistItemMatch) {
+        const uid = userGreenlistItemMatch[1];
+        const itemId = userGreenlistItemMatch[2];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "PATCH" || method === "PUT") return await patchUserGreenlist(env, uid, itemId, request, isAdminUser, ctx);
+        if (method === "DELETE") return await deleteUserGreenlist(env, uid, itemId, isAdminUser);
+      }
+
+      // --- BLACKLIST ROUTES ---
+      const userBlacklistMatch = path.match(/^\/api\/users\/([^/]+)\/blacklist$/);
+      if (userBlacklistMatch) {
+        const uid = userBlacklistMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "GET") return await getUserBlacklist(env, uid);
+        if (method === "POST") return await createUserBlacklist(env, uid, request, ctx);
+      }
+
+      const userBlacklistItemMatch = path.match(/^\/api\/users\/([^/]+)\/blacklist\/(\d+)$/);
+      if (userBlacklistItemMatch) {
+        const uid = userBlacklistItemMatch[1];
+        const itemId = userBlacklistItemMatch[2];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "PATCH" || method === "PUT") return await patchUserBlacklist(env, uid, itemId, request, isAdminUser, ctx);
+        if (method === "DELETE") return await deleteUserBlacklist(env, uid, itemId, isAdminUser);
+      }
+
+      // --- NOTIFICATIONS ROUTES ---
+      const userNotificationsReadAllMatch = path.match(/^\/api\/users\/([^/]+)\/notifications\/read-all$/);
+      if (userNotificationsReadAllMatch) {
+        const uid = userNotificationsReadAllMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "POST" || method === "PATCH" || method === "PUT") {
+          return await markAllNotificationsRead(env, uid);
+        }
+      }
+
+      const userNotificationsMatch = path.match(/^\/api\/users\/([^/]+)\/notifications$/);
+      if (userNotificationsMatch) {
+        const uid = userNotificationsMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "GET") return await getUserNotifications(env, uid);
+        if (method === "POST") return await createUserNotification(env, uid, request, ctx);
+      }
+
+      const userNotificationItemMatch = path.match(/^\/api\/users\/([^/]+)\/notifications\/(\d+)$/);
+      if (userNotificationItemMatch) {
+        const uid = userNotificationItemMatch[1];
+        const notifId = userNotificationItemMatch[2];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "PATCH" || method === "PUT") return await patchUserNotification(env, uid, notifId, request);
+        if (method === "DELETE") return await deleteUserNotification(env, uid, notifId);
+      }
+
+      if (method === "POST" && path === "/api/admin/notifications/broadcast") {
+        return await broadcastNotification(env, request, isAdminUser, ctx);
+      }
+
       if (method === "GET" && (path === "/api/admin/messages" || path === "/api/messages")) {
         return await getAllMessages(env, userId, isAdminUser);
       }
 
       if (method === "GET" && path === "/api/me") {
         return await getMe(env, userId);
+      }
+
+      // --- ROUTES DOCUMENTS UTILISATEUR (CORRIGÉE AVEC DELETE) ---
+      const userDocumentsMatch = path.match(/^\/api\/users\/([^/]+)\/documents(\/([^/]+))?$/);
+      if (userDocumentsMatch) {
+        const uid = userDocumentsMatch[1];
+        const docId = userDocumentsMatch[3]; // Récupère l'ID du document s'il est présent dans l'URL
+        const isSelf = uid === userId;
+
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+
+        if (method === "GET") return await getUserDocuments(env, uid);
+        if (method === "POST") return await createUserDocument(env, uid, request, isAdminUser, ctx);
+        if (method === "DELETE" && docId) return await deleteUserDocument(env, uid, docId);
+      }
+
+      const userLitualListMatch = path.match(/^\/api\/users\/([^/]+)\/litual-conversations$/);
+      if (userLitualListMatch) {
+        const uid = userLitualListMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "GET") return await listUserLitualConversations(env, uid);
+        if (method === "POST") return await createUserLitualConversation(env, uid, await request.json().catch(() => ({})));
+      }
+
+      const userLitualItemMatch = path.match(/^\/api\/users\/([^/]+)\/litual-conversations\/([0-9]+)$/);
+      if (userLitualItemMatch) {
+        const uid = userLitualItemMatch[1];
+        const conversationId = userLitualItemMatch[2];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "GET") return await getUserLitualConversation(env, uid, conversationId);
+        if (method === "PATCH" || method === "PUT") return await renameUserLitualConversation(env, uid, conversationId, await request.json().catch(() => ({})));
+      }
+
+      const userLitualMessagesMatch = path.match(/^\/api\/users\/([^/]+)\/litual-conversations\/([0-9]+)\/messages$/);
+      if (userLitualMessagesMatch) {
+        const uid = userLitualMessagesMatch[1];
+        const conversationId = userLitualMessagesMatch[2];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "POST") return await addUserLitualMessage(env, uid, conversationId, await request.json().catch(() => ({})));
       }
 
       if (method === "GET" && (path === "/api/admin/users" || path === "/api/users")) {
@@ -262,7 +565,7 @@ export default {
         return await getAllWithdrawals(env, userId, isAdminUser);
       }
       if (method === "PATCH" && path.match(/^\/api\/admin\/withdrawals\/\d+$/)) {
-        return await patchWithdrawal(env, userId, path, request, isAdminUser);
+        return await patchWithdrawal(env, userId, path, request, isAdminUser, ctx);
       }
       if (method === "POST" && path === "/api/admin/versions") {
         return await createVersion(env, request, userId, isAdminUser);
@@ -274,7 +577,7 @@ export default {
         return await getAdminRelease(env, path, isAdminUser);
       }
       if ((method === "PATCH" || method === "PUT") && path.match(/^\/api\/admin\/releases\/\d+$/)) {
-        return await adminPatchRelease(env, userId, request);
+        return await adminPatchRelease(env, userId, request, path, ctx);
       }
 
       if (method === "POST" && path === "/api/feats") {
@@ -364,7 +667,7 @@ export default {
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
         if (method === "GET") return await getUserReleases(env, uid);
-        if (method === "POST") return await createRelease(env, uid, request);
+        if (method === "POST") return await createRelease(env, uid, request, ctx);
       }
 
       const userReleaseMatch = path.match(/^\/api\/users\/([^/]+)\/releases\/(\d+)$/);
@@ -373,7 +676,7 @@ export default {
         const releaseId = userReleaseMatch[2];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-        if (method === "PATCH" || method === "PUT") return await patchRelease(env, uid, releaseId, request);
+        if (method === "PATCH" || method === "PUT") return await patchRelease(env, uid, releaseId, request, ctx);
         if (method === "GET") return await getRelease(env, uid, releaseId);
         if (method === "DELETE") return await deleteRelease(env, uid, releaseId);
       }
@@ -383,7 +686,7 @@ export default {
         const releaseId = generalReleaseMatch[1];
         if (method === "GET") return await getPublicRelease(env, releaseId);
         if (method === "PATCH" || method === "PUT") {
-          return await patchRelease(env, userId, releaseId, request);
+          return await patchRelease(env, userId, releaseId, request, ctx);
         }
       }
 
@@ -485,7 +788,7 @@ function corsJson(data, status = 200) {
 }
 
 function getBucket(env, type = "file") {
-  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette", "lrics", "lyrics"].includes(type);
+  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette", "lrics", "lyrics", "document"].includes(type);
   if (isMediaUpload) {
     return env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2 || null;
   }
@@ -507,9 +810,753 @@ function getContentType(ext) {
     mov: "video/quicktime",
     lrc: "text/plain",
     srt: "text/plain",
-    txt: "text/plain"
+    txt: "text/plain",
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   };
   return map[ext.toLowerCase()] || "application/octet-stream";
+}
+
+function buildHtmlEmail({ firstName, title, message, actionUrl }) {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morgann Music CP</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #EAFFC6; font-family: 'Segoe UI', Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAFFC6; table-layout: fixed;">
+    <tr>
+      <td align="center" style="padding: 0 0 40px 0;">
+        
+        <!-- Header / Navbar -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FC8FB0; text-align: center;">
+          <tr>
+            <td style="padding: 16px 20px;">
+              <a href="https://mm-cp.uk/portail/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px; margin-right: 25px;">Portail</a>
+              <a href="https://mm-cp.uk/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px;">Accueil</a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Main Card -->
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 30px; background-color: #f8ffe7; border-radius: 36px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); border: 1px solid #e1f5be;">
+          <tr>
+            <td style="padding: 35px 25px; text-align: center;">
+              
+              <!-- Logo -->
+              <div style="margin-bottom: 20px;">
+                <img src="https://mm-cp.uk/assets/img/icons/sombre.png" alt="Logo MMCP" width="90" height="auto" style="display: block; margin: 0 auto; border: 0; width: 90px; outline: none; text-decoration: none;">
+              </div>
+
+              <!-- Greeting -->
+              <h1 style="color: #2c3e10; font-size: 22px; font-weight: 800; margin: 0 0 8px 0; font-family: sans-serif;">Bonjour ${firstName} !</h1>
+              <h2 style="color: #556b2f; font-size: 15px; margin: 0 0 25px 0; font-weight: 400; line-height: 1.4; font-family: sans-serif;">Vous avez reçu une nouvelle notification sur votre portail.</h2>
+
+              <!-- Notification Inner Card -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border-radius: 24px; border: 1px solid #e0f0c0; text-align: left; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 22px;">
+                    <h3 style="color: #FC8FB0; font-size: 18px; margin: 0 0 10px 0; font-weight: 800; font-family: sans-serif;">${title}</h3>
+                    <p style="color: #3e2837; font-size: 14px; margin: 0 0 20px 0; line-height: 1.5; white-space: pre-line; font-family: sans-serif;">${message}</p>
+                    
+                    <div style="text-align: center; margin-top: 15px;">
+                      <a href="${actionUrl}" style="display: inline-block; background-color: #FC8FB0; color: #EAFFC6; text-decoration: none; padding: 12px 28px; border-radius: 50px; font-weight: 700; font-size: 14px; font-family: sans-serif;">Voir en détail</a>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 20px; text-align: center;">
+          <tr>
+            <td style="color: #789048; font-size: 12px; line-height: 1.6; padding: 10px; font-family: sans-serif;">
+              <p style="margin: 0 0 4px 0;">© Morgann Music CP — Tous droits réservés.</p>
+              <p style="margin: 0;">Cet e-mail automatique a été envoyé suite à une activité sur votre compte.</p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildNewsletterWelcomeEmail({ name }) {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenue | Newsletter Morgann Music CP</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #EAFFC6; font-family: 'Segoe UI', Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAFFC6; table-layout: fixed;">
+    <tr>
+      <td align="center" style="padding: 0 0 40px 0;">
+        
+        <!-- Header / Navbar -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FC8FB0; text-align: center;">
+          <tr>
+            <td style="padding: 16px 20px;">
+              <a href="https://mm-cp.uk/portail/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px; margin-right: 25px;">Portail</a>
+              <a href="https://mm-cp.uk/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px;">Accueil</a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Main Card -->
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 30px; background-color: #f8ffe7; border-radius: 36px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); border: 1px solid #e1f5be;">
+          <tr>
+            <td style="padding: 35px 30px; text-align: left;">
+              
+              <!-- Logo -->
+              <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://mm-cp.uk/assets/img/icons/sombre.png" alt="Logo MMCP" width="90" height="auto" style="display: block; margin: 0 auto; border: 0; width: 90px; outline: none; text-decoration: none;">
+              </div>
+
+              <!-- Greeting -->
+              <h1 style="color: #2c3e10; font-size: 24px; font-weight: 800; margin: 0 0 10px 0; text-align: center; font-family: sans-serif;">Bienvenue ${name} ! 🎵</h1>
+              <p style="color: #556b2f; font-size: 15px; margin: 0 0 25px 0; text-align: center; font-weight: 500; font-family: sans-serif;">Merci de rejoindre la communauté Morgann Music CP.</p>
+
+              <!-- Content Card -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border-radius: 24px; border: 1px solid #e0f0c0; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 25px;">
+                    <h2 style="color: #FC8FB0; font-size: 17px; margin: 0 0 12px 0; font-weight: 800; font-family: sans-serif;">Que allez-vous recevoir ?</h2>
+                    <p style="color: #3e2837; font-size: 14px; margin: 0 0 15px 0; line-height: 1.6; font-family: sans-serif;">
+                      Vous recevrez désormais directement dans votre boîte mail :
+                    </p>
+                    <ul style="color: #3e2837; font-size: 14px; margin: 0 0 20px 0; padding-left: 20px; line-height: 1.6; font-family: sans-serif;">
+                      <li style="margin-bottom: 8px;">Les dernières actualités et annonces de sorties du label.</li>
+                      <li style="margin-bottom: 8px;">Des conseils exclusifs pour propulser votre carrière artistique.</li>
+                      <li>Des avant-premières et des surprises réservées à nos abonnés.</li>
+                    </ul>
+
+                    <div style="text-align: center; margin-top: 25px;">
+                      <a href="https://mm-cp.uk/" style="display: inline-block; background-color: #FC8FB0; color: #EAFFC6; text-decoration: none; padding: 12px 30px; border-radius: 50px; font-weight: 700; font-size: 14px; font-family: sans-serif;">Visiter notre site</a>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 20px; text-align: center;">
+          <tr>
+            <td style="color: #789048; font-size: 12px; line-height: 1.6; padding: 10px; font-family: sans-serif;">
+              <p style="margin: 0 0 4px 0;">© Morgann Music CP — Tous droits réservés.</p>
+              <p style="margin: 0;">Vous recevez cet e-mail suite à votre inscription sur notre site.</p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function sendBrevoEmail(env, { toEmail, toName, subject, htmlContent, senderEmail, senderName, replyToEmail }) {
+  if (!env.BREVO_API_KEY) {
+    console.error("Clé BREVO_API_KEY non disponible dans le Worker.");
+    return false;
+  }
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": env.BREVO_API_KEY,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        sender: {
+          name: senderName || env.SENDER_NAME || "Morgann Music CP",
+          email: senderEmail || env.SENDER_EMAIL || "notifications@mm-cp.uk"
+        },
+        replyTo: {
+          email: replyToEmail || "support@mm-cp.uk",
+          name: "Support Morgann Music CP"
+        },
+        to: [{ email: toEmail, name: toName || toEmail }],
+        subject: subject,
+        htmlContent: htmlContent,
+        trackingSettings: {
+          clickTracking: false
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error(`Erreur HTTP Brevo (${res.status}):`, errBody);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Erreur d'exécution de la requête Brevo :", err);
+    return false;
+  }
+}
+
+async function handlePublicNewsletterSubscribe(env, request, ctx) {
+  try {
+    const data = await request.json();
+    const name = String(data.name || "").trim();
+    const email = String(data.email || "").trim().toLowerCase();
+
+    if (!email || !email.includes("@")) {
+      return corsJson({ error: "Adresse e-mail invalide" }, 400);
+    }
+
+    const now = new Date().toISOString();
+
+    try {
+      await env.DB.prepare(`
+        INSERT INTO newsletter (email, name, created_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(email) DO UPDATE SET name = COALESCE(?, name)
+      `).bind(email, name || "Abonné", now, name || null).run();
+    } catch (dbErr) {
+      console.error("Erreur insertion table newsletter:", dbErr);
+    }
+
+    const htmlContent = buildNewsletterWelcomeEmail({ name: name || "cher abonné" });
+    const subject = "Bienvenue dans la newsletter de Morgann Music CP ! 🎵";
+
+    if (ctx && typeof ctx.waitUntil === "function") {
+      ctx.waitUntil(
+        sendBrevoEmail(env, {
+          toEmail: email,
+          toName: name || email,
+          subject,
+          htmlContent
+        })
+      );
+    } else {
+      await sendBrevoEmail(env, {
+        toEmail: email,
+        toName: name || email,
+        subject,
+        htmlContent
+      });
+    }
+
+    return corsJson({ success: true, message: "Inscription réussie et e-mail de bienvenue envoyé." }, 201);
+  } catch (err) {
+    console.error("Erreur handlePublicNewsletterSubscribe:", err);
+    return corsJson({ error: `Erreur interne: ${err.message}` }, 500);
+  }
+}
+
+async function handleAdminSendEmail(env, request) {
+  try {
+    const data = await request.json();
+    const type = data.type;
+    const subject = data.subject;
+    const senderEmail = data.senderEmail || "notifications@mm-cp.uk";
+    const replyToEmail = data.replyToEmail || "support@mm-cp.uk";
+    const htmlContent = data.htmlContent;
+    const recipients = data.recipients;
+
+    if (!subject || !htmlContent) {
+      return corsJson({ error: "Sujet ou contenu manquant" }, 400);
+    }
+
+    let targetEmails = [];
+
+    if (type === "transactional") {
+      if (Array.isArray(recipients)) {
+        targetEmails = recipients;
+      } else if (recipients === "all") {
+        const { results } = await env.DB.prepare("SELECT email FROM users WHERE email IS NOT NULL AND email != ''").all();
+        targetEmails = (results || []).map(u => u.email);
+      } else if (typeof recipients === "string" && recipients.includes("@")) {
+        targetEmails = [recipients];
+      }
+    } else if (type === "newsletter") {
+      const { results: userRows } = await env.DB.prepare(
+        "SELECT email FROM users WHERE newsletter_enabled = 1 AND email IS NOT NULL AND email != ''"
+      ).all();
+
+      const { results: subRows } = await env.DB.prepare(
+        "SELECT email FROM newsletter WHERE email IS NOT NULL AND email != ''"
+      ).all();
+
+      const combined = new Set([
+        ...(userRows || []).map(r => r.email),
+        ...(subRows || []).map(r => r.email)
+      ]);
+      targetEmails = Array.from(combined);
+    }
+
+    if (targetEmails.length === 0) {
+      return corsJson({ error: "Aucun destinataire valide trouvé pour cet envoi." }, 400);
+    }
+
+    let successCount = 0;
+    for (const email of targetEmails) {
+      const sent = await sendBrevoEmail(env, {
+        toEmail: email,
+        toName: email,
+        subject,
+        htmlContent,
+        senderEmail,
+        replyToEmail
+      });
+      if (sent) successCount++;
+    }
+
+    return corsJson({ success: true, sentCount: successCount, total: targetEmails.length });
+  } catch (err) {
+    console.error("Erreur handleAdminSendEmail:", err);
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function handleGetNewsletterRecipients(env) {
+  try {
+    const { results: userRows } = await env.DB.prepare(
+      "SELECT email, first_name, full_name, artist_name FROM users WHERE newsletter_enabled = 1 AND email IS NOT NULL AND email != ''"
+    ).all();
+
+    const { results: subRows } = await env.DB.prepare(
+      "SELECT email, name FROM newsletter WHERE email IS NOT NULL AND email != ''"
+    ).all();
+
+    return corsJson({
+      users: userRows || [],
+      subscribers: subRows || []
+    });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+function formatGreenlistRow(row) {
+  if (!row) return null;
+  let links = [];
+  try {
+    links = JSON.parse(row.links || "[]");
+  } catch (e) {
+    links = row.links ? [row.links] : [];
+  }
+  return {
+    id: row.id,
+    userUid: row.user_uid,
+    platform: row.platform,
+    releaseId: row.release_id,
+    releaseTitle: row.release_title,
+    links,
+    status: row.status || "Demandé",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+async function getUserGreenlist(env, uid) {
+  try {
+    const { results } = await env.DB.prepare(
+      "SELECT * FROM greenlist WHERE user_uid = ? ORDER BY created_at DESC"
+    ).bind(uid).all();
+
+    return corsJson((results || []).map(formatGreenlistRow));
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function getAllGreenlist(env) {
+  try {
+    const { results } = await env.DB.prepare("SELECT * FROM greenlist ORDER BY created_at DESC").all();
+    return corsJson((results || []).map(formatGreenlistRow));
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function createUserGreenlist(env, uid, request, ctx) {
+  try {
+    const data = await request.json();
+    const now = new Date().toISOString();
+    const platform = data.platform || "";
+    const releaseId = data.releaseId || "";
+    const releaseTitle = data.releaseTitle || "";
+    const links = JSON.stringify(Array.isArray(data.links) ? data.links : (data.link ? [data.link] : []));
+    const status = data.status || "Demandé";
+
+    const res = await env.DB.prepare(`
+      INSERT INTO greenlist (user_uid, platform, release_id, release_title, links, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(uid, platform, releaseId, releaseTitle, links, status, now, now).run();
+
+    await sendNotification(
+      env,
+      ctx,
+      uid,
+      "Demande GreenList enregistrée",
+      `Votre demande GreenList pour "${releaseTitle || platform}" a été enregistrée avec le statut "${status}".`,
+      "greenlist",
+      "/liste.html"
+    );
+
+    return corsJson({ id: res.meta.last_row_id, success: true }, 201);
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function patchUserGreenlist(env, uid, itemId, request, isAdminUser, ctx) {
+  try {
+    const data = await request.json();
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+      UPDATE greenlist
+      SET status = COALESCE(?, status),
+          links = COALESCE(?, links),
+          platform = COALESCE(?, platform),
+          updated_at = ?
+      WHERE id = ? AND (user_uid = ? OR ? = 1)
+    `).bind(
+      data.status || null,
+      data.links ? JSON.stringify(data.links) : null,
+      data.platform || null,
+      now,
+      itemId,
+      uid,
+      isAdminUser ? 1 : 0
+    ).run();
+
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function deleteUserGreenlist(env, uid, itemId, isAdminUser) {
+  try {
+    await env.DB.prepare(`
+      DELETE FROM greenlist WHERE id = ? AND (user_uid = ? OR ? = 1)
+    `).bind(itemId, uid, isAdminUser ? 1 : 0).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+function formatBlacklistRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userUid: row.user_uid,
+    platform: row.platform,
+    releaseId: row.release_id,
+    releaseTitle: row.release_title,
+    track: row.track,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    status: row.status || "Demandé",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+async function getUserBlacklist(env, uid) {
+  try {
+    const { results } = await env.DB.prepare(
+      "SELECT * FROM blacklist WHERE user_uid = ? ORDER BY created_at DESC"
+    ).bind(uid).all();
+
+    return corsJson((results || []).map(formatBlacklistRow));
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function getAllBlacklist(env) {
+  try {
+    const { results } = await env.DB.prepare("SELECT * FROM blacklist ORDER BY created_at DESC").all();
+    return corsJson((results || []).map(formatBlacklistRow));
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function createUserBlacklist(env, uid, request, ctx) {
+  try {
+    const data = await request.json();
+    const now = new Date().toISOString();
+    const platform = data.platform || "";
+    const releaseId = data.releaseId || "";
+    const releaseTitle = data.releaseTitle || "";
+    const track = data.track || "";
+    const startDate = data.startDate || null;
+    const endDate = data.endDate || null;
+    const status = data.status || "Demandé";
+
+    const res = await env.DB.prepare(`
+      INSERT INTO blacklist (user_uid, platform, release_id, release_title, track, start_date, end_date, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(uid, platform, releaseId, releaseTitle, track, startDate, endDate, status, now, now).run();
+
+    await sendNotification(
+      env,
+      ctx,
+      uid,
+      "Demande BlackList enregistrée",
+      `Votre demande BlackList pour "${releaseTitle || platform}" (piste: ${track}) a été enregistrée avec le statut "${status}".`,
+      "blacklist",
+      "/liste.html"
+    );
+
+    return corsJson({ id: res.meta.last_row_id, success: true }, 201);
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function patchUserBlacklist(env, uid, itemId, request, isAdminUser, ctx) {
+  try {
+    const data = await request.json();
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+      UPDATE blacklist
+      SET status = COALESCE(?, status),
+          track = COALESCE(?, track),
+          start_date = COALESCE(?, start_date),
+          end_date = COALESCE(?, end_date),
+          updated_at = ?
+      WHERE id = ? AND (user_uid = ? OR ? = 1)
+    `).bind(
+      data.status || null,
+      data.track || null,
+      data.startDate !== undefined ? data.startDate : null,
+      data.endDate !== undefined ? data.endDate : null,
+      now,
+      itemId,
+      uid,
+      isAdminUser ? 1 : 0
+    ).run();
+
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function deleteUserBlacklist(env, uid, itemId, isAdminUser) {
+  try {
+    await env.DB.prepare(`
+      DELETE FROM blacklist WHERE id = ? AND (user_uid = ? OR ? = 1)
+    `).bind(itemId, uid, isAdminUser ? 1 : 0).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function triggerReleaseStatusNotification(env, ctx, userUid, releaseTitle, releaseId, oldStatus, newStatus) {
+  if (!userUid || !newStatus || oldStatus === newStatus) return;
+
+  const notifTitle = `Sortie "${releaseTitle}" : statut mis à jour`;
+  const notifMessage = `Votre projet "${releaseTitle}" est passé du statut "${oldStatus || 'brouillon'}" au statut : ${newStatus.toUpperCase()}.`;
+  const notifLink = `/portail/sortie.html?id=${releaseId}`;
+
+  await sendNotification(env, ctx, userUid, notifTitle, notifMessage, "release", notifLink);
+}
+
+async function sendNotification(env, ctx, uid, title, message, type = "info", link = null) {
+  try {
+    if (!uid) return;
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+      INSERT INTO notifications (user_uid, title, message, type, is_read, link, created_at)
+      VALUES (?, ?, ?, ?, 0, ?, ?)
+    `).bind(uid, title || "Notification", message || "", type, link || null, now).run();
+
+    const user = await env.DB.prepare(
+      "SELECT email, first_name, full_name FROM users WHERE uid = ?"
+    ).bind(uid).first();
+
+    if (user && user.email) {
+      const firstName = user.first_name || user.full_name || "Artiste";
+      const actionUrl = link
+        ? (link.startsWith("http") ? link : `https://mm-cp.uk${link}`)
+        : "https://mm-cp.uk/portail/notifications";
+
+      const htmlContent = buildHtmlEmail({
+        firstName,
+        title,
+        message,
+        actionUrl
+      });
+
+      if (ctx && typeof ctx.waitUntil === "function") {
+        ctx.waitUntil(
+          sendBrevoEmail(env, {
+            toEmail: user.email,
+            toName: firstName,
+            subject: title,
+            htmlContent
+          })
+        );
+      } else {
+        await sendBrevoEmail(env, {
+          toEmail: user.email,
+          toName: firstName,
+          subject: title,
+          htmlContent
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Erreur d'envoi de notification et d'e-mail:", err);
+  }
+}
+
+function formatNotificationRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userUid: row.user_uid,
+    title: row.title,
+    message: row.message,
+    type: row.type || "info",
+    isRead: Boolean(row.is_read),
+    read: Boolean(row.is_read),
+    link: row.link || null,
+    createdAt: row.created_at
+  };
+}
+
+async function getUserNotifications(env, uid) {
+  try {
+    const { results } = await env.DB.prepare(`
+      SELECT * FROM notifications 
+      WHERE user_uid = ? 
+      ORDER BY created_at DESC
+    `).bind(uid).all();
+
+    return corsJson((results || []).map(formatNotificationRow));
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function createUserNotification(env, uid, request, ctx) {
+  try {
+    const data = await request.json();
+    const title = data.title || data.titre || "Notification";
+    const message = data.message || data.body || data.text || "";
+    const type = data.type || "info";
+    const link = data.link || null;
+
+    const tenSecondsAgo = new Date(Date.now() - 10000).toISOString();
+    const existingNotif = await env.DB.prepare(`
+      SELECT id FROM notifications
+      WHERE user_uid = ? AND title = ? AND created_at >= ?
+    `).bind(uid, title, tenSecondsAgo).first();
+
+    if (existingNotif) {
+      return corsJson({
+        success: true,
+        duplicate: true,
+        id: existingNotif.id
+      }, 200);
+    }
+
+    await sendNotification(env, ctx, uid, title, message, type, link);
+
+    return corsJson({ success: true }, 201);
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function patchUserNotification(env, uid, notifId, request) {
+  try {
+    const data = await request.json();
+    const isRead = data.isRead !== undefined ? (data.isRead ? 1 : 0) : (data.read !== undefined ? (data.read ? 1 : 0) : null);
+
+    await env.DB.prepare(`
+      UPDATE notifications 
+      SET is_read = COALESCE(?, is_read),
+          title = COALESCE(?, title),
+          message = COALESCE(?, message)
+      WHERE id = ? AND user_uid = ?
+    `).bind(
+      isRead,
+      data.title !== undefined ? data.title : null,
+      data.message !== undefined ? data.message : null,
+      notifId,
+      uid
+    ).run();
+
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function markAllNotificationsRead(env, uid) {
+  try {
+    await env.DB.prepare(`
+      UPDATE notifications SET is_read = 1 WHERE user_uid = ?
+    `).bind(uid).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function deleteUserNotification(env, uid, notifId) {
+  try {
+    await env.DB.prepare(`
+      DELETE FROM notifications WHERE id = ? AND user_uid = ?
+    `).bind(notifId, uid).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function broadcastNotification(env, request, isAdminUser, ctx) {
+  if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+  try {
+    const data = await request.json();
+    const title = data.title || "Information";
+    const message = data.message || "";
+    const type = data.type || "system";
+    const link = data.link || null;
+
+    const { results } = await env.DB.prepare("SELECT uid FROM users").all();
+    if (results && results.length > 0) {
+      for (const u of results) {
+        await sendNotification(env, ctx, u.uid, title, message, type, link);
+      }
+    }
+    return corsJson({ success: true, count: results ? results.length : 0 });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
 }
 
 async function ensureTables(db) {
@@ -557,6 +1604,35 @@ async function ensureTables(db) {
         premiere_start_date TEXT,
         premiere_end_date TEXT,
         premiere_is_active INTEGER DEFAULT 0,
+        dolby_atmos INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS greenlist (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        release_id TEXT,
+        release_title TEXT,
+        links TEXT,
+        status TEXT DEFAULT 'Demandé',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS blacklist (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        platform TEXT NOT NULL,
+        release_id TEXT,
+        release_title TEXT,
+        track TEXT,
+        start_date TEXT,
+        end_date TEXT,
+        status TEXT DEFAULT 'Demandé',
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
@@ -614,8 +1690,17 @@ async function ensureTables(db) {
         theme TEXT DEFAULT 'normal-auto',
         totp_enabled INTEGER DEFAULT 0,
         totp_secret TEXT,
+        newsletter_enabled INTEGER DEFAULT 1,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS newsletter (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        name TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `),
     db.prepare(`
@@ -744,6 +1829,47 @@ async function ensureTables(db) {
         freeboard TEXT,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS litual_conversations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        title TEXT NOT NULL DEFAULT 'Nouvelle conversation',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS litual_conversation_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conversation_id INTEGER NOT NULL,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (conversation_id) REFERENCES litual_conversations(id) ON DELETE CASCADE
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        title TEXT NOT NULL,
+        message TEXT,
+        type TEXT DEFAULT 'info',
+        is_read INTEGER DEFAULT 0,
+        link TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS user_documents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        file_url TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
     `)
   ]);
 
@@ -762,6 +1888,32 @@ async function ensureTables(db) {
     await db.prepare("ALTER TABLE releases ADD COLUMN premiere_end_date TEXT").run();
     await db.prepare("ALTER TABLE releases ADD COLUMN premiere_is_active INTEGER DEFAULT 0").run();
   } catch (e) { }
+
+  try {
+    await db.prepare("ALTER TABLE releases ADD COLUMN dolby_atmos INTEGER DEFAULT 0").run();
+  } catch (e) { }
+
+  try {
+    await db.prepare("ALTER TABLE users ADD COLUMN newsletter_enabled INTEGER DEFAULT 1").run();
+  } catch (e) { }
+}
+
+async function deleteUserDocument(env, uid, docId) {
+  try {
+    const doc = await env.DB.prepare("SELECT * FROM user_documents WHERE id = ? AND user_uid = ?")
+      .bind(docId, uid)
+      .first();
+
+    if (!doc) {
+      return corsJson({ error: "Document non trouvé" }, 404);
+    }
+
+    await env.DB.prepare("DELETE FROM user_documents WHERE id = ?").bind(docId).run();
+
+    return corsJson({ success: true, message: "Document supprimé avec succès" });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
 }
 
 async function extractUserId(request) {
@@ -791,6 +1943,66 @@ async function isAdmin(env, uid) {
   await env.DB.prepare(`INSERT INTO users (uid, role, plan_name, created_at, updated_at) VALUES (?, 'admin', 'pro', ?, ?) ON CONFLICT(uid) DO UPDATE SET role = 'admin'`).bind(uid, now, now).run();
 
   return true;
+}
+
+async function getUserDocuments(env, uid) {
+  try {
+    const { results } = await env.DB.prepare(
+      "SELECT * FROM user_documents WHERE user_uid = ? ORDER BY created_at DESC"
+    ).bind(uid).all();
+    return corsJson(results || []);
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function createUserDocument(env, uid, request, isAdminUser, ctx) {
+  try {
+    const formData = await request.formData();
+    const title = String(formData.get("title") || "").trim();
+    const description = String(formData.get("description") || "").trim();
+    const file = formData.get("file");
+
+    if (!title || !file) {
+      return corsJson({ error: "Titre et fichier requis" }, 400);
+    }
+
+    const filename = file.name || "document";
+    const ext = filename.split(".").pop();
+    const key = `document/${uid}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+
+    const bucket = getBucket(env, "document");
+    if (bucket) {
+      await bucket.put(key, await file.arrayBuffer(), {
+        httpMetadata: { contentType: file.type || getContentType(ext) },
+      });
+    } else {
+      return corsJson({ error: "Stockage non configuré" }, 500);
+    }
+
+    const fileUrl = `/api/files/${encodeURIComponent(key)}`;
+    const now = new Date().toISOString();
+
+    const res = await env.DB.prepare(`
+      INSERT INTO user_documents (user_uid, title, description, file_url, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(uid, title, description, fileUrl, now).run();
+
+    await sendNotification(
+      env,
+      ctx,
+      uid,
+      "Nouveau document disponible",
+      `Un nouveau document "${title}" a été ajouté à votre compte.`,
+      "document",
+      "/portail/"
+    );
+
+    return corsJson({ id: res.meta.last_row_id, fileUrl, success: true }, 201);
+  } catch (err) {
+    console.error("Erreur createUserDocument:", err);
+    return corsJson({ error: err.message }, 500);
+  }
 }
 
 async function getUserTracklists(env, uid) {
@@ -940,7 +2152,7 @@ async function getPublicPremiere(env, url) {
   return corsJson(formatReleaseRow(row));
 }
 
-async function createSupportTicket(env, request) {
+async function createSupportTicket(env, request, ctx) {
   try {
     const data = await request.json();
     const now = new Date().toISOString();
@@ -954,6 +2166,16 @@ async function createSupportTicket(env, request) {
       INSERT INTO support_tickets (uid, user_name, section, payload, messages, status, created_at)
       VALUES (?, ?, ?, ?, ?, 'ouvert', ?)
     `).bind(uid, userName, section, payload, initialMessages, now).run();
+
+    await sendNotification(
+      env,
+      ctx,
+      uid,
+      "Ticket de support créé",
+      `Votre ticket #${res.meta.last_row_id} (${section}) a bien été ouvert.`,
+      "support",
+      "/support.html"
+    );
 
     return corsJson({ id: res.meta.last_row_id, success: true }, 201);
   } catch (err) {
@@ -974,14 +2196,14 @@ async function getSupportTickets(env, request) {
   }
 }
 
-async function addTicketMessage(env, ticketId, request) {
+async function addTicketMessage(env, ticketId, request, ctx) {
   try {
     const data = await request.json();
     const text = data.text || data.message || "";
     const sender = data.sender || "user";
     const createdAt = data.createdAt || new Date().toISOString();
 
-    const row = await env.DB.prepare("SELECT messages FROM support_tickets WHERE id = ?").bind(ticketId).first();
+    const row = await env.DB.prepare("SELECT uid, messages FROM support_tickets WHERE id = ?").bind(ticketId).first();
     if (!row) return corsJson({ error: "Ticket non trouvé" }, 404);
 
     let messages = [];
@@ -995,19 +2217,45 @@ async function addTicketMessage(env, ticketId, request) {
 
     await env.DB.prepare("UPDATE support_tickets SET messages = ? WHERE id = ?").bind(JSON.stringify(messages), ticketId).run();
 
+    if (row.uid && sender === "admin") {
+      await sendNotification(
+        env,
+        ctx,
+        row.uid,
+        "Nouveau message support",
+        `Vous avez reçu une réponse sur votre ticket de support #${ticketId}.`,
+        "support",
+        "/support.html"
+      );
+    }
+
     return corsJson({ success: true, messages });
   } catch (err) {
     return corsJson({ error: err.message }, 500);
   }
 }
 
-async function updateTicketStatus(env, ticketId, request) {
+async function updateTicketStatus(env, ticketId, request, ctx) {
   try {
     const data = await request.json();
     const status = data.status;
     if (!status) return corsJson({ error: "Statut manquant" }, 400);
 
+    const ticketRow = await env.DB.prepare("SELECT uid FROM support_tickets WHERE id = ?").bind(ticketId).first();
+
     await env.DB.prepare("UPDATE support_tickets SET status = ? WHERE id = ?").bind(status, ticketId).run();
+
+    if (ticketRow && ticketRow.uid) {
+      await sendNotification(
+        env,
+        ctx,
+        ticketRow.uid,
+        "Mise à jour du ticket support",
+        `Le statut de votre ticket #${ticketId} est désormais : ${status}.`,
+        "support",
+        "/support.html"
+      );
+    }
 
     return corsJson({ success: true });
   } catch (err) {
@@ -1018,18 +2266,9 @@ async function updateTicketStatus(env, ticketId, request) {
 async function getUserPayoutsSafe(env, uid, request) {
   try {
     const { results } = await env.DB.prepare("SELECT * FROM withdrawals WHERE user_uid = ? ORDER BY created_at DESC").bind(uid).all();
-    if (results && results.length > 0) {
-      return corsJson(results.map(r => ({ id: String(r.id), title: `Versement #${r.id} - ${r.amount} € (${r.created_at.split('T')[0]})`, ...r })));
-    }
-    return corsJson([
-      { id: "mock_payout_1", title: "Versement #1 - 45,20 € (01/2026)" },
-      { id: "mock_payout_2", title: "Versement #2 - 120,00 € (02/2026)" }
-    ]);
+    return corsJson((results || []).map(r => ({ id: String(r.id), title: `Versement #${r.id} - ${r.amount} € (${r.created_at.split('T')[0]})`, ...r })));
   } catch (err) {
-    return corsJson([
-      { id: "mock_payout_1", title: "Versement #1 - 45,20 € (01/2026)" },
-      { id: "mock_payout_2", title: "Versement #2 - 120,00 € (02/2026)" }
-    ]);
+    return corsJson([], 200);
   }
 }
 
@@ -1072,18 +2311,14 @@ async function listUsers(env, userId, isAdminUser) {
 
 async function getUserFinancesSafe(env, uid, request) {
   try {
-    let { results } = await env.DB.prepare("SELECT * FROM finances WHERE user_uid = ? ORDER BY created_at DESC").bind(uid).all();
-    if (!results || results.length === 0) {
-      const allFinances = await env.DB.prepare("SELECT * FROM finances ORDER BY created_at DESC").all();
-      results = allFinances.results || [];
-    }
-    return corsJson(results);
+    const { results } = await env.DB.prepare("SELECT * FROM finances WHERE user_uid = ? ORDER BY created_at DESC").bind(uid).all();
+    return corsJson(results || []);
   } catch (err) {
     return corsJson([], 200);
   }
 }
 
-async function createUserFinance(env, uid, request, isAdminUser) {
+async function createUserFinance(env, uid, request, isAdminUser, ctx) {
   if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
   const data = await request.json();
   const now = data.createdAt || new Date().toISOString();
@@ -1100,6 +2335,16 @@ async function createUserFinance(env, uid, request, isAdminUser) {
     data.artistName || "",
     now
   ).run();
+
+  await sendNotification(
+    env,
+    ctx,
+    uid,
+    "Nouveaux revenus ajoutés",
+    `Un montant de ${Number(data.amount || 0).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })} a été ajouté à vos revenus (${data.period || 'Période en cours'}).`,
+    "finance",
+    "/mes-revenus.html"
+  );
 
   return corsJson({ id: res.meta.last_row_id, success: true }, 201);
 }
@@ -1178,7 +2423,7 @@ async function upsertUser(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
 
-  await env.DB.prepare(`INSERT INTO users (uid, first_name, last_name, full_name, artist_name, email, address, city, postal_code, iban, photo_url, role, auth_method, plan_name, subscription_status, theme, totp_enabled, totp_secret, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET first_name = excluded.first_name, last_name = excluded.last_name, full_name = excluded.full_name, artist_name = excluded.artist_name, email = excluded.email, address = excluded.address, city = excluded.city, postal_code = excluded.postal_code, iban = excluded.iban, photo_url = excluded.photo_url, role = excluded.role, auth_method = excluded.auth_method, plan_name = excluded.plan_name, subscription_status = excluded.subscription_status, theme = excluded.theme, totp_enabled = excluded.totp_enabled, totp_secret = excluded.totp_secret, updated_at = excluded.updated_at`).bind(
+  await env.DB.prepare(`INSERT INTO users (uid, first_name, last_name, full_name, artist_name, email, address, city, postal_code, iban, photo_url, role, auth_method, plan_name, subscription_status, theme, totp_enabled, totp_secret, newsletter_enabled, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET first_name = excluded.first_name, last_name = excluded.last_name, full_name = excluded.full_name, artist_name = excluded.artist_name, email = excluded.email, address = excluded.address, city = excluded.city, postal_code = excluded.postal_code, iban = excluded.iban, photo_url = excluded.photo_url, role = excluded.role, auth_method = excluded.auth_method, plan_name = excluded.plan_name, subscription_status = excluded.subscription_status, theme = excluded.theme, totp_enabled = excluded.totp_enabled, totp_secret = excluded.totp_secret, newsletter_enabled = excluded.newsletter_enabled, updated_at = excluded.updated_at`).bind(
     uid,
     data.firstName || null,
     data.lastName || null,
@@ -1197,6 +2442,7 @@ async function upsertUser(env, uid, request) {
     data.theme || "normal-auto",
     data.totpEnabled ? 1 : 0,
     data.totpSecret || null,
+    data.newsletterEnabled !== undefined ? (data.newsletterEnabled ? 1 : 0) : 1,
     data.createdAt || now,
     now
   ).run();
@@ -1226,6 +2472,7 @@ async function patchUser(env, uid, request) {
     theme: "theme",
     totpEnabled: "totp_enabled",
     totpSecret: "totp_secret",
+    newsletterEnabled: "newsletter_enabled"
   };
 
   const sets = [];
@@ -1234,7 +2481,7 @@ async function patchUser(env, uid, request) {
   for (const [key, column] of Object.entries(fieldMap)) {
     if (data[key] !== undefined) {
       sets.push(`${column} = ?`);
-      values.push(key === "totpEnabled" ? (data[key] ? 1 : 0) : data[key]);
+      values.push((key === "totpEnabled" || key === "newsletterEnabled") ? (data[key] ? 1 : 0) : data[key]);
     }
   }
 
@@ -1268,6 +2515,7 @@ function formatUserRow(row) {
     theme: row.theme,
     totpEnabled: !!row.totp_enabled,
     totpSecret: row.totp_secret,
+    newsletterEnabled: row.newsletter_enabled !== 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -1338,7 +2586,6 @@ async function createArtist(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
 
-  // On ajoute "RETURNING id" à la fin de la requête et on utilise .first() au lieu de .run()
   const row = await env.DB.prepare(`INSERT INTO artists ( user_uid, name, primary_genre, genre, feat, toolost_artist_id, spotify_id, apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, youtube_url, photo, banner_url, birthdate, birthplace, contact_email, uploader_option, writers, credits, secondary_genre, default_language, timezone, release_time, manual_platforms, manual_territories, line_copyright, line_phonogram, label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, created_at ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`).bind(
     uid,
     data.name || "",
@@ -1391,7 +2638,6 @@ async function createArtist(env, uid, request) {
     now
   ).first();
 
-  // On renvoie row.id directement
   return corsJson({ id: row.id, success: true }, 201);
 }
 
@@ -1563,7 +2809,7 @@ async function getAdminRelease(env, path, isAdminUser) {
   return corsJson(formatReleaseRow(row));
 }
 
-async function createRelease(env, uid, request) {
+async function createRelease(env, uid, request, ctx) {
   const data = await request.json();
   const now = new Date().toISOString();
 
@@ -1571,11 +2817,16 @@ async function createRelease(env, uid, request) {
     ? JSON.stringify(data.territories)
     : (data.territories || "Tous les pays (Monde entier)");
 
-  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date, premiere_end_date, premiere_is_active, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
+  const artistName = data.artistName || "";
+  const labelName = data.labelName?.trim() ? data.labelName : "Morgann Music CP";
+  const copyrightLineC = data.copyrightLineC?.trim() ? data.copyrightLineC : artistName;
+  const copyrightLineP = data.copyrightLineP?.trim() ? data.copyrightLineP : "Morgann Music CP";
+
+  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date, premiere_end_date, premiere_is_active, dolby_atmos, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
     uid,
     data.title || "",
     data.type || "Single",
-    data.artistName || "",
+    artistName,
     data.coverUrl || "",
     data.status || "brouillon",
     data.releaseDate || "",
@@ -1587,9 +2838,9 @@ async function createRelease(env, uid, request) {
     data.secondaryGenre || "",
     data.language || "",
     data.isInstrumental ? 1 : 0,
-    data.labelName || "",
-    data.copyrightLineC || "",
-    data.copyrightLineP || "",
+    labelName,
+    copyrightLineC,
+    copyrightLineP,
     data.stdCopyright || "",
     data.manualPlatforms ? 1 : 0,
     JSON.stringify(data.selectedPlatforms || []),
@@ -1612,85 +2863,119 @@ async function createRelease(env, uid, request) {
     data.premiereStartDate || null,
     data.premiereEndDate || null,
     data.premiereIsActive ? 1 : 0,
+    data.dolbyAtmos ? 1 : 0,
     now,
     now
   ).run();
 
+  await sendNotification(
+    env,
+    ctx,
+    uid,
+    "Nouvelle sortie créée",
+    `Votre sortie "${data.title || 'Sans titre'}" a été créée avec succès.`,
+    "release",
+    `/sortie.html?id=${res.meta.last_row_id}`
+  );
+
   return corsJson({ id: res.meta.last_row_id, success: true }, 201);
 }
 
-async function patchRelease(env, uid, releaseId, request) {
-  const data = await request.json();
-  const now = new Date().toISOString();
+async function patchRelease(env, uid, releaseId, request, ctx) {
+  try {
+    const data = await request.json();
+    const now = new Date().toISOString();
 
-  let formattedTerritories = null;
-  if (data.territories !== undefined) {
-    formattedTerritories = typeof data.territories === "object"
-      ? JSON.stringify(data.territories)
-      : data.territories;
+    const rel = await env.DB.prepare("SELECT user_uid, title, status FROM releases WHERE id = ?").bind(releaseId).first();
+
+    let formattedTerritories = null;
+    if (data.territories !== undefined) {
+      formattedTerritories = typeof data.territories === "object"
+        ? JSON.stringify(data.territories)
+        : data.territories;
+    }
+
+    await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), premiere_slug = COALESCE(?, premiere_slug), premiere_password = COALESCE(?, premiere_password), premiere_start_date = COALESCE(?, premiere_start_date), premiere_end_date = COALESCE(?, premiere_end_date), premiere_is_active = COALESCE(?, premiere_is_active), dolby_atmos = COALESCE(?, dolby_atmos), updated_at = ? WHERE id = ?`).bind(
+      data.title !== undefined ? data.title : null,
+      data.type !== undefined ? data.type : null,
+      data.artistName !== undefined ? data.artistName : null,
+      data.coverUrl !== undefined ? data.coverUrl : null,
+      data.status !== undefined ? data.status : null,
+      data.releaseDate !== undefined ? data.releaseDate : null,
+      data.originalReleaseDate !== undefined ? data.originalReleaseDate : null,
+      data.preorderDate !== undefined ? data.preorderDate : null,
+      data.timezone !== undefined ? data.timezone : null,
+      data.exactTime !== undefined ? data.exactTime : null,
+      data.primaryGenre !== undefined ? data.primaryGenre : null,
+      data.secondaryGenre !== undefined ? data.secondaryGenre : null,
+      data.language !== undefined ? data.language : null,
+      data.isInstrumental !== undefined ? (data.isInstrumental ? 1 : 0) : null,
+      data.labelName !== undefined ? data.labelName : null,
+      data.copyrightLineC !== undefined ? data.copyrightLineC : null,
+      data.copyrightLineP !== undefined ? data.copyrightLineP : null,
+      data.stdCopyright !== undefined ? data.stdCopyright : null,
+      data.manualPlatforms !== undefined ? (data.manualPlatforms ? 1 : 0) : null,
+      data.selectedPlatforms !== undefined ? JSON.stringify(data.selectedPlatforms) : null,
+      data.additionalDeliveries !== undefined ? JSON.stringify(data.additionalDeliveries) : null,
+      data.versionLine !== undefined ? data.versionLine : null,
+      data.licenceType !== undefined ? data.licenceType : null,
+      data.upc !== undefined ? data.upc : null,
+      formattedTerritories,
+      data.tracks !== undefined ? JSON.stringify(data.tracks) : null,
+      data.feats !== undefined ? JSON.stringify(data.feats) : null,
+      data.appleMotion11 !== undefined ? data.appleMotion11 : null,
+      data.appleMotion34 !== undefined ? data.appleMotion34 : null,
+      data.animatedCoverUrl !== undefined ? data.animatedCoverUrl : null,
+      data.releaseUrl !== undefined ? data.releaseUrl : null,
+      data.spotifyUrl !== undefined ? data.spotifyUrl : null,
+      data.appleUrl !== undefined ? data.appleUrl : null,
+      data.showOnMmcpCatalog !== undefined ? (data.showOnMmcpCatalog ? 1 : 0) : null,
+      data.premiereSlug !== undefined ? data.premiereSlug : null,
+      data.premierePassword !== undefined ? data.premierePassword : null,
+      data.premiereStartDate !== undefined ? data.premiereStartDate : null,
+      data.premiereEndDate !== undefined ? data.premiereEndDate : null,
+      data.premiereIsActive !== undefined ? (data.premiereIsActive ? 1 : 0) : null,
+      data.dolbyAtmos !== undefined ? (data.dolbyAtmos ? 1 : 0) : null,
+      now,
+      releaseId
+    ).run();
+
+    if (rel && data.status && data.status !== rel.status) {
+      await triggerReleaseStatusNotification(env, ctx, rel.user_uid, rel.title, releaseId, rel.status, data.status);
+    }
+
+    return corsJson({ id: releaseId, success: true });
+  } catch (err) {
+    console.error("Erreur patchRelease :", err);
+    return corsJson({ error: `Erreur mise à jour: ${err.message}` }, 500);
   }
-
-  await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), premiere_slug = COALESCE(?, premiere_slug), premiere_password = COALESCE(?, premiere_password), premiere_start_date = COALESCE(?, premiere_start_date), premiere_end_date = COALESCE(?, premiere_end_date), premiere_is_active = COALESCE(?, premiere_is_active), updated_at = ? WHERE id = ?`).bind(
-    data.title !== undefined ? data.title : null,
-    data.type !== undefined ? data.type : null,
-    data.artistName !== undefined ? data.artistName : null,
-    data.coverUrl !== undefined ? data.coverUrl : null,
-    data.status !== undefined ? data.status : null,
-    data.releaseDate !== undefined ? data.releaseDate : null,
-    data.originalReleaseDate !== undefined ? data.originalReleaseDate : null,
-    data.preorderDate !== undefined ? data.preorderDate : null,
-    data.timezone !== undefined ? data.timezone : null,
-    data.exactTime !== undefined ? data.exactTime : null,
-    data.primaryGenre !== undefined ? data.primaryGenre : null,
-    data.secondaryGenre !== undefined ? data.secondaryGenre : null,
-    data.language !== undefined ? data.language : null,
-    data.isInstrumental !== undefined ? (data.isInstrumental ? 1 : 0) : null,
-    data.labelName !== undefined ? data.labelName : null,
-    data.copyrightLineC !== undefined ? data.copyrightLineC : null,
-    data.copyrightLineP !== undefined ? data.copyrightLineP : null,
-    data.stdCopyright !== undefined ? data.stdCopyright : null,
-    data.manualPlatforms !== undefined ? (data.manualPlatforms ? 1 : 0) : null,
-    data.selectedPlatforms !== undefined ? JSON.stringify(data.selectedPlatforms) : null,
-    data.additionalDeliveries !== undefined ? JSON.stringify(data.additionalDeliveries) : null,
-    data.versionLine !== undefined ? data.versionLine : null,
-    data.licenceType !== undefined ? data.licenceType : null,
-    data.upc !== undefined ? data.upc : null,
-    formattedTerritories,
-    data.tracks !== undefined ? JSON.stringify(data.tracks) : null,
-    data.feats !== undefined ? JSON.stringify(data.feats) : null,
-    data.appleMotion11 !== undefined ? data.appleMotion11 : null,
-    data.appleMotion34 !== undefined ? data.appleMotion34 : null,
-    data.animatedCoverUrl !== undefined ? data.animatedCoverUrl : null,
-    data.releaseUrl !== undefined ? data.releaseUrl : null,
-    data.spotifyUrl !== undefined ? data.spotifyUrl : null,
-    data.appleUrl !== undefined ? data.appleUrl : null,
-    data.showOnMmcpCatalog !== undefined ? (data.showOnMmcpCatalog ? 1 : 0) : null,
-    data.premiereSlug !== undefined ? data.premiereSlug : null,
-    data.premierePassword !== undefined ? data.premierePassword : null,
-    data.premiereStartDate !== undefined ? data.premiereStartDate : null,
-    data.premiereEndDate !== undefined ? data.premiereEndDate : null,
-    data.premiereIsActive !== undefined ? (data.premiereIsActive ? 1 : 0) : null,
-    now,
-    releaseId
-  ).run();
-
-  return corsJson({ id: releaseId, success: true });
 }
 
-async function adminPatchRelease(env, userId, request) {
-  const data = await request.json();
-  const releaseId = data.id;
+async function adminPatchRelease(env, userId, request, path, ctx) {
+  try {
+    const data = await request.json();
+    const releaseId = data.id || (path ? path.split("/").pop() : null);
 
-  if (!releaseId) return corsJson({ error: "ID de sortie manquant" }, 400);
+    if (!releaseId) return corsJson({ error: "ID de sortie manquant" }, 400);
 
-  await env.DB.prepare(`UPDATE releases SET status = COALESCE(?, status), upc = COALESCE(?, upc), updated_at = ? WHERE id = ?`).bind(
-    data.status || null,
-    data.upc || null,
-    new Date().toISOString(),
-    releaseId
-  ).run();
+    const rel = await env.DB.prepare("SELECT user_uid, title, status FROM releases WHERE id = ?").bind(releaseId).first();
 
-  return corsJson({ success: true });
+    await env.DB.prepare(`UPDATE releases SET status = COALESCE(?, status), upc = COALESCE(?, upc), updated_at = ? WHERE id = ?`).bind(
+      data.status || null,
+      data.upc || null,
+      new Date().toISOString(),
+      releaseId
+    ).run();
+
+    if (rel && data.status && data.status !== rel.status) {
+      await triggerReleaseStatusNotification(env, ctx, rel.user_uid, rel.title, releaseId, rel.status, data.status);
+    }
+
+    return corsJson({ success: true });
+  } catch (err) {
+    console.error("Erreur adminPatchRelease :", err);
+    return corsJson({ error: `Erreur mise à jour admin: ${err.message}` }, 500);
+  }
 }
 
 async function deleteRelease(env, uid, releaseId) {
@@ -1720,13 +3005,22 @@ function formatReleaseRow(row) {
     }
   } catch (e) { }
 
+  const artistName = row.artist_name || "";
+  let labelName = row.label_name || "";
+  let copyrightLineC = row.copyright_line_c || "";
+  let copyrightLineP = row.copyright_line_p || "";
+
+  if (!labelName.trim()) labelName = "Morgann Music CP";
+  if (!copyrightLineC.trim()) copyrightLineC = artistName;
+  if (!copyrightLineP.trim()) copyrightLineP = "Morgann Music CP";
+
   return {
     id: row.id,
     userUid: row.user_uid,
     userId: row.user_uid,
     title: row.title || "",
     type: row.type || "Single",
-    artistName: row.artist_name || "",
+    artistName,
     coverUrl: row.cover_url || "",
     status: row.status || "brouillon",
     releaseDate: row.release_date || "",
@@ -1738,9 +3032,9 @@ function formatReleaseRow(row) {
     secondaryGenre: row.secondary_genre || "",
     language: row.language || "",
     isInstrumental: Boolean(row.is_instrumental),
-    labelName: row.label_name || "",
-    copyrightLineC: row.copyright_line_c || "",
-    copyrightLineP: row.copyright_line_p || "",
+    labelName,
+    copyrightLineC,
+    copyrightLineP,
     std_copyright: row.std_copyright || "",
     manualPlatforms: Boolean(row.manual_platforms),
     selectedPlatforms,
@@ -1763,6 +3057,7 @@ function formatReleaseRow(row) {
     premiereStartDate: row.premiere_start_date || null,
     premiereEndDate: row.premiere_end_date || null,
     premiereIsActive: Boolean(row.premiere_is_active),
+    dolbyAtmos: Boolean(row.dolby_atmos),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -1924,7 +3219,7 @@ async function serveFile(env, rawKey) {
       return new Response("Fichier non trouvé", { status: 404 });
     }
 
-    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette|lyrics|lrics)\//.test(key);
+    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette|lyrics|lrics|document)\//.test(key);
     const bucket = isMediaKey ? (env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2) : (env.BUCKET || env.MEDIA_BUCKET || env.STORAGE || env.R2);
 
     if (bucket) {
@@ -1938,6 +3233,8 @@ async function serveFile(env, rawKey) {
         headers.set("content-type", "video/mp4");
       } else if (ext && (ext.toLowerCase() === 'lrc' || ext.toLowerCase() === 'srt')) {
         headers.set("content-type", "text/plain; charset=utf-8");
+      } else if (ext && ext.toLowerCase() === 'pdf') {
+        headers.set("content-type", "application/pdf");
       }
 
       headers.set("etag", object.httpEtag);
@@ -2094,7 +3391,7 @@ async function getAllWithdrawals(env, userId, isAdminUser) {
   }
 }
 
-async function patchWithdrawal(env, userId, path, request, isAdminUser) {
+async function patchWithdrawal(env, userId, path, request, isAdminUser, ctx) {
   if (!isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
 
   const id = path.split("/").pop();
@@ -2129,6 +3426,16 @@ async function patchWithdrawal(env, userId, path, request, isAdminUser) {
         "MMCP",
         now
       ).run();
+
+      await sendNotification(
+        env,
+        ctx,
+        withdrawal.user_uid,
+        "Retrait validé et envoyé",
+        `Votre demande de versement #${id} d'un montant de ${amount} € a été validée.`,
+        "withdrawal",
+        "/mes-revenus.html"
+      );
     }
 
     if (oldStatus === "envoyé" && newStatus !== "envoyé") {
@@ -2144,6 +3451,16 @@ async function patchWithdrawal(env, userId, path, request, isAdminUser) {
         "MMCP",
         now
       ).run();
+
+      await sendNotification(
+        env,
+        ctx,
+        withdrawal.user_uid,
+        "Retrait annulé",
+        `Le statut de votre demande de versement #${id} a été modifié.`,
+        "withdrawal",
+        "/mes-revenus.html"
+      );
     }
 
     return corsJson({ success: true });

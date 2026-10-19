@@ -1,0 +1,390 @@
+        :root {
+            --card: rgba(0, 0, 0, 0.281);
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --card: rgba(255, 255, 255, 0.281);
+                --border: white;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #000000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .dashboard-container {
+            max-width: 1100px;
+            margin: 5rem auto 2rem auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* --- CARTE REVENUS --- */
+        .revenue-card {
+            background-color: var(--card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgb(255, 255, 255);
+            border-radius: 34px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 24px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .revenue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .revenue-title-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #3e2837;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .revenue-title-block {
+                color: white;
+            }
+        }
+
+        .revenue-amount {
+            font-size: 38px;
+            font-weight: 800;
+            color: #FC8FB0;
+        }
+
+        .revenue-chart-container {
+            height: 180px;
+            width: 100%;
+            position: relative;
+        }
+
+        /* --- SECTIONS HORIZONTALES (ARTISTES & SORTIES) --- */
+        .section-block {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: transparent;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3e2837;
+            margin: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .section-header h2 {
+                color: white;
+            }
+        }
+
+        .horizontal-scroll-list {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scrollbar-width: thin;
+        }
+
+        /* Cartes d'Artistes */
+        .artist-card-item {
+            flex: 0 0 auto;
+            width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .artist-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .artist-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .artist-avatar {
+                border-color: #ffffff;
+            }
+
+            .artist-name {
+                color: #ffffff;
+            }
+        }
+
+        /* Cartes de Sorties */
+        .release-card-item {
+            flex: 0 0 auto;
+            width: 140px;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+            background: var(--card);
+            backdrop-filter: blur(10px);
+            border: 1px solid #ffffff;
+            border-radius: 20px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .release-card-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .release-cover-img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 14px;
+            object-fit: cover;
+            background-color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .release-card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+        }
+
+        .release-card-artist {
+            font-size: 11px;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 2px 0 0 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .release-card-title {
+                color: white;
+
+            }
+
+            .release-card-artist {
+                color: rgba(255, 255, 255, 0.714)
+            }
+
+            .release-cover-img {
+                background: #2C000D;
+            }
+        }
+
+        /* Bouton "Plus" générique pour listes horizontales */
+        .btn-more-horizontal {
+            flex: 0 0 auto;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #FC8FB0;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .btn-more-horizontal:hover {
+            background-color: #e07495;
+            transform: scale(1.05);
+        }
+
+        /* --- NOTIFICATIONS --- */
+        .notifs-card {
+            background-color: var(--card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgb(255, 255, 255);
+            border-radius: 34px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 24px 30px;
+        }
+
+        .notifs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .notifs-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #3e2837;
+            margin: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .notifs-header h2 {
+                color: white;
+            }
+        }
+
+        .btn-view-all {
+            background: #FC8FB0;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .btn-view-all:hover {
+            background: #e07495;
+        }
+
+        .notifs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notif-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .notif-icon {
+            font-size: 20px;
+        }
+
+        .notif-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notif-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+
+            .notif-title {
+                color: #ffffff;
+            }
+        }
+
+        .notif-date {
+            font-size: 11px;
+            color: #64748b;
+            margin: 2px 0 0 0;
+        }
+
+        .empty-text,
+        .loading-text {
+            font-size: 14px;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .empty-text,
+            .loading-text {
+                color: rgba(255, 255, 255, 0.619);
+            }
+        }
+
+        /* POPUP ARTISTE */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 34px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-sizing: border-box;
+        }
+
+        .btn-popup {
+            display: inline-block;
+            background-color: #FC8FB0;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+        }

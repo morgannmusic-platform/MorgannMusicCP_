@@ -72,15 +72,19 @@ img {
     max-width: 1400px;
 }
 
-/* HERO SECTION */
+/* HERO SECTION (Aérée et élargie) */
 .hero-section {
-    max-width: 1200px;
-    margin: 1.5rem auto 0;
-    padding: 1.5rem 1rem 2.5rem;
+    width: 100%;
+    max-width: 1350px;
+    /* Plus large pour occuper davantage d'espace */
+    margin: 2rem auto 0;
+    padding: 2.5rem;
+    /* Espace interne plus généreux */
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-    gap: 1.5rem;
-    align-items: stretch;
+    gap: 3.5rem;
+    /* Espacement net entre le contenu et le panneau latéral */
+    align-items: center;
     position: relative;
     z-index: 1;
 }
@@ -90,18 +94,18 @@ img {
     position: absolute;
     inset: 0;
     z-index: -1;
-    border-radius: 34px;
-    background:
-        radial-gradient(circle at 15% 10%, var(--container3), transparent 35%),
-        linear-gradient(145deg, var(--container1), var(--container2));
+    border-radius: 56px;
+    background: linear-gradient(145deg, var(--container1), var(--container2));
     border: 1px solid var(--border-subtle);
-    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.05);
 }
 
 .hero-content {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    gap: 1.25rem;
+    /* Espacement régulier entre chaque bloc de texte/bouton */
 }
 
 .hero-pill {
@@ -111,22 +115,19 @@ img {
     border-radius: 999px;
     border: 1px solid var(--border-subtle);
     background: var(--container1);
-    padding: 0.45rem 0.95rem;
+    padding: 0.5rem 1rem;
     font-size: 0.82rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--text-secondary);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
     opacity: 0;
 }
 
 .banner-title {
-    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    font-size: clamp(2.4rem, 5vw, 4rem);
     font-weight: 700;
     color: var(--rose);
-    margin-bottom: 0.65rem;
-    margin-top: 1rem;
+    margin: 0;
     text-align: left;
     line-height: 1.15;
 }
@@ -137,34 +138,37 @@ img {
 }
 
 .banner-logo {
-    height: 1.35em;
+    height: 1.25em;
     position: relative;
-    top: -4px;
+    top: -2px;
     vertical-align: middle;
-    margin-left: 2px;
+    margin-left: 4px;
     opacity: 0;
 }
 
 .banner-subtitle {
-    font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
     color: var(--rose);
     opacity: 0;
     text-align: left;
+    font-weight: 500;
+    margin: 0;
 }
 
 .hero-description {
     color: var(--text-secondary);
-    max-width: 640px;
-    line-height: 1.75;
-    margin-top: 1.1rem;
+    max-width: 650px;
+    line-height: 1.7;
+    font-size: 1rem;
+    margin: 0;
     opacity: 0;
 }
 
 .hero-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.8rem;
-    margin-top: 1.5rem;
+    gap: 1rem;
+    margin-top: 0.5rem;
     opacity: 0;
 }
 
@@ -172,14 +176,15 @@ img {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.9rem 1.4rem;
+    padding: 0.85rem 1.5rem;
     border-radius: 999px;
     color: var(--rose);
     text-decoration: none;
     border: 1px solid var(--border-subtle);
     background: var(--container3);
     font-weight: 600;
-    transition: transform 0.3s ease, background 0.3s ease;
+    font-size: 0.95rem;
+    transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .hero-cta-secondary:hover {
@@ -191,43 +196,40 @@ img {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.9rem 2.2rem;
+    padding: 0.85rem 2rem;
     background-color: var(--rose);
     color: var(--bg);
     text-decoration: none;
     font-weight: 600;
+    font-size: 0.95rem;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .cta-button:hover {
-    transform: scale(1.03) translateY(-2px);
-    box-shadow: 0 10px 30px rgba(252, 143, 176, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(252, 143, 176, 0.3);
 }
 
 .hero-stats {
-    margin-top: 1.4rem;
+    margin-top: 1rem;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.8rem;
+    gap: 1rem;
     width: 100%;
-    max-width: 720px;
 }
 
 .hero-stat-card {
     background: var(--container2);
     border: 1px solid var(--border-subtle);
     border-radius: 20px;
-    padding: 0.9rem 1rem;
-    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.06);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    padding: 1rem 1.2rem;
     opacity: 0;
 }
 
 .hero-stat-card h3 {
-    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
     line-height: 1;
     margin-bottom: 0.35rem;
 }
@@ -241,59 +243,46 @@ img {
 .hero-panel {
     background: linear-gradient(155deg, var(--container2), var(--container3));
     border: 1px solid var(--border-subtle);
-    border-radius: 32px;
-    padding: 1.5rem;
-    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.15);
+    border-radius: 28px;
+    padding: 2.2rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: 1rem;
     opacity: 0;
 }
 
 .hero-panel-badge {
     display: inline-block;
     align-self: flex-start;
-    margin-bottom: 0.9rem;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     background: var(--rose);
     color: #fff;
     border-radius: 999px;
-    padding: 0.28rem 0.7rem;
+    padding: 0.3rem 0.75rem;
     font-weight: 600;
 }
 
 .hero-panel h2 {
-    font-size: clamp(1.4rem, 2vw, 2rem);
+    font-size: clamp(1.3rem, 2vw, 1.8rem);
     line-height: 1.25;
-    margin-bottom: 0.9rem;
+    margin: 0;
     color: var(--rose);
 }
 
 .hero-panel p {
     color: var(--text-secondary);
-    margin-bottom: 1rem;
+    margin: 0;
+    font-size: 0.95rem;
     line-height: 1.65;
 }
 
-.hero-panel ul {
-    padding-left: 1.2rem;
-    margin: 0;
-    color: var(--rose);
-    line-height: 1.6;
-}
-
-.hero-panel ul li {
-    margin-bottom: 0.45rem;
-}
-
 .hero-litual-logo {
-    max-width: 90px;
+    max-width: 75px;
     width: 100%;
     height: auto;
-    margin-bottom: 0.9rem;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.12));
     animation: rotation 3s linear infinite;
 }
 

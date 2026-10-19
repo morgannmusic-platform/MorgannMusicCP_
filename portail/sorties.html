@@ -10,11 +10,17 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
+            color: #000000;
             margin: 0;
             padding: 20px;
             margin-top: 3.8rem;
             box-sizing: border-box;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: white;
+            }
         }
 
         .container {
@@ -29,7 +35,6 @@
             margin-bottom: 20px;
         }
 
-        /* --- BARRE DE RECHERCHE ET FILTRES --- */
         .filter-bar {
             display: flex;
             gap: 15px;
@@ -44,6 +49,16 @@
             padding: 12px 20px;
             align-items: center;
             transition: all 0.3s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .filter-bar,
+            .release-card {
+                background-color: rgba(0, 0, 0, 0.281) !important;
+                border: 1px solid rgb(255, 255, 255) !important;
+
+            }
         }
 
         .filter-bar:hover {
@@ -172,7 +187,7 @@
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.9);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            border-radius: 28px;
+            border-radius: 40px !important;
             padding: 16px;
             text-align: center;
             position: relative;
@@ -191,7 +206,7 @@
             width: 100%;
             aspect-ratio: 1/1;
             background: #f1f5f9;
-            border-radius: 20px;
+            border-radius: 24px;
             margin-bottom: 12px;
             overflow: hidden;
             display: flex;
@@ -217,6 +232,16 @@
             text-overflow: ellipsis;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .release-title {
+                color: white;
+            }
+
+            .release-artist {
+                color: rgba(255, 255, 255, 0.542) !important;
+            }
+        }
+
         .release-artist {
             font-size: 14px;
             color: #64748b;
@@ -239,7 +264,7 @@
         }
 
         .status-brouillon {
-            background: #94a3b8;
+            background: #c290b1;
             color: #ffffff;
         }
 
@@ -249,32 +274,32 @@
         }
 
         .status-verification-plateformes {
-            background: #3b82f6;
+            background: #f6733b;
             color: white;
         }
 
         .status-livree {
-            background: #a855f7;
+            background: #7420c3;
             color: white;
         }
 
         .status-direct {
-            background: #22c55e;
+            background: #247d3e;
             color: white;
         }
 
         .status-licence {
-            background: #f97316;
+            background: #ff5500;
             color: white;
         }
 
         .status-retrait {
-            background: #ef4444;
+            background: #b80000;
             color: white;
         }
 
         .status-retire {
-            background: #0f172a;
+            background: #2a0f0f;
             color: white;
         }
 
@@ -305,6 +330,7 @@
             transition: all 0.2s;
         }
 
+
         .page-btn:hover:not(:disabled) {
             background: #FC8FB0;
             color: white;
@@ -320,6 +346,18 @@
         .page-btn.active {
             background: #FC8FB0;
             color: white;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .page-btn {
+                background: #200009;
+            }
+
+            .page-btn:disabled {
+                background: #200009;
+                color: #4b222e;
+                border-color: #4b222e;
+            }
         }
 
         /* --- MODAL DE CONFIRMATION PERSO --- */

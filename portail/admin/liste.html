@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration des Listes (GreenList & BlackList) | MMCP Admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .page-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input,
+        .filter-select {
+            padding: 10px 16px;
+            border-radius: 34px;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            outline: none;
+            color: inherit;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus,
+        .filter-select:focus {
+            border-color: #FC8FB0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            padding: 16px 20px;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 24px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 22px;
+            border: none;
+            background: rgba(232, 232, 232, 0.3);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #64748b;
+            border-radius: 30px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active-green {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #15803d;
+            border-color: #22c55e;
+        }
+
+        .tab-btn.active-red {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #b91c1c;
+            border-color: #ef4444;
+        }
+
+        .table-card {
+            padding: 20px;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
+            overflow-x: auto;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .admin-table th {
+            padding: 14px 16px;
+            border-bottom: 1px solid #000000;
+            color: #444444;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.15);
+            vertical-align: middle;
+        }
+
+        .badge-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .status-demande {
+            background: rgba(234, 179, 8, 0.15);
+            color: #ca8a04;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .status-valide {
+            background: rgba(34, 197, 94, 0.15);
+            color: #15803d;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-refuse {
+            background: rgba(239, 68, 68, 0.15);
+            color: #b91c1c;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-action {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: transform 0.2s;
+        }
+
+        .btn-approve {
+            background-color: #22c55e;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background-color: #16a34a;
+        }
+
+        .btn-reject {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-reset {
+            background-color: #eab308;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #ca8a04;
+        }
+
+        .table-loading {
+            text-align: center;
+            padding: 40px !important;
+            color: #64748b;
+        }
+
+        .uid-pill {
+            font-family: monospace;
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.06);
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .link-list {
+            margin: 0;
+            padding-left: 16px;
+            font-size: 13px;
+        }
+
+        .link-list a {
+            color: #FC8FB0;
+            text-decoration: none;
+        }
+
+        .link-list a:hover {
+            text-decoration: underline;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <!-- Sidebar fixe à gauche -->
+        <aside id="sidebar-injector" class="sidebar-container"></aside>
+
+        <!-- Contenu principal à droite -->
+        <main class="main-container">
+
+            <header id="navbar-injector" class="navbar-container"></header>
+
+            <div class="page-header-actions">
+                <div>
+                    <h2 class="page-title" style="margin: 0;">Administration des Listes</h2>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 4px;">
+                        Validation et révision centralisée des demandes GreenList et BlackList.
+                    </p>
+                </div>
+
+                <div class="filter-controls">
+                    <input type="text" id="admin-search-input" class="search-input"
+                        placeholder="Rechercher titre, UID, plateforme..." />
+                    <select id="admin-status-filter" class="filter-select">
+                        <option value="all">Tous les statuts</option>
+                        <option value="demande">En attente (Demandé)</option>
+                        <option value="valide">Validé</option>
+                        <option value="refuse">Refusé</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Statistiques globales -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">En attente</span>
+                    <span id="stat-pending" class="stat-value" style="color: #ca8a04;">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Validées</span>
+                    <span id="stat-approved" class="stat-value" style="color: #15803d;">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Refusées</span>
+                    <span id="stat-rejected" class="stat-value" style="color: #b91c1c;">0</span>
+                </div>
+            </div>
+
+            <!-- Onglets GreenList / BlackList -->
+            <div class="tabs-container">
+                <button id="tab-green-btn" class="tab-btn active-green" onclick="changerOnglet('green')">
+                    💚 GreenList <span id="count-green"
+                        style="background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 10px; font-size: 11px;">0</span>
+                </button>
+                <button id="tab-red-btn" class="tab-btn" onclick="changerOnglet('red')">
+                    🚨 BlackList <span id="count-red"
+                        style="background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 10px; font-size: 11px;">0</span>
+                </button>
+            </div>
+
+            <div class="table-card">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Plateforme</th>
+                            <th>Utilisateur (UID)</th>
+                            <th>Projet / Sortie</th>
+                            <th id="dynamic-column-header">Lien(s) / Piste & Période</th>
+                            <th>Statut</th>
+                            <th style="text-align: right;">Actions & Révision</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        <tr>
+                            <td colspan="6" class="table-loading">Chargement des demandes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Conteneur Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+        import { initSidebar } from "./sidebar.js";
+        import { chargerProfilNavbar } from "./navbar.js";
+
+        let activeTab = "green"; // 'green' ou 'red'
+        let allGreenList = [];
+        let allBlackList = [];
+
+        async function injecterComposants() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) {
+                    document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+                    initSidebar(auth);
+
+                    const links = document.querySelectorAll('.sidebar-link');
+                    links.forEach(l => {
+                        if (l.getAttribute('href') === 'admin-liste.html' || l.getAttribute('href') === 'admin-listes.html') {
+                            l.classList.add('active');
+                        } else {
+                            l.classList.remove('active');
+                        }
+                    });
+                }
+
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) {
+                    document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
+                }
+            } catch (e) {
+                console.error("Erreur injection composants : ", e);
+            }
+        }
+
+        async function chargerToutesLesDemandes() {
+            const tbody = document.getElementById("admin-table-body");
+            tbody.innerHTML = `<tr><td colspan="6" class="table-loading">Chargement des demandes administrateur...</td></tr>`;
+
+            try {
+                const [resGreen, resBlack] = await Promise.all([
+                    api.get("/api/admin/greenlist").catch(() => []),
+                    api.get("/api/admin/blacklist").catch(() => [])
+                ]);
+
+                allGreenList = Array.isArray(resGreen) ? resGreen : [];
+                allBlackList = Array.isArray(resBlack) ? resBlack : [];
+
+                mettreAJourStats();
+                filtrerEtAfficher();
+            } catch (err) {
+                console.error("Erreur chargement admin listes :", err);
+                tbody.innerHTML = `<tr><td colspan="6" class="table-loading" style="color:#ef4444;">Erreur : ${err.message}</td></tr>`;
+            }
+        }
+
+        function mettreAJourStats() {
+            document.getElementById("count-green").innerText = allGreenList.length;
+            document.getElementById("count-red").innerText = allBlackList.length;
+
+            const total = [...allGreenList, ...allBlackList];
+            let pending = 0, approved = 0, rejected = 0;
+
+            total.forEach(item => {
+                const s = (item.status || "demandé").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if (s.includes("valide") || s.includes("approuv")) approved++;
+                else if (s.includes("refus")) rejected++;
+                else pending++;
+            });
+
+            document.getElementById("stat-pending").innerText = pending;
+            document.getElementById("stat-approved").innerText = approved;
+            document.getElementById("stat-rejected").innerText = rejected;
+        }
+
+        window.changerOnglet = function (type) {
+            activeTab = type;
+            const btnGreen = document.getElementById("tab-green-btn");
+            const btnRed = document.getElementById("tab-red-btn");
+            const headerCol = document.getElementById("dynamic-column-header");
+
+            if (type === 'green') {
+                btnGreen.className = "tab-btn active-green";
+                btnRed.className = "tab-btn";
+                headerCol.innerText = "Lien(s) du compte / profil";
+            } else {
+                btnGreen.className = "tab-btn";
+                btnRed.className = "tab-btn active-red";
+                headerCol.innerText = "Piste & Période d'effet";
+            }
+            filtrerEtAfficher();
+        }
+
+        function filtrerEtAfficher() {
+            const tbody = document.getElementById("admin-table-body");
+            tbody.innerHTML = "";
+
+            const searchVal = document.getElementById("admin-search-input").value.toLowerCase().trim();
+            const statusFilter = document.getElementById("admin-status-filter").value.toLowerCase();
+
+            const itemsSource = activeTab === "green" ? allGreenList : allBlackList;
+
+            const itemsFiltres = itemsSource.filter(item => {
+                const platform = (item.platform || "").toLowerCase();
+                const releaseTitle = (item.releaseTitle || "").toLowerCase();
+                const userUid = (item.userUid || "").toLowerCase();
+                const track = (item.track || "").toLowerCase();
+                const status = (item.status || "demandé").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                const matchSearch = platform.includes(searchVal) || releaseTitle.includes(searchVal) || userUid.includes(searchVal) || track.includes(searchVal);
+
+                let matchStatus = true;
+                if (statusFilter === "demande") matchStatus = status.includes("demand") || status === "";
+                else if (statusFilter === "valide") matchStatus = status.includes("valide") || status.includes("approuv");
+                else if (statusFilter === "refuse") matchStatus = status.includes("refus");
+
+                return matchSearch && matchStatus;
+            });
+
+            if (itemsFiltres.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="table-loading">Aucune demande trouvée avec ces critères.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = itemsFiltres.map(item => {
+                const rawStatus = item.status || "Demandé";
+                const normStatus = rawStatus.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                let statusClass = "status-demande";
+                if (normStatus.includes("valide") || normStatus.includes("approuv")) statusClass = "status-valide";
+                else if (normStatus.includes("refus")) statusClass = "status-refuse";
+
+                let specificContent = "";
+                if (activeTab === "green") {
+                    const links = Array.isArray(item.links) ? item.links : (item.link ? [item.link] : []);
+                    specificContent = `
+                        <ul class="link-list">
+                            ${links.map(l => `<li><a href="${l}" target="_blank" rel="noopener">${l}</a></li>`).join('')}
+                        </ul>
+                    `;
+                } else {
+                    let periodStr = "Toutes périodes";
+                    if (item.startDate || item.endDate) {
+                        periodStr = `Du ${item.startDate || '?'} au ${item.endDate || ' ?'}`;
+                    }
+                    specificContent = `
+                        <strong>Piste :</strong> ${item.track || 'N/A'}<br>
+                        <span style="font-size: 12px; color: #64748b;">${periodStr}</span>
+                    `;
+                }
+
+                // Permet de revoir et réajuster la décision en affichant les boutons pertinents selon l'état actuel
+                const isValide = normStatus.includes("valide") || normStatus.includes("approuv");
+                const isRefuse = normStatus.includes("refus");
+                const isDemande = !isValide && !isRefuse;
+
+                return `
+                    <tr>
+                        <td><strong>${item.platform || 'Plateforme'}</strong></td>
+                        <td><span class="uid-pill">${item.userUid || 'Inconnu'}</span></td>
+                        <td>${item.releaseTitle || 'Non renseigné'} <span style="font-size: 11px; color:#888;">(ID: ${item.releaseId || 'N/A'})</span></td>
+                        <td>${specificContent}</td>
+                        <td><span class="badge-status ${statusClass}">${rawStatus}</span></td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            ${!isValide ? `<button class="btn-action btn-approve" onclick="changerStatutDemande('${activeTab}', ${item.id}, '${item.userUid}', 'Validé')">Valider</button>` : ''}
+                            ${!isRefuse ? `<button class="btn-action btn-reject" onclick="changerStatutDemande('${activeTab}', ${item.id}, '${item.userUid}', 'Refusé')">Refuser</button>` : ''}
+                            ${!isDemande ? `<button class="btn-action btn-reset" onclick="changerStatutDemande('${activeTab}', ${item.id}, '${item.userUid}', 'Demandé')">Remettre en attente</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        window.changerStatutDemande = async function (type, itemId, userUid, nouveauStatut) {
+            const endpoint = type === 'green'
+                ? `/api/users/${userUid}/greenlist/${itemId}`
+                : `/api/users/${userUid}/blacklist/${itemId}`;
+
+            try {
+                // 1. Mise à jour en BDD via PATCH API
+                await api.patch(endpoint, { status: nouveauStatut });
+
+                // 2. Envoi d'une notification push + e-mail de notification via le système unifié
+                const listName = type === 'green' ? 'GreenList' : 'BlackList';
+                await api.post(`/api/users/${userUid}/notifications`, {
+                    title: `Mise à jour ${listName} : ${nouveauStatut}`,
+                    message: `Votre demande ${listName} (${type === 'green' ? 'Liste Verte' : 'Liste Rouge'}) a été mise à jour avec le statut : ${nouveauStatut}.`,
+                    type: type === 'green' ? 'greenlist' : 'blacklist',
+                    link: '/liste.html'
+                }).catch(e => console.warn("Erreur envoi notification utilisateur :", e));
+
+                afficherToast(`Décision mise à jour et notifiée : ${nouveauStatut} pour #${itemId}`);
+
+                const targetArray = type === 'green' ? allGreenList : allBlackList;
+                const foundIndex = targetArray.findIndex(i => i.id === itemId);
+                if (foundIndex !== -1) {
+                    targetArray[foundIndex].status = nouveauStatut;
+                }
+
+                mettreAJourStats();
+                filtrerEtAfficher();
+            } catch (err) {
+                afficherToast("Erreur lors de la révision de la décision : " + err.message);
+            }
+        }
+
+        document.getElementById("admin-search-input").addEventListener("input", filtrerEtAfficher);
+        document.getElementById("admin-status-filter").addEventListener("change", filtrerEtAfficher);
+
+        injecterComposants();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                if (typeof db !== "undefined") {
+                    chargerProfilNavbar(db, user);
+                } else {
+                    chargerProfilNavbar(null, user);
+                }
+                chargerToutesLesDemandes();
+            } else {
+                window.location.href = "/login.html";
+            }
+        });
+
+        function afficherToast(message) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+
+</html>

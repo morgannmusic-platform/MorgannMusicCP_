@@ -32,7 +32,9 @@
         <nav class="tabs" role="tablist" aria-label="Sections du compte">
             <button class="tab-btn is-active" data-tab="profile" role="tab" aria-selected="true">Compte</button>
             <button class="tab-btn" data-tab="contact" role="tab" aria-selected="false">Coordonnées</button>
+            <button class="tab-btn" data-tab="email" role="tab" aria-selected="false">Email</button>
             <button class="tab-btn" data-tab="subscription" role="tab" aria-selected="false">Abonnement</button>
+            <button class="tab-btn" data-tab="documents" role="tab" aria-selected="false">Documents</button>
             <button class="tab-btn" data-tab="security" role="tab" aria-selected="false">Sécurité</button>
         </nav>
         <form id="account-form">
@@ -97,6 +99,28 @@
                     <p class="account-feedback feedback" role="status" aria-live="polite"></p>
                 </div>
             </section>
+            <section class="tab-panel" data-panel="email" role="tabpanel">
+                <div class="security-box">
+                    <h3>Préférences de communication</h3>
+                    <p>Gérez vos abonnements aux e-mails et à la newsletter Morgann Music CP.</p>
+
+                    <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 12px;">
+                        <input id="newsletter-enabled" name="newsletter_enabled" type="checkbox"
+                            style="width: 20px; height: 20px; accent-color: #d0a75a; cursor: pointer;">
+                        <label for="newsletter-enabled" style="cursor: pointer; font-weight: 500; color: #333;">
+                            Je souhaite recevoir la newsletter et les actualités par e-mail
+                        </label>
+                    </div>
+                    <p style="font-size: 13px; color: #666; margin-top: 8px; margin-left: 32px;">
+                        En cochant cette case, vous acceptez de recevoir nos dernières actualités, annonces de sorties
+                        et mises à jour du portail.
+                    </p>
+                </div>
+                <div class="section-actions" style="margin-top: 2rem;">
+                    <button type="submit" class="save-btn">Enregistrer les préférences</button>
+                    <p class="account-feedback feedback" role="status" aria-live="polite"></p>
+                </div>
+            </section>
             <section class="tab-panel" data-panel="subscription" role="tabpanel">
                 <div class="info-grid">
                     <article class="info-card">
@@ -119,6 +143,45 @@
                         <button id="manage-billing-btn" type="button" class="save-btn" style="background: #d0a75a;">
                             💳 Gérer / Résilier mon abonnement
                         </button>
+                    </div>
+                </div>
+            </section>
+            <section class="tab-panel" data-panel="documents" role="tabpanel">
+                <div class="security-box">
+                    <h3>Vos documents</h3>
+                    <p>Retrouvez ci-dessous tous les documents rattachés à votre compte. Vous pouvez les consulter en
+                        ligne ou les télécharger.</p>
+
+                    <div id="user-documents-list"
+                        style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- État vide par défaut avec le cactus SVG du désert -->
+                        <div style="text-align: center; padding: 40px 20px; color: #666;">
+                            <svg width="120" height="120" viewBox="0 0 200 200" fill="none"
+                                xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 15px auto; display: block;">
+                                <!-- Sol du désert -->
+                                <path d="M20 160C60 150 140 150 180 160" stroke="#d0a75a" stroke-width="4"
+                                    stroke-linecap="round" />
+                                <path d="M40 170C80 165 120 165 160 170" stroke="#d0a75a" stroke-width="2"
+                                    stroke-linecap="round" opacity="0.6" />
+                                <!-- Soleil -->
+                                <circle cx="150" cy="50" r="18" fill="#d0a75a" opacity="0.3" />
+                                <!-- Cactus principal -->
+                                <path d="M100 60V155" stroke="#556b2f" stroke-width="14" stroke-linecap="round" />
+                                <!-- Bras gauche du cactus -->
+                                <path d="M100 95H75C68.3726 95 63 99.3726 63 105V115C63 121.627 68.3726 127 75 127H100"
+                                    stroke="#556b2f" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M75 95V80" stroke="#556b2f" stroke-width="10" stroke-linecap="round" />
+                                <!-- Bras droit du cactus -->
+                                <path
+                                    d="M100 110H125C131.627 110 137 114.373 137 121V130C137 136.627 131.627 142 125 142H100"
+                                    stroke="#556b2f" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+                                <path d="M125 110V95" stroke="#556b2f" stroke-width="10" stroke-linecap="round" />
+                            </svg>
+                            <p style="font-weight: 600; font-size: 16px; color: #2c3e10; margin: 0 0 5px 0;">Aucun
+                                document pour le moment</p>
+                            <p style="font-size: 13px; color: #777; margin: 0;">C'est bien vide par ici... Il n'y a pas
+                                de document disponible pour l'instant !</p>
+                        </div>
                     </div>
                 </div>
             </section>

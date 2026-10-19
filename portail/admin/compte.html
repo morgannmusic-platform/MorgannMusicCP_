@@ -115,6 +115,11 @@
             margin-top: 16px;
         }
 
+        .item-card:hover {
+            transform: translateY(-3px);
+            border-color: #FC8FB0;
+        }
+
         .item-card {
             background-color: rgba(232, 232, 232, 0.115);
             backdrop-filter: blur(62px);
@@ -125,19 +130,19 @@
             padding: 12px;
             text-align: center;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .item-card:hover {
-            transform: translateY(-3px);
-            border-color: #FC8FB0;
         }
 
         .item-cover {
             width: 100%;
-            aspect-ratio: 1/1;
-            border-radius: 8px;
+            aspect-ratio: 1 / 1;
+            /* Force un carré parfait */
+            border-radius: 12px;
             object-fit: cover;
+            /* Remplit le carré proprement sans déformer l'image */
             background: #e2e8f0;
             margin-bottom: 8px;
         }
@@ -160,6 +165,82 @@
             margin-top: 10px;
             font-size: 14px;
             display: none;
+        }
+
+        .documents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .document-row {
+            background-color: rgba(232, 232, 232, 0.2);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .document-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .document-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .document-desc {
+            font-size: 12px;
+            color: #525252;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-action {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-decoration: none;
+            white-space: nowrap;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-action:hover {
+            opacity: 0.85;
+        }
+
+        .btn-open {
+            background: #d0a75a;
+            color: #fff;
+        }
+
+        .btn-download {
+            background: #334155;
+            color: #fff;
+        }
+
+        .btn-delete {
+            background: #c62828;
+            color: #fff;
         }
     </style>
 </head>
@@ -254,6 +335,40 @@
                     </form>
                 </div>
 
+                <!-- SECTION DES DOCUMENTS DU COMPTE -->
+                <div class="card">
+                    <h3 style="margin: 0; color: #000000;">Documents du compte</h3>
+
+                    <!-- Formulaire d'import de document -->
+                    <form id="document-form"
+                        style="margin-top: 16px; border-bottom: 1px solid rgba(189, 189, 189, 0.4); padding-bottom: 20px;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 15px; color: #333;">Importer un nouveau document</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Titre du document</label>
+                                <input type="text" id="docTitle" class="form-control" required
+                                    placeholder="Ex: Contrat de distribution">
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <input type="text" id="docDescription" class="form-control"
+                                    placeholder="Ex: Signé le...">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Fichier</label>
+                                <input type="file" id="docFile" class="form-control" required style="padding: 8px;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save" style="margin-top: 12px;">Importer le document</button>
+                        <div id="document-status" class="alert-status"></div>
+                    </form>
+
+                    <!-- Liste des documents -->
+                    <div id="documents-list-container" class="documents-list" style="margin-top: 20px;">
+                        <p style="color: #64748b; font-size: 14px;">Chargement des documents...</p>
+                    </div>
+                </div>
+
                 <!-- SECTION DES SORTIES / RELEASES -->
                 <div class="card">
                     <h3 style="margin: 0; color: #000000;">Sorties / Musiques</h3>
@@ -303,7 +418,7 @@
                 return api.fileUrl(rawUrl);
             }
             const cleanPath = rawUrl.startsWith('/') ? rawUrl : '/' + rawUrl;
-            const baseUrl = api.baseUrl ? api.baseUrl.replace(/\/$/, '') : '';
+            const baseUrl = api.BASE_URL ? api.BASE_URL.replace(/\/$/, '') : '';
             return `${baseUrl}${cleanPath}`;
         }
 
@@ -363,9 +478,10 @@
                     avatarContainer.innerHTML = `<span>${name.charAt(0).toUpperCase() || "U"}</span>`;
                 }
 
-                // Charger les contenus D1/D3 associés
+                // Charger les contenus associés
                 chargerSorties();
                 chargerArtistes();
+                chargerDocuments();
 
             } catch (err) {
                 console.error("Erreur de chargement du profil D1/D3 :", err);
@@ -399,6 +515,147 @@
                 console.error("Erreur de mise à jour :", err);
                 statusDiv.style.color = '#ef4444';
                 statusDiv.textContent = "Erreur lors de la sauvegarde.";
+            }
+        });
+
+        // Chargement des documents du compte avec option Ouvrir / Télécharger / Supprimer et état vide (Cactus SVG)
+        async function chargerDocuments() {
+            const container = document.getElementById('documents-list-container');
+            try {
+                const res = await api.get(`/api/users/${targetUserId}/documents`);
+                const docs = Array.isArray(res) ? res : (res.documents || res.data || []);
+
+                if (!docs || docs.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 30px 20px; color: #666;">
+                            <svg width="100" height="100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 10px auto; display: block;">
+                                <path d="M20 160C60 150 140 150 180 160" stroke="#d0a75a" stroke-width="4" stroke-linecap="round"/>
+                                <path d="M40 170C80 165 120 165 160 170" stroke="#d0a75a" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                                <circle cx="150" cy="50" r="18" fill="#d0a75a" opacity="0.3"/>
+                                <path d="M100 60V155" stroke="#556b2f" stroke-width="14" stroke-linecap="round"/>
+                                <path d="M100 95H75C68.3726 95 63 99.3726 63 105V115C63 121.627 68.3726 127 75 127H100" stroke="#556b2f" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M75 95V80" stroke="#556b2f" stroke-width="10" stroke-linecap="round"/>
+                                <path d="M100 110H125C131.627 110 137 114.373 137 121V130C137 136.627 131.627 142 125 142H100" stroke="#556b2f" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M125 110V95" stroke="#556b2f" stroke-width="10" stroke-linecap="round"/>
+                            </svg>
+                            <p style="font-weight: 600; font-size: 15px; color: #2c3e10; margin: 0 0 4px 0;">Aucun document pour le moment</p>
+                            <p style="font-size: 12px; color: #777; margin: 0;">Il n'y a pas de document disponible pour cet utilisateur.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = docs.map(doc => {
+                    const docId = doc.id;
+                    const title = doc.title || doc.name || "Document sans titre";
+                    const desc = doc.description || "Aucune description";
+                    const fileUrl = formerUrlComplet(doc.file_url || doc.fileUrl || doc.url || doc.path);
+
+                    return `
+                        <div class="document-row" data-doc-id="${docId}">
+                            <div class="document-info">
+                                <span class="document-title">${title}</span>
+                                <span class="document-desc">${desc}</span>
+                            </div>
+                            <div class="document-actions">
+                                ${fileUrl ? `
+                                    <a href="${fileUrl}" target="_blank" rel="noopener noreferrer" class="btn-action btn-open">👁️ Ouvrir</a>
+                                    <a href="${fileUrl}" download class="btn-action btn-download">📥 Télécharger</a>
+                                ` : ''}
+                                <button type="button" class="btn-action btn-delete" onclick="supprimerDocument('${docId}')">🗑️ Supprimer</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                console.error("Erreur de chargement des documents :", e);
+                container.innerHTML = `<p style="color: #ef4444; font-size: 14px;">Erreur de chargement des documents.</p>`;
+            }
+        }
+
+        // Fonction globale pour supprimer un document
+        window.supprimerDocument = async function (docId) {
+            if (!confirm("Voulez-vous vraiment supprimer ce document ?")) return;
+
+            try {
+                const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+                const response = await fetch(`${api.BASE_URL}/api/users/${targetUserId}/documents/${docId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    }
+                });
+
+                if (!response.ok) {
+                    const errJson = await response.json().catch(() => ({}));
+                    throw new Error(errJson.error || "Erreur lors de la suppression");
+                }
+
+                // Recharger la liste
+                chargerDocuments();
+            } catch (err) {
+                console.error("Erreur suppression document :", err);
+                alert(`Erreur : ${err.message}`);
+            }
+        };
+
+        // Soumission du formulaire d'import de document via api.BASE_URL
+        document.getElementById('document-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('document-status');
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = '#64748b';
+            statusDiv.textContent = "Importation du document en cours...";
+
+            const title = document.getElementById('docTitle').value.trim();
+            const description = document.getElementById('docDescription').value.trim();
+            const fileInput = document.getElementById('docFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                statusDiv.style.color = '#ef4444';
+                statusDiv.textContent = "Veuillez sélectionner un fichier.";
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('description', description);
+                formData.append('file', file);
+
+                const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+                const response = await fetch(`${api.BASE_URL}/api/users/${targetUserId}/documents`, {
+                    method: 'POST',
+                    headers: {
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errJson = await response.json().catch(() => ({}));
+                    throw new Error(errJson.error || "Erreur réseau lors de l'upload");
+                }
+
+                statusDiv.style.color = '#10b981';
+                statusDiv.textContent = "Document importé avec succès !";
+
+                // Réinitialiser le formulaire
+                document.getElementById('docTitle').value = '';
+                document.getElementById('docDescription').value = '';
+                fileInput.value = '';
+
+                // Recharger la liste des documents
+                chargerDocuments();
+
+                setTimeout(() => statusDiv.style.display = 'none', 3000);
+
+            } catch (err) {
+                console.error("Erreur d'importation :", err);
+                statusDiv.style.color = '#ef4444';
+                statusDiv.textContent = `Erreur lors de l'importation du document.`;
             }
         });
 

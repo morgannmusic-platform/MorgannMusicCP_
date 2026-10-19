@@ -36,6 +36,7 @@ const postalInput = document.getElementById("postal-code");
 const ibanInput = document.getElementById("iban");
 const avatarInput = document.getElementById("avatar-input");
 const avatarPreviewImg = document.getElementById("avatar-preview-img");
+const newsletterCheckbox = document.getElementById("newsletter-enabled");
 
 const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
@@ -119,6 +120,10 @@ onAuthStateChanged(auth, async (user) => {
         cityInput.value = data.city || "";
         postalInput.value = data.postalCode || "";
         ibanInput.value = data.iban || "";
+
+        if (newsletterCheckbox) {
+            newsletterCheckbox.checked = data.newsletterEnabled !== false;
+        }
 
         if (data.photoURL && avatarPreviewImg) {
             avatarPreviewImg.src = api.fileUrl(data.photoURL);
@@ -220,6 +225,49 @@ onAuthStateChanged(auth, async (user) => {
         const safe = roleClassMap[role] ? role : "user";
         roleBadge.textContent = roleLabelMap[safe];
         roleBadge.className = `role-badge ${roleClassMap[safe]}`;
+        // Chargement des documents de l'utilisateur
+        const userDocumentsList = document.getElementById("user-documents-list");
+        async function chargerDocumentsClient() {
+            if (!userDocumentsList) return;
+            try {
+                const res = await api.get(`/api/users/${user.uid}/documents`);
+                const docs = Array.isArray(res) ? res : (res.documents || res.data || []);
+
+                if (!docs || docs.length === 0) {
+                    // Conserve le bloc SVG de l'état vide (cactus) si aucun document
+                    return;
+                }
+
+                userDocumentsList.innerHTML = docs.map(doc => {
+                    const title = doc.title || doc.name || "Document sans titre";
+                    const desc = doc.description || "Aucune description";
+                    // Utilisation de api.fileUrl pour gérer correctement le lien de téléchargement/affichage
+                    const fileUrl = api.fileUrl(doc.file_url || doc.fileUrl || doc.url || doc.path);
+
+                    return `
+                        <div class="document-row" style="background-color: rgba(232, 232, 232, 0.2); border: 1px solid rgba(189, 189, 189, 0.438); border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <div class="document-info" style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 200px;">
+                                <span class="document-title" style="font-weight: 600; font-size: 14px; color: #000;">${title}</span>
+                                <span class="document-desc" style="font-size: 12px; color: #525252;">${desc}</span>
+                            </div>
+                            <div class="document-actions" style="display: flex; gap: 8px; align-items: center;">
+                                ${fileUrl ? `
+                                    <a href="${fileUrl}" target="_blank" rel="noopener noreferrer" style="padding: 6px 14px; border-radius: 20px; font-size: 12px; text-decoration: none; font-weight: 600; background: #d0a75a; color: #fff;">👁️ Ouvrir</a>
+                                    <a href="${fileUrl}" download style="padding: 6px 14px; border-radius: 20px; font-size: 12px; text-decoration: none; font-weight: 600; background: #334155; color: #fff;">📥 Télécharger</a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                console.error("Erreur de chargement des documents :", e);
+                userDocumentsList.innerHTML = `<p style="color: #ef4444; font-size: 14px;">Erreur de chargement des documents.</p>`;
+            }
+        }
+
+        // Appeler la fonction lors du chargement de la page
+        chargerDocumentsClient();
 
         form?.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -252,6 +300,7 @@ onAuthStateChanged(auth, async (user) => {
                     postalCode: postalInput.value.trim(),
                     iban: ibanInput.value.trim() || null,
                     photoURL: photoURL,
+                    newsletterEnabled: newsletterCheckbox ? newsletterCheckbox.checked : true
                 });
 
                 data.photoURL = photoURL;

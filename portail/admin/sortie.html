@@ -218,6 +218,12 @@
                                 class="form-control"></div>
                         <div class="form-group"><label>Nom du Label (LabelName)</label><input type="text"
                                 id="edit-labelName" class="form-control"></div>
+                        <div class="form-group"><label>Dolby Atmos</label>
+                            <select id="edit-dolbyAtmos" class="form-control">
+                                <option value="false">Non</option>
+                                <option value="true">Oui</option>
+                            </select>
+                        </div>
                         <div class="form-group"><label>Genre Principal</label><input type="text" id="edit-primaryGenre"
                                 class="form-control"></div>
                         <div class="form-group"><label>Genre Secondaire</label><input type="text"
@@ -314,7 +320,6 @@
         let pistesActuelles = [];
         let ancienStatut = "";
 
-        // Fonction d'encodage audio natif pour convertir tout fichier en WAV haute qualité
         async function convertAudioToWavNative(fileOrBlob) {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const arrayBuffer = await fileOrBlob.arrayBuffer();
@@ -332,10 +337,10 @@
             function setUint16(data) { view.setUint16(offset, data, true); offset += 2; }
             function setUint32(data) { view.setUint32(offset, data, true); offset += 4; }
 
-            setUint32(0x46464952); // "RIFF"
+            setUint32(0x46464952);
             setUint32(length - 8);
-            setUint32(0x45564157); // "WAVE"
-            setUint32(0x20746d66); // "fmt " chunk
+            setUint32(0x45564157);
+            setUint32(0x20746d66);
             setUint32(16);
             setUint16(1);
             setUint16(numOfChan);
@@ -343,7 +348,7 @@
             setUint32(sampleRate * 2 * numOfChan);
             setUint16(numOfChan * 2);
             setUint16(16);
-            setUint32(0x61746164); // "data" 
+            setUint32(0x61746164);
             setUint32(length - pos - 4);
 
             for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
@@ -362,7 +367,6 @@
             return new Blob([buffer], { type: "audio/wav" });
         }
 
-        // Fonction utilitaire pour s'assurer que les URL relatives pointent vers le bon Worker
         function corrigerUrlFichier(url) {
             if (!url) return "";
             if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
@@ -440,7 +444,6 @@
             });
         }
 
-        // Fonction d'importation et de lecture d'un fichier .lrc de paroles synchronisées
         window.importerFichierLrc = function (index) {
             const fileInput = document.createElement("input");
             fileInput.type = "file";
@@ -463,7 +466,6 @@
             fileInput.click();
         };
 
-        // Déclencheur d'importation de fichier local avec conversion WAV
         window.importerAudioLocal = function (index) {
             const fileInput = document.createElement("input");
             fileInput.type = "file";
@@ -501,7 +503,6 @@
             fileInput.click();
         };
 
-        // Déclencheur d'importation via lien distant avec téléchargement proxy et conversion WAV
         window.importerAudioLien = async function (index) {
             const urlDistant = prompt("Entrez le lien direct du fichier audio (MP3, WAV, S3...) :");
             if (!urlDistant) return;
@@ -638,6 +639,7 @@
                     if (el) el.value = data[f] || "";
                 });
 
+                document.getElementById("edit-dolbyAtmos").value = data.hasDolbyAtmos || data.dolbyAtmos ? "true" : "false";
                 document.getElementById("edit-showOnMmcpCatalog").value = data.showOnMmcpCatalog !== undefined ? String(data.showOnMmcpCatalog) : "true";
                 document.getElementById("edit-manualPlatforms").value = data.manualPlatforms !== undefined ? String(data.manualPlatforms) : "false";
                 document.getElementById("edit-selectedPlatforms").value = Array.isArray(data.selectedPlatforms) ? data.selectedPlatforms.join(", ") : "";
@@ -732,6 +734,7 @@
             }
 
             const updateData = {
+                dolbyAtmos: document.getElementById("edit-dolbyAtmos").value === "true",
                 showOnMmcpCatalog: document.getElementById("edit-showOnMmcpCatalog").value === "true",
                 manualPlatforms: document.getElementById("edit-manualPlatforms").value === "true",
                 selectedPlatforms: selPlat ? selPlat.split(",").map(s => s.trim()) : [],

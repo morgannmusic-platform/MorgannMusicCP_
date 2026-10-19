@@ -1,18 +1,15 @@
 <head>
     <script>
-        // Écoute globale : fonctionne à tous les coups, même en injection dynamique
         document.addEventListener("click", (e) => {
-            // Regarde si on a cliqué sur le bouton "+" ou un de ses enfants (.plus-icon)
             const btnMore = e.target.closest("#btn-more");
             const moreWrapper = document.querySelector(".more-dropdown-wrapper");
 
             if (btnMore && moreWrapper) {
-                e.stopPropagation(); // Empêche le clic de fermer immédiatement le menu
+                e.stopPropagation();
                 moreWrapper.classList.toggle("open");
                 return;
             }
 
-            // Si le menu est ouvert et qu'on clique n'importe où ailleurs, on le ferme
             if (moreWrapper && moreWrapper.classList.contains("open") && !e.target.closest(".more-dropdown-wrapper")) {
                 moreWrapper.classList.remove("open");
             }
@@ -46,7 +43,7 @@
 
         <li class="more-dropdown-wrapper">
             <button type="button" class="btn-more-trigger" id="btn-more">
-                <span class="plus-icon">+</span>
+                <span class="plus-icon"><img src="/assets/img/icon/plus.png" alt="plus" style="width: 18px;"></span>
             </button>
             <div class="more-menu" id="more-links-menu">
                 <a href="/portail/mes-revenus.html">
@@ -67,10 +64,19 @@
                     <img src="/assets/img/icon/Timer-Zero--Streamline-Flex.svg" alt="" class="icon">
                     <span class="text-dropdown">Outils</span>
                 </a>
+                <a href="/portail/liste.html">
+                    <img src="/assets/img/icon/Arrow-Roadmap--Streamline-Flex.svg" alt="" class="icon">
+                    <span class="text-dropdown">Liste Verte/Noire</span>
+                </a>
 
                 <a href="/portail/profil.html">
                     <img src="/assets/img/icon/User-Full-Body--Streamline-Flex.svg" alt="" class="icon">
                     <span class="text-dropdown">Profil</span>
+                </a>
+                <a href="/portail/litual.html">
+                    <img src="/assets/img/litual/litual-logo.png" alt="Litual AI" class="icon"
+                        style="width: 18px; height: 18px;">
+                    <span class="text-dropdown">Litual</span>
                 </a>
                 <a href="/portail/support/index.html">
                     <img src="/assets/img/icon/Information-Circle--Streamline-Flex.svg" alt="" class="icon">
@@ -87,7 +93,6 @@
     </div>
 </nav>
 <style>
-    /* --- STYLE DE BASE & RESPONSIVE MOBILE (Bas de l'écran) --- */
     .responsive-nav {
         position: fixed;
         bottom: 20px;
@@ -95,7 +100,7 @@
         transform: translateX(-50%);
         width: 90%;
         max-width: 450px;
-        background-color: rgba(232, 232, 232, 0.349);
+        background-color: rgba(255, 255, 255, 0.281);
         backdrop-filter: blur(62px);
         -webkit-backdrop-filter: blur(62px);
         border: 1px solid rgba(189, 189, 189, 0.438);
@@ -106,9 +111,31 @@
         box-sizing: border-box;
     }
 
+    @media (prefers-color-scheme: dark) {
+
+        .responsive-nav {
+            background-color: rgba(0, 0, 0, 0.281) !important;
+        }
+
+        .more-menu {
+            background-color: #200009 !important;
+        }
+    }
+
+
+
     .sidebar-logo,
     .sidebar-footer {
         display: none;
+    }
+
+    .sidebar-logo .logo-img {
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .sidebar-logo .logo-img:hover {
+        transform: scale(1.05);
+        opacity: 0.85;
     }
 
     .responsive-nav ul {
@@ -132,14 +159,30 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #6e6e6e;
+        color: #000000;
         text-decoration: none;
         font-size: 11px;
         font-weight: 500;
         transition: all 0.2s ease;
         padding: 8px 0;
         width: 100%;
-        border-radius: 50px;
+        border-radius: 50px !important;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+        .text,
+        .text-dropdown {
+            color: rgb(255, 255, 255) !important;
+        }
+
+        .responsive-nav .icon {
+            filter: invert(1);
+        }
+
+        .plus-icon img {
+            filter: invert(1);
+        }
     }
 
     .responsive-nav .icon {
@@ -149,12 +192,31 @@
         transition: transform 0.2s ease;
     }
 
-    /* Masque le texte de la navbar principale sur mobile */
+    .responsive-nav a[href="/portail/litual.html"] .icon,
+    .more-menu a[href="/portail/litual.html"] .icon {
+        filter: brightness(0) saturate(100%);
+        transition: filter 0.2s ease, transform 0.2s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+
+        .responsive-nav a[href="/portail/litual.html"] .icon,
+        .more-menu a[href="/portail/litual.html"] .icon {
+            filter: brightness(0) saturate(100%) invert(1);
+        }
+    }
+
+    .responsive-nav a[href="/portail/litual.html"]:hover .icon,
+    .responsive-nav a[href="/portail/litual.html"].active .icon,
+    .more-menu a[href="/portail/litual.html"]:hover .icon,
+    .more-menu a[href="/portail/litual.html"].active .icon {
+        filter: brightness(0) invert(1);
+    }
+
     .responsive-nav li .text {
         display: none !important;
     }
 
-    /* --- EFFETS HOVER & ACTIVE --- */
     .responsive-nav a:hover,
     .responsive-nav a.active {
         color: #ffffff;
@@ -166,12 +228,11 @@
         filter: invert(1);
     }
 
-    .responsive-nav img:hover,
-    .responsive-nav .active img {
+    .responsive-nav a:hover .icon,
+    .responsive-nav a.active .icon {
         filter: brightness(100) invert(1);
     }
 
-    /* --- GESTION DU BOUTON PLUS --- */
     .more-dropdown-wrapper {
         position: relative;
         display: flex;
@@ -202,24 +263,25 @@
 
     .more-dropdown-wrapper.open .btn-more-trigger .plus-icon {
         transform: rotate(45deg);
-        color: #FC8FB0;
+
+
     }
 
-    /* --- LE DROPDOWN DROIT & PROPRE (MOBILE PAR DÉFAUT) --- */
     .more-menu {
         position: absolute;
-        bottom: 75px;
+        bottom: calc(100% + 10px);
         left: 50%;
         transform: translateX(-50%) translateY(15px);
 
         width: 52px;
-        /* Largeur mini pour l'icône seule sur mobile */
+        max-height: min(44vh, 260px);
+        overflow-y: auto;
 
-        background-color: rgb(240, 240, 240);
+        background-color: #FFF4F7;
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(189, 189, 189, 0.5);
-        border-radius: 24px;
+        border-radius: 30px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         padding: 8px;
         display: flex;
@@ -241,7 +303,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        /* Centré sur mobile */
         width: 100%;
         padding: 10px;
         box-sizing: border-box;
@@ -249,11 +310,10 @@
         text-decoration: none;
         font-size: 13px;
         font-weight: 600;
-        border-radius: 16px;
+        border-radius: 50px !important;
         transition: background 0.2s, color 0.2s;
     }
 
-    /* FIX 1 : Masque le texte du dropdown uniquement sur mobile */
     .more-menu .text-dropdown {
         display: none !important;
     }
@@ -269,7 +329,6 @@
         filter: brightness(100) invert(1);
     }
 
-    /* --- UNIQUE BLOC VERSION ORDINATEUR (DOCK GAUCHE) --- */
     @media (min-width: 768px) {
         .responsive-nav {
             bottom: auto;
@@ -280,7 +339,7 @@
             max-width: none;
             height: auto;
             padding: 24px 12px;
-            border-radius: 28px;
+            border-radius: 36px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -334,7 +393,6 @@
             transform: translateX(2px);
         }
 
-        /* Affiche le texte de la navbar principale sur PC */
         .responsive-nav li .text {
             display: flex !important;
         }
@@ -343,13 +401,11 @@
             font-size: 28px;
         }
 
-        /* --- CONFIG DROPDOWN POUR PC --- */
         .more-menu {
             bottom: auto;
             left: 185px;
             top: 0;
             width: 160px;
-            /* Reprend sa largeur confortable */
             transform: translateX(-15px) translateY(0);
         }
 
@@ -359,7 +415,6 @@
 
         .more-menu a {
             justify-content: flex-start;
-            /* Aligne l'icône à gauche sur PC */
             gap: 12px;
             padding: 10px 14px;
         }
@@ -369,7 +424,6 @@
             transform: translateX(2px);
         }
 
-        /* FIX 2 : Force le texte du dropdown à réapparaître sur PC */
         .more-menu .text-dropdown {
             display: inline-block !important;
         }
@@ -381,6 +435,18 @@
 
         .sidebar-footer a:hover {
             all: unset;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .responsive-nav {
+                background-color: (0, 0, 0, 0.281)
+            }
+
+            .sidebar-footer a {
+                color: #ffffff;
+            }
+
+
         }
 
 

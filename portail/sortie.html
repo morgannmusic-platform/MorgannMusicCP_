@@ -34,6 +34,13 @@
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
         }
 
+        .cover-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
         .cover-container {
             width: 250px;
             height: 250px;
@@ -48,6 +55,24 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .btn-download-cover {
+            background: #FC8FB0;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+            text-align: center;
+        }
+
+        .btn-download-cover:hover {
+            opacity: 0.85;
         }
 
         .badge-animated-cover {
@@ -199,7 +224,6 @@
             margin-bottom: 30px;
         }
 
-        /* Nouveaux styles spécifiques pour la section Première */
         .premiere-section {
             background-color: #fff9fa;
             border: 1px solid rgba(252, 143, 176, 0.2);
@@ -336,7 +360,6 @@
             border-color: #FC8FB0;
         }
 
-        /* Styles améliorés pour les inputs de la section Première */
         .premiere-section .form-group input {
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -394,8 +417,12 @@
     <div class="main-content">
         <div class="container">
             <div class="release-header-block">
-                <div class="cover-container" id="cover-container-wrapper">
-                    <img id="release-cover" src="" alt="Pochette">
+                <div class="cover-wrapper">
+                    <div class="cover-container" id="cover-container-wrapper">
+                        <img id="release-cover" src="" alt="Pochette">
+                    </div>
+                    <a id="btn-download-cover" class="btn-download-cover" href="#" download target="_blank">Télécharger
+                        la pochette</a>
                 </div>
                 <div class="release-main-info">
                     <div class="release-title-row">
@@ -412,7 +439,7 @@
                 Modifier la sortie
             </button>
 
-            <!-- Section de gestion du lien Morgann Music Première (D1) avec le nouveau design -->
+            <!-- Section de gestion du lien Morgann Music Première (D1) -->
             <div class="premiere-section">
                 <h2>
                     <span
@@ -530,10 +557,21 @@
                 }
 
                 nomArtisteActuel = data.artistName || "artiste";
+                listePistesGlobal = typeof data.tracks === 'string' ? JSON.parse(data.tracks) : (data.tracks || []);
+                const nombrePistes = listePistesGlobal.length;
 
-                // 1. Gestion de la pochette
+                // Vérification Dolby Atmos (présence sur la sortie ou sur l'une des pistes)
+                let hasDolbyAtmos = data.hasDolbyAtmos || data.dolbyAtmos || false;
+                if (!hasDolbyAtmos && listePistesGlobal.length > 0) {
+                    hasDolbyAtmos = listePistesGlobal.some(t => t.atmosFileUrl || t.atmos_file_url || t.atmosAudioUrl || t.atmosUrl);
+                }
+
+                // 1. Gestion de la pochette & bouton téléchargement
                 const coverContainer = document.getElementById("cover-container-wrapper");
+                const btnDownloadCover = document.getElementById("btn-download-cover");
                 const animatedCoverUrl = data.animatedCoverUrl || data.animatedCover;
+                const staticCover = data.coverUrl || data.cover || "/assets/img/icons/android-chrome-512x512.png";
+                const coverToUse = animatedCoverUrl || staticCover;
 
                 if (animatedCoverUrl) {
                     coverContainer.innerHTML = `
@@ -541,8 +579,12 @@
                         <div class="badge-animated-cover">Pochette animée traitée</div>
                     `;
                 } else {
-                    const staticCover = data.coverUrl || data.cover || "/assets/img/icons/android-chrome-512x512.png";
                     coverContainer.innerHTML = `<img id="release-cover" src="${api.fileUrl(staticCover)}" alt="Pochette">`;
+                }
+
+                if (btnDownloadCover) {
+                    btnDownloadCover.href = api.fileUrl(coverToUse);
+                    btnDownloadCover.setAttribute("download", `pochette_${releaseId}`);
                 }
 
                 // 2. Infos principales
@@ -559,19 +601,24 @@
                 territoiresGlobal = Array.isArray(data.territories) ? data.territories : (typeof data.territories === 'string' ? data.territories.split(',').map(s => s.trim()).filter(Boolean) : []);
                 plateformesGlobal = Array.isArray(data.selectedPlatforms) ? data.selectedPlatforms : (typeof data.selectedPlatforms === 'string' ? data.selectedPlatforms.split(',').map(s => s.trim()).filter(Boolean) : []);
 
-                // 4. Grille de métadonnées
+                // 4. Grille de métadonnées restreinte aux informations demandées
                 const grid = document.getElementById("global-metadata");
                 const mapFields = [
-                    { l: "Code UPC", v: data.upc }, { l: "Code Catalogue", v: data.catalogNumber }, { l: "Format", v: data.format }, { l: "Label", v: data.label },
-                    { l: "Nom du Label", v: data.labelName }, { l: "Date de Sortie", v: data.releaseDate }, { l: "Date Originale", v: data.originalReleaseDate },
-                    { l: "Genre Principal", v: data.primaryGenre }, { l: "Genre Secondaire", v: data.secondaryGenre }, { l: "Langue", v: data.language },
-                    { l: "Type de Licence", v: data.licenceType }, { l: "Copyright Standard", v: data.stdCopyright }, { l: "Copyright C", v: data.copyrightLineC },
-                    { l: "Copyright P", v: data.copyrightLineP }, { l: "Heure Exacte", v: data.exactTime }, { l: "Fuseau Horaire", v: data.timezone },
-                    { l: "Spotify URL", v: data.spotifyUrl }, { l: "Apple URL", v: data.appleUrl },
-                    { l: "Livraisons Additionnelles", v: Array.isArray(data.additionalDeliveries) ? data.additionalDeliveries.join(", ") : data.additionalDeliveries }
+                    { l: "Status", v: conf.texte },
+                    { l: "Nombre de pistes", v: nombrePistes },
+                    { l: "Dolby Atmos", v: hasDolbyAtmos ? "Oui" : "Non" },
+                    { l: "Code UPC", v: data.upc },
+                    { l: "Format", v: data.format },
+                    { l: "Label", v: data.label || data.labelName },
+                    { l: "Date de Sortie", v: data.releaseDate },
+                    { l: "Genre", v: data.primaryGenre || data.secondaryGenre },
+                    { l: "ID Catalogue", v: data.catalogNumber },
+                    { l: "Langue", v: data.language },
+                    { l: "Ligne Copyright", v: data.stdCopyright || data.copyrightLineC },
+                    { l: "Ligne Phonographe", v: data.copyrightLineP }
                 ];
 
-                let htmlGrid = mapFields.map(f => f.v ? `<div class="meta-item"><span class="meta-label">${f.l}</span><span class="meta-value">${f.v}</span></div>` : '').join('');
+                let htmlGrid = mapFields.map(f => f.v !== undefined && f.v !== null && f.v !== "" ? `<div class="meta-item"><span class="meta-label">${f.l}</span><span class="meta-value">${f.v}</span></div>` : '').join('');
 
                 if (territoiresGlobal.length > 0) {
                     htmlGrid += `
@@ -667,7 +714,6 @@
                 // 7. Liste des Pistes
                 const tList = document.getElementById("tracks-list");
                 tList.innerHTML = "";
-                listePistesGlobal = typeof data.tracks === 'string' ? JSON.parse(data.tracks) : (data.tracks || []);
                 listePistesGlobal.forEach((t, i) => {
                     const r = document.createElement("div");
                     r.className = "track-row";

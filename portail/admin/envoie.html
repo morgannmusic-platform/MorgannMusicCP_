@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration des Envois & Campagnes | MMCP Admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        /* Forcer tous les textes en noir ou sombre lisible sur fond clair */
+        body,
+        p,
+        span,
+        label,
+        h2,
+        h3,
+        input,
+        select,
+        textarea,
+        div {
+            color: #0f172a !important;
+        }
+
+        .page-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            padding: 10px 22px;
+            border: none;
+            background: rgba(232, 232, 232, 0.3);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #0f172a !important;
+            border-radius: 30px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background-color: #FC8FB0 !important;
+            color: #0f172a !important;
+            border-color: #FC8FB0;
+        }
+
+        .form-card {
+            padding: 30px;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+            max-width: 800px;
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a !important;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(189, 189, 189, 0.5);
+            font-size: 14px;
+            outline: none;
+            color: #0f172a !important;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #FC8FB0;
+            background-color: #ffffff;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+            border-radius: 20px;
+        }
+
+        .btn-submit {
+            padding: 12px 28px;
+            border: none;
+            background-color: #FC8FB0;
+            color: #0f172a !important;
+            font-weight: 800;
+            font-size: 14px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(252, 143, 176, 0.4);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: #f6729a;
+            transform: translateY(-1px);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: #f8ffe7;
+            padding: 30px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid #e1f5be;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            margin-bottom: 20px;
+            max-height: 50vh;
+        }
+
+        .recipient-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-size: 13px;
+            color: #0f172a !important;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <aside id="sidebar-injector" class="sidebar-container"></aside>
+
+        <main class="main-container">
+            <header id="navbar-injector" class="navbar-container"></header>
+
+            <div class="page-header-actions">
+                <div>
+                    <h2 class="page-title" style="margin: 0;">Centre d'Envois & Campagnes</h2>
+                    <p style="font-size: 14px; margin-top: 4px;">
+                        Gérez l'envoi d'e-mails transactionnels et de newsletters marketing.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Onglets Transactionnel / Marketing -->
+            <div class="tabs-container">
+                <button id="tab-trans-btn" class="tab-btn active" onclick="changerModeEnvoi('transactionnel')">
+                    📨 E-mails Transactionnels
+                </button>
+                <button id="tab-news-btn" class="tab-btn" onclick="changerModeEnvoi('newsletter')">
+                    📰 Newsletters / Marketing
+                </button>
+            </div>
+
+            <!-- FORMULAIRE TRANSACTIONNEL -->
+            <div id="form-transactionnel" class="form-card">
+                <form id="trans-form" onsubmit="envoyerTransactionnel(event)">
+                    <div class="form-group">
+                        <label class="form-label">Destinataire(s) Transactionnel</label>
+                        <select id="trans-recipient-type" class="form-control" onchange="toggleTransRecipientInput()"
+                            style="margin-bottom: 10px;">
+                            <option value="custom">Saisir une adresse e-mail spécifique</option>
+                            <option value="list">Choisir parmi la liste des utilisateurs</option>
+                            <option value="all">Tous les utilisateurs enregistrés</option>
+                        </select>
+
+                        <!-- Input e-mail unique -->
+                        <input type="email" id="trans-custom-email" class="form-control"
+                            placeholder="Entrez l'adresse e-mail..." />
+
+                        <!-- Résumé / Bouton choix multiples -->
+                        <div id="trans-list-container" style="display: none; gap: 10px; align-items: center;">
+                            <input type="text" id="trans-recipients-summary" class="form-control" readonly
+                                value="Aucun utilisateur sélectionné" style="flex: 1;" />
+                            <button type="button" class="btn-submit" onclick="ouvrirPopupTransRecipients()"
+                                style="padding: 12px 20px; font-size: 13px;">Sélectionner</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mode de contenu</label>
+                        <select id="trans-content-mode" class="form-control" onchange="toggleTransContentMode()">
+                            <option value="template">Utiliser le Template MMCP standard</option>
+                            <option value="html">Importer un fichier HTML personnalisé</option>
+                        </select>
+                    </div>
+
+                    <div id="trans-template-fields">
+                        <div class="form-group">
+                            <label class="form-label">Objet de l'e-mail</label>
+                            <input type="text" id="trans-subject" class="form-control"
+                                placeholder="Ex: Mise à jour importante..." required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Message / Corps de la notification</label>
+                            <textarea id="trans-message" class="form-control" placeholder="Rédigez votre message ici..."
+                                required></textarea>
+                        </div>
+                    </div>
+
+                    <div id="trans-html-fields" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Fichier HTML personnalisé</label>
+                            <input type="file" id="trans-html-file" class="form-control" accept=".html,.htm" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Objet de l'e-mail HTML</label>
+                            <input type="text" id="trans-html-subject" class="form-control"
+                                placeholder="Objet de l'e-mail HTML..." />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Adresse e-mail d'expédition (Sender)</label>
+                        <select id="trans-sender" class="form-control" required>
+                            <option value="notifications@mm-cp.uk">Morgann Music CP &lt;notifications@mm-cp.uk&gt;
+                            </option>
+                            <option value="support@mm-cp.uk">Support | Morgann Music CP &lt;support@mm-cp.uk&gt;
+                            </option>
+                            <option value="contact@mm-cp.uk">Morgann Music CP &lt;contact@mm-cp.uk&gt;</option>
+                            <option value="morgannrachedi@mm-cp.uk">Morgann Rachedi | Morgann Music CP
+                                &lt;morgannrachedi@mm-cp.uk&gt;</option>
+                            <option value="pro@mm-cp.uk">Morgann Music CP &lt;pro@mm-cp.uk&gt;</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Adresse de réponse (Reply-To)</label>
+                        <input type="email" id="trans-replyto" class="form-control" value="support@mm-cp.uk" required />
+                    </div>
+
+                    <button type="submit" class="btn-submit">Envoyer l'e-mail transactionnel</button>
+                </form>
+            </div>
+
+            <!-- FORMULAIRE NEWSLETTER / MARKETING -->
+            <div id="form-newsletter" class="form-card" style="display: none;">
+                <form id="news-form" onsubmit="envoyerNewsletter(event)">
+                    <div class="form-group">
+                        <label class="form-label">Destinataires Newsletter (Abonnés & Actifs)</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="news-recipients-summary" class="form-control" readonly
+                                value="Chargement des abonnés..." style="flex: 1;" />
+                            <button type="button" class="btn-submit" onclick="ouvrirPopupNewsletterRecipients()"
+                                style="padding: 12px 20px; font-size: 13px;">Voir la liste</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Objet de la Newsletter</label>
+                        <input type="text" id="news-subject" class="form-control"
+                            placeholder="Ex: Découvrez les nouveautés MMCP..." required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Importer le fichier HTML de la Newsletter</label>
+                        <input type="file" id="news-html-file" class="form-control" accept=".html,.htm" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Adresse e-mail d'expédition</label>
+                        <input type="text" class="form-control" value="news@mm-cp.uk" disabled
+                            style="background: rgba(0,0,0,0.05);" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Adresse de réponse (Reply-To)</label>
+                        <input type="text" class="form-control" value="contact@mm-cp.uk" disabled
+                            style="background: rgba(0,0,0,0.05);" />
+                    </div>
+
+                    <button type="submit" class="btn-submit">Diffuser la Newsletter</button>
+                </form>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL SÉLECTION UTILISATEURS TRANSACTIONNEL -->
+    <div id="trans-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Sélectionner des utilisateurs</h3>
+            <p style="font-size:13px; margin-top:0;">Cochez les destinataires pour l'envoi.</p>
+            <div id="trans-modal-body" class="modal-body">Chargement...</div>
+            <div style="text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-submit" onclick="fermerPopupTransRecipients()"
+                    style="padding: 8px 20px; font-size: 13px;">Valider la sélection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LISTE NEWSLETTER -->
+    <div id="news-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Destinataires Newsletter (Actifs & Abonnés)</h3>
+            <p style="font-size:13px; margin-top:0;">Comptes avec newsletter activée + abonnés inscrits.</p>
+            <div id="news-modal-body" class="modal-body">Chargement...</div>
+            <div style="text-align: right;">
+                <button type="button" class="btn-submit" onclick="fermerPopupNewsletterRecipients()"
+                    style="padding: 8px 20px; font-size: 13px;">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+        import { initSidebar } from "./sidebar.js";
+        import { chargerProfilNavbar } from "./navbar.js";
+
+        let allUsersList = [];
+        let selectedTransEmails = [];
+        let newsletterRecipientsList = [];
+
+        async function chargerDonneesInitiales() {
+            try {
+                const users = await api.get("/api/admin/users").catch(() => []);
+                allUsersList = Array.isArray(users) ? users : [];
+
+                const resNews = await api.get("/api/admin/newsletter").catch(() => ({ users: [], subscribers: [] }));
+
+                const mapNews = new Map();
+                (resNews.users || []).forEach(u => {
+                    if (u.email) mapNews.set(u.email.toLowerCase(), { email: u.email, name: u.fullName || u.firstName || "Compte Actif", source: "Utilisateur (Opt-in)" });
+                });
+                (resNews.subscribers || []).forEach(s => {
+                    if (s.email) mapNews.set(s.email.toLowerCase(), { email: s.email, name: s.name || "Abonné Newsletter", source: "Table Newsletter" });
+                });
+                newsletterRecipientsList = Array.from(mapNews.values());
+                const summaryEl = document.getElementById("news-recipients-summary");
+                if (summaryEl) summaryEl.value = `${newsletterRecipientsList.length} destinataire(s) éligible(s)`;
+            } catch (err) {
+                console.error("Erreur chargement initial :", err);
+            }
+        }
+
+        window.changerModeEnvoi = function (mode) {
+            const btnTrans = document.getElementById("tab-trans-btn");
+            const btnNews = document.getElementById("tab-news-btn");
+            const formTrans = document.getElementById("form-transactionnel");
+            const formNews = document.getElementById("form-newsletter");
+
+            if (mode === 'transactionnel') {
+                btnTrans.className = "tab-btn active";
+                btnNews.className = "tab-btn";
+                formTrans.style.display = "block";
+                formNews.style.display = "none";
+            } else {
+                btnTrans.className = "tab-btn";
+                btnNews.className = "tab-btn active";
+                formTrans.style.display = "none";
+                formNews.style.display = "block";
+            }
+        }
+
+        window.toggleTransRecipientInput = function () {
+            const val = document.getElementById("trans-recipient-type").value;
+            const customInput = document.getElementById("trans-custom-email");
+            const listContainer = document.getElementById("trans-list-container");
+
+            customInput.style.display = val === "custom" ? "block" : "none";
+            listContainer.style.display = val === "list" ? "flex" : "none";
+
+            if (val === "custom") customInput.required = true;
+            else customInput.required = false;
+        }
+
+        window.toggleTransContentMode = function () {
+            const mode = document.getElementById("trans-content-mode").value;
+            document.getElementById("trans-template-fields").style.display = mode === "template" ? "block" : "none";
+            document.getElementById("trans-html-fields").style.display = mode === "html" ? "block" : "none";
+        }
+
+        window.ouvrirPopupTransRecipients = function () {
+            const body = document.getElementById("trans-modal-body");
+            if (allUsersList.length === 0) {
+                body.innerHTML = "<p>Aucun utilisateur trouvé.</p>";
+            } else {
+                body.innerHTML = allUsersList.map(u => `
+                    <div class="recipient-item">
+                        <div>
+                            <input type="checkbox" value="${u.email}" class="trans-user-chk" ${selectedTransEmails.includes(u.email) ? 'checked' : ''} />
+                            <strong>${u.email}</strong> <span style="font-size:11px;">(${u.fullName || u.firstName || 'Sans nom'})</span>
+                        </div>
+                    </div>
+                `).join("");
+            }
+            document.getElementById("trans-modal").style.display = "flex";
+        }
+
+        window.fermerPopupTransRecipients = function () {
+            const checkboxes = document.querySelectorAll(".trans-user-chk:checked");
+            selectedTransEmails = Array.from(checkboxes).map(chk => chk.value);
+            const summary = document.getElementById("trans-recipients-summary");
+            if (selectedTransEmails.length > 0) {
+                summary.value = `${selectedTransEmails.length} utilisateur(s) sélectionné(s)`;
+            } else {
+                summary.value = "Aucun utilisateur sélectionné";
+            }
+            document.getElementById("trans-modal").style.display = "none";
+        }
+
+        window.ouvrirPopupNewsletterRecipients = function () {
+            const body = document.getElementById("news-modal-body");
+            if (newsletterRecipientsList.length === 0) {
+                body.innerHTML = "<p>Aucun destinataire éligible trouvé.</p>";
+            } else {
+                body.innerHTML = newsletterRecipientsList.map(r => `
+                    <div class="recipient-item">
+                        <div><strong>${r.email}</strong> <span style="font-size:11px;">(${r.name})</span></div>
+                        <span style="font-size: 11px; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 6px;">${r.source}</span>
+                    </div>
+                `).join("");
+            }
+            document.getElementById("news-modal").style.display = "flex";
+        }
+
+        window.fermerPopupNewsletterRecipients = function () {
+            document.getElementById("news-modal").style.display = "none";
+        }
+
+        window.envoyerTransactionnel = async function (e) {
+            e.preventDefault();
+            const recipientType = document.getElementById("trans-recipient-type").value;
+            const customEmail = document.getElementById("trans-custom-email").value.trim();
+            const contentMode = document.getElementById("trans-content-mode").value;
+            const sender = document.getElementById("trans-sender").value;
+            const replyTo = document.getElementById("trans-replyto").value;
+
+            let recipientsParam = "";
+            if (recipientType === "custom") {
+                recipientsParam = customEmail;
+            } else if (recipientType === "list") {
+                if (selectedTransEmails.length === 0) {
+                    afficherToast("Veuillez sélectionner au moins un utilisateur.");
+                    return;
+                }
+                recipientsParam = selectedTransEmails;
+            } else if (recipientType === "all") {
+                recipientsParam = "all_users";
+            }
+
+            let subject = "";
+            let message = "";
+            let htmlContent = "";
+
+            if (contentMode === "template") {
+                subject = document.getElementById("trans-subject").value.trim();
+                message = document.getElementById("trans-message").value.trim();
+            } else {
+                subject = document.getElementById("trans-html-subject").value.trim() || "Notification MMCP";
+                const fileInput = document.getElementById("trans-html-file");
+                if (fileInput.files && fileInput.files[0]) {
+                    htmlContent = await fileInput.files[0].text();
+                } else {
+                    afficherToast("Veuillez sélectionner un fichier HTML.");
+                    return;
+                }
+            }
+
+            try {
+                afficherToast("Envoi de l'e-mail transactionnel en cours...");
+                await api.post("/api/admin/send-email", {
+                    type: "transactional",
+                    subject,
+                    htmlContent: htmlContent || buildDefaultHtml(subject, message),
+                    recipients: recipientsParam,
+                    senderEmail: sender,
+                    replyToEmail: replyTo
+                });
+
+                afficherToast("E-mail transactionnel envoyé avec succès !");
+                document.getElementById("trans-form").reset();
+                toggleTransRecipientInput();
+            } catch (err) {
+                afficherToast("Erreur lors de l'envoi : " + err.message);
+            }
+        }
+
+        window.envoyerNewsletter = async function (e) {
+            e.preventDefault();
+            const subject = document.getElementById("news-subject").value.trim();
+            const fileInput = document.getElementById("news-html-file");
+
+            if (!fileInput.files || !fileInput.files[0]) {
+                afficherToast("Veuillez importer le fichier HTML de la newsletter.");
+                return;
+            }
+
+            const htmlContent = await fileInput.files[0].text();
+
+            if (newsletterRecipientsList.length === 0) {
+                afficherToast("Aucun destinataire éligible disponible pour la newsletter.");
+                return;
+            }
+
+            try {
+                afficherToast(`Diffusion de la newsletter en cours...`);
+                await api.post("/api/admin/send-email", {
+                    type: "newsletter",
+                    subject,
+                    htmlContent,
+                    recipients: "newsletter_list",
+                    senderEmail: "news@mm-cp.uk",
+                    replyToEmail: "contact@mm-cp.uk"
+                });
+
+                afficherToast("Newsletter diffusée avec succès !");
+                document.getElementById("news-form").reset();
+            } catch (err) {
+                afficherToast("Erreur lors de la diffusion : " + err.message);
+            }
+        }
+
+        function buildDefaultHtml(title, message) {
+            return `<div style="font-family:sans-serif; padding:20px; background:#f8ffe7; border-radius:20px; color:#0f172a;">
+                <h2 style="color:#FC8FB0;">${title}</h2>
+                <p style="color:#0f172a; line-height:1.5; white-space:pre-line;">${message}</p>
+            </div>`;
+        }
+
+        async function init() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) {
+                    document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+                    initSidebar(auth);
+                }
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) {
+                    document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+                }
+            } catch (e) { }
+        }
+
+        init();
+
+        // Chargement sécurisé après validation de l'état d'authentification Firebase
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "/login.html";
+            } else {
+                if (typeof chargerProfilNavbar === "function") chargerProfilNavbar(null, user);
+                await chargerDonneesInitiales();
+            }
+        });
+
+        function afficherToast(message) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+    </script>
+</body>
+
+</html>

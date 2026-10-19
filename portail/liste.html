@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Listes (GreenList & BlackList) - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #000000;
+            margin: 0;
+            padding: 20px;
+            margin-top: 3.8rem;
+            box-sizing: border-box;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: white;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-green {
+            background-color: #FC8FB0;
+            color: white;
+        }
+
+        .btn-green:hover {
+            background-color: #fc8fb0d4;
+        }
+
+        .btn-red {
+            background-color: #FC8FB0;
+            color: white;
+        }
+
+        .btn-red:hover {
+            background-color: #fc8fb0ce;
+        }
+
+        .btn-secondary {
+            background: #1e293b;
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #FC8FB0;
+            color: #FC8FB0;
+        }
+
+        .btn-outline:hover {
+            background: #FC8FB0;
+            color: white;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(200, 200, 200, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #64748b;
+            border-radius: 30px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active-green {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: #16a34a;
+        }
+
+        .tab-btn.active-red {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #dc2626;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .tab-btn {
+                color: #94a3b8;
+            }
+
+            .tab-btn.active-green {
+                background-color: rgba(34, 197, 94, 0.25);
+                color: #4ade80;
+            }
+
+            .tab-btn.active-red {
+                background-color: rgba(239, 68, 68, 0.25);
+                color: #f87171;
+            }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: white;
+            padding: 28px;
+            border-radius: 28px;
+            max-width: 580px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            transform: scale(0.92);
+            transition: transform 0.25s ease;
+            box-sizing: border-box;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .modal-card {
+                background: #18181b;
+                color: white;
+                border: 1px solid #3f3f46;
+            }
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(200, 200, 200, 0.2);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+            line-height: 1;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 16px;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            background: #ffffff;
+            color: #111827;
+            transition: border-color 0.2s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .form-input,
+            .form-select {
+                background: #27272a;
+                color: #f4f4f5;
+                border-color: #52525b;
+            }
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            border-color: #FC8FB0;
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.2);
+        }
+
+        /* Custom Platform Selector with Logos */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .platform-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .platform-option {
+                border-color: #3f3f46;
+                background: rgba(39, 39, 42, 0.6);
+            }
+        }
+
+        .platform-option:hover {
+            border-color: #FC8FB0;
+        }
+
+        .platform-option.selected-green {
+            border-color: #22c55e;
+            background-color: rgba(34, 197, 94, 0.12);
+        }
+
+        .platform-option.selected-red {
+            border-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.12);
+        }
+
+        .platform-icon {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .link-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .remove-link-btn {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .period-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Items List Display */
+        .data-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .item-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .item-card {
+                background: rgba(0, 0, 0, 0.3);
+                border-color: rgba(255, 255, 255, 0.15);
+            }
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .item-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .item-platform-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .status-badge {
+            margin-left: auto;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-demande {
+            background: #fef08a;
+            color: #854d0e;
+        }
+
+        .status-approuve {
+            background: #bbf7d0;
+            color: #166534;
+        }
+
+        .status-refuse {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .item-details {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .item-details p {
+            margin: 4px 0;
+        }
+
+        .item-link {
+            color: #FC8FB0;
+            text-decoration: none;
+            word-break: break-all;
+            display: inline-block;
+        }
+
+        .item-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="header-actions">
+                <div>
+                    <h2>Gestion des Listes</h2>
+                    <p style="color: #64748b; margin-top: -5px; font-size: 14px;">Gérez vos autorisations GreenList et
+                        vos signalements BlackList</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-green" onclick="ouvrirModalGreenList()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Ajouter à la Liste Verte
+                    </button>
+                    <button class="btn btn-red" onclick="ouvrirModalBlackList()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Ajouter à la Liste Rouge
+                    </button>
+                </div>
+            </div>
+
+            <!-- Onglets d'affichage -->
+            <div class="tabs-container">
+                <button id="tab-green-btn" class="tab-btn active-green" onclick="changerOnglet('green')">
+                    💚 GreenList (Liste Verte)
+                </button>
+                <button id="tab-red-btn" class="tab-btn" onclick="changerOnglet('red')">
+                    🚨 BlackList (Liste Rouge)
+                </button>
+            </div>
+
+            <!-- Contenu de la liste -->
+            <div id="list-content" class="data-card-grid">
+                <!-- Les cartes seront chargées dynamiquement -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE GREENLIST -->
+    <div id="modal-greenlist" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" style="color: #22c55e;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    Ajouter à la Liste Verte (GreenList)
+                </div>
+                <button class="close-btn" onclick="fermerModal('modal-greenlist')">&times;</button>
+            </div>
+
+            <form id="form-greenlist" onsubmit="soumettreGreenList(event)">
+                <!-- Sélection de la plateforme -->
+                <div class="form-group">
+                    <label class="form-label">Choisir la plateforme *</label>
+                    <div class="platform-grid" id="green-platforms">
+                        <!-- Plateformes GreenList : YouTube, SoundCloud, Facebook, Instagram, TikTok -->
+                        <div class="platform-option" data-platform="YouTube"
+                            onclick="selectionnerPlateforme('green', 'YouTube', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#FF0000">
+                                <path
+                                    d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                            </svg>
+                            <span>YouTube</span>
+                        </div>
+                        <div class="platform-option" data-platform="SoundCloud"
+                            onclick="selectionnerPlateforme('green', 'SoundCloud', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#FF5500">
+                                <path
+                                    d="M1.175 12.225c-.05 0-.098.025-.123.072A3.2 3.2 0 0 0 .7 13.788c0 .605.176 1.183.476 1.678.025.047.073.072.123.072h1.053a.14.14 0 0 0 .138-.14v-3.033a.14.14 0 0 0-.138-.14zM3.4 11.23a.14.14 0 0 0-.138.14v5.185c0 .077.062.14.138.14h1.127a.14.14 0 0 0 .139-.14V11.37a.14.14 0 0 0-.139-.14zm2.35-.615a.14.14 0 0 0-.139.14v6.415c0 .077.062.14.139.14h1.127a.14.14 0 0 0 .138-.14v-6.415a.14.14 0 0 0-.138-.14zm2.35-.558a.14.14 0 0 0-.138.14v7.531c0 .077.062.14.138.14h1.128a.14.14 0 0 0 .138-.14V10.2c0-.078-.061-.14-.138-.14zm2.351-.837a.14.14 0 0 0-.139.14v9.043c0 .077.062.14.139.14h1.127a.14.14 0 0 0 .139-.14V9.36c0-.077-.062-.14-.139-.14zm11.393.187a5.358 5.358 0 0 0-4.088 1.895 4.3 4.3 0 0 0-.663-.051c-2.031 0-3.714 1.455-4.013 3.393a.141.141 0 0 0 .138.162h10.963c1.385 0 2.51-1.125 2.51-2.51 0-1.384-1.125-2.509-2.51-2.509a2.53 2.53 0 0 0-.337.02z" />
+                            </svg>
+                            <span>SoundCloud</span>
+                        </div>
+                        <div class="platform-option" data-platform="Facebook"
+                            onclick="selectionnerPlateforme('green', 'Facebook', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#1877F2">
+                                <path
+                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                            <span>Facebook</span>
+                        </div>
+                        <div class="platform-option" data-platform="Instagram"
+                            onclick="selectionnerPlateforme('green', 'Instagram', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#E4405F">
+                                <path
+                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                            </svg>
+                            <span>Instagram</span>
+                        </div>
+                        <div class="platform-option" data-platform="TikTok"
+                            onclick="selectionnerPlateforme('green', 'TikTok', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#000000">
+                                <path
+                                    d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.31 1.52-1.31 2.52.01.99.53 1.93 1.35 2.47.85.56 1.95.63 2.87.23.95-.39 1.63-1.25 1.81-2.25.08-.62.06-1.25.06-1.88V.02z" />
+                            </svg>
+                            <span>TikTok</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sélection de la sortie -->
+                <div class="form-group">
+                    <label class="form-label" for="green-release-select">Choisir une sortie *</label>
+                    <select id="green-release-select" class="form-select" required>
+                        <option value="">Chargement des sorties...</option>
+                    </select>
+                </div>
+
+                <!-- Liens vers chaîne / profil / compte -->
+                <div class="form-group">
+                    <label class="form-label">Lien(s) de la chaîne / profil / compte *</label>
+                    <div id="green-links-container">
+                        <div class="link-input-group">
+                            <input type="url" class="form-input green-link-input"
+                                placeholder="https://www.youtube.com/@moncompte" required>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline"
+                        style="margin-top: 8px; font-size: 13px; padding: 6px 14px;" onclick="ajouterChampLienGreen()">
+                        + Ajouter un autre lien
+                    </button>
+                </div>
+
+                <div style="margin-top: 24px; text-align: right;">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="fermerModal('modal-greenlist')">Annuler</button>
+                    <button type="submit" class="btn btn-green">Envoyer la demande</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE BLACKLIST -->
+    <div id="modal-blacklist" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" style="color: #ef4444;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    Ajouter à la Liste Rouge (BlackList)
+                </div>
+                <button class="close-btn" onclick="fermerModal('modal-blacklist')">&times;</button>
+            </div>
+
+            <form id="form-blacklist" onsubmit="soumettreBlackList(event)">
+                <!-- Plateformes BlackList : Dailymotion, SoundCloud, Twitch, Bolo Live, Lomotif, Rizzle, VK, ShareChat -->
+                <div class="form-group">
+                    <label class="form-label">Choisir la plateforme *</label>
+                    <div class="platform-grid" id="red-platforms">
+                        <div class="platform-option" data-platform="Dailymotion"
+                            onclick="selectionnerPlateforme('red', 'Dailymotion', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#0066DC">
+                                <path
+                                    d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12z" />
+                            </svg>
+                            <span>Dailymotion</span>
+                        </div>
+                        <div class="platform-option" data-platform="SoundCloud"
+                            onclick="selectionnerPlateforme('red', 'SoundCloud', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#FF5500">
+                                <path
+                                    d="M1.175 12.225c-.05 0-.098.025-.123.072A3.2 3.2 0 0 0 .7 13.788c0 .605.176 1.183.476 1.678.025.047.073.072.123.072h1.053a.14.14 0 0 0 .138-.14v-3.033a.14.14 0 0 0-.138-.14zM3.4 11.23a.14.14 0 0 0-.138.14v5.185c0 .077.062.14.138.14h1.127a.14.14 0 0 0 .139-.14V11.37a.14.14 0 0 0-.139-.14zm2.35-.615a.14.14 0 0 0-.139.14v6.415c0 .077.062.14.139.14h1.127a.14.14 0 0 0 .138-.14v-6.415a.14.14 0 0 0-.138-.14zm2.35-.558a.14.14 0 0 0-.138.14v7.531c0 .077.062.14.138.14h1.128a.14.14 0 0 0 .138-.14V10.2c0-.078-.061-.14-.138-.14zm2.351-.837a.14.14 0 0 0-.139.14v9.043c0 .077.062.14.139.14h1.127a.14.14 0 0 0 .139-.14V9.36c0-.077-.062-.14-.139-.14zm11.393.187a5.358 5.358 0 0 0-4.088 1.895 4.3 4.3 0 0 0-.663-.051c-2.031 0-3.714 1.455-4.013 3.393a.141.141 0 0 0 .138.162h10.963c1.385 0 2.51-1.125 2.51-2.51 0-1.384-1.125-2.509-2.51-2.509a2.53 2.53 0 0 0-.337.02z" />
+                            </svg>
+                            <span>SoundCloud</span>
+                        </div>
+                        <div class="platform-option" data-platform="Twitch"
+                            onclick="selectionnerPlateforme('red', 'Twitch', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#9146FF">
+                                <path
+                                    d="M11.571 4.714h1.715v5.143h-1.715zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z" />
+                            </svg>
+                            <span>Twitch</span>
+                        </div>
+                        <div class="platform-option" data-platform="Bolo Live"
+                            onclick="selectionnerPlateforme('red', 'Bolo Live', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#FF1744">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M10 8l6 4-6 4V8z" fill="#fff" />
+                            </svg>
+                            <span>Bolo Live</span>
+                        </div>
+                        <div class="platform-option" data-platform="Lomotif"
+                            onclick="selectionnerPlateforme('red', 'Lomotif', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#FF2A5F">
+                                <rect width="20" height="20" x="2" y="2" rx="5" />
+                                <path d="M8 8h8v8H8z" fill="#fff" />
+                            </svg>
+                            <span>Lomotif</span>
+                        </div>
+                        <div class="platform-option" data-platform="Rizzle"
+                            onclick="selectionnerPlateforme('red', 'Rizzle', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#7C4DFF">
+                                <circle cx="12" cy="12" r="9" />
+                                <path d="M12 6v12M6 12h12" stroke="#fff" stroke-width="2" />
+                            </svg>
+                            <span>Rizzle</span>
+                        </div>
+                        <div class="platform-option" data-platform="VK"
+                            onclick="selectionnerPlateforme('red', 'VK', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#0077FF">
+                                <path
+                                    d="M15.073 2H8.937C3.318 2 2 3.318 2 8.937v6.126C2 20.682 3.318 22 8.937 22h6.126C20.682 22 22 20.682 22 15.063V8.937C22 3.318 20.682 2 15.073 2zm3.08 13.546h-1.32c-.52 0-.68-.415-1.616-1.353-.812-.801-1.171-.902-1.373-.902-.28 0-.361.08-.361.464v1.238c0 .332-.107.553-1.002.553-1.48 0-3.118-.9-4.275-2.57-1.748-2.454-2.228-4.302-2.228-4.673 0-.203.08-.389.462-.389h1.321c.348 0 .481.16.614.534.667 1.95 1.789 3.658 2.243 3.658.172 0 .252-.08.252-.519V10.12c-.053-.934-.547-1.014-.547-1.348 0-.16.133-.32.348-.32h2.081c.293 0 .4.16.4.507v2.709c0 .294.132.401.213.401.173 0 .32-.107.64-.427 1.001-1.121 1.721-2.843 1.721-2.843.093-.201.253-.32.6-.32h1.32c.399 0 .493.201.401.507-.161.748-1.722 2.963-1.722 2.963-.133.214-.186.32 0 .561.134.187.587.574.881.908.533.587.947 1.082 1.054 1.428.106.347-.08.521-.481.521z" />
+                            </svg>
+                            <span>VK</span>
+                        </div>
+                        <div class="platform-option" data-platform="ShareChat"
+                            onclick="selectionnerPlateforme('red', 'ShareChat', this)">
+                            <svg class="platform-icon" viewBox="0 0 24 24" fill="#18D26E">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M8 12l3 3 5-5" stroke="#fff" stroke-width="2" fill="none" />
+                            </svg>
+                            <span>ShareChat</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sélection de la sortie -->
+                <div class="form-group">
+                    <label class="form-label" for="red-release-select">Choisir une sortie *</label>
+                    <select id="red-release-select" class="form-select" required>
+                        <option value="">Chargement des sorties...</option>
+                    </select>
+                </div>
+
+                <!-- Sélection de la piste -->
+                <div class="form-group">
+                    <label class="form-label" for="red-track-input">Piste (Titre ou numéro de morceau) *</label>
+                    <input type="text" id="red-track-input" class="form-input"
+                        placeholder="Ex: Morceau #1 ou Nom du titre" required>
+                </div>
+
+                <!-- Période (optionnel) -->
+                <div class="form-group">
+                    <label class="form-label">Période d'effet (Optionnel)</label>
+                    <div class="period-group">
+                        <div>
+                            <span style="font-size: 12px; color: #888;">De (Début) :</span>
+                            <input type="date" id="red-date-start" class="form-input">
+                        </div>
+                        <div>
+                            <span style="font-size: 12px; color: #888;">À (Fin) :</span>
+                            <input type="date" id="red-date-end" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px; text-align: right;">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="fermerModal('modal-blacklist')">Annuler</button>
+                    <button type="submit" class="btn btn-red">Envoyer la demande</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Conteneur de Notifications Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        let uidConnecte = null;
+        let plateformesVerteChoisie = "";
+        let plateformesRougeChoisie = "";
+        let mesSorties = [];
+        let ongletActif = "green"; // 'green' ou 'red'
+
+        let itemsGreenList = [];
+        let itemsBlackList = [];
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                uidConnecte = user.uid;
+                await chargerMesSorties();
+                await chargerListes();
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function chargerMesSorties() {
+            try {
+                const res = await api.get(`/api/users/${uidConnecte}/releases`);
+                mesSorties = Array.isArray(res) ? res : [];
+
+                const selectGreen = document.getElementById("green-release-select");
+                const selectRed = document.getElementById("red-release-select");
+
+                let htmlOptions = '<option value="">-- Sélectionnez une sortie --</option>';
+                mesSorties.forEach(s => {
+                    htmlOptions += `<option value="${s.id}">${s.title || 'Sans titre'} (${s.artistName || 'Artiste'})</option>`;
+                });
+
+                selectGreen.innerHTML = htmlOptions;
+                selectRed.innerHTML = htmlOptions;
+            } catch (e) {
+                console.error("Erreur de chargement des sorties :", e);
+            }
+        }
+
+        async function chargerListes() {
+            try {
+                const resGreen = await api.get(`/api/users/${uidConnecte}/greenlist`).catch(() => []);
+                const resBlack = await api.get(`/api/users/${uidConnecte}/blacklist`).catch(() => []);
+
+                itemsGreenList = Array.isArray(resGreen) ? resGreen : [];
+                itemsBlackList = Array.isArray(resBlack) ? resBlack : [];
+
+                afficherContenuOnglet();
+            } catch (e) {
+                console.error("Erreur de chargement des listes :", e);
+                afficherContenuOnglet();
+            }
+        }
+
+        window.changerOnglet = function (type) {
+            ongletActif = type;
+            const btnGreen = document.getElementById("tab-green-btn");
+            const btnRed = document.getElementById("tab-red-btn");
+
+            if (type === 'green') {
+                btnGreen.className = "tab-btn active-green";
+                btnRed.className = "tab-btn";
+            } else {
+                btnGreen.className = "tab-btn";
+                btnRed.className = "tab-btn active-red";
+            }
+            afficherContenuOnglet();
+        }
+
+        function afficherContenuOnglet() {
+            const container = document.getElementById("list-content");
+            container.innerHTML = "";
+
+            if (ongletActif === 'green') {
+                if (itemsGreenList.length === 0) {
+                    container.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">
+                            <p>Aucune demande dans la Liste Verte (GreenList).</p>
+                            <button class="btn btn-green" onclick="ouvrirModalGreenList()">Ajouter à la Liste Verte</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                itemsGreenList.forEach(item => {
+                    const releaseObj = mesSorties.find(s => s.id === item.releaseId) || {};
+                    const linksList = Array.isArray(item.links) ? item.links : [item.link];
+
+                    const card = document.createElement("div");
+                    card.className = "item-card";
+                    card.innerHTML = `
+                        <div class="item-card-header">
+                            <span class="item-platform-badge">
+                                💚 ${item.platform || 'Plateforme'}
+                            </span>
+                            <span class="status-badge status-${(item.status || 'demande').toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")}">
+                                ${item.status || 'Demandé'}
+                            </span>
+                        </div>
+                        <div class="item-details">
+                            <p><strong>Sortie :</strong> ${releaseObj.title || item.releaseTitle || 'N/A'}</p>
+                            <p><strong>Lien(s) enregistré(s) :</strong></p>
+                            <ul style="margin: 4px 0; padding-left: 20px;">
+                                ${linksList.map(l => `<li><a class="item-link" href="${l}" target="_blank" rel="noopener">${l}</a></li>`).join('')}
+                            </ul>
+                            <p style="font-size: 11px; color: #888; margin-top: 10px;">
+                                Soumis le ${new Date(item.createdAt || Date.now()).toLocaleDateString('fr-FR')}
+                            </p>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } else {
+                if (itemsBlackList.length === 0) {
+                    container.innerHTML = `
+                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">
+                            <p>Aucune demande dans la Liste Rouge (BlackList).</p>
+                            <button class="btn btn-red" onclick="ouvrirModalBlackList()">Ajouter à la Liste Rouge</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                itemsBlackList.forEach(item => {
+                    const releaseObj = mesSorties.find(s => s.id === item.releaseId) || {};
+
+                    let periodeStr = "Non spécifiée";
+                    if (item.startDate || item.endDate) {
+                        periodeStr = `Du ${item.startDate || '?'} au ${item.endDate || '?'}`;
+                    }
+
+                    const card = document.createElement("div");
+                    card.className = "item-card";
+                    card.innerHTML = `
+                        <div class="item-card-header">
+                            <span class="item-platform-badge">
+                                🚨 ${item.platform || 'Plateforme'}
+                            </span>
+                            <span class="status-badge status-${(item.status || 'demande').toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")}">
+                                ${item.status || 'Demandé'}
+                            </span>
+                        </div>
+                        <div class="item-details">
+                            <p><strong>Sortie :</strong> ${releaseObj.title || item.releaseTitle || 'N/A'}</p>
+                            <p><strong>Piste :</strong> ${item.track || 'N/A'}</p>
+                            <p><strong>Période :</strong> ${periodeStr}</p>
+                            <p style="font-size: 11px; color: #888; margin-top: 10px;">
+                                Soumis le ${new Date(item.createdAt || Date.now()).toLocaleDateString('fr-FR')}
+                            </p>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+        }
+
+        window.selectionnerPlateforme = function (type, pName, element) {
+            const gridId = type === 'green' ? 'green-platforms' : 'red-platforms';
+            const selClass = type === 'green' ? 'selected-green' : 'selected-red';
+
+            document.querySelectorAll(`#${gridId} .platform-option`).forEach(el => {
+                el.classList.remove('selected-green', 'selected-red');
+            });
+
+            element.classList.add(selClass);
+
+            if (type === 'green') plateformesVerteChoisie = pName;
+            else plateformesRougeChoisie = pName;
+        }
+
+        window.ajouterChampLienGreen = function () {
+            const container = document.getElementById("green-links-container");
+            const div = document.createElement("div");
+            div.className = "link-input-group";
+            div.innerHTML = `
+                <input type="url" class="form-input green-link-input" placeholder="https://..." required>
+                <button type="button" class="remove-link-btn" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(div);
+        }
+
+        window.ouvrirModalGreenList = function () {
+            document.getElementById("modal-greenlist").classList.add("active");
+        }
+
+        window.ouvrirModalBlackList = function () {
+            document.getElementById("modal-blacklist").classList.add("active");
+        }
+
+        window.fermerModal = function (id) {
+            document.getElementById(id).classList.remove("active");
+        }
+
+        window.soumettreGreenList = async function (e) {
+            e.preventDefault();
+            if (!plateformesVerteChoisie) {
+                afficherToast("Veuillez choisir une plateforme.");
+                return;
+            }
+
+            const releaseId = document.getElementById("green-release-select").value;
+            if (!releaseId) {
+                afficherToast("Veuillez sélectionner une sortie.");
+                return;
+            }
+
+            const linkInputs = document.querySelectorAll(".green-link-input");
+            const links = [];
+            linkInputs.forEach(inp => {
+                if (inp.value.trim()) links.push(inp.value.trim());
+            });
+
+            if (links.length === 0) {
+                afficherToast("Veuillez ajouter au moins un lien.");
+                return;
+            }
+
+            const releaseObj = mesSorties.find(s => s.id === releaseId);
+
+            const nouvelleEntree = {
+                platform: plateformesVerteChoisie,
+                releaseId: releaseId,
+                releaseTitle: releaseObj ? releaseObj.title : "",
+                links: links,
+                status: "Demandé",
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await api.post(`/api/users/${uidConnecte}/greenlist`, nouvelleEntree);
+                afficherToast("Demande GreenList envoyée avec statut 'Demandé' !");
+                itemsGreenList.unshift(nouvelleEntree);
+                fermerModal('modal-greenlist');
+                document.getElementById("form-greenlist").reset();
+                plateformesVerteChoisie = "";
+                document.querySelectorAll('#green-platforms .platform-option').forEach(el => el.classList.remove('selected-green'));
+                changerOnglet('green');
+            } catch (err) {
+                afficherToast("Erreur d'envoi : " + err.message);
+            }
+        }
+
+        window.soumettreBlackList = async function (e) {
+            e.preventDefault();
+            if (!plateformesRougeChoisie) {
+                afficherToast("Veuillez choisir une plateforme.");
+                return;
+            }
+
+            const releaseId = document.getElementById("red-release-select").value;
+            if (!releaseId) {
+                afficherToast("Veuillez sélectionner une sortie.");
+                return;
+            }
+
+            const track = document.getElementById("red-track-input").value.trim();
+            const dateStart = document.getElementById("red-date-start").value;
+            const dateEnd = document.getElementById("red-date-end").value;
+
+            const releaseObj = mesSorties.find(s => s.id === releaseId);
+
+            const nouvelleEntree = {
+                platform: plateformesRougeChoisie,
+                releaseId: releaseId,
+                releaseTitle: releaseObj ? releaseObj.title : "",
+                track: track,
+                startDate: dateStart,
+                endDate: dateEnd,
+                status: "Demandé",
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await api.post(`/api/users/${uidConnecte}/blacklist`, nouvelleEntree);
+                afficherToast("Demande BlackList envoyée avec statut 'Demandé' !");
+                itemsBlackList.unshift(nouvelleEntree);
+                fermerModal('modal-blacklist');
+                document.getElementById("form-blacklist").reset();
+                plateformesRougeChoisie = "";
+                document.querySelectorAll('#red-platforms .platform-option').forEach(el => el.classList.remove('selected-red'));
+                changerOnglet('red');
+            } catch (err) {
+                afficherToast("Erreur d'envoi : " + err.message);
+            }
+        }
+
+        function afficherToast(message) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+
+</html>

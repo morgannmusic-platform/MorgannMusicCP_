@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mes Notifications - MM-CP</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #000000;
+            margin: 0;
+            padding: 20px;
+            margin-top: 3.8rem;
+            box-sizing: border-box;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: white;
+            }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            background-color: rgba(232, 232, 232, 0.4);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-radius: 50px;
+            padding: 12px 20px;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .filter-bar,
+            .notif-card {
+                background-color: rgba(0, 0, 0, 0.281) !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            }
+        }
+
+        .filter-input-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-input-wrapper svg {
+            position: absolute;
+            left: 14px;
+            width: 18px;
+            height: 18px;
+            fill: #888;
+            pointer-events: none;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 10px 16px;
+            border: 1px solid rgb(194, 194, 194);
+            border-radius: 30px;
+            background: rgb(255, 255, 255);
+            font-size: 14px;
+            outline: none;
+            color: #333;
+            font-family: inherit;
+        }
+
+        .filter-input {
+            width: 100%;
+            padding-left: 42px;
+            box-sizing: border-box;
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            border-color: #FC8FB0;
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.2);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: #FC8FB0;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #1e293b;
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #FC8FB0;
+            color: #FC8FB0;
+        }
+
+        .btn-danger {
+            background: #dc3562;
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        /* Liste des notifications */
+        .notif-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .notif-card {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 28px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .notif-card.unread {
+            border-left: 6px solid #FC8FB0 !important;
+            background-color: rgba(255, 245, 248, 0.9);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .notif-card.unread {
+                background-color: rgba(50, 15, 30, 0.4) !important;
+            }
+        }
+
+        .notif-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .notif-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: #E8FDC4;
+            color: #2c3e10;
+        }
+
+        .type-release {
+            background: #ffe4ec;
+            color: #dc3562;
+        }
+
+        .type-finance {
+            background: #e6f9e6;
+            color: #1e7e34;
+        }
+
+        .type-withdrawal {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .type-support {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .type-info {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .notif-content {
+            flex: 1;
+        }
+
+        .notif-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 10px;
+        }
+
+        .notif-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0;
+            color: #0f172a;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .notif-title {
+                color: white;
+            }
+
+            .notif-message {
+                color: #cbd5e1 !important;
+            }
+        }
+
+        .notif-date {
+            font-size: 12px;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+
+        .notif-message {
+            font-size: 14px;
+            color: #475569;
+            margin: 0 0 12px 0;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        .notif-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .unread-dot {
+            width: 10px;
+            height: 10px;
+            background: #FC8FB0;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* Modale */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 24px;
+            border-radius: 24px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+
+        .modal-desc {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="header-actions">
+                <h2>Notifications</h2>
+                <div>
+                    <button class="btn btn-outline" onclick="marquerToutCommeLu()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Tout marquer comme lu
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="filter-input-wrapper">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                    </svg>
+                    <input type="text" id="search-input" class="filter-input"
+                        placeholder="Rechercher une notification...">
+                </div>
+
+                <select id="status-filter" class="filter-select">
+                    <option value="all">Toutes les notifications</option>
+                    <option value="unread">Non lues uniquement</option>
+                    <option value="read">Lues uniquement</option>
+                </select>
+
+                <select id="type-filter" class="filter-select">
+                    <option value="all">Tous les types</option>
+                    <option value="release">Sorties</option>
+                    <option value="finance">Finances</option>
+                    <option value="withdrawal">Retraits</option>
+                    <option value="support">Support</option>
+                    <option value="info">Informations</option>
+                </select>
+            </div>
+
+            <div id="notif-list" class="notif-list"></div>
+        </div>
+    </div>
+
+    <!-- Modale de Confirmation -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-title">Confirmation</div>
+            <div class="modal-desc" id="modal-desc">Voulez-vous vraiment effectuer cette action ?</div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="fermerModal()">Annuler</button>
+                <button class="btn btn-danger" id="modal-confirm-btn">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        let uidConnecte = null;
+        let toutesLesNotifications = [];
+        let notificationsFiltrees = [];
+        let actionAConfirmer = null;
+
+        const iconesTypes = {
+            release: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`,
+            finance: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+            withdrawal: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`,
+            support: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+            info: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                uidConnecte = user.uid;
+                await chargerNotifications();
+
+                document.getElementById("search-input").addEventListener("input", appliquerFiltres);
+                document.getElementById("status-filter").addEventListener("change", appliquerFiltres);
+                document.getElementById("type-filter").addEventListener("change", appliquerFiltres);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        async function chargerNotifications() {
+            const listContainer = document.getElementById("notif-list");
+            listContainer.innerHTML = "<p style='text-align: center; color: #64748b;'>Chargement des notifications...</p>";
+
+            try {
+                const res = await api.get(`/api/users/${uidConnecte}/notifications`);
+                toutesLesNotifications = Array.isArray(res) ? res : [];
+                appliquerFiltres();
+            } catch (error) {
+                console.error("Erreur chargement notifications :", error);
+                listContainer.innerHTML = `<p style="text-align: center; color: #ef4444;">Erreur lors du chargement : ${error.message}</p>`;
+            }
+        }
+
+        function appliquerFiltres() {
+            const recherche = document.getElementById("search-input").value.toLowerCase().trim();
+            const filtreStatut = document.getElementById("status-filter").value;
+            const filtreType = document.getElementById("type-filter").value;
+
+            notificationsFiltrees = toutesLesNotifications.filter(n => {
+                const titre = (n.title || "").toLowerCase();
+                const message = (n.message || "").toLowerCase();
+                const matchesSearch = titre.includes(recherche) || message.includes(recherche);
+
+                const isRead = n.isRead || n.read;
+                let matchesStatus = true;
+                if (filtreStatut === "unread") matchesStatus = !isRead;
+                if (filtreStatut === "read") matchesStatus = Boolean(isRead);
+
+                let matchesType = true;
+                if (filtreType !== "all") matchesType = (n.type === filtreType);
+
+                return matchesSearch && matchesStatus && matchesType;
+            });
+
+            afficherListe();
+        }
+
+        function afficherListe() {
+            const listContainer = document.getElementById("notif-list");
+            listContainer.innerHTML = "";
+
+            if (notificationsFiltrees.length === 0) {
+                listContainer.innerHTML = "<p style='text-align: center; padding: 40px; color: #64748b;'>Aucune notification à afficher.</p>";
+                return;
+            }
+
+            notificationsFiltrees.forEach(notif => {
+                const isRead = notif.isRead || notif.read;
+                const type = notif.type || "info";
+                const iconSvg = iconesTypes[type] || iconesTypes.info;
+                const dateFormatted = notif.createdAt ? new Date(notif.createdAt).toLocaleString("fr-FR", {
+                    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+                }) : "";
+
+                const card = document.createElement("div");
+                card.className = `notif-card ${!isRead ? 'unread' : ''}`;
+
+                card.innerHTML = `
+                    <div class="notif-icon type-${type}">
+                        ${iconSvg}
+                    </div>
+                    <div class="notif-content">
+                        <div class="notif-header">
+                            <h3 class="notif-title">
+                                ${!isRead ? '<span class="unread-dot"></span>' : ''}
+                                ${notif.title || 'Notification'}
+                            </h3>
+                            <span class="notif-date">${dateFormatted}</span>
+                        </div>
+                        <p class="notif-message">${notif.message || ''}</p>
+                        <div class="notif-actions">
+                            ${notif.link ? `
+                                <a href="${notif.link}" class="btn btn-primary btn-sm" style="padding: 6px 14px; font-size: 12px;">Voir</a>
+                            ` : ''}
+                            ${!isRead ? `
+                                <button class="btn btn-secondary" onclick="marquerCommeLue('${notif.id}')" style="padding: 6px 14px; font-size: 12px;">
+                                    Marquer comme lue
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-danger" onclick="supprimerNotification('${notif.id}')" style="padding: 6px 12px; font-size: 12px;">
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        window.marquerCommeLue = async function (id) {
+            try {
+                await api.patch(`/api/users/${uidConnecte}/notifications/${id}`, { isRead: true });
+                const notif = toutesLesNotifications.find(n => String(n.id) === String(id));
+                if (notif) {
+                    notif.isRead = true;
+                    notif.read = true;
+                }
+                appliquerFiltres();
+                afficherToast("Notification marquée comme lue.");
+            } catch (err) {
+                afficherToast("Erreur : " + err.message);
+            }
+        };
+
+        window.marquerToutCommeLu = async function () {
+            try {
+                await api.post(`/api/users/${uidConnecte}/notifications/read-all`, {});
+                toutesLesNotifications.forEach(n => {
+                    n.isRead = true;
+                    n.read = true;
+                });
+                appliquerFiltres();
+                afficherToast("Toutes les notifications ont été marquées comme lues.");
+            } catch (err) {
+                afficherToast("Erreur : " + err.message);
+            }
+        };
+
+        window.supprimerNotification = function (id) {
+            ouvrirModal(
+                "Supprimer la notification",
+                "Êtes-vous sûr de vouloir supprimer cette notification ?",
+                async () => {
+                    try {
+                        const token = await auth.currentUser.getIdToken();
+                        const baseUrl = api.baseUrl || "https://api.worker.mm-cp.uk";
+
+                        const res = await fetch(`${baseUrl}/api/users/${uidConnecte}/notifications/${id}`, {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": `Bearer ${token}`,
+                                "Content-Type": "application/json"
+                            }
+                        });
+
+                        if (!res.ok) {
+                            throw new Error(`Erreur HTTP ${res.status}`);
+                        }
+
+                        toutesLesNotifications = toutesLesNotifications.filter(n => String(n.id) !== String(id));
+                        appliquerFiltres();
+                        afficherToast("Notification supprimée.");
+                    } catch (err) {
+                        afficherToast("Erreur lors de la suppression : " + err.message);
+                    }
+                }
+            );
+        };
+
+        function ouvrirModal(titre, description, callback) {
+            document.getElementById("modal-title").innerText = titre;
+            document.getElementById("modal-desc").innerText = description;
+            actionAConfirmer = callback;
+            document.getElementById("confirm-modal").classList.add("active");
+        }
+
+        window.fermerModal = function () {
+            document.getElementById("confirm-modal").classList.remove("active");
+            actionAConfirmer = null;
+        };
+
+        document.getElementById("modal-confirm-btn").onclick = async function () {
+            if (actionAConfirmer) await actionAConfirmer();
+            fermerModal();
+        };
+
+        function afficherToast(message) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast";
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+
+</html>

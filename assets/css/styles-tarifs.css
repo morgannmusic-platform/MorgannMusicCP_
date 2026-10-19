@@ -298,9 +298,23 @@ h1 {
     height: auto;
 }
 
+#chat-toggle.is-loading img {
+    animation: litual-spin 0.9s linear infinite;
+}
+
+@keyframes litual-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 #chat-window {
-    width: 450px;
-    height: 500px;
+    width: 500px;
+    height: 560px;
     background: var(--container1);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -354,8 +368,12 @@ h1 {
     padding: 10px 14px;
     border-radius: 18px;
     font-size: 0.9rem;
-    max-width: 95%;
-    line-height: 1.4;
+    max-width: 90%;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    overflow: visible;
 }
 
 .msg.ai {
@@ -363,7 +381,7 @@ h1 {
     align-self: flex-start;
     border-bottom-left-radius: 4px;
     color: var(--text);
-    overflow-x: auto;
+    overflow: visible;
     border: 1px solid var(--border);
 }
 
@@ -383,12 +401,53 @@ h1 {
     font-weight: 700;
 }
 
-.msg p {
-    margin-bottom: 8px;
+.msg p,
+.msg ul,
+.msg ol {
+    margin: 0 0 8px;
 }
 
-.msg p:last-child {
+.msg ul,
+.msg ol {
+    padding-left: 1.2rem;
+    margin-left: 0.2rem;
+}
+
+.msg li {
+    margin: 0.2rem 0;
+    line-height: 1.5;
+}
+
+.msg p:last-child,
+.msg ul:last-child,
+.msg ol:last-child {
     margin-bottom: 0;
+}
+
+.msg table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.8rem;
+    table-layout: fixed;
+    display: table;
+    overflow: hidden;
+}
+
+.msg th,
+.msg td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+.msg th {
+    background: var(--beige);
+    color: white;
+    font-weight: 700;
 }
 
 .msg.ai a[href*="paiement.html"] {
@@ -452,6 +511,7 @@ h1 {
     border-top: 1px solid var(--border);
     display: flex;
     gap: 10px;
+    align-items: center;
 }
 
 #user-input {

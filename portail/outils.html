@@ -476,6 +476,28 @@
         let currentMonth = new Date().getMonth();
         let calendarEvents = [];
         let editingEventId = null;
+        let freeboardItems = [];
+
+        async function getUserToolData(key) {
+            if (!currentUserUid) return [];
+            try {
+                const data = await api.get(`/api/users/${currentUserUid}/${key}`);
+                return Array.isArray(data) ? data : [];
+            } catch (error) {
+                console.error(`Erreur lecture ${key}:`, error);
+                return [];
+            }
+        }
+
+        async function saveUserToolData(key, data) {
+            if (!currentUserUid) return;
+            try {
+                await api.post(`/api/users/${currentUserUid}/${key}`, Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error(`Erreur sauvegarde ${key}:`, error);
+                throw error;
+            }
+        }
 
         window.switchTab = function (tabId, event) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -505,8 +527,9 @@
                 return;
             }
             currentUserUid = user.uid;
-            chargerProjetsTracklist();
-            chargerEvenementsCalendrier();
+            await chargerProjetsTracklist();
+            await chargerEvenementsCalendrier();
+            await chargerFreeboard();
         });
 
         window.creerProjetTracklist = async function () {
@@ -514,16 +537,17 @@
             const type = document.getElementById('new-project-type').value;
             if (!titre) return alert("Veuillez entrer un nom de projet.");
 
-            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            const projets = await getUserToolData('tracklists');
             projets.push({ id: Date.now(), titre, type, pistes: [] });
-            localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
+            await saveUserToolData('tracklists', projets);
             document.getElementById('new-project-title').value = '';
-            chargerProjetsTracklist();
+            await chargerProjetsTracklist();
         };
 
-        function chargerProjetsTracklist() {
+        async function chargerProjetsTracklist() {
             const container = document.getElementById('projects-container');
-            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            const projets = await getUserToolData('tracklists');
+            if (!container) return;
             if (projets.length === 0) {
                 container.innerHTML = `<div class="panel-card"><p style="color:#64748b; font-style:italic; margin:0;">Aucun projet d'album ou EP en préparation.</p></div>`;
                 return;
@@ -540,8 +564,8 @@
                         <button class="btn-primary" onclick="ajouterPiste(${p.id})">Ajouter la piste</button>
                     </div>
                     <div id="tracks-list-${p.id}">
-                        ${p.pistes.length === 0 ? '<p style="color:#94a3b8; font-size:13px; font-style:italic;">Aucune piste pour le moment.</p>' :
-                    p.pistes.map((t, idx) => `
+                        ${Array.isArray(p.pistes) && p.pistes.length === 0 ? '<p style="color:#94a3b8; font-size:13px; font-style:italic;">Aucune piste pour le moment.</p>' :
+                    (Array.isArray(p.pistes) ? p.pistes : []).map((t, idx) => `
                             <div class="tracklist-item" draggable="true" ondragstart="dragStart(event, ${p.id},${idx})" ondragover="event.preventDefault()" ondrop="dropTrack(event, ${p.id},${idx})">
                                 <span><b>${idx + 1}.</b>${t}</span>
                                 <button onclick="supprimerPiste(${p.id},${idx})" style="border:none; background:none; color:#ef4444; font-weight:bold; cursor:pointer;">✕</button>
@@ -552,34 +576,36 @@
             `).join('');
         }
 
-        window.supprimerProjet = function (id) {
-            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
-            projets = projets.filter(p => p.id !== id);
-            localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
-            chargerProjetsTracklist();
+        window.supprimerProjet = async function (id) {
+            const projets = await getUserToolData('tracklists');
+            const nextProjets = projets.filter(p => p.id !== id);
+            await saveUserToolData('tracklists', nextProjets);
+            await chargerProjetsTracklist();
         };
 
-        window.ajouterPiste = function (projetId) {
+        window.ajouterPiste = async function (projetId) {
             const input = document.getElementById(`track-input-${projetId}`);
             const nomPiste = input.value.trim();
             if (!nomPiste) return;
 
-            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            const projets = await getUserToolData('tracklists');
             const p = projets.find(x => x.id === projetId);
             if (p) {
+                if (!Array.isArray(p.pistes)) p.pistes = [];
                 p.pistes.push(nomPiste);
-                localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
-                chargerProjetsTracklist();
+                await saveUserToolData('tracklists', projets);
+                await chargerProjetsTracklist();
             }
         };
 
-        window.supprimerPiste = function (projetId, pisteIdx) {
-            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+        window.supprimerPiste = async function (projetId, pisteIdx) {
+            const projets = await getUserToolData('tracklists');
             const p = projets.find(x => x.id === projetId);
             if (p) {
+                if (!Array.isArray(p.pistes)) p.pistes = [];
                 p.pistes.splice(pisteIdx, 1);
-                localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
-                chargerProjetsTracklist();
+                await saveUserToolData('tracklists', projets);
+                await chargerProjetsTracklist();
             }
         };
 
@@ -587,16 +613,17 @@
         window.dragStart = function (e, projetId, trackIdx) {
             draggedTrackInfo = { projetId, trackIdx };
         };
-        window.dropTrack = function (e, projetId, targetIdx) {
+        window.dropTrack = async function (e, projetId, targetIdx) {
             e.preventDefault();
             if (!draggedTrackInfo || draggedTrackInfo.projetId !== projetId) return;
-            let projets = JSON.parse(localStorage.getItem(`mmcp_tracklists_${currentUserUid}`) || "[]");
+            const projets = await getUserToolData('tracklists');
             const p = projets.find(x => x.id === projetId);
             if (p) {
+                if (!Array.isArray(p.pistes)) p.pistes = [];
                 const moved = p.pistes.splice(draggedTrackInfo.trackIdx, 1)[0];
                 p.pistes.splice(targetIdx, 0, moved);
-                localStorage.setItem(`mmcp_tracklists_${currentUserUid}`, JSON.stringify(projets));
-                chargerProjetsTracklist();
+                await saveUserToolData('tracklists', projets);
+                await chargerProjetsTracklist();
             }
             draggedTrackInfo = null;
         };
@@ -604,7 +631,7 @@
         async function chargerEvenementsCalendrier() {
             try {
                 const releases = await api.get(`/api/users/${currentUserUid}/releases`);
-                let events = JSON.parse(localStorage.getItem(`mmcp_events_${currentUserUid}`) || "[]");
+                let events = await getUserToolData('events');
 
                 if (Array.isArray(releases)) {
                     releases.forEach(r => {
@@ -617,9 +644,12 @@
                     });
                 }
                 calendarEvents = events;
+                await saveUserToolData('events', events);
                 if (activeTab === 'calendar') renderCalendar();
             } catch (e) {
-                calendarEvents = JSON.parse(localStorage.getItem(`mmcp_events_${currentUserUid}`) || "[]");
+                console.error("Erreur chargement calendrier:", e);
+                calendarEvents = await getUserToolData('events');
+                if (activeTab === 'calendar') renderCalendar();
             }
         }
 
@@ -678,21 +708,21 @@
             document.getElementById('cal-modal').style.display = 'none';
         };
 
-        window.sauvegarderEvenement = function () {
+        window.sauvegarderEvenement = async function () {
             const title = document.getElementById('ev-title').value.trim();
             const date = document.getElementById('ev-date').value;
             const type = document.getElementById('ev-type').value;
             if (!title || !date) return alert("Remplis tous les champs.");
 
-            let events = JSON.parse(localStorage.getItem(`mmcp_events_${currentUserUid}`) || "[]");
+            let events = await getUserToolData('events');
             if (editingEventId) {
                 events = events.map(e => e.id === editingEventId ? { ...e, title, date, type } : e);
             } else {
                 events.push({ id: `ev_${Date.now()}`, title, date, type });
             }
-            localStorage.setItem(`mmcp_events_${currentUserUid}`, JSON.stringify(events));
+            await saveUserToolData('events', events);
             fermerModalEvenement();
-            chargerEvenementsCalendrier();
+            await chargerEvenementsCalendrier();
         };
 
         window.editerOuSupprimerEvenement = function (ev) {
@@ -709,66 +739,110 @@
             }
         };
 
-        window.supprimerEvenement = function (id) {
+        window.supprimerEvenement = async function (id) {
             if (confirm("Supprimer cet événement ?")) {
-                let events = JSON.parse(localStorage.getItem(`mmcp_events_${currentUserUid}`) || "[]");
+                let events = await getUserToolData('events');
                 events = events.filter(e => e.id !== id);
-                localStorage.setItem(`mmcp_events_${currentUserUid}`, JSON.stringify(events));
-                chargerEvenementsCalendrier();
+                await saveUserToolData('events', events);
+                await chargerEvenementsCalendrier();
             }
         };
+
+        async function chargerFreeboard() {
+            const canvas = document.getElementById('freeboard-canvas');
+            if (!canvas) return;
+            freeboardItems = await getUserToolData('freeboard');
+            renderFreeboard();
+        }
+
+        function renderFreeboard() {
+            const canvas = document.getElementById('freeboard-canvas');
+            if (!canvas) return;
+            canvas.querySelectorAll('.fb-element').forEach(el => el.remove());
+
+            freeboardItems.forEach(item => {
+                const el = document.createElement('div');
+                el.className = `fb-element ${item.type === 'postit' ? 'postit' : ''} ${item.type === 'image' ? 'image-box' : ''}`;
+                el.style.left = `${item.x ?? 50}px`;
+                el.style.top = `${item.y ?? 50}px`;
+
+                if (item.type === 'image') {
+                    el.innerHTML = `<img src="${item.url}" alt="Board Image">`;
+                } else {
+                    el.contentEditable = "true";
+                    el.innerText = item.text || '';
+                }
+
+                el.onmousedown = function (e) {
+                    activeSelection = el;
+                    let shiftX = e.clientX - el.getBoundingClientRect().left;
+                    let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+                    function moveAt(pageX, pageY) {
+                        let rect = canvas.getBoundingClientRect();
+                        el.style.left = pageX - rect.left - shiftX + 'px';
+                        el.style.top = pageY - rect.top - shiftY + 'px';
+                        const data = freeboardItems.find(entry => entry.id === item.id);
+                        if (data) {
+                            data.x = Number.parseFloat(el.style.left);
+                            data.y = Number.parseFloat(el.style.top);
+                            saveUserToolData('freeboard', freeboardItems).catch(() => { });
+                        }
+                    }
+
+                    function onMouseMove(event) {
+                        moveAt(event.pageX, event.pageY);
+                    }
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.onmouseup = function () {
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.onmouseup = null;
+                    };
+                };
+
+                el.onkeyup = () => {
+                    const data = freeboardItems.find(entry => entry.id === item.id);
+                    if (data) {
+                        data.text = el.innerText;
+                        saveUserToolData('freeboard', freeboardItems).catch(() => { });
+                    }
+                };
+
+                canvas.appendChild(el);
+            });
+        }
 
         let activeSelection = null;
 
-        window.fbAjouterPostIt = function () {
-            creerElementFB({ type: 'postit', text: 'Nouveau Post-it', x: 50, y: 50 });
+        async function persistFreeboardState() {
+            if (!currentUserUid) return;
+            await saveUserToolData('freeboard', freeboardItems);
+        }
+
+        window.fbAjouterPostIt = async function () {
+            freeboardItems.push({ id: `postit_${Date.now()}`, type: 'postit', text: 'Nouveau Post-it', x: 50, y: 50 });
+            await persistFreeboardState();
+            renderFreeboard();
         };
-        window.fbAjouterTexte = function () {
-            creerElementFB({ type: 'text', text: 'Titre ou description', x: 80, y: 80 });
+        window.fbAjouterTexte = async function () {
+            freeboardItems.push({ id: `text_${Date.now()}`, type: 'text', text: 'Titre ou description', x: 80, y: 80 });
+            await persistFreeboardState();
+            renderFreeboard();
         };
-        window.fbAjouterImage = function () {
+        window.fbAjouterImage = async function () {
             const url = prompt("URL de l'image :");
-            if (url) creerElementFB({ type: 'image', url, x: 100, y: 100 });
+            if (url) {
+                freeboardItems.push({ id: `image_${Date.now()}`, type: 'image', url, x: 100, y: 100 });
+                await persistFreeboardState();
+                renderFreeboard();
+            }
         };
 
         function creerElementFB(data) {
-            const canvas = document.getElementById('freeboard-canvas');
-            const el = document.createElement('div');
-            el.className = `fb-element ${data.type === 'postit' ? 'postit' : ''} ${data.type === 'image' ? 'image-box' : ''}`;
-            el.style.left = `${data.x}px`;
-            el.style.top = `${data.y}px`;
-
-            if (data.type === 'image') {
-                el.innerHTML = `<img src="${data.url}" alt="Board Image">`;
-            } else {
-                el.contentEditable = "true";
-                el.innerText = data.text;
-            }
-
-            el.onmousedown = function (e) {
-                activeSelection = el;
-                let shiftX = e.clientX - el.getBoundingClientRect().left;
-                let shiftY = e.clientY - el.getBoundingClientRect().top;
-
-                function moveAt(pageX, pageY) {
-                    let rect = canvas.getBoundingClientRect();
-                    el.style.left = pageX - rect.left - shiftX + 'px';
-                    el.style.top = pageY - rect.top - shiftY + 'px';
-                }
-
-                function onMouseMove(event) {
-                    moveAt(event.pageX, event.pageY);
-                }
-
-                document.addEventListener('mousemove', onMouseMove);
-                document.onmouseup = function () {
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.onmouseup = null;
-                };
-            };
-
-            canvas.appendChild(el);
-            activeSelection = el;
+            freeboardItems.push(data);
+            renderFreeboard();
+            persistFreeboardState();
         }
 
         window.fbAppliquerStyle = function (command) {

@@ -1,0 +1,14 @@
+name = "mon-site-notifications"
+main = "src/index.js"
+compatibility_date = "2026-08-10"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ma-super-base"
+database_id = "e21ef4d8-7e6a-436f-8cf4-eca72daf322f"
+
+[vars]
+SENDER_NAME = "Morgann Music CP"
+SENDER_EMAIL = "notifications@mm-cp.uk"
+CORS_ORIGIN = "*"
+
