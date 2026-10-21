@@ -458,9 +458,20 @@
 
         window.toggleTransContentMode = function () {
             const mode = document.getElementById("trans-content-mode").value;
-            document.getElementById("trans-template-fields").style.display = mode === "template" ? "block" : "none";
-            document.getElementById("trans-html-fields").style.display = mode === "html" ? "block" : "none";
-        }
+            const isTemplate = mode === "template";
+
+            // Affichage des conteneurs
+            document.getElementById("trans-template-fields").style.display = isTemplate ? "block" : "none";
+            document.getElementById("trans-html-fields").style.display = isTemplate ? "none" : "block";
+
+            // Gestion dynamique des attributs 'required'
+            document.getElementById("trans-subject").required = isTemplate;
+            document.getElementById("trans-message").required = isTemplate;
+
+            // Si vous souhaitez également rendre le champ HTML obligatoire en mode HTML :
+            const htmlFile = document.getElementById("trans-html-file");
+            if (htmlFile) htmlFile.required = !isTemplate;
+        };
 
         window.ouvrirPopupTransRecipients = function () {
             const body = document.getElementById("trans-modal-body");

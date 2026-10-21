@@ -1,15 +1,29 @@
 :root {
     --bg-nb: #d0a75a;
+    --bg-nb-tl: #d0a75a89;
     --text-and-logo: #ffead5;
 }
 
 
 
-.login-page,
-.navbar {
-    background-color: #d0a75a !important;
+.login-page .navbar {
+    background: linear-gradient(180deg, var(--bg-nb), var(--bg-nb-tl)) !important;
     border-bottom: 1px solid rgba(255, 234, 213, 0.28) !important;
 }
+
+.login-page {
+    --bg-nb: #d0a75a;
+    --bg-nb-tl: #d0a75a0f;
+    --text-and-logo: #ffead5;
+}
+
+
+
+
+
+
+
+
 
 .login-page .nav-logo img {
     background-color: var(--text-and-logo) !important;

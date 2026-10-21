@@ -1,0 +1,376 @@
+:root {
+    --bg-color: #FFEFF4;
+    --card-bg: rgba(255, 255, 255, 0.65);
+    --card-border: rgba(255, 255, 255, 0.8);
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --primary-pink: #FC8FB0;
+    --primary-pink-hover: #e07495;
+    --badge-bg: #E8FDC4;
+    --badge-text: #2c3e10;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #2c000d;
+        --card-bg: rgba(0, 0, 0, 0.35);
+        --card-border: rgba(255, 255, 255, 0.15);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.7);
+        --badge-bg: rgba(232, 253, 196, 0.2);
+        --badge-text: #E8FDC4;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    width: 360px;
+    min-height: 480px;
+    background-color: var(--bg-color);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text-primary);
+    user-select: none;
+    overflow-x: hidden;
+}
+
+/* --- HEADER --- */
+.header {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+}
+
+.logo-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+}
+
+.brand-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.btn-portal {
+    background: var(--primary-pink);
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-portal:hover {
+    background: var(--primary-pink-hover);
+    transform: translateY(-1px);
+}
+
+/* --- CARTE PROFIL UTILISATEUR --- */
+.user-card {
+    margin: 12px 16px;
+    padding: 12px 16px;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-pink);
+    color: #fff;
+    font-weight: 800;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(252, 143, 176, 0.4);
+}
+
+.user-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.user-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-email {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-logout {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 4px;
+}
+
+.btn-logout:hover {
+    opacity: 1;
+}
+
+/* --- ONGLETS / TABS --- */
+.nav-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px;
+    margin-bottom: 12px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.tab-btn.active {
+    background: var(--primary-pink);
+    color: #ffffff;
+    border-color: var(--primary-pink);
+    box-shadow: 0 3px 10px rgba(252, 143, 176, 0.3);
+}
+
+.notif-badge {
+    background: #ffffff;
+    color: var(--primary-pink);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.tab-btn.active .notif-badge {
+    background: #ffffff;
+    color: var(--primary-pink);
+}
+
+/* --- CONTENUS DES ONGLETS --- */
+.tab-content {
+    display: none;
+    padding: 0 16px 16px 16px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* --- GRILLE / LISTE SORTIES --- */
+.releases-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.release-card-item {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 10px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.release-cover-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    border-radius: 14px;
+    object-fit: cover;
+    background-color: rgba(0, 0, 0, 0.05);
+    margin-bottom: 6px;
+}
+
+.release-card-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.release-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.release-card-artist {
+    font-size: 10px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+/* --- LISTE NOTIFICATIONS --- */
+.notifs-header-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+}
+
+.btn-read-all {
+    background: transparent;
+    border: none;
+    color: var(--primary-pink);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-read-all:hover {
+    text-decoration: underline;
+}
+
+.notifs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notif-item {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 10px 12px;
+    box-shadow: var(--shadow);
+}
+
+.notif-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.notif-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.3;
+}
+
+/* --- ÉCRAN D'AUTHENTIFICATION --- */
+.auth-container {
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.auth-title {
+    font-size: 18px;
+    font-weight: 800;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.auth-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    border-radius: 30px;
+    font-size: 13px;
+    outline: none;
+    color: var(--text-primary);
+}
+
+.auth-input:focus {
+    border-color: var(--primary-pink);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: var(--primary-pink);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+
+.btn-submit:hover {
+    background: var(--primary-pink-hover);
+}
+
+.empty-text {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 24px 0;
+    grid-column: 1 / -1;
+}

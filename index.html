@@ -48,6 +48,50 @@
     <script src="/assets/js/background.js"></script>
     <script type="module" src="/assets/js/navbar.js" defer></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
+
+    <!-- Données structurées Schema.org pour Google Knowledge Graph -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://mm-cp.uk/#organization",
+      "name": "Morgann Music CP",
+      "legalName": "Morgann Music CP",
+      "url": "https://mm-cp.uk/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://mm-cp.uk/assets/img/logo/logo-rose.svg"
+      },
+      "image": "https://mm-cp.uk/assets/img/Banières/accueil.png",
+      "description": "Morgann Music CP est un label et distributeur musical indépendant français proposant la distribution sur plus de 478 plateformes, la qualité Dolby Atmos et l'optimisation par Litual AI.",
+      "foundingLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Vienne",
+          "addressCountry": "FR"
+        }
+      },
+      "sameAs": [
+        "https://x.com/morgann_music?s=21",
+        "https://www.youtube.com/@morgannmusic"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://mm-cp.uk/#website",
+      "url": "https://mm-cp.uk/",
+      "name": "Morgann Music CP",
+      "publisher": {
+        "@id": "https://mm-cp.uk/#organization"
+      },
+      "inLanguage": "fr-FR"
+    }
+  ]
+}
+</script>
 </head>
 
 <body>
