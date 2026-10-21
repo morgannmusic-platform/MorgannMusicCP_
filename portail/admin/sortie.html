@@ -291,6 +291,18 @@
                         <div class="form-group full-width"><label>Livraisons Additionnelles (séparées par des
                                 virgules)</label><input type="text" id="edit-additionalDeliveries" class="form-control">
                         </div>
+
+                        <!-- Champ Schema.org JSON-LD -->
+                        <div class="form-group full-width">
+                            <label style="color: #8b5cf6;">Données Structurées (Schema.org JSON-LD)</label>
+                            <textarea id="edit-schemaJson" class="form-control" rows="8" placeholder='<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MusicAlbum",
+  "name": "Titre"
+}
+</script>'></textarea>
+                        </div>
                     </div>
 
                     <h3 style="color:#000000; margin-top: 32px; margin-bottom: 12px;">Édition Complète des Pistes</h3>
@@ -639,6 +651,13 @@
                     if (el) el.value = data[f] || "";
                 });
 
+                // Chargement de la balise Schema.org JSON-LD
+                const schemaVal = data.schemaJson || data.schema_json || "";
+                const schemaEl = document.getElementById("edit-schemaJson");
+                if (schemaEl) {
+                    schemaEl.value = schemaVal;
+                }
+
                 document.getElementById("edit-dolbyAtmos").value = data.hasDolbyAtmos || data.dolbyAtmos ? "true" : "false";
                 document.getElementById("edit-showOnMmcpCatalog").value = data.showOnMmcpCatalog !== undefined ? String(data.showOnMmcpCatalog) : "true";
                 document.getElementById("edit-manualPlatforms").value = data.manualPlatforms !== undefined ? String(data.manualPlatforms) : "false";
@@ -733,6 +752,12 @@
                 }
             }
 
+            // Gestion du Schema.org avec inclusion automatique des balises <script>
+            let rawSchema = document.getElementById("edit-schemaJson").value.trim();
+            if (rawSchema && !rawSchema.includes('<script')) {
+                rawSchema = `<script type="application/ld+json">\n${rawSchema}\n<\/script>`;
+            }
+
             const updateData = {
                 dolbyAtmos: document.getElementById("edit-dolbyAtmos").value === "true",
                 showOnMmcpCatalog: document.getElementById("edit-showOnMmcpCatalog").value === "true",
@@ -740,7 +765,8 @@
                 selectedPlatforms: selPlat ? selPlat.split(",").map(s => s.trim()) : [],
                 additionalDeliveries: addDel ? addDel.split(",").map(s => s.trim()) : [],
                 animatedCoverUrl: animatedCoverUrl,
-                tracks: pistesActuelles
+                tracks: pistesActuelles,
+                schemaJson: rawSchema
             };
 
             ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "releaseUrl", "spotifyUrl", "appleUrl", "territories"].forEach(f => {

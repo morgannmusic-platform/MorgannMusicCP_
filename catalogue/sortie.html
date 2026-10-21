@@ -588,6 +588,29 @@
             return `${WORKER_URL}/api/files/${encodeURIComponent(value.replace(/^\/+/, ""))}`;
         }
 
+        function injecterSchemaJson(schemaVal) {
+            if (!schemaVal) return;
+
+            let existingScript = document.getElementById("schema-org-release");
+            if (existingScript) existingScript.remove();
+
+            let cleanJson = schemaVal.trim();
+            if (cleanJson.startsWith('<script')) {
+                cleanJson = cleanJson.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '').trim();
+            }
+
+            try {
+                const parsed = JSON.parse(cleanJson);
+                const scriptEl = document.createElement('script');
+                scriptEl.id = "schema-org-release";
+                scriptEl.type = "application/ld+json";
+                scriptEl.textContent = JSON.stringify(parsed, null, 2);
+                document.head.appendChild(scriptEl);
+            } catch (e) {
+                console.error("Erreur d'injection Schema.org JSON-LD :", e);
+            }
+        }
+
         async function loadReleaseDetails() {
             const contentArea = document.getElementById("content-area");
             if (!releaseId) {
@@ -602,6 +625,12 @@
                 }
                 const data = releaseRes.release || releaseRes;
                 infoSortieGlobale = data;
+
+                const schemaRaw = data.schemaJson || data.schema_json || "";
+                if (schemaRaw) {
+                    injecterSchemaJson(schemaRaw);
+                }
+
                 renderRelease(data);
             } catch (error) {
                 console.error("Erreur lors de la récupération de la sortie :", error);
@@ -771,7 +800,7 @@
                 playBtn.innerHTML = `<img src="/assets/img/icon/pause.svg" alt="pause" style="width:14px; height:14px; filter:invert(1);">`;
             } else {
                 lecteurActif.pause();
-                playBtn.innerHTML = `<img src="/assets/img/icon/play.svg" alt="play" style="width:14px; height:14px; filter:invert(1);">`;
+                playBtn.innerHTML = `<img src="/assets/img/icon/pause.svg" alt="pause" style="width:14px; height:14px; filter:invert(1);">`;
             }
         };
 

@@ -1569,6 +1569,7 @@ async function ensureTables(db) {
         premiere_end_date TEXT,
         premiere_is_active INTEGER DEFAULT 0,
         dolby_atmos INTEGER DEFAULT 0,
+        schema_json TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
@@ -1856,6 +1857,10 @@ async function ensureTables(db) {
 
   try {
     await db.prepare("ALTER TABLE releases ADD COLUMN dolby_atmos INTEGER DEFAULT 0").run();
+  } catch (e) { }
+
+  try {
+    await db.prepare("ALTER TABLE releases ADD COLUMN schema_json TEXT").run();
   } catch (e) { }
 
   try {
@@ -2848,8 +2853,9 @@ async function createRelease(env, uid, request, ctx) {
   const labelName = data.labelName?.trim() ? data.labelName : "Morgann Music CP";
   const copyrightLineC = data.copyrightLineC?.trim() ? data.copyrightLineC : artistName;
   const copyrightLineP = data.copyrightLineP?.trim() ? data.copyrightLineP : "Morgann Music CP";
+  const schemaJson = typeof data.schemaJson === "object" ? JSON.stringify(data.schemaJson) : (data.schemaJson || data.schema_json || null);
 
-  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date, premiere_end_date, premiere_is_active, dolby_atmos, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
+  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date, premiere_end_date, premiere_is_active, dolby_atmos, schema_json, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
     uid,
     data.title || "",
     data.type || "Single",
@@ -2891,6 +2897,7 @@ async function createRelease(env, uid, request, ctx) {
     data.premiereEndDate || null,
     data.premiereIsActive ? 1 : 0,
     data.dolbyAtmos ? 1 : 0,
+    schemaJson,
     now,
     now
   ).run();
@@ -2922,7 +2929,13 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
         : data.territories;
     }
 
-    await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), premiere_slug = COALESCE(?, premiere_slug), premiere_password = COALESCE(?, premiere_password), premiere_start_date = COALESCE(?, premiere_start_date), premiere_end_date = COALESCE(?, premiere_end_date), premiere_is_active = COALESCE(?, premiere_is_active), dolby_atmos = COALESCE(?, dolby_atmos), updated_at = ? WHERE id = ?`).bind(
+    let schemaJson = null;
+    if (data.schemaJson !== undefined || data.schema_json !== undefined) {
+      const val = data.schemaJson !== undefined ? data.schemaJson : data.schema_json;
+      schemaJson = typeof val === "object" ? JSON.stringify(val) : val;
+    }
+
+    await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), premiere_slug = COALESCE(?, premiere_slug), premiere_password = COALESCE(?, premiere_password), premiere_start_date = COALESCE(?, premiere_start_date), premiere_end_date = COALESCE(?, premiere_end_date), premiere_is_active = COALESCE(?, premiere_is_active), dolby_atmos = COALESCE(?, dolby_atmos), schema_json = COALESCE(?, schema_json), updated_at = ? WHERE id = ?`).bind(
       data.title !== undefined ? data.title : null,
       data.type !== undefined ? data.type : null,
       data.artistName !== undefined ? data.artistName : null,
@@ -2963,6 +2976,7 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
       data.premiereEndDate !== undefined ? data.premiereEndDate : null,
       data.premiereIsActive !== undefined ? (data.premiereIsActive ? 1 : 0) : null,
       data.dolbyAtmos !== undefined ? (data.dolbyAtmos ? 1 : 0) : null,
+      schemaJson,
       now,
       releaseId
     ).run();
@@ -2987,9 +3001,16 @@ async function adminPatchRelease(env, userId, request, path, ctx) {
 
     const rel = await env.DB.prepare("SELECT user_uid, title, status FROM releases WHERE id = ?").bind(releaseId).first();
 
-    await env.DB.prepare(`UPDATE releases SET status = COALESCE(?, status), upc = COALESCE(?, upc), updated_at = ? WHERE id = ?`).bind(
+    let schemaJson = null;
+    if (data.schemaJson !== undefined || data.schema_json !== undefined) {
+      const val = data.schemaJson !== undefined ? data.schemaJson : data.schema_json;
+      schemaJson = typeof val === "object" ? JSON.stringify(val) : val;
+    }
+
+    await env.DB.prepare(`UPDATE releases SET status = COALESCE(?, status), upc = COALESCE(?, upc), schema_json = COALESCE(?, schema_json), updated_at = ? WHERE id = ?`).bind(
       data.status || null,
       data.upc || null,
+      schemaJson,
       new Date().toISOString(),
       releaseId
     ).run();
@@ -3029,6 +3050,13 @@ function formatReleaseRow(row) {
   try {
     if (typeof territories === "string" && (territories.startsWith("[") || territories.startsWith("{"))) {
       territories = JSON.parse(territories);
+    }
+  } catch (e) { }
+
+  let schemaJson = row.schema_json || null;
+  try {
+    if (typeof schemaJson === "string" && (schemaJson.startsWith("{") || schemaJson.startsWith("["))) {
+      schemaJson = JSON.parse(schemaJson);
     }
   } catch (e) { }
 
@@ -3085,6 +3113,7 @@ function formatReleaseRow(row) {
     premiereEndDate: row.premiere_end_date || null,
     premiereIsActive: Boolean(row.premiere_is_active),
     dolbyAtmos: Boolean(row.dolby_atmos),
+    schemaJson,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
