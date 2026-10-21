@@ -336,8 +336,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Importer le logo de l'artiste</label>
-                    <input type="file" id="edit-logo-file" accept="image/*">
+                    <label>Lien du logo de l'artiste (URL)</label>
+                    <input type="url" id="edit-logo-url" placeholder="https://exemple.com/mon-logo.png">
                 </div>
 
                 <div class="form-group">
@@ -391,30 +391,14 @@
             }
         });
 
-        // Téléversement d'un fichier brut vers l'API R2 via fetch standard
+        // Téléversement d'un fichier brut vers l'API R2
         async function uploadFileToCloudflare(file, type = "cover") {
             const formData = new FormData();
             formData.append("file", file);
-
-            const token = currentUser ? await currentUser.getIdToken() : "";
-
-            const response = await fetch(`/api/upload/${type}`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                },
-                body: formData
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
-            }
-
-            const res = await response.json();
+            const res = await api.upload(`/api/upload/${type}`, formData);
             if (res && res.url) return res.url;
-            if (res && res.key) return api.fileUrl ? api.fileUrl(res.key) : `/api/files/${encodeURIComponent(res.key)}`;
-            throw new Error("Échec du téléversement du fichier.");
+            if (res && res.key) return api.fileUrl(res.key);
+            throw new Error(res.error || "Échec du téléversement du fichier.");
         }
 
         // 1. Sélection d'un artiste si pas d'ID
@@ -474,18 +458,19 @@
                     const logoUrl = artist.logoUrl || artist.logo_url;
                     const logoBox = document.getElementById("artist-logo-box");
                     if (logoUrl) {
-                        document.getElementById("artist-logo").src = api.fileUrl(logoUrl);
+                        document.getElementById("artist-logo").src = logoUrl.startsWith("http") ? logoUrl : api.fileUrl(logoUrl);
                         logoBox.style.display = "flex";
                     } else {
                         logoBox.style.display = "none";
                     }
 
                     const grid = document.getElementById("artist-metadata");
+                    const logoFormatted = logoUrl ? `<a href="${logoUrl.startsWith("http") ? logoUrl : api.fileUrl(logoUrl)}" target="_blank" style="color:#FC8FB0;">Voir le logo</a>` : '-';
                     const fields = [
                         { l: "Date de Naissance / Création", v: artist.birthdate },
                         { l: "Ville de Naissance / Origine", v: artist.birthplace },
                         { l: "Genre Principal", v: artist.genre },
-                        { l: "Logo Artiste", v: logoUrl ? `<a href="${api.fileUrl(logoUrl)}" target="_blank" style="color:#FC8FB0;">Voir le logo</a>` : '-' },
+                        { l: "Logo Artiste", v: logoFormatted },
                         { l: "ID D1 / Base", v: id }
                     ];
 
@@ -498,6 +483,7 @@
 
                     // Pré-remplir les champs
                     document.getElementById("edit-name").value = artist.name || "";
+                    document.getElementById("edit-logo-url").value = logoUrl || "";
                     document.getElementById("edit-birthdate").value = artist.birthdate || "";
                     document.getElementById("edit-birthplace").value = artist.birthplace || "";
                     document.getElementById("edit-genre").value = artist.genre || "";
@@ -526,7 +512,6 @@
             if (!currentUser || !artistId) return;
 
             const avatarFileInput = document.getElementById("edit-avatar-file");
-            const logoFileInput = document.getElementById("edit-logo-file");
             const bannerFileInput = document.getElementById("edit-banner-file");
 
             const submitBtn = document.getElementById("btn-submit-form");
@@ -535,17 +520,14 @@
 
             try {
                 let photo = currentArtistData.photo || currentArtistData.avatarUrl || "";
-                let logoUrl = currentArtistData.logoUrl || currentArtistData.logo_url || "";
                 let bannerUrl = currentArtistData.bannerUrl || currentArtistData.banUrl || "";
+
+                // Récupération directe de l'URL renseignée dans le champ texte
+                const logoUrl = document.getElementById("edit-logo-url").value.trim();
 
                 // Envoi de la photo de profil vers R2
                 if (avatarFileInput.files && avatarFileInput.files[0]) {
                     photo = await uploadFileToCloudflare(avatarFileInput.files[0], "cover");
-                }
-
-                // Envoi du logo vers R2
-                if (logoFileInput.files && logoFileInput.files[0]) {
-                    logoUrl = await uploadFileToCloudflare(logoFileInput.files[0], "logo");
                 }
 
                 // Envoi de la bannière vers R2

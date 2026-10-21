@@ -163,6 +163,20 @@ export default {
     const method = request.method;
 
     try {
+      // --- ROUTES UPLOAD PUBLIQUES ET AUTHENTIFIÉES (GÈRE POST /api/upload ET /api/upload/* SANS BLOQUER SUR 405) ---
+      if (method === "POST" && (path === "/api/upload" || path.startsWith("/api/upload/"))) {
+        const userId = (await extractUserId(request)) || "anonymous";
+        if (path === "/api/upload/chunk") {
+          return await uploadChunk(env, userId, request);
+        }
+        if (path === "/api/upload/chunk/complete") {
+          return await completeChunkUpload(env, userId, request);
+        }
+        const type = path.startsWith("/api/upload/") ? path.replace("/api/upload/", "") : "file";
+        return await uploadFile(env, userId, type, request);
+      }
+
+      // Route Proxy dédiée pour télécharger des fichiers distants (contourne CORS)
       if (method === "GET" && path === "/api/proxy-download") {
         const targetUrl = url.searchParams.get("url");
         if (!targetUrl) {
@@ -186,10 +200,12 @@ export default {
         }
       }
 
+      // --- ROUTES PUBLIQUE POUR L'INSCRIPTION NEWSLETTER ---
       if (method === "POST" && path === "/api/newsletter/subscribe") {
         return await handlePublicNewsletterSubscribe(env, request, ctx);
       }
 
+      // --- ROUTES ADMIN POUR L'ENVOI D'EMAILS & NEWSLETTERS ---
       if (method === "POST" && path === "/api/admin/send-email") {
         return await handleAdminSendEmail(env, request);
       }
@@ -219,6 +235,7 @@ export default {
         return await getPublicPremiere(env, url);
       }
 
+      // Public / Global list endpoints for GreenList and BlackList
       if (method === "GET" && (path === "/api/greenlist" || path === "/api/admin/greenlist")) {
         return await getAllGreenlist(env);
       }
@@ -417,12 +434,14 @@ export default {
         }
       }
 
+      // --- VERIFICATION AUTHENTIFICATION SECTEUR SECURISE ---
       const userId = await extractUserId(request);
       if (!userId) {
         return corsJson({ error: "Authentification requise" }, 401);
       }
       const isAdminUser = await isAdmin(env, userId);
 
+      // --- GREENLIST ROUTES ---
       const userGreenlistMatch = path.match(/^\/api\/users\/([^/]+)\/greenlist$/);
       if (userGreenlistMatch) {
         const uid = userGreenlistMatch[1];
@@ -442,6 +461,7 @@ export default {
         if (method === "DELETE") return await deleteUserGreenlist(env, uid, itemId, isAdminUser);
       }
 
+      // --- BLACKLIST ROUTES ---
       const userBlacklistMatch = path.match(/^\/api\/users\/([^/]+)\/blacklist$/);
       if (userBlacklistMatch) {
         const uid = userBlacklistMatch[1];
@@ -461,6 +481,7 @@ export default {
         if (method === "DELETE") return await deleteUserBlacklist(env, uid, itemId, isAdminUser);
       }
 
+      // --- NOTIFICATIONS ROUTES ---
       const userNotificationsReadAllMatch = path.match(/^\/api\/users\/([^/]+)\/notifications\/read-all$/);
       if (userNotificationsReadAllMatch) {
         const uid = userNotificationsReadAllMatch[1];
@@ -502,6 +523,7 @@ export default {
         return await getMe(env, userId);
       }
 
+      // --- ROUTES DOCUMENTS UTILISATEUR ---
       const userDocumentsMatch = path.match(/^\/api\/users\/([^/]+)\/documents(\/([^/]+))?$/);
       if (userDocumentsMatch) {
         const uid = userDocumentsMatch[1];
@@ -694,20 +716,6 @@ export default {
         const uid = userFreeboardMatch[1];
         if (method === "GET") return await getUserFreeboard(env, uid);
         if (method === "POST") return await saveUserFreeboard(env, uid, request);
-      }
-
-      if (method === "POST" && path === "/api/upload") {
-        return await uploadFile(env, userId, "file", request);
-      }
-      if (method === "POST" && path === "/api/upload/chunk") {
-        return await uploadChunk(env, userId, request);
-      }
-      if (method === "POST" && path === "/api/upload/chunk/complete") {
-        return await completeChunkUpload(env, userId, request);
-      }
-      if ((path === "/api/upload" || path.startsWith("/api/upload/")) && method === "POST") {
-        const type = path.startsWith("/api/upload/") ? path.replace("/api/upload/", "") : "file";
-        return await uploadFile(env, userId, type, request);
       }
 
       return corsJson({ error: "Route non trouvée" }, 404);
@@ -2557,7 +2565,7 @@ async function createArtist(env, uid, request) {
       label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, 
       link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, 
       link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING id
   `).bind(
     uid,
@@ -2574,7 +2582,7 @@ async function createArtist(env, uid, request) {
     data.instagramUrl || null,
     data.youtubeUrl || null,
     data.photo || null,
-    data.logoUrl || data.logo || null,
+    data.logoUrl || data.logo || data.logo_url || null,
     data.bannerUrl || null,
     data.birthdate || null,
     data.birthplace || null,
@@ -2643,7 +2651,7 @@ async function patchArtist(env, uid, artistId, request) {
         spotify_id = COALESCE(?, spotify_id), 
         apple_music_id = COALESCE(?, apple_music_id), 
         photo = COALESCE(?, photo), 
-        logo_url = COALESCE(?, logo_url),
+        logo_url = COALESCE(?, logo_url), 
         banner_url = COALESCE(?, banner_url), 
         birthdate = COALESCE(?, birthdate), 
         birthplace = COALESCE(?, birthplace), 
@@ -2685,7 +2693,7 @@ async function patchArtist(env, uid, artistId, request) {
     data.spotifyId !== undefined ? data.spotifyId : null,
     data.appleMusicId !== undefined ? data.appleMusicId : null,
     data.photo !== undefined ? data.photo : null,
-    data.logoUrl !== undefined ? data.logoUrl : (data.logo !== undefined ? data.logo : null),
+    data.logoUrl !== undefined ? data.logoUrl : (data.logo !== undefined ? data.logo : (data.logo_url !== undefined ? data.logo_url : null)),
     data.bannerUrl !== undefined ? data.bannerUrl : null,
     data.birthdate !== undefined ? data.birthdate : null,
     data.birthplace !== undefined ? data.birthplace : null,
