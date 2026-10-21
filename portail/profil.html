@@ -391,14 +391,30 @@
             }
         });
 
-        // Téléversement d'un fichier brut vers l'API R2
+        // Téléversement d'un fichier brut vers l'API R2 via fetch standard
         async function uploadFileToCloudflare(file, type = "cover") {
             const formData = new FormData();
             formData.append("file", file);
-            const res = await api.upload(`/api/upload/${type}`, formData);
+
+            const token = currentUser ? await currentUser.getIdToken() : "";
+
+            const response = await fetch(`/api/upload/${type}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
+            }
+
+            const res = await response.json();
             if (res && res.url) return res.url;
-            if (res && res.key) return api.fileUrl(res.key);
-            throw new Error(res.error || "Échec du téléversement du fichier.");
+            if (res && res.key) return api.fileUrl ? api.fileUrl(res.key) : `/api/files/${encodeURIComponent(res.key)}`;
+            throw new Error("Échec du téléversement du fichier.");
         }
 
         // 1. Sélection d'un artiste si pas d'ID
