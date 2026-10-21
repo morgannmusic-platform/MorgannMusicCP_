@@ -74,6 +74,26 @@
             object-fit: cover;
         }
 
+        .logo-preview-container {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 3px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.8);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-preview-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
         .artist-details-header {
             margin-top: 40px;
             flex: 1;
@@ -266,6 +286,9 @@
                     <div class="avatar-container">
                         <img id="artist-avatar" src="/assets/img/icons/pdp.png" alt="Avatar">
                     </div>
+                    <div id="artist-logo-box" class="logo-preview-container" style="display: none;">
+                        <img id="artist-logo" src="" alt="Logo">
+                    </div>
                     <div class="artist-details-header">
                         <h1 id="artist-name" class="artist-name">Chargement...</h1>
                         <div id="artist-genre-sub" style="color:#666; margin-top: 5px; font-weight: 600;">-</div>
@@ -310,6 +333,11 @@
                 <div class="form-group">
                     <label>Importer la photo de profil (Max 20 Mo)</label>
                     <input type="file" id="edit-avatar-file" accept="image/*">
+                </div>
+
+                <div class="form-group">
+                    <label>Importer le logo de l'artiste (Max 20 Mo)</label>
+                    <input type="file" id="edit-logo-file" accept="image/*">
                 </div>
 
                 <div class="form-group">
@@ -429,11 +457,21 @@
                     document.getElementById("artist-avatar").src = api.fileUrl(artist.photo || artist.avatarUrl) || "/assets/img/icons/pdp.png";
                     document.getElementById("artist-banner").src = api.fileUrl(artist.bannerUrl || artist.banUrl) || "/assets/img/icons/ban.png";
 
+                    const logoUrl = artist.logoUrl || artist.logo_url;
+                    const logoBox = document.getElementById("artist-logo-box");
+                    if (logoUrl) {
+                        document.getElementById("artist-logo").src = api.fileUrl(logoUrl);
+                        logoBox.style.display = "flex";
+                    } else {
+                        logoBox.style.display = "none";
+                    }
+
                     const grid = document.getElementById("artist-metadata");
                     const fields = [
                         { l: "Date de Naissance / Création", v: artist.birthdate },
                         { l: "Ville de Naissance / Origine", v: artist.birthplace },
                         { l: "Genre Principal", v: artist.genre },
+                        { l: "Logo Artiste", v: logoUrl ? `<a href="${api.fileUrl(logoUrl)}" target="_blank" style="color:#FC8FB0;">Voir le logo</a>` : '-' },
                         { l: "ID D1 / Base", v: id }
                     ];
 
@@ -474,11 +512,17 @@
             if (!currentUser || !artistId) return;
 
             const avatarFileInput = document.getElementById("edit-avatar-file");
+            const logoFileInput = document.getElementById("edit-logo-file");
             const bannerFileInput = document.getElementById("edit-banner-file");
 
             // Contrôle des 20 Mo
             if (avatarFileInput.files && avatarFileInput.files[0] && avatarFileInput.files[0].size > MAX_FILE_SIZE) {
                 alert("La photo de profil dépasse la limite de 20 Mo.");
+                return;
+            }
+
+            if (logoFileInput.files && logoFileInput.files[0] && logoFileInput.files[0].size > MAX_FILE_SIZE) {
+                alert("Le logo dépasse la limite de 20 Mo.");
                 return;
             }
 
@@ -493,11 +537,17 @@
 
             try {
                 let photo = currentArtistData.photo || currentArtistData.avatarUrl || "";
+                let logoUrl = currentArtistData.logoUrl || currentArtistData.logo_url || "";
                 let bannerUrl = currentArtistData.bannerUrl || currentArtistData.banUrl || "";
 
                 // Envoi de la photo de profil vers R2
                 if (avatarFileInput.files && avatarFileInput.files[0]) {
                     photo = await uploadFileToCloudflare(avatarFileInput.files[0], "cover");
+                }
+
+                // Envoi du logo vers R2
+                if (logoFileInput.files && logoFileInput.files[0]) {
+                    logoUrl = await uploadFileToCloudflare(logoFileInput.files[0], "logo");
                 }
 
                 // Envoi de la bannière vers R2
@@ -508,6 +558,7 @@
                 const updatedData = {
                     name: document.getElementById("edit-name").value,
                     photo: photo,
+                    logoUrl: logoUrl,
                     bannerUrl: bannerUrl,
                     birthdate: document.getElementById("edit-birthdate").value,
                     birthplace: document.getElementById("edit-birthplace").value,

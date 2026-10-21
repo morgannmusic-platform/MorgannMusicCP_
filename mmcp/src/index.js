@@ -163,7 +163,6 @@ export default {
     const method = request.method;
 
     try {
-      // Route Proxy dédiée pour télécharger des fichiers distants (contourne CORS)
       if (method === "GET" && path === "/api/proxy-download") {
         const targetUrl = url.searchParams.get("url");
         if (!targetUrl) {
@@ -187,12 +186,10 @@ export default {
         }
       }
 
-      // --- ROUTES PUBLIQUE POUR L'INSCRIPTION NEWSLETTER ---
       if (method === "POST" && path === "/api/newsletter/subscribe") {
         return await handlePublicNewsletterSubscribe(env, request, ctx);
       }
 
-      // --- ROUTES ADMIN POUR L'ENVOI D'EMAILS & NEWSLETTERS ---
       if (method === "POST" && path === "/api/admin/send-email") {
         return await handleAdminSendEmail(env, request);
       }
@@ -222,7 +219,6 @@ export default {
         return await getPublicPremiere(env, url);
       }
 
-      // Public / Global list endpoints for GreenList and BlackList
       if (method === "GET" && (path === "/api/greenlist" || path === "/api/admin/greenlist")) {
         return await getAllGreenlist(env);
       }
@@ -230,14 +226,7 @@ export default {
         return await getAllBlacklist(env);
       }
 
-      // --- ROUTES ADMIN POUR L'ENVOI D'EMAILS & NEWSLETTERS ---
-      if (method === "POST" && path === "/api/admin/send-email") {
-        return await handleAdminSendEmail(env, request);
-      }
       if (method === "GET" && path === "/api/admin/newsletter") {
-        return await handleGetNewsletterRecipients(env);
-      }
-      if (method === "GET" && path === "/api/admin/newsletter-recipients") {
         return await handleGetNewsletterRecipients(env);
       }
 
@@ -434,7 +423,6 @@ export default {
       }
       const isAdminUser = await isAdmin(env, userId);
 
-      // --- GREENLIST ROUTES ---
       const userGreenlistMatch = path.match(/^\/api\/users\/([^/]+)\/greenlist$/);
       if (userGreenlistMatch) {
         const uid = userGreenlistMatch[1];
@@ -454,7 +442,6 @@ export default {
         if (method === "DELETE") return await deleteUserGreenlist(env, uid, itemId, isAdminUser);
       }
 
-      // --- BLACKLIST ROUTES ---
       const userBlacklistMatch = path.match(/^\/api\/users\/([^/]+)\/blacklist$/);
       if (userBlacklistMatch) {
         const uid = userBlacklistMatch[1];
@@ -474,7 +461,6 @@ export default {
         if (method === "DELETE") return await deleteUserBlacklist(env, uid, itemId, isAdminUser);
       }
 
-      // --- NOTIFICATIONS ROUTES ---
       const userNotificationsReadAllMatch = path.match(/^\/api\/users\/([^/]+)\/notifications\/read-all$/);
       if (userNotificationsReadAllMatch) {
         const uid = userNotificationsReadAllMatch[1];
@@ -516,11 +502,10 @@ export default {
         return await getMe(env, userId);
       }
 
-      // --- ROUTES DOCUMENTS UTILISATEUR (CORRIGÉE AVEC DELETE) ---
       const userDocumentsMatch = path.match(/^\/api\/users\/([^/]+)\/documents(\/([^/]+))?$/);
       if (userDocumentsMatch) {
         const uid = userDocumentsMatch[1];
-        const docId = userDocumentsMatch[3]; // Récupère l'ID du document s'il est présent dans l'URL
+        const docId = userDocumentsMatch[3];
         const isSelf = uid === userId;
 
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
@@ -788,7 +773,7 @@ function corsJson(data, status = 200) {
 }
 
 function getBucket(env, type = "file") {
-  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette", "lrics", "lyrics", "document"].includes(type);
+  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette", "lrics", "lyrics", "document", "logo"].includes(type);
   if (isMediaUpload) {
     return env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2 || null;
   }
@@ -806,6 +791,7 @@ function getContentType(ext) {
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
     webp: "image/webp",
+    svg: "image/svg+xml",
     mp4: "video/mp4",
     mov: "video/quicktime",
     lrc: "text/plain",
@@ -830,8 +816,6 @@ function buildHtmlEmail({ firstName, title, message, actionUrl }) {
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAFFC6; table-layout: fixed;">
     <tr>
       <td align="center" style="padding: 0 0 40px 0;">
-        
-        <!-- Header / Navbar -->
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FC8FB0; text-align: center;">
           <tr>
             <td style="padding: 16px 20px;">
@@ -840,40 +824,28 @@ function buildHtmlEmail({ firstName, title, message, actionUrl }) {
             </td>
           </tr>
         </table>
-
-        <!-- Main Card -->
         <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 30px; background-color: #f8ffe7; border-radius: 36px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); border: 1px solid #e1f5be;">
           <tr>
             <td style="padding: 35px 25px; text-align: center;">
-              
-              <!-- Logo -->
               <div style="margin-bottom: 20px;">
                 <img src="https://mm-cp.uk/assets/img/icons/sombre.png" alt="Logo MMCP" width="90" height="auto" style="display: block; margin: 0 auto; border: 0; width: 90px; outline: none; text-decoration: none;">
               </div>
-
-              <!-- Greeting -->
               <h1 style="color: #2c3e10; font-size: 22px; font-weight: 800; margin: 0 0 8px 0; font-family: sans-serif;">Bonjour ${firstName} !</h1>
               <h2 style="color: #556b2f; font-size: 15px; margin: 0 0 25px 0; font-weight: 400; line-height: 1.4; font-family: sans-serif;">Vous avez reçu une nouvelle notification sur votre portail.</h2>
-
-              <!-- Notification Inner Card -->
               <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border-radius: 24px; border: 1px solid #e0f0c0; text-align: left; margin-bottom: 20px;">
                 <tr>
                   <td style="padding: 22px;">
                     <h3 style="color: #FC8FB0; font-size: 18px; margin: 0 0 10px 0; font-weight: 800; font-family: sans-serif;">${title}</h3>
                     <p style="color: #3e2837; font-size: 14px; margin: 0 0 20px 0; line-height: 1.5; white-space: pre-line; font-family: sans-serif;">${message}</p>
-                    
                     <div style="text-align: center; margin-top: 15px;">
                       <a href="${actionUrl}" style="display: inline-block; background-color: #FC8FB0; color: #EAFFC6; text-decoration: none; padding: 12px 28px; border-radius: 50px; font-weight: 700; font-size: 14px; font-family: sans-serif;">Voir en détail</a>
                     </div>
                   </td>
                 </tr>
               </table>
-
             </td>
           </tr>
         </table>
-
-        <!-- Footer -->
         <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 20px; text-align: center;">
           <tr>
             <td style="color: #789048; font-size: 12px; line-height: 1.6; padding: 10px; font-family: sans-serif;">
@@ -882,7 +854,6 @@ function buildHtmlEmail({ firstName, title, message, actionUrl }) {
             </td>
           </tr>
         </table>
-
       </td>
     </tr>
   </table>
@@ -902,8 +873,6 @@ function buildNewsletterWelcomeEmail({ name }) {
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAFFC6; table-layout: fixed;">
     <tr>
       <td align="center" style="padding: 0 0 40px 0;">
-        
-        <!-- Header / Navbar -->
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FC8FB0; text-align: center;">
           <tr>
             <td style="padding: 16px 20px;">
@@ -912,22 +881,14 @@ function buildNewsletterWelcomeEmail({ name }) {
             </td>
           </tr>
         </table>
-
-        <!-- Main Card -->
         <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 30px; background-color: #f8ffe7; border-radius: 36px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); border: 1px solid #e1f5be;">
           <tr>
             <td style="padding: 35px 30px; text-align: left;">
-              
-              <!-- Logo -->
               <div style="text-align: center; margin-bottom: 20px;">
                 <img src="https://mm-cp.uk/assets/img/icons/sombre.png" alt="Logo MMCP" width="90" height="auto" style="display: block; margin: 0 auto; border: 0; width: 90px; outline: none; text-decoration: none;">
               </div>
-
-              <!-- Greeting -->
               <h1 style="color: #2c3e10; font-size: 24px; font-weight: 800; margin: 0 0 10px 0; text-align: center; font-family: sans-serif;">Bienvenue ${name} ! 🎵</h1>
               <p style="color: #556b2f; font-size: 15px; margin: 0 0 25px 0; text-align: center; font-weight: 500; font-family: sans-serif;">Merci de rejoindre la communauté Morgann Music CP.</p>
-
-              <!-- Content Card -->
               <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border-radius: 24px; border: 1px solid #e0f0c0; margin-bottom: 20px;">
                 <tr>
                   <td style="padding: 25px;">
@@ -940,19 +901,15 @@ function buildNewsletterWelcomeEmail({ name }) {
                       <li style="margin-bottom: 8px;">Des conseils exclusifs pour propulser votre carrière artistique.</li>
                       <li>Des avant-premières et des surprises réservées à nos abonnés.</li>
                     </ul>
-
                     <div style="text-align: center; margin-top: 25px;">
                       <a href="https://mm-cp.uk/" style="display: inline-block; background-color: #FC8FB0; color: #EAFFC6; text-decoration: none; padding: 12px 30px; border-radius: 50px; font-weight: 700; font-size: 14px; font-family: sans-serif;">Visiter notre site</a>
                     </div>
                   </td>
                 </tr>
               </table>
-
             </td>
           </tr>
         </table>
-
-        <!-- Footer -->
         <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 20px; text-align: center;">
           <tr>
             <td style="color: #789048; font-size: 12px; line-height: 1.6; padding: 10px; font-family: sans-serif;">
@@ -961,7 +918,6 @@ function buildNewsletterWelcomeEmail({ name }) {
             </td>
           </tr>
         </table>
-
       </td>
     </tr>
   </table>
@@ -1720,6 +1676,7 @@ async function ensureTables(db) {
         instagram_url TEXT,
         youtube_url TEXT,
         photo TEXT,
+        logo_url TEXT,
         banner_url TEXT,
         birthdate TEXT,
         birthplace TEXT,
@@ -1895,6 +1852,10 @@ async function ensureTables(db) {
 
   try {
     await db.prepare("ALTER TABLE users ADD COLUMN newsletter_enabled INTEGER DEFAULT 1").run();
+  } catch (e) { }
+
+  try {
+    await db.prepare("ALTER TABLE artists ADD COLUMN logo_url TEXT").run();
   } catch (e) { }
 }
 
@@ -2586,7 +2547,19 @@ async function createArtist(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
 
-  const row = await env.DB.prepare(`INSERT INTO artists ( user_uid, name, primary_genre, genre, feat, toolost_artist_id, spotify_id, apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, youtube_url, photo, banner_url, birthdate, birthplace, contact_email, uploader_option, writers, credits, secondary_genre, default_language, timezone, release_time, manual_platforms, manual_territories, line_copyright, line_phonogram, label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, created_at ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`).bind(
+  const row = await env.DB.prepare(`
+    INSERT INTO artists (
+      user_uid, name, primary_genre, genre, feat, toolost_artist_id, spotify_id, 
+      apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, 
+      youtube_url, photo, logo_url, banner_url, birthdate, birthplace, contact_email, 
+      uploader_option, writers, credits, secondary_genre, default_language, timezone, 
+      release_time, manual_platforms, manual_territories, line_copyright, line_phonogram, 
+      label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, 
+      link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, 
+      link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+    RETURNING id
+  `).bind(
     uid,
     data.name || "",
     data.primaryGenre || data.genre || null,
@@ -2601,6 +2574,7 @@ async function createArtist(env, uid, request) {
     data.instagramUrl || null,
     data.youtubeUrl || null,
     data.photo || null,
+    data.logoUrl || data.logo || null,
     data.bannerUrl || null,
     data.birthdate || null,
     data.birthplace || null,
@@ -2661,13 +2635,57 @@ async function createFeat(env, uid, request) {
 async function patchArtist(env, uid, artistId, request) {
   const data = await request.json();
 
-  await env.DB.prepare(`UPDATE artists SET name = COALESCE(?, name), primary_genre = COALESCE(?, primary_genre), genre = COALESCE(?, genre), spotify_id = COALESCE(?, spotify_id), apple_music_id = COALESCE(?, apple_music_id), photo = COALESCE(?, photo), banner_url = COALESCE(?, banner_url), birthdate = COALESCE(?, birthdate), birthplace = COALESCE(?, birthplace), uploader_option = COALESCE(?, uploader_option), writers = COALESCE(?, writers), credits = COALESCE(?, credits), secondary_genre = COALESCE(?, secondary_genre), default_language = COALESCE(?, default_language), timezone = COALESCE(?, timezone), release_time = COALESCE(?, release_time), manual_platforms = COALESCE(?, manual_platforms), manual_territories = COALESCE(?, manual_territories), line_copyright = COALESCE(?, line_copyright), line_phonogram = COALESCE(?, line_phonogram), label_name = COALESCE(?, label_name), deliveries = COALESCE(?, deliveries), description = COALESCE(?, description), link_yt_chan = COALESCE(?, link_yt_chan), link_yt_music = COALESCE(?, link_yt_music), link_apple = COALESCE(?, link_apple), link_spotify = COALESCE(?, link_spotify), link_amazon = COALESCE(?, link_amazon), link_soundcloud = COALESCE(?, link_soundcloud), link_website = COALESCE(?, link_website), link_fb = COALESCE(?, link_fb), link_insta = COALESCE(?, link_insta), link_x = COALESCE(?, link_x), link_yt_social = COALESCE(?, link_yt_social), link_wiki = COALESCE(?, link_wiki), id_ddex = COALESCE(?, id_ddex), id_musicbrainz = COALESCE(?, id_musicbrainz), id_allmusic = COALESCE(?, id_allmusic), id_isni = COALESCE(?, id_isni) WHERE id = ? AND (user_uid = ? OR ? = 1)`).bind(
+  await env.DB.prepare(`
+    UPDATE artists 
+    SET name = COALESCE(?, name), 
+        primary_genre = COALESCE(?, primary_genre), 
+        genre = COALESCE(?, genre), 
+        spotify_id = COALESCE(?, spotify_id), 
+        apple_music_id = COALESCE(?, apple_music_id), 
+        photo = COALESCE(?, photo), 
+        logo_url = COALESCE(?, logo_url),
+        banner_url = COALESCE(?, banner_url), 
+        birthdate = COALESCE(?, birthdate), 
+        birthplace = COALESCE(?, birthplace), 
+        uploader_option = COALESCE(?, uploader_option), 
+        writers = COALESCE(?, writers), 
+        credits = COALESCE(?, credits), 
+        secondary_genre = COALESCE(?, secondary_genre), 
+        default_language = COALESCE(?, default_language), 
+        timezone = COALESCE(?, timezone), 
+        release_time = COALESCE(?, release_time), 
+        manual_platforms = COALESCE(?, manual_platforms), 
+        manual_territories = COALESCE(?, manual_territories), 
+        line_copyright = COALESCE(?, line_copyright), 
+        line_phonogram = COALESCE(?, line_phonogram), 
+        label_name = COALESCE(?, label_name), 
+        deliveries = COALESCE(?, deliveries), 
+        description = COALESCE(?, description), 
+        link_yt_chan = COALESCE(?, link_yt_chan), 
+        link_yt_music = COALESCE(?, link_yt_music), 
+        link_apple = COALESCE(?, link_apple), 
+        link_spotify = COALESCE(?, link_spotify), 
+        link_amazon = COALESCE(?, link_amazon), 
+        link_soundcloud = COALESCE(?, link_soundcloud), 
+        link_website = COALESCE(?, link_website), 
+        link_fb = COALESCE(?, link_fb), 
+        link_insta = COALESCE(?, link_insta), 
+        link_x = COALESCE(?, link_x), 
+        link_yt_social = COALESCE(?, link_yt_social), 
+        link_wiki = COALESCE(?, link_wiki), 
+        id_ddex = COALESCE(?, id_ddex), 
+        id_musicbrainz = COALESCE(?, id_musicbrainz), 
+        id_allmusic = COALESCE(?, id_allmusic), 
+        id_isni = COALESCE(?, id_isni) 
+    WHERE id = ? AND (user_uid = ? OR ? = 1)
+  `).bind(
     data.name !== undefined ? data.name : null,
     data.primaryGenre !== undefined ? (data.primaryGenre || data.genre) : null,
     data.genre !== undefined ? (data.genre || data.primaryGenre) : null,
     data.spotifyId !== undefined ? data.spotifyId : null,
     data.appleMusicId !== undefined ? data.appleMusicId : null,
     data.photo !== undefined ? data.photo : null,
+    data.logoUrl !== undefined ? data.logoUrl : (data.logo !== undefined ? data.logo : null),
     data.bannerUrl !== undefined ? data.bannerUrl : null,
     data.birthdate !== undefined ? data.birthdate : null,
     data.birthplace !== undefined ? data.birthplace : null,
@@ -2732,6 +2750,7 @@ function formatArtistRow(row) {
     instagramUrl: row.instagram_url,
     youtubeUrl: row.youtube_url,
     photo: row.photo,
+    logoUrl: row.logo_url,
     bannerUrl: row.banner_url,
     birthdate: row.birthdate,
     birthplace: row.birthplace,
@@ -3219,7 +3238,7 @@ async function serveFile(env, rawKey) {
       return new Response("Fichier non trouvé", { status: 404 });
     }
 
-    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette|lyrics|lrics|document)\//.test(key);
+    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette|lyrics|lrics|document|logo)\//.test(key);
     const bucket = isMediaKey ? (env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2) : (env.BUCKET || env.MEDIA_BUCKET || env.STORAGE || env.R2);
 
     if (bucket) {
