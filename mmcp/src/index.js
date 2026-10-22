@@ -163,7 +163,7 @@ export default {
     const method = request.method;
 
     try {
-      // --- ROUTES UPLOAD PUBLIQUES ET AUTHENTIFIÉES (GÈRE POST /api/upload ET /api/upload/* SANS BLOQUER SUR 405) ---
+      // --- ROUTES UPLOAD PUBLIQUES ET AUTHENTIFIÉES ---
       if (method === "POST" && (path === "/api/upload" || path.startsWith("/api/upload/"))) {
         const userId = (await extractUserId(request)) || "anonymous";
         if (path === "/api/upload/chunk") {
@@ -176,7 +176,7 @@ export default {
         return await uploadFile(env, userId, type, request);
       }
 
-      // Route Proxy dédiée pour télécharger des fichiers distants (contourne CORS)
+      // Route Proxy dédiée pour télécharger des fichiers distants
       if (method === "GET" && path === "/api/proxy-download") {
         const targetUrl = url.searchParams.get("url");
         if (!targetUrl) {
@@ -1690,6 +1690,7 @@ async function ensureTables(db) {
         birthdate TEXT,
         birthplace TEXT,
         contact_email TEXT,
+        schema_json TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `),
@@ -1861,6 +1862,10 @@ async function ensureTables(db) {
 
   try {
     await db.prepare("ALTER TABLE releases ADD COLUMN schema_json TEXT").run();
+  } catch (e) { }
+
+  try {
+    await db.prepare("ALTER TABLE artists ADD COLUMN schema_json TEXT").run();
   } catch (e) { }
 
   try {
@@ -2560,6 +2565,8 @@ async function createArtist(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
 
+  const schemaJson = typeof data.schemaJson === "object" ? JSON.stringify(data.schemaJson) : (data.schemaJson || data.schema_json || null);
+
   const row = await env.DB.prepare(`
     INSERT INTO artists (
       user_uid, name, primary_genre, genre, feat, toolost_artist_id, spotify_id, 
@@ -2569,7 +2576,7 @@ async function createArtist(env, uid, request) {
       release_time, manual_platforms, manual_territories, line_copyright, line_phonogram, 
       label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, 
       link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, 
-      link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, created_at
+      link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, schema_json, created_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING id
   `).bind(
@@ -2622,6 +2629,7 @@ async function createArtist(env, uid, request) {
     data.idMusicbrainz || null,
     data.idAllmusic || null,
     data.idIsni || null,
+    schemaJson,
     now
   ).first();
 
@@ -2647,6 +2655,12 @@ async function createFeat(env, uid, request) {
 
 async function patchArtist(env, uid, artistId, request) {
   const data = await request.json();
+
+  let schemaJson = null;
+  if (data.schemaJson !== undefined || data.schema_json !== undefined) {
+    const val = data.schemaJson !== undefined ? data.schemaJson : data.schema_json;
+    schemaJson = typeof val === "object" ? JSON.stringify(val) : val;
+  }
 
   await env.DB.prepare(`
     UPDATE artists 
@@ -2689,7 +2703,8 @@ async function patchArtist(env, uid, artistId, request) {
         id_ddex = COALESCE(?, id_ddex), 
         id_musicbrainz = COALESCE(?, id_musicbrainz), 
         id_allmusic = COALESCE(?, id_allmusic), 
-        id_isni = COALESCE(?, id_isni) 
+        id_isni = COALESCE(?, id_isni),
+        schema_json = COALESCE(?, schema_json)
     WHERE id = ? AND (user_uid = ? OR ? = 1)
   `).bind(
     data.name !== undefined ? data.name : null,
@@ -2732,6 +2747,7 @@ async function patchArtist(env, uid, artistId, request) {
     data.idMusicbrainz !== undefined ? data.idMusicbrainz : null,
     data.idAllmusic !== undefined ? data.idAllmusic : null,
     data.idIsni !== undefined ? data.idIsni : null,
+    schemaJson,
     artistId,
     uid,
     (await isAdmin(env, uid)) ? 1 : 0
@@ -2747,6 +2763,14 @@ async function deleteArtist(env, uid, artistId) {
 
 function formatArtistRow(row) {
   if (!row) return null;
+
+  let schemaJson = row.schema_json || null;
+  try {
+    if (typeof schemaJson === "string" && (schemaJson.startsWith("{") || schemaJson.startsWith("["))) {
+      schemaJson = JSON.parse(schemaJson);
+    }
+  } catch (e) { }
+
   return {
     id: row.id,
     userUid: row.user_uid,
@@ -2798,6 +2822,7 @@ function formatArtistRow(row) {
     idMusicbrainz: row.id_musicbrainz,
     idAllmusic: row.id_allmusic,
     idIsni: row.id_isni,
+    schemaJson,
     createdAt: row.created_at,
   };
 }

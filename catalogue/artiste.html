@@ -430,6 +430,25 @@
         let allArtistReleases = [];
         let filteredArtistReleases = [];
 
+        // Fonction pour injecter dynamiquement le JSON-LD dans le head
+        function injecterSchemaJsonLd(schemaData) {
+            if (!schemaData) return;
+
+            try {
+                let schemaObj = schemaData;
+                if (typeof schemaData === 'string') {
+                    schemaObj = JSON.parse(schemaData);
+                }
+
+                const script = document.createElement('script');
+                script.type = 'application/ld+json';
+                script.text = JSON.stringify(schemaObj);
+                document.head.appendChild(script);
+            } catch (e) {
+                console.warn("Impossible d'injecter le schéma JSON-LD :", e);
+            }
+        }
+
         // Helper pour garantir la résolution vers l'API Worker D1/R2
         function getFullMediaUrl(url) {
             if (!url) return null;
@@ -515,6 +534,12 @@
                 }
 
                 if (artistData) {
+                    // Injection du schéma JSON-LD s'il existe dans la BDD
+                    const schema = artistData.schemaJson || artistData.schema_json;
+                    if (schema) {
+                        injecterSchemaJsonLd(schema);
+                    }
+
                     const nameToDisplay = artistData.name || currentArtistName;
                     document.getElementById("artist-name").innerText = nameToDisplay;
                     document.title = `${nameToDisplay} - Catalogue MMCP`;

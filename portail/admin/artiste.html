@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de l'Artiste | MMCP Admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .artist-container {
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .card {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
+            color: black;
+            padding: 24px;
+        }
+
+        .profile-header-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .profile-avatar-lg {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            overflow: hidden;
+            border: 3px solid #FC8FB0;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-avatar-lg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .form-section-title {
+            grid-column: 1 / -1;
+            font-size: 14px;
+            font-weight: 700;
+            color: #333333;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            border-bottom: 1px solid rgba(189, 189, 189, 0.3);
+            padding-bottom: 6px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #525252;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
+            padding: 10px 16px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            border-color: #FC8FB0;
+        }
+
+        textarea.form-control {
+            border-radius: 20px;
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .btn-save {
+            background: #FC8FB0;
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #ae6178;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .item-card {
+            background-color: rgba(232, 232, 232, 0.115);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 24px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .item-card:hover {
+            transform: translateY(-3px);
+            border-color: #FC8FB0;
+        }
+
+        .item-cover {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .item-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #000000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-sub {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .alert-status {
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <aside id="sidebar-injector" class="sidebar-container"></aside>
+
+        <main class="main-container">
+            <header id="navbar-injector" class="navbar-container"></header>
+
+            <div class="artist-container">
+
+                <!-- EN-TÊTE ARTISTE -->
+                <div class="card profile-header-card">
+                    <div class="profile-avatar-lg" id="avatar-container">
+                        <span id="avatar-initials">?</span>
+                    </div>
+                    <div>
+                        <h2 style="margin: 0; color: #000000;" id="header-artist-name">Chargement...</h2>
+                        <p style="margin: 4px 0 0 0; color: #3a3a3a; font-size: 14px;" id="header-artist-genre">—</p>
+                    </div>
+                </div>
+
+                <!-- FORMULAIRE DES DÉTAILS DE L'ARTISTE -->
+                <div class="card">
+                    <h3 style="margin: 0; color: #000000;">Fiche de l'artiste</h3>
+
+                    <form id="artist-form">
+                        <div class="form-grid">
+
+                            <!-- INFORMATIONS GÉNÉRALES -->
+                            <div class="form-section-title">Informations Générales</div>
+
+                            <div class="form-group">
+                                <label>Nom de l'artiste (name)</label>
+                                <input type="text" id="name" class="form-control" required
+                                    placeholder="Nom de l'artiste">
+                            </div>
+                            <div class="form-group">
+                                <label>Genre principal (primaryGenre)</label>
+                                <input type="text" id="primaryGenre" class="form-control"
+                                    placeholder="Pop, Rap, Rock...">
+                            </div>
+                            <div class="form-group">
+                                <label>Genre secondaire (secondaryGenre)</label>
+                                <input type="text" id="secondaryGenre" class="form-control" placeholder="Sous-genre...">
+                            </div>
+                            <div class="form-group">
+                                <label>E-mail de contact (contactEmail)</label>
+                                <input type="email" id="contactEmail" class="form-control"
+                                    placeholder="contact@artiste.com">
+                            </div>
+                            <div class="form-group">
+                                <label>UID Propriétaire (userUid)</label>
+                                <input type="text" id="userUid" class="form-control" placeholder="UID utilisateur D1">
+                            </div>
+
+                            <!-- VISUELS ET IDENTITÉ -->
+                            <div class="form-section-title">Visuels & Identité</div>
+
+                            <div class="form-group">
+                                <label>Photo URL (photo)</label>
+                                <input type="text" id="photo" class="form-control" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Logo URL (logoUrl)</label>
+                                <input type="text" id="logoUrl" class="form-control" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Bannière URL (bannerUrl)</label>
+                                <input type="text" id="bannerUrl" class="form-control" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Date de naissance (birthdate)</label>
+                                <input type="date" id="birthdate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Lieu de naissance (birthplace)</label>
+                                <input type="text" id="birthplace" class="form-control" placeholder="Ville, Pays">
+                            </div>
+
+                            <!-- PLATEFORMES -->
+                            <div class="form-section-title">Plateformes :</div>
+
+                            <div class="form-group">
+                                <label>Lien chaîne YouTube</label>
+                                <input type="url" id="linkYtChan" class="form-control"
+                                    placeholder="Lien chaîne YouTube">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien YouTube Music</label>
+                                <input type="url" id="linkYtMusic" class="form-control"
+                                    placeholder="Lien YouTube Music">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien Apple Music</label>
+                                <input type="url" id="linkApple" class="form-control" placeholder="Lien Apple Music">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien Spotify</label>
+                                <input type="url" id="linkSpotify" class="form-control" placeholder="Lien Spotify">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien Amazon Music</label>
+                                <input type="url" id="linkAmazon" class="form-control" placeholder="Lien Amazon Music">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien SoundCloud</label>
+                                <input type="url" id="linkSoundcloud" class="form-control"
+                                    placeholder="Lien SoundCloud">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien site web</label>
+                                <input type="url" id="linkWebsite" class="form-control" placeholder="Lien site web">
+                            </div>
+
+                            <!-- RÉSEAUX SOCIAUX -->
+                            <div class="form-section-title">Réseaux Sociaux :</div>
+
+                            <div class="form-group">
+                                <label>Lien Facebook</label>
+                                <input type="url" id="linkFb" class="form-control" placeholder="Lien Facebook">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien Instagram</label>
+                                <input type="url" id="linkInsta" class="form-control" placeholder="Lien Instagram">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien X (Twitter)</label>
+                                <input type="url" id="linkX" class="form-control" placeholder="Lien X (Twitter)">
+                            </div>
+
+                            <!-- DESCRIPTION & JSON-LD -->
+                            <div class="form-section-title">Biographie & Métadonnées SEO</div>
+
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Biographie / Description</label>
+                                <textarea id="description" class="form-control"
+                                    placeholder="Biographie de l'artiste..."></textarea>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Schéma JSON-LD (Schema.org)</label>
+                                <textarea id="schemaJson" class="form-control"
+                                    style="font-family: monospace; font-size: 12px; min-height: 120px;"
+                                    placeholder='{"@context": "https://schema.org", "@type": "MusicGroup", ...}'></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-save">Enregistrer les modifications</button>
+                        <div id="save-status" class="alert-status"></div>
+                    </form>
+                </div>
+
+                <!-- SORTIES DE L'ARTISTE -->
+                <div class="card">
+                    <h3 style="margin: 0; color: #000000;">Discographie & Sorties associées</h3>
+                    <div id="releases-grid" class="items-grid">
+                        <p style="color: #64748b; font-size: 14px;">Chargement des sorties...</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+        import { initSidebar } from "./sidebar.js";
+        import { chargerProfilNavbar } from "./navbar.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetArtistId = urlParams.get('id');
+
+        const DEFAULT_COVER = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="100%" height="100%" fill="%23e2e8f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="16" fill="%2364748b">Pas d'image</text></svg>`;
+
+        // Mappage strict avec les colonnes / propriétés de l'API Worker
+        const fields = [
+            'name', 'primaryGenre', 'secondaryGenre', 'contactEmail', 'userUid',
+            'photo', 'logoUrl', 'bannerUrl', 'birthdate', 'birthplace',
+            'linkYtChan', 'linkYtMusic', 'linkApple', 'linkSpotify',
+            'linkAmazon', 'linkSoundcloud', 'linkWebsite',
+            'linkFb', 'linkInsta', 'linkX',
+            'description', 'schemaJson'
+        ];
+
+        let artistUserUid = "anonymous";
+
+        function formerUrlComplet(rawUrl) {
+            if (!rawUrl) return null;
+            if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('data:')) {
+                return rawUrl;
+            }
+            if (typeof api.fileUrl === 'function') {
+                return api.fileUrl(rawUrl);
+            }
+            const cleanPath = rawUrl.startsWith('/') ? rawUrl : '/' + rawUrl;
+            const baseUrl = api.BASE_URL ? api.BASE_URL.replace(/\/$/, '') : '';
+            return `${baseUrl}${cleanPath}`;
+        }
+
+        async function injecterComposants() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) {
+                    document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+                    initSidebar(auth);
+                }
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) {
+                    document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
+                }
+            } catch (e) {
+                console.error("Erreur d'injection des composants:", e);
+            }
+        }
+
+        async function chargerInfosArtiste() {
+            if (!targetArtistId) {
+                alert("Aucun identifiant d'artiste spécifié dans l'URL.");
+                return;
+            }
+
+            try {
+                let artist = null;
+                try {
+                    const allArtistsRes = await api.get('/api/artists');
+                    const rawList = Array.isArray(allArtistsRes) ? allArtistsRes : (allArtistsRes.artists || allArtistsRes.data || []);
+                    artist = rawList.find(a => String(a.id) === String(targetArtistId));
+                } catch (e) {
+                    console.error("Erreur lors de la récupération des artistes:", e);
+                }
+
+                if (!artist) {
+                    document.getElementById('header-artist-name').textContent = "Artiste introuvable";
+                    return;
+                }
+
+                artistUserUid = artist.userUid || artist.user_uid || "anonymous";
+
+                // Remplissage des champs HTML
+                fields.forEach(field => {
+                    const input = document.getElementById(field);
+                    if (input) {
+                        let val = artist[field];
+
+                        // Replis d'anciennes clés de compatibilité
+                        if (field === 'linkYtChan' && (!val || val === "")) val = artist.youtubeUrl || artist.youtube_url;
+                        if (field === 'linkApple' && (!val || val === "")) val = artist.appleMusicUrl || artist.apple_music_id;
+                        if (field === 'linkSpotify' && (!val || val === "")) val = artist.spotifyUrl || artist.spotify_id;
+                        if (field === 'linkFb' && (!val || val === "")) val = artist.facebookUrl || artist.facebook_url;
+                        if (field === 'linkInsta' && (!val || val === "")) val = artist.instagramUrl || artist.instagram_url;
+                        if (field === 'linkX' && (!val || val === "")) val = artist.xUrl || artist.twitterUrl;
+
+                        if (field === 'schemaJson' && typeof val === 'object' && val !== null) {
+                            val = JSON.stringify(val, null, 2);
+                        }
+
+                        input.value = val !== undefined && val !== null ? val : "";
+                    }
+                });
+
+                const name = artist.name || "Artiste";
+                const genre = artist.primaryGenre || artist.genre || "Genre non renseigné";
+                document.getElementById('header-artist-name').textContent = name;
+                document.getElementById('header-artist-genre').textContent = genre;
+
+                const avatarContainer = document.getElementById('avatar-container');
+                const avatarUrl = formerUrlComplet(artist.photo || artist.logoUrl);
+
+                if (avatarUrl) {
+                    avatarContainer.innerHTML = `<img src="${avatarUrl}" alt="${name}" onerror="this.onerror=null; this.parentNode.innerHTML='<span>${name.charAt(0).toUpperCase()}</span>';">`;
+                } else {
+                    avatarContainer.innerHTML = `<span>${name.charAt(0).toUpperCase() || "A"}</span>`;
+                }
+
+                chargerSortiesArtiste(name);
+
+            } catch (err) {
+                console.error("Erreur de chargement de l'artiste :", err);
+                document.getElementById('header-artist-name').textContent = "Erreur de chargement";
+            }
+        }
+
+        // Soumission et synchronisation via l'API Worker D1
+        document.getElementById('artist-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('save-status');
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = '#64748b';
+            statusDiv.textContent = "Mise à jour en cours dans la base de données...";
+
+            try {
+                const updateData = {};
+                fields.forEach(field => {
+                    const input = document.getElementById(field);
+                    if (input) {
+                        const val = input.value.trim();
+                        if (field === 'schemaJson' && val) {
+                            try {
+                                updateData[field] = JSON.parse(val);
+                            } catch (e) {
+                                updateData[field] = val;
+                            }
+                        } else {
+                            updateData[field] = val;
+                        }
+                    }
+                });
+
+                const uidForRoute = updateData.userUid || artistUserUid;
+
+                // Route PATCH définie dans le worker : /api/users/:uid/artists/:artistId
+                await api.patch(`/api/users/${uidForRoute}/artists/${targetArtistId}`, updateData);
+
+                statusDiv.style.color = '#10b981';
+                statusDiv.textContent = "Modifications enregistrées avec succès dans la base D1 !";
+                setTimeout(() => statusDiv.style.display = 'none', 3000);
+
+            } catch (err) {
+                console.error("Erreur de sauvegarde artiste :", err);
+                statusDiv.style.color = '#ef4444';
+                statusDiv.textContent = `Erreur lors de la sauvegarde: ${err.message || err}`;
+            }
+        });
+
+        async function chargerSortiesArtiste(artistName) {
+            const grid = document.getElementById('releases-grid');
+            try {
+                const res = await api.get('/api/releases');
+                const releases = Array.isArray(res) ? res : (res.releases || res.data || []);
+
+                const artistReleases = releases.filter(r => {
+                    const name = (r.artistName || r.artist_name || "").toLowerCase();
+                    return name === artistName.toLowerCase();
+                });
+
+                if (!artistReleases || artistReleases.length === 0) {
+                    grid.innerHTML = `<p style="color: #64748b; font-size: 14px;">Aucune sortie associée trouvée.</p>`;
+                    return;
+                }
+
+                grid.innerHTML = artistReleases.map(rel => {
+                    const relId = rel.id;
+                    const title = rel.title || "Sans titre";
+                    const cover = formerUrlComplet(rel.coverUrl || rel.cover_url) || DEFAULT_COVER;
+                    const type = rel.type || "Single";
+
+                    return `
+                <div class="item-card release-item" data-id="${relId}">
+                    <img src="${cover}" class="item-cover" alt="${title}" onerror="this.src='${DEFAULT_COVER}'">
+                    <div class="item-title" title="${title}">${title}</div>
+                    <div class="item-sub">${type}</div>
+                </div>
+            `;
+                }).join('');
+
+                document.querySelectorAll('.release-item').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const releaseId = card.getAttribute('data-id');
+                        if (releaseId) window.location.href = `sortie.html?id=${releaseId}`;
+                    });
+                });
+
+            } catch (e) {
+                console.error("Erreur de chargement des sorties :", e);
+                grid.innerHTML = `<p style="color: #ef4444; font-size: 14px;">Erreur de chargement des sorties.</p>`;
+            }
+        }
+
+        injecterComposants();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                chargerProfilNavbar(null, user);
+                chargerInfosArtiste();
+            } else {
+                window.location.href = "/login.html";
+            }
+        });
+    </script>
+</body>
+
+</html>

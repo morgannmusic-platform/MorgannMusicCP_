@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Artistes | MMCP Admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .page-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            margin-top: 50px;
+        }
+
+        .search-bar-container {
+            position: relative;
+            min-width: 280px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.292);
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #FC8FB0;
+        }
+
+        .table-card {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .artists-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            color: #000000;
+            font-size: 14px;
+        }
+
+        .artists-table th {
+            padding: 14px 16px;
+            border-bottom: 1px solid #334155;
+            color: #545454;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .artists-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.15);
+            vertical-align: middle;
+        }
+
+        .artists-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .artists-table tbody tr:hover {
+            background: #fc8fb077 !important;
+        }
+
+        .artist-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .artist-avatar-small {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #FC8FB0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #ffffff;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .artist-avatar-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .genre-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+            background: rgba(252, 143, 176, 0.2);
+            color: #d6688a;
+            border: 1px solid rgba(252, 143, 176, 0.4);
+            text-transform: capitalize;
+        }
+
+        .table-loading {
+            text-align: center;
+            padding: 40px !important;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <!-- Sidebar fixe à gauche -->
+        <aside id="sidebar-injector" class="sidebar-container"></aside>
+
+        <!-- Contenu principal à droite -->
+        <main class="main-container">
+
+            <header id="navbar-injector" class="navbar-container"></header>
+
+            <div class="page-header-actions">
+                <div>
+                    <h2 class="page-title" style="margin: 0;">Gestion des Artistes</h2>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 4px;">
+                        Liste globale de tous les artistes répertoriés sur le catalogue.
+                    </p>
+                </div>
+
+                <!-- Barre de recherche rapide -->
+                <div class="search-bar-container">
+                    <input type="text" id="artist-search-input" class="search-input"
+                        placeholder="Rechercher un artiste, genre, e-mail..." />
+                </div>
+            </div>
+
+            <!-- Tableau des artistes -->
+            <div class="table-card">
+                <table class="artists-table">
+                    <thead>
+                        <tr>
+                            <th>Artiste</th>
+                            <th>Genre principal</th>
+                            <th>Contact / E-mail</th>
+                            <th>Type</th>
+                            <th>Ajouté le</th>
+                        </tr>
+                    </thead>
+                    <tbody id="artists-table-body">
+                        <tr>
+                            <td colspan="5" class="table-loading">
+                                <span>Chargement des artistes depuis le Worker/D1...</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+        import { initSidebar } from "./sidebar.js";
+        import { chargerProfilNavbar } from "./navbar.js";
+
+        let listArtistsCache = [];
+
+        function obtenirImageUrl(rawUrl) {
+            if (!rawUrl) return null;
+            if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('data:')) {
+                return rawUrl;
+            }
+            if (typeof api.fileUrl === 'function') {
+                return api.fileUrl(rawUrl);
+            }
+            const cleanPath = rawUrl.startsWith('/') ? rawUrl : '/' + rawUrl;
+            const baseUrl = api.baseUrl ? api.baseUrl.replace(/\/$/, '') : '';
+            return `${baseUrl}${cleanPath}`;
+        }
+
+        async function injecterComposants() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) {
+                    document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+                    initSidebar(auth);
+
+                    const links = document.querySelectorAll('.sidebar-link');
+                    links.forEach(l => {
+                        const href = l.getAttribute('href');
+                        if (href === 'admin-artistes.html' || href === 'artistes.html') {
+                            l.classList.add('active');
+                        } else {
+                            l.classList.remove('active');
+                        }
+                    });
+                }
+
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) {
+                    document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
+                }
+            } catch (e) {
+                console.error("Erreur injection composants : ", e);
+            }
+        }
+
+        async function chargerArtistes() {
+            const tbody = document.getElementById("artists-table-body");
+
+            try {
+                const res = await api.get("/api/artists");
+                const rawData = Array.isArray(res) ? res : (res.artists || res.data || []);
+
+                listArtistsCache = Array.isArray(rawData) ? rawData : [];
+                afficherTableauArtistes(listArtistsCache);
+            } catch (err) {
+                console.error("Erreur récupération des artistes :", err);
+                tbody.innerHTML = `<tr><td colspan="5" class="table-loading" style="color:#ef4444;">Erreur lors du chargement des artistes.</td></tr>`;
+            }
+        }
+
+        function afficherTableauArtistes(liste) {
+            const tbody = document.getElementById("artists-table-body");
+            if (!liste || liste.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="table-loading">Aucun artiste trouvé.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = liste.map(artist => {
+                const name = artist.name || artist.nom || "Artiste inconnu";
+                const photoUrl = obtenirImageUrl(artist.photo || artist.photoUrl || artist.logoUrl);
+                const genre = artist.primaryGenre || artist.genre || "Non renseigné";
+                const email = artist.contactEmail || artist.email || "—";
+                const isFeat = Boolean(artist.feat);
+                const typeText = isFeat ? "Featuring" : "Principal";
+
+                let createdAt = "—";
+                const rawDate = artist.createdAt || artist.created_at;
+                if (rawDate) {
+                    const d = new Date(rawDate);
+                    if (!isNaN(d.getTime())) {
+                        createdAt = d.toLocaleDateString('fr-FR');
+                    }
+                }
+
+                const initials = name.charAt(0).toUpperCase() || "A";
+                const avatarHTML = photoUrl
+                    ? `<img src="${photoUrl}" alt="${name}" onerror="this.onerror=null; this.parentNode.innerHTML='<span>${initials}</span>';">`
+                    : `<span>${initials}</span>`;
+
+                const artistId = artist.id || "";
+
+                return `
+            <tr class="artist-row" data-id="${artistId}">
+                <td>
+                    <div class="artist-cell">
+                        <div class="artist-avatar-small">${avatarHTML}</div>
+                        <strong>${name}</strong>
+                    </div>
+                </td>
+                <td><span class="genre-badge">${genre}</span></td>
+                <td>${email}</td>
+                <td><span style="font-weight: 600; font-size: 12px; color: #64748b;">${typeText}</span></td>
+                <td style="color: #64748b;">${createdAt}</td>
+            </tr>
+        `;
+            }).join("");
+
+            document.querySelectorAll('.artist-row').forEach(row => {
+                row.addEventListener('click', () => {
+                    const id = row.getAttribute('data-id');
+                    if (id) {
+                        window.location.href = `artiste.html?id=${id}`;
+                    }
+                });
+            });
+        }
+
+        document.getElementById("artist-search-input").addEventListener("input", (e) => {
+            const searchVal = e.target.value.toLowerCase().trim();
+            const filtered = listArtistsCache.filter(a => {
+                const name = (a.name || a.nom || '').toLowerCase();
+                const genre = (a.primaryGenre || a.genre || '').toLowerCase();
+                const email = (a.contactEmail || a.email || '').toLowerCase();
+                return name.includes(searchVal) || genre.includes(searchVal) || email.includes(searchVal);
+            });
+            afficherTableauArtistes(filtered);
+        });
+
+        injecterComposants();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                chargerProfilNavbar(null, user);
+                chargerArtistes();
+            } else {
+                window.location.href = "/login.html";
+            }
+        });
+    </script>
+</body>
+
+</html>
