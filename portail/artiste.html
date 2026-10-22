@@ -221,6 +221,8 @@
                         <h4 style="margin: 15px 0 5px 0; font-size:13px; color:#555;">Réseaux Sociaux :</h4>
                         <div class="form-group"><input type="url" id="link-fb" placeholder="Lien Facebook"></div>
                         <div class="form-group"><input type="url" id="link-insta" placeholder="Lien Instagram"></div>
+                        <div class="form-group"><input type="url" id="link-tiktok" placeholder="Lien TikTok"></div>
+                        <div class="form-group"><input type="url" id="link-threads" placeholder="Lien Threads"></div>
                         <div class="form-group"><input type="url" id="link-x" placeholder="Lien X (Twitter)"></div>
                         <div class="form-group"><input type="url" id="link-yt-social"
                                 placeholder="Lien YouTube (Social)">
@@ -378,6 +380,8 @@
                     document.getElementById("link-website").value = artistData.linkWebsite || "";
                     document.getElementById("link-fb").value = artistData.linkFb || "";
                     document.getElementById("link-insta").value = artistData.linkInsta || "";
+                    document.getElementById("link-tiktok").value = artistData.linkTiktok || artistData.tiktokUrl || artistData.tiktok_url || "";
+                    document.getElementById("link-threads").value = artistData.linkThreads || artistData.threadsUrl || artistData.threads_url || "";
                     document.getElementById("link-x").value = artistData.linkX || "";
                     document.getElementById("link-yt-social").value = artistData.linkYtSocial || "";
                     document.getElementById("link-wiki").value = artistData.linkWiki || "";
@@ -481,6 +485,8 @@
                 linkWebsite: document.getElementById("link-website").value.trim(),
                 linkFb: document.getElementById("link-fb").value.trim(),
                 linkInsta: document.getElementById("link-insta").value.trim(),
+                tiktokUrl: document.getElementById("link-tiktok").value.trim(),
+                threadsUrl: document.getElementById("link-threads").value.trim(),
                 linkX: document.getElementById("link-x").value.trim(),
                 linkYtSocial: document.getElementById("link-yt-social").value.trim(),
                 linkWiki: document.getElementById("link-wiki").value.trim(),

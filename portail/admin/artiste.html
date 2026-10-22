@@ -313,6 +313,14 @@
                                 <input type="url" id="linkInsta" class="form-control" placeholder="Lien Instagram">
                             </div>
                             <div class="form-group">
+                                <label>Lien TikTok</label>
+                                <input type="url" id="tiktokUrl" class="form-control" placeholder="Lien TikTok">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien Threads</label>
+                                <input type="url" id="threadsUrl" class="form-control" placeholder="Lien Threads">
+                            </div>
+                            <div class="form-group">
                                 <label>Lien X (Twitter)</label>
                                 <input type="url" id="linkX" class="form-control" placeholder="Lien X (Twitter)">
                             </div>
@@ -368,7 +376,7 @@
             'photo', 'logoUrl', 'bannerUrl', 'birthdate', 'birthplace',
             'linkYtChan', 'linkYtMusic', 'linkApple', 'linkSpotify',
             'linkAmazon', 'linkSoundcloud', 'linkWebsite',
-            'linkFb', 'linkInsta', 'linkX',
+            'linkFb', 'linkInsta', 'tiktokUrl', 'threadsUrl', 'linkX',
             'description', 'schemaJson'
         ];
 
@@ -439,6 +447,8 @@
                         if (field === 'linkSpotify' && (!val || val === "")) val = artist.spotifyUrl || artist.spotify_id;
                         if (field === 'linkFb' && (!val || val === "")) val = artist.facebookUrl || artist.facebook_url;
                         if (field === 'linkInsta' && (!val || val === "")) val = artist.instagramUrl || artist.instagram_url;
+                        if (field === 'tiktokUrl' && (!val || val === "")) val = artist.tiktok_url || artist.linkTiktok;
+                        if (field === 'threadsUrl' && (!val || val === "")) val = artist.threads_url || artist.linkThreads;
                         if (field === 'linkX' && (!val || val === "")) val = artist.xUrl || artist.twitterUrl;
 
                         if (field === 'schemaJson' && typeof val === 'object' && val !== null) {

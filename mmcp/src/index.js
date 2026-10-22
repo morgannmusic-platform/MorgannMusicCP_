@@ -1,3 +1,113 @@
+function getSiteName(hostname) {
+  const host = (hostname || "").toLowerCase();
+  if (host === "play.morgannmusic.uk" || host.startsWith("play.")) return "Morgann Music Play";
+  if (host === "link.morgannmusic.uk" || host.startsWith("link.")) return "Morgann Music Link";
+  return "Morgann Music CP";
+}
+
+function absoluteMediaUrl(url, domain) {
+  if (!url) return "";
+  const value = String(url).trim();
+  if (!value) return "";
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  if (value.startsWith("/")) {
+    return `https://api.worker.mm-cp.uk${value}`;
+  }
+
+  return `https://api.worker.mm-cp.uk/api/files/${encodeURIComponent(value)}`;
+}
+
+function generateReleaseOgHtml(release, currentUrl, domain) {
+  const siteName = getSiteName(domain);
+  const releaseTitle = release?.title || 'Sortie musicale';
+  const artistName = release?.artist_name || 'Artiste';
+
+  const title = `${releaseTitle} de ${artistName} sur ${siteName}`;
+  const description = `Ecoutez ${releaseTitle}, la sortie de ${artistName} sur ${siteName}`;
+
+  let coverUrl = absoluteMediaUrl(release?.cover_url || release?.animated_cover_url, domain);
+  if (!coverUrl) {
+    coverUrl = "https://mm-cp.uk/assets/img/icons/sombre.png";
+  }
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+
+    <!-- Open Graph / Facebook / LinkedIn / Discord -->
+    <meta property="og:type" content="music.album">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:image" content="${coverUrl}">
+    <meta property="og:image:secure_url" content="${coverUrl}">
+    <meta property="og:url" content="${currentUrl}">
+    <meta property="og:site_name" content="${siteName}">
+    <meta property="og:locale" content="fr_FR">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${description}">
+    <meta name="twitter:image" content="${coverUrl}">
+</head>
+<body>
+    <h1>${title}</h1>
+    <p>${description}</p>
+    <img src="${coverUrl}" alt="${title}">
+</body>
+</html>`;
+}
+
+function generateArtistOgHtml(artist, currentUrl, domain) {
+  const siteName = getSiteName(domain);
+  const name = artist.name || 'Artiste';
+
+  const title = `${name} sur ${siteName}`;
+  const description = `Découvrez ${name}, artiste du label Morgann Music CP, regardez ca de plus près sur ${siteName}`;
+
+  let photoUrl = absoluteMediaUrl(artist.photo || artist.logo_url || artist.banner_url, domain);
+  if (!photoUrl) {
+    photoUrl = "https://mm-cp.uk/assets/img/icons/sombre.png";
+  }
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+
+    <!-- Open Graph / Facebook / LinkedIn / Discord -->
+    <meta property="og:type" content="profile">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:image" content="${photoUrl}">
+    <meta property="og:image:secure_url" content="${photoUrl}">
+    <meta property="og:url" content="${currentUrl}">
+    <meta property="og:site_name" content="${siteName}">
+    <meta property="og:locale" content="fr_FR">
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${description}">
+    <meta name="twitter:image" content="${photoUrl}">
+</head>
+<body>
+    <h1>${title}</h1>
+    <p>${description}</p>
+    <img src="${photoUrl}" alt="${name}">
+</body>
+</html>`;
+}
+
 function makeConversationTitle(input) {
   const raw = String(input || "").replace(/\s+/g, " ").trim();
   if (!raw) return "Nouvelle conversation";
@@ -159,8 +269,99 @@ export default {
     }
 
     const url = new URL(request.url);
-    const path = url.pathname.replace(/\/$/, "");
+    // On retire l'extension .html et le slash final pour normaliser la route
+    const path = url.pathname.replace(/\.html$/i, "").replace(/\/$/, "");
+    const hostname = url.hostname.toLowerCase();
     const method = request.method;
+
+    // --- 1. ROUTAGE & GESTION DES PAGES OPEN GRAPH ---
+    const isLinkDomain = hostname === "link.morgannmusic.uk";
+    const isPlayDomain = hostname === "play.morgannmusic.uk";
+    const isMmCpDomain = hostname === "mm-cp.uk" || hostname === "www.mm-cp.uk";
+
+    const isReleasePage =
+      (isLinkDomain && path === "/sortie") ||
+      (isPlayDomain && path === "/sortie") ||
+      (isMmCpDomain && path === "/catalogue/sortie");
+
+    const isArtistPage =
+      (isLinkDomain && path === "/artiste") ||
+      (isPlayDomain && path === "/artiste") ||
+      (isMmCpDomain && path === "/catalogue/artiste");
+
+    if (isReleasePage || isArtistPage) {
+      const userAgent = (request.headers.get("User-Agent") || "").toLowerCase();
+      const isBot = /bot|facebookexternalhit|whatsapp|twitterbot|pinterest|telegram|discordbot|opengraph|linkedinbot|slackbot|embedly|outbrain|vkshare|craftpro|lighthouse|google|checker|inspector|fetch|curl|debug|axios|node|preview|scraper|pinger/i.test(userAgent) || url.searchParams.has("debug_og");
+
+      if (isBot) {
+        const entityId = url.searchParams.get("id") || url.searchParams.get("name") || url.searchParams.get("artiste");
+
+        if (env.DB && entityId) {
+          if (isReleasePage) {
+            try {
+              const release = await env.DB.prepare("SELECT * FROM releases WHERE id = ?").bind(entityId).first();
+              if (release) {
+                const ogHtml = generateReleaseOgHtml(release, request.url, url.hostname);
+                return new Response(ogHtml, {
+                  status: 200,
+                  headers: {
+                    ...corsHeaders(),
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Cache-Control": "public, max-age=3600"
+                  }
+                });
+              }
+            } catch (e) {
+              console.error("Erreur génération HTML OG Release Bot:", e);
+            }
+          }
+
+          if (isArtistPage) {
+            try {
+              const artist = await env.DB.prepare("SELECT * FROM artists WHERE id = ? OR LOWER(name) = LOWER(?)").bind(entityId, entityId).first();
+              if (artist) {
+                const ogHtml = generateArtistOgHtml(artist, request.url, url.hostname);
+                return new Response(ogHtml, {
+                  status: 200,
+                  headers: {
+                    ...corsHeaders(),
+                    "Content-Type": "text/html; charset=utf-8",
+                    "Cache-Control": "public, max-age=3600"
+                  }
+                });
+              }
+            } catch (e) {
+              console.error("Erreur génération HTML OG Artist Bot:", e);
+            }
+          }
+        }
+
+        const dynamicSiteName = getSiteName(url.hostname);
+        return new Response(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>${dynamicSiteName}</title>
+    <meta name="description" content="Plateforme musicale ${dynamicSiteName}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${dynamicSiteName}">
+    <meta property="og:description" content="Plateforme musicale ${dynamicSiteName}">
+    <meta property="og:image" content="https://mm-cp.uk/assets/img/icons/sombre.png">
+    <meta property="og:url" content="${request.url}">
+    <meta property="og:site_name" content="${dynamicSiteName}">
+    <meta property="og:locale" content="fr_FR">
+</head>
+<body>
+    <h1>${dynamicSiteName}</h1>
+</body>
+</html>`, {
+          status: 200,
+          headers: { ...corsHeaders(), "Content-Type": "text/html; charset=utf-8" }
+        });
+      }
+
+      return fetch(request);
+    }
 
     try {
       // --- ROUTES UPLOAD PUBLIQUES ET AUTHENTIFIÉES ---
@@ -246,6 +447,17 @@ export default {
       if (method === "GET" && path === "/api/admin/newsletter") {
         return await handleGetNewsletterRecipients(env);
       }
+
+      // --- ROUTES PUBLIQUES ARTISTES & SORTIES ---
+      if (method === "GET" && path.match(/^\/api\/artists\/(.+)$/)) {
+        const param = decodeURIComponent(path.split("/").pop());
+        const artist = await env.DB.prepare(
+          "SELECT * FROM artists WHERE id = ? OR LOWER(name) = LOWER(?)"
+        ).bind(param, param).first();
+        if (!artist) return corsJson({ error: "Artiste non trouvé" }, 404);
+        return corsJson(formatArtistRow(artist));
+      }
+
 
       const labelItemMatch = path.match(/^\/api\/labels\/(\d+)$/);
       if (labelItemMatch) {
@@ -575,10 +787,11 @@ export default {
         return await patchWithdrawal(env, userId, path, request, isAdminUser, ctx);
       }
       if (method === "POST" && path === "/api/admin/versions") {
-        return await createVersion(env, request, userId, isAdminUser);
+        return await createVersionSafe(env, request);
       }
       if (method === "PATCH" && path.match(/^\/api\/admin\/versions\/\d+$/)) {
-        return await patchVersion(env, path, request, userId, isAdminUser);
+        const versionId = path.split("/").pop();
+        return await patchVersionSafe(env, versionId, request);
       }
       if (method === "GET" && path.match(/^\/api\/admin\/releases\/\d+$/)) {
         return await getAdminRelease(env, path, isAdminUser);
@@ -1523,6 +1736,12 @@ async function broadcastNotification(env, request, isAdminUser, ctx) {
   }
 }
 
+// --- AJOUT DES COLONNES TIKTOK & THREADS DANS LA TABLE ARTISTS ---
+// Assurez-vous d'exécuter ces modifications dans ensureTables (ou via migration D1) :
+// ALTER TABLE artists ADD COLUMN tiktok_url TEXT;
+// ALTER TABLE artists ADD COLUMN threads_url TEXT;
+
+// Mise à jour de la fonction ensureTables pour inclure automatiquement tiktok_url et threads_url
 async function ensureTables(db) {
   await db.batch([
     db.prepare(`
@@ -1684,6 +1903,8 @@ async function ensureTables(db) {
         facebook_url TEXT,
         instagram_url TEXT,
         youtube_url TEXT,
+        tiktok_url TEXT,
+        threads_url TEXT,
         photo TEXT,
         logo_url TEXT,
         banner_url TEXT,
@@ -1875,7 +2096,16 @@ async function ensureTables(db) {
   try {
     await db.prepare("ALTER TABLE artists ADD COLUMN logo_url TEXT").run();
   } catch (e) { }
+
+  try {
+    await db.prepare("ALTER TABLE artists ADD COLUMN tiktok_url TEXT").run();
+  } catch (e) { }
+
+  try {
+    await db.prepare("ALTER TABLE artists ADD COLUMN threads_url TEXT").run();
+  } catch (e) { }
 }
+
 
 async function deleteUserDocument(env, uid, docId) {
   try {
@@ -2561,6 +2791,7 @@ async function getArtist(env, uid, artistId) {
   return corsJson(formatArtistRow(row));
 }
 
+// Mise à jour de createArtist pour intégrer tiktok_url et threads_url
 async function createArtist(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
@@ -2571,13 +2802,13 @@ async function createArtist(env, uid, request) {
     INSERT INTO artists (
       user_uid, name, primary_genre, genre, feat, toolost_artist_id, spotify_id, 
       apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, 
-      youtube_url, photo, logo_url, banner_url, birthdate, birthplace, contact_email, 
+      youtube_url, tiktok_url, threads_url, photo, logo_url, banner_url, birthdate, birthplace, contact_email, 
       uploader_option, writers, credits, secondary_genre, default_language, timezone, 
       release_time, manual_platforms, manual_territories, line_copyright, line_phonogram, 
       label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, 
       link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, 
       link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, schema_json, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING id
   `).bind(
     uid,
@@ -2593,6 +2824,8 @@ async function createArtist(env, uid, request) {
     data.facebookUrl || null,
     data.instagramUrl || null,
     data.youtubeUrl || null,
+    data.tiktokUrl || data.tiktok_url || data.linkTiktok || null,
+    data.threadsUrl || data.threads_url || data.linkThreads || null,
     data.photo || null,
     data.logoUrl || data.logo || data.logo_url || null,
     data.bannerUrl || null,
@@ -2636,6 +2869,7 @@ async function createArtist(env, uid, request) {
   return corsJson({ id: row.id, success: true }, 201);
 }
 
+
 async function createFeat(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
@@ -2669,6 +2903,11 @@ async function patchArtist(env, uid, artistId, request) {
         genre = COALESCE(?, genre), 
         spotify_id = COALESCE(?, spotify_id), 
         apple_music_id = COALESCE(?, apple_music_id), 
+        facebook_url = COALESCE(?, facebook_url),
+        instagram_url = COALESCE(?, instagram_url),
+        youtube_url = COALESCE(?, youtube_url),
+        tiktok_url = COALESCE(?, tiktok_url),
+        threads_url = COALESCE(?, threads_url),
         photo = COALESCE(?, photo), 
         logo_url = COALESCE(?, logo_url), 
         banner_url = COALESCE(?, banner_url), 
@@ -2712,6 +2951,11 @@ async function patchArtist(env, uid, artistId, request) {
     data.genre !== undefined ? (data.genre || data.primaryGenre) : null,
     data.spotifyId !== undefined ? data.spotifyId : null,
     data.appleMusicId !== undefined ? data.appleMusicId : null,
+    data.facebookUrl !== undefined ? data.facebookUrl : null,
+    data.instagramUrl !== undefined ? data.instagramUrl : null,
+    data.youtubeUrl !== undefined ? data.youtubeUrl : null,
+    data.tiktokUrl !== undefined ? data.tiktokUrl : (data.tiktok_url !== undefined ? data.tiktok_url : (data.linkTiktok !== undefined ? data.linkTiktok : null)),
+    data.threadsUrl !== undefined ? data.threadsUrl : (data.threads_url !== undefined ? data.threads_url : (data.linkThreads !== undefined ? data.linkThreads : null)),
     data.photo !== undefined ? data.photo : null,
     data.logoUrl !== undefined ? data.logoUrl : (data.logo !== undefined ? data.logo : (data.logo_url !== undefined ? data.logo_url : null)),
     data.bannerUrl !== undefined ? data.bannerUrl : null,
@@ -2756,6 +3000,7 @@ async function patchArtist(env, uid, artistId, request) {
   return corsJson({ success: true });
 }
 
+
 async function deleteArtist(env, uid, artistId) {
   await env.DB.prepare("DELETE FROM artists WHERE id = ? AND user_uid = ?").bind(artistId, uid).run();
   return corsJson({ success: true });
@@ -2786,6 +3031,8 @@ function formatArtistRow(row) {
     facebookUrl: row.facebook_url,
     instagramUrl: row.instagram_url,
     youtubeUrl: row.youtube_url,
+    tiktokUrl: row.tiktok_url,
+    threadsUrl: row.threads_url,
     photo: row.photo,
     logoUrl: row.logo_url,
     bannerUrl: row.banner_url,
@@ -2826,6 +3073,7 @@ function formatArtistRow(row) {
     createdAt: row.created_at,
   };
 }
+
 
 async function getAllReleases(env, url) {
   const status = url.searchParams.get("status");

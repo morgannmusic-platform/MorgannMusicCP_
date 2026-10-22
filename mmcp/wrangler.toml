@@ -2,6 +2,16 @@ name = "mon-site-api"
 main = "src/index.js"
 compatibility_date = "2026-08-10"
 
+# Routes pour intercepter l'Open Graph sur les sous-domaines
+routes = [
+  { pattern = "link.morgannmusic.uk/sortie*", zone_name = "morgannmusic.uk" },
+  { pattern = "link.morgannmusic.uk/artiste*", zone_name = "morgannmusic.uk" },
+  { pattern = "play.morgannmusic.uk/sortie*", zone_name = "morgannmusic.uk" },
+  { pattern = "play.morgannmusic.uk/artiste*", zone_name = "morgannmusic.uk" },
+  { pattern = "mm-cp.uk/catalogue/sortie*", zone_name = "mm-cp.uk" },
+  { pattern = "mm-cp.uk/catalogue/artiste*", zone_name = "mm-cp.uk" }
+]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "ma-super-base"
