@@ -269,12 +269,13 @@ export default {
     }
 
     const url = new URL(request.url);
-    // On retire l'extension .html et le slash final pour normaliser la route
     const path = url.pathname.replace(/\.html$/i, "").replace(/\/$/, "");
     const hostname = url.hostname.toLowerCase();
     const method = request.method;
 
-    // --- 1. ROUTAGE & GESTION DES PAGES OPEN GRAPH ---
+    // --- 0. LAISSER PASSER LES PAGES STATIQUES & FICHIERS FRONTEND ---
+    // Si la route ne commence PAS par /api/ et n'est pas une page Open Graph spécifique,
+    // on la renvoie immédiatement vers Cloudflare Pages sans vérification d'auth.
     const isLinkDomain = hostname === "link.morgannmusic.uk";
     const isPlayDomain = hostname === "play.morgannmusic.uk";
     const isMmCpDomain = hostname === "mm-cp.uk" || hostname === "www.mm-cp.uk";
@@ -288,6 +289,11 @@ export default {
       (isLinkDomain && path === "/artiste") ||
       (isPlayDomain && path === "/artiste") ||
       (isMmCpDomain && path === "/catalogue/artiste");
+
+    if (!url.pathname.startsWith("/api/") && !isReleasePage && !isArtistPage) {
+      return fetch(request);
+    }
+
 
     if (isReleasePage || isArtistPage) {
       const userAgent = (request.headers.get("User-Agent") || "").toLowerCase();

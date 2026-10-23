@@ -1,0 +1,144 @@
+/* ============================================================
+   STYLES SPÉCIFIQUES DE LA PAGE NOUS.HTML (TIMELINE & COULISSES)
+   ============================================================ */
+
+.nous-hero {
+    margin-bottom: 2rem;
+}
+
+.process-timeline-section {
+    padding: 3rem 1rem 5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.process-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.process-header h2 {
+    font-size: clamp(2rem, 3vw, 2.6rem);
+    color: var(--rose);
+    margin-bottom: 0.8rem;
+}
+
+.process-header p {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+}
+
+.process-timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+/* Ligne verticale de la timeline en arrière-plan avec effet de progression */
+.process-timeline::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
+    left: 35px;
+    width: 3px;
+    background: var(--border-subtle);
+    z-index: 0;
+}
+
+/* Ligne de progression active animée par GSAP */
+.process-timeline-progress {
+    position: absolute;
+    top: 20px;
+    left: 35px;
+    width: 3px;
+    background: var(--rose);
+    height: 0%;
+    z-index: 0;
+    transition: height 0.1s ease-out;
+}
+
+.process-step {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    z-index: 1;
+    opacity: 0;
+}
+
+.process-number {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--container1), var(--container3));
+    border: 2px solid var(--rose);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--rose);
+    flex-shrink: 0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.process-card {
+    flex-grow: 1;
+    background: linear-gradient(145deg, var(--container1), var(--container3));
+    border: 1px solid var(--border-subtle);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.process-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.08);
+}
+
+.process-icon {
+    font-size: 2rem;
+    margin-bottom: 0.2rem;
+}
+
+.process-card h3 {
+    font-size: 1.25rem;
+    color: var(--rose);
+    font-weight: 600;
+    margin: 0;
+}
+
+.process-card p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* Responsive pour tablettes et smartphones */
+@media (max-width: 768px) {
+
+    .process-timeline::before,
+    .process-timeline-progress {
+        left: 25px;
+    }
+
+    .process-step {
+        gap: 1rem;
+    }
+
+    .process-number {
+        width: 50px;
+        height: 50px;
+        font-size: 0.95rem;
+    }
+
+    .process-card {
+        padding: 1.5rem;
+    }
+}
