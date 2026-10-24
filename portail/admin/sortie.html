@@ -292,7 +292,6 @@
                                 virgules)</label><input type="text" id="edit-additionalDeliveries" class="form-control">
                         </div>
 
-                        <!-- Champ Schema.org JSON-LD -->
                         <div class="form-group full-width">
                             <label style="color: #8b5cf6;">Données Structurées (Schema.org JSON-LD)</label>
                             <textarea id="edit-schemaJson" class="form-control" rows="8" placeholder='<script type="application/ld+json">
@@ -560,6 +559,30 @@
             }
         };
 
+        window.telechargerFichier = async function (url, titre) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Le fichier est inaccessible (Erreur HTTP " + response.status + ")");
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+
+                let extension = ".wav";
+                if (url.includes('.mp3')) extension = ".mp3";
+                if (url.includes('.caf')) extension = ".caf";
+
+                a.download = (titre || 'piste') + extension;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                a.remove();
+            } catch (err) {
+                alert("Échec du téléchargement : " + err.message);
+            }
+        };
+
         function afficherPistesHTML() {
             const container = document.getElementById("admin-tracks-list");
             container.innerHTML = "";
@@ -567,6 +590,10 @@
             pistesActuelles.forEach((t, i) => {
                 const audioSrc = corrigerUrlFichier(t.audioUrl);
                 const instSrc = corrigerUrlFichier(t.instrumentalAudioUrl);
+                const atmosSrc = corrigerUrlFichier(t.atmosAudioUrl);
+                const atmosInstSrc = corrigerUrlFichier(t.atmosInstrumentalAudioUrl);
+
+                const titrePropre = t.title ? t.title.replace(/[^a-zA-Z0-9]/g, '_') : `Piste_${i + 1}`;
 
                 const box = document.createElement("div");
                 box.className = "track-box";
@@ -604,12 +631,34 @@
                                 <button type="button" class="btn-action-audio" style="background:#555;" onclick="importerAudioLien(${i})">+ Importer via lien (Convertir en WAV)</button>
                             </div>
                             <input type="text" id="t-audio-${i}" class="form-control" value="${t.audioUrl || ''}">
-                            <div class="audio-preview">${audioSrc ? `<audio controls src="${audioSrc}"></audio>` : 'Aucun'}</div>
+                            <div class="audio-preview">
+                                ${audioSrc ? `<div style="display:flex; gap:10px; align-items:center; margin-top:8px;"><audio controls src="${audioSrc}"></audio><button type="button" onclick="telechargerFichier('${audioSrc}', '${titrePropre}_Main')" class="btn-action-audio" style="background:#3b82f6; margin:0;">📥 Télécharger</button></div>` : 'Aucun'}
+                            </div>
                         </div>
-                        <div class="form-group full-width"><label>Instrumental Audio URL (Stéréo)</label><input type="text" id="t-inst-${i}" class="form-control" value="${t.instrumentalAudioUrl || ''}"><div class="audio-preview">${instSrc ? `<audio controls src="${instSrc}"></audio>` : 'Aucun'}</div></div>
                         
-                        <div class="form-group full-width"><label style="color:#60a5fa;">Dolby Atmos Audio URL (Principal)</label><input type="text" id="t-atmos-${i}" class="form-control" value="${t.atmosAudioUrl || ''}" placeholder="Lien vers le fichier .wav / .caf ou dossier Atmos master"><div class="audio-preview">${t.atmosAudioUrl ? `<span style="color:#34d399; font-weight:bold;">✓ Master Atmos configuré</span>` : 'Aucun'}</div></div>
-                        <div class="form-group full-width"><label style="color:#60a5fa;">Dolby Atmos Instrumental Audio URL</label><input type="text" id="t-atmos-inst-${i}" class="form-control" value="${t.atmosInstrumentalAudioUrl || ''}" placeholder="Lien vers le fichier instrumental Atmos master"><div class="audio-preview">${t.atmosInstrumentalAudioUrl ? `<span style="color:#34d399; font-weight:bold;">✓ Master Atmos Instrumental configuré</span>` : 'Aucun'}</div></div>
+                        <div class="form-group full-width">
+                            <label>Instrumental Audio URL (Stéréo)</label>
+                            <input type="text" id="t-inst-${i}" class="form-control" value="${t.instrumentalAudioUrl || ''}">
+                            <div class="audio-preview">
+                                ${instSrc ? `<div style="display:flex; gap:10px; align-items:center; margin-top:8px;"><audio controls src="${instSrc}"></audio><button type="button" onclick="telechargerFichier('${instSrc}', '${titrePropre}_Instru')" class="btn-action-audio" style="background:#3b82f6; margin:0;">📥 Télécharger</button></div>` : 'Aucun'}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label style="color:#60a5fa;">Dolby Atmos Audio URL (Principal)</label>
+                            <input type="text" id="t-atmos-${i}" class="form-control" value="${t.atmosAudioUrl || ''}" placeholder="Lien vers le fichier .wav / .caf ou dossier Atmos master">
+                            <div class="audio-preview">
+                                ${atmosSrc ? `<div style="display:flex; gap:10px; align-items:center; margin-top:8px;"><audio controls src="${atmosSrc}"></audio><button type="button" onclick="telechargerFichier('${atmosSrc}', '${titrePropre}_Atmos')" class="btn-action-audio" style="background:#3b82f6; margin:0;">📥 Télécharger</button></div>` : 'Aucun'}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label style="color:#60a5fa;">Dolby Atmos Instrumental Audio URL</label>
+                            <input type="text" id="t-atmos-inst-${i}" class="form-control" value="${t.atmosInstrumentalAudioUrl || ''}" placeholder="Lien vers le fichier instrumental Atmos master">
+                            <div class="audio-preview">
+                                ${atmosInstSrc ? `<div style="display:flex; gap:10px; align-items:center; margin-top:8px;"><audio controls src="${atmosInstSrc}"></audio><button type="button" onclick="telechargerFichier('${atmosInstSrc}', '${titrePropre}_Atmos_Instru')" class="btn-action-audio" style="background:#3b82f6; margin:0;">📥 Télécharger</button></div>` : 'Aucun'}
+                            </div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(box);
@@ -651,7 +700,6 @@
                     if (el) el.value = data[f] || "";
                 });
 
-                // Chargement de la balise Schema.org JSON-LD
                 const schemaVal = data.schemaJson || data.schema_json || "";
                 const schemaEl = document.getElementById("edit-schemaJson");
                 if (schemaEl) {
@@ -752,7 +800,6 @@
                 }
             }
 
-            // Gestion du Schema.org avec inclusion automatique des balises <script>
             let rawSchema = document.getElementById("edit-schemaJson").value.trim();
             if (rawSchema && !rawSchema.includes('<script')) {
                 rawSchema = `<script type="application/ld+json">\n${rawSchema}\n<\/script>`;
