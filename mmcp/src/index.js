@@ -21,10 +21,15 @@ function absoluteMediaUrl(url, domain) {
   return `https://api.worker.mm-cp.uk/api/files/${encodeURIComponent(value)}`;
 }
 
-function generateReleaseOgHtml(release, currentUrl, domain) {
+function generateReleaseOgHtml(release, currentUrl, domain, artistUser = null) {
   const siteName = getSiteName(domain);
   const releaseTitle = release?.title || 'Sortie musicale';
   const artistName = release?.artist_name || 'Artiste';
+
+  // Récupération du nom et prénom de l'artiste si disponible via les données utilisateur associées
+  const firstName = artistUser?.first_name || '';
+  const lastName = artistUser?.last_name || '';
+  const fullName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : artistName;
 
   const title = `${releaseTitle} de ${artistName} sur ${siteName}`;
   const description = `Ecoutez ${releaseTitle}, la sortie de ${artistName} sur ${siteName}`;
@@ -60,22 +65,35 @@ function generateReleaseOgHtml(release, currentUrl, domain) {
 <body>
     <h1>${title}</h1>
     <p>${description}</p>
-    <img src="${coverUrl}" alt="${title}">
+    <div>
+      <img src="${coverUrl}" alt="${title}" style="max-width:300px; display:block; margin-bottom:15px;">
+      <h2>Nom d'artiste : ${artistName}</h2>
+      <h3>Artiste (Nom et Prénom) : ${fullName}</h3>
+    </div>
 </body>
 </html>`;
 }
 
-function generateArtistOgHtml(artist, currentUrl, domain) {
+function generateArtistOgHtml(artist, currentUrl, domain, latestRelease = null, artistUser = null) {
   const siteName = getSiteName(domain);
-  const name = artist.name || 'Artiste';
+  const name = artist?.name || 'Artiste';
+
+  const firstName = artistUser?.first_name || '';
+  const lastName = artistUser?.last_name || '';
+  const fullName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : name;
 
   const title = `${name} sur ${siteName}`;
   const description = `Découvrez ${name}, artiste du label Morgann Music CP, regardez ca de plus près sur ${siteName}`;
 
-  let photoUrl = absoluteMediaUrl(artist.photo || artist.logo_url || artist.banner_url, domain);
+  let photoUrl = absoluteMediaUrl(artist?.photo || artist?.logo_url || artist?.banner_url, domain);
   if (!photoUrl) {
     photoUrl = "https://mm-cp.uk/assets/img/icons/sombre.png";
   }
+
+  let bannerUrl = absoluteMediaUrl(artist?.banner_url, domain);
+
+  const latestReleaseTitle = latestRelease?.title || 'Aucune sortie récente';
+  let latestReleaseCover = absoluteMediaUrl(latestRelease?.cover_url || latestRelease?.animated_cover_url, domain);
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -103,7 +121,16 @@ function generateArtistOgHtml(artist, currentUrl, domain) {
 <body>
     <h1>${title}</h1>
     <p>${description}</p>
-    <img src="${photoUrl}" alt="${name}">
+    <div>
+      ${bannerUrl ? `<img src="${bannerUrl}" alt="Bannière ${name}" style="max-width:100%; display:block; margin-bottom:15px;">` : ''}
+      <img src="${photoUrl}" alt="${name}" style="max-width:200px; display:block; margin-bottom:15px;">
+      <h2>Nom d'artiste : ${name}</h2>
+      <h3>Artiste (Nom et Prénom) : ${fullName}</h3>
+      <div style="margin-top:20px; border-top:1px solid #ccc; padding-top:10px;">
+        <h4>Dernière sortie : ${latestReleaseTitle}</h4>
+        ${latestReleaseCover ? `<img src="${latestReleaseCover}" alt="${latestReleaseTitle}" style="max-width:150px; display:block; margin-top:5px;">` : ''}
+      </div>
+    </div>
 </body>
 </html>`;
 }
@@ -303,7 +330,11 @@ export default {
             try {
               const release = await env.DB.prepare("SELECT * FROM releases WHERE id = ?").bind(entityId).first();
               if (release) {
-                const ogHtml = generateReleaseOgHtml(release, request.url, url.hostname);
+                let artistUser = null;
+                if (release.user_uid) {
+                  artistUser = await env.DB.prepare("SELECT first_name, last_name, full_name FROM users WHERE uid = ?").bind(release.user_uid).first();
+                }
+                const ogHtml = generateReleaseOgHtml(release, request.url, url.hostname, artistUser);
                 return new Response(ogHtml, {
                   status: 200,
                   headers: {
@@ -322,7 +353,13 @@ export default {
             try {
               const artist = await env.DB.prepare("SELECT * FROM artists WHERE id = ? OR LOWER(name) = LOWER(?)").bind(entityId, entityId).first();
               if (artist) {
-                const ogHtml = generateArtistOgHtml(artist, request.url, url.hostname);
+                let artistUser = null;
+                if (artist.user_uid) {
+                  artistUser = await env.DB.prepare("SELECT first_name, last_name, full_name FROM users WHERE uid = ?").bind(artist.user_uid).first();
+                }
+                const latestRelease = await env.DB.prepare("SELECT title, cover_url, animated_cover_url FROM releases WHERE user_uid = ? OR LOWER(artist_name) = LOWER(?) ORDER BY created_at DESC LIMIT 1").bind(artist.user_uid || "", artist.name).first();
+
+                const ogHtml = generateArtistOgHtml(artist, request.url, url.hostname, latestRelease, artistUser);
                 return new Response(ogHtml, {
                   status: 200,
                   headers: {
@@ -872,7 +909,7 @@ export default {
       const userArtistMatch = path.match(/^\/api\/users\/([^/]+)\/artists\/([^/]+)$/);
       if (userArtistMatch) {
         const uid = userArtistMatch[1];
-        const artistId = userArtistMatch[2];
+        const artistId = userArtistEditorMatch ? userArtistEditorMatch[2] : userArtistMatch[2];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
         if (method === "GET") return await getArtist(env, uid, artistId);
