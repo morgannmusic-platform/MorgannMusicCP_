@@ -20,7 +20,8 @@
             <section class="pc-page active" data-page="1">
                 <h2>1. Introduction et Engagement</h2>
                 <p>La présente Politique de Confidentialité (ci-après la « Politique ») décrit la manière dont
-                    <strong>Morgann Music CP</strong> (accessible via <em>mm-cp.uk</em>) collecte, traite, utilise et
+                    <strong>Morgann Music CP</strong> (accessible via <em>mm-cp.uk</em> et via notre extension Chrome
+                    officielle) collecte, traite, utilise et
                     protège vos données personnelles lorsque vous naviguez sur la plateforme ou utilisez nos services.
                 </p>
                 <p>Nous attachons une importance capitale à la protection de votre vie privée et nous engageons à
@@ -28,7 +29,8 @@
                     Protection des Données (RGPD).</p>
 
                 <h2>2. Responsable du Traitement</h2>
-                <p>Le traitement des données personnelles collectées sur le site est sous la responsabilité de
+                <p>Le traitement des données personnelles collectées sur le site et l'extension est sous la
+                    responsabilité de
                     <strong>Morgann Rachedi</strong>, éditeur de la plateforme Morgann Music CP (siège social à
                     Condrieu, contact : <em>contact@mm-cp.uk</em>).
                 </p>
@@ -37,7 +39,8 @@
             <!-- Page 2 : Données Collectées (Point 1 : Collecte) -->
             <section class="pc-page" data-page="2">
                 <h2>3. Collecte des Données Personnelles</h2>
-                <p>Dans le cadre de votre utilisation de nos services, nous collectons directement auprès de vous
+                <p>Dans le cadre de votre utilisation de nos services et de notre extension Chrome, nous collectons
+                    directement auprès de vous
                     différentes catégories de données personnelles :</p>
                 <ul>
                     <li><strong>Informations d'identification et de compte :</strong> Nom, prénom, adresse e-mail, nom
@@ -46,6 +49,9 @@
                         renseigné) et données de transaction gérées via notre prestataire Stripe.</li>
                     <li><strong>Données de sécurité et d'accès :</strong> Clés secrètes d'authentification à deux
                         facteurs (2FA/TOTP) et journaux de connexion sécurisés.</li>
+                    <li><strong>Données spécifiques à l'extension Chrome :</strong> Jeton d'authentification (token de
+                        session), identifiant utilisateur et ID de la dernière notification reçue, stockés localement
+                        sur le navigateur de l'utilisateur.</li>
                     <li><strong>Données techniques et de navigation :</strong> Adresse IP, type de navigateur, données
                         de session et cookies essentiels.</li>
                 </ul>
@@ -62,8 +68,11 @@
                         facturation.</li>
                     <li>Fourniture des services de distribution musicale et gestion des flux vers les plateformes
                         partenaires.</li>
+                    <li>Fonctionnement de l'extension Chrome : maintien de la session active sans reconnexion, exécution
+                        de vérifications périodiques en arrière-plan (via alarmes) et affichage de notifications système
+                        relatives à vos sorties musicales et actualités du label.</li>
                     <li>Amélioration continue de l'expérience utilisateur, assistance technique et envoi de
-                        notifications administratives relatives à votre compte.</li>
+                        notifications administratives.</li>
                 </ul>
             </section>
 
@@ -71,9 +80,11 @@
             <section class="pc-page" data-page="4">
                 <h2>5. Stockage, Hébergement et Durée de Conservation</h2>
                 <p><strong>Stockage et Sécurité :</strong> Vos données personnelles sont stockées et sécurisées au sein
-                    d'infrastructures cloud hautement sécurisées (Cloudflare D1, R2 & Workers). Nous mettons en œuvre le
-                    chiffrement des communications (HTTPS/TLS), des mesures anti-fraude et des options de connexion
-                    sécurisée (2FA).</p>
+                    d'infrastructures cloud hautement sécurisées (Cloudflare D1, R2 & Workers). L'extension Chrome
+                    utilise le stockage local sécurisé du navigateur (API <code>storage</code>) pour sauvegarder
+                    temporairement le token de session et l'identifiant utilisateur. Nous mettons en œuvre le
+                    chiffrement des communications HTTPS/TLS vers notre API backend (<code>api.worker.mm-cp.uk</code>).
+                </p>
 
                 <p><strong>Durée de conservation :</strong> Vos données de compte sont conservées pendant toute la durée
                     d'activation de votre compte utilisateur. En cas de fermeture du compte ou d'inactivité prolongée,
@@ -85,7 +96,9 @@
                         commerciales.</strong></p>
                 <p>Vos données sont partagées uniquement avec des prestataires techniques tiers strictement
                     indispensables à la fourniture de nos services (notamment Stripe pour le paiement sécurisé et
-                    Firebase Auth pour la gestion des sessions), ou en réponse à une obligation légale ou judiciaire.
+                    Firebase Auth pour la gestion des sessions), ainsi qu'avec notre API backend sécurisée
+                    (<code>api.worker.mm-cp.uk</code>) pour le fonctionnement de l'extension, ou en réponse à une
+                    obligation légale ou judiciaire.
                 </p>
             </section>
 
@@ -120,7 +133,6 @@
     <div id="footer"></div>
     <script src="/assets/footers/accueil/footer.js" defer></script>
     <script type="module" src="/assets/js/navbar.js"></script>
-
     <script src="/assets/js/pc.js"></script>
 </body>
 

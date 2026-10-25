@@ -6,26 +6,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support | Morgann Music CP</title>
     <link rel="stylesheet" href="/portail/js/reponsive.css">
+    <meta name="theme-color" content="#FC8FB0">
 
     <!-- Ajout de la librairie Marked.js pour parser le Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            color: #333;
-            margin: 4rem 0 0 0;
-            padding: 20px;
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #d01159;
+            --bg-color: #ffffff;
+            --text-main: #333333;
+            --text-muted: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: #ffffff;
+            --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --title-color: #3e2837;
+            --item-bg: #ffffff;
+            --item-border: #e2e8f0;
+            --item-title: #1e293b;
+            --popup-bg: #ffffff;
+            --popup-border: rgba(189, 189, 189, 0.438);
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --input-text: #1e293b;
+            --btn-cancel-bg: #e2e8f0;
+            --btn-cancel-text: #64748b;
+            --chat-history-bg: #f8fafc;
+            --chat-history-border: #e2e8f0;
+            --bubble-admin-bg: #ffffff;
+            --bubble-admin-border: #cbd5e1;
+            --bubble-admin-text: #1e293b;
+            --bubble-user-bg: #fce7f0;
+            --bubble-user-text: #3e2837;
+            --notice-bg: #f1f5f9;
+            --notice-text: #64748b;
         }
 
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #ff7da4;
+                --bg-color: #2c000d;
+                --text-main: #ffffff;
+                --text-muted: #ffccd9;
+                --card-bg: rgba(20, 0, 6, 0.75);
+                --card-border: rgba(252, 143, 176, 0.25);
+                --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                --title-color: #ffffff;
+                --item-bg: rgba(0, 0, 0, 0.4);
+                --item-border: rgba(252, 143, 176, 0.3);
+                --item-title: #ffffff;
+                --popup-bg: rgba(20, 0, 6, 0.95);
+                --popup-border: rgba(252, 143, 176, 0.3);
+                --input-bg: rgba(0, 0, 0, 0.4);
+                --input-border: rgba(252, 143, 176, 0.3);
+                --input-text: #ffffff;
+                --btn-cancel-bg: #5c3541;
+                --btn-cancel-text: #ffccd9;
+                --chat-history-bg: rgba(0, 0, 0, 0.4);
+                --chat-history-border: rgba(252, 143, 176, 0.3);
+                --bubble-admin-bg: rgba(0, 0, 0, 0.5);
+                --bubble-admin-border: rgba(252, 143, 176, 0.3);
+                --bubble-admin-text: #ffffff;
+                --bubble-user-bg: rgba(252, 143, 176, 0.25);
+                --bubble-user-text: #ffffff;
+                --notice-bg: rgba(0, 0, 0, 0.4);
+                --notice-text: #ffccd9;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--text-main);
+            background: var(--bg-color);
+            margin: 4rem 0 0 0;
+            padding: 20px;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
 
         .welcome-card {
-            background: rgba(255, 255, 255, 0.6);
+            background: var(--card-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid #ffffff;
+            border: 1px solid var(--card-border);
             border-radius: 34px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
             padding: 30px;
             margin: 20px 0px;
             box-sizing: border-box;
@@ -34,31 +100,31 @@
         .welcome-card h1 {
             font-size: 32px;
             font-weight: 800;
-            color: #FC8FB0;
+            color: var(--primary);
             margin: 0 0 10px 0;
         }
 
         .welcome-card p {
             font-size: 16px;
-            color: #64748b;
+            color: var(--text-muted);
             margin: 0;
         }
 
         /* Section Mes Tickets */
         .my-tickets-card {
-            background: rgba(255, 255, 255, 0.7);
+            background: var(--card-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid #ffffff;
+            border: 1px solid var(--card-border);
             border-radius: 34px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--card-shadow);
             padding: 25px;
             margin-bottom: 30px;
         }
 
         .my-tickets-card h2 {
             font-size: 20px;
-            color: #3e2837;
+            color: var(--title-color);
             margin-top: 0;
             margin-bottom: 15px;
         }
@@ -73,16 +139,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #ffffff;
+            background: var(--item-bg);
             padding: 14px 20px;
             border-radius: 16px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--item-border);
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .ticket-item:hover {
-            border-color: #FC8FB0;
+            border-color: var(--primary);
             transform: translateY(-2px);
         }
 
@@ -94,14 +160,14 @@
 
         .ticket-title {
             font-weight: 600;
-            color: #1e293b;
+            color: var(--item-title);
             font-size: 15px;
             text-transform: capitalize;
         }
 
         .ticket-date {
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-muted);
         }
 
         .status-badge {
@@ -136,12 +202,12 @@
         }
 
         .support-card {
-            background: rgba(255, 255, 255, 0.7);
+            background: var(--card-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid #ffffff;
+            border: 1px solid var(--card-border);
             border-radius: 24px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--card-shadow);
             padding: 24px;
             display: flex;
             flex-direction: column;
@@ -171,13 +237,13 @@
         .support-card h3 {
             font-size: 17px;
             font-weight: 700;
-            color: #3e2837;
+            color: var(--title-color);
             margin: 0;
         }
 
         .support-card p {
             font-size: 14px;
-            color: #64748b;
+            color: var(--text-muted);
             margin-bottom: 16px;
             flex-grow: 1;
             line-height: 1.4;
@@ -192,7 +258,7 @@
         }
 
         .article-links a {
-            color: #FC8FB0;
+            color: var(--primary);
             text-decoration: none;
             font-weight: 500;
         }
@@ -202,7 +268,7 @@
         }
 
         .btn-support {
-            background-color: #FC8FB0;
+            background-color: var(--primary);
             color: #ffffff;
             border: none;
             padding: 10px 18px;
@@ -215,7 +281,7 @@
         }
 
         .btn-support:hover {
-            background-color: #d01159;
+            background-color: var(--primary-hover);
         }
 
         /* --- POPUP & WIZARD MODALE --- */
@@ -242,21 +308,24 @@
         }
 
         .popup-content {
-            background: #ffffff;
+            background: var(--popup-bg);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
             padding: 30px;
             border-radius: 34px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
             max-width: 600px;
             width: 90%;
             box-sizing: border-box;
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--popup-border);
             max-height: 90vh;
             overflow-y: auto;
+            color: var(--text-main);
         }
 
         .popup-content h2 {
             margin-top: 0;
-            color: #3e2837;
+            color: var(--title-color);
             font-size: 22px;
             margin-bottom: 10px;
         }
@@ -280,18 +349,25 @@
         .form-group label {
             font-size: 14px;
             font-weight: 600;
-            color: #1e293b;
+            color: var(--text-main);
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
             padding: 10px 14px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--input-border);
             border-radius: 12px;
             font-size: 14px;
             font-family: inherit;
             outline: none;
+            background: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .form-group select option {
+            background: var(--bg-color);
+            color: var(--text-main);
         }
 
         .form-group textarea {
@@ -305,9 +381,10 @@
             gap: 8px;
             max-height: 150px;
             overflow-y: auto;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--input-border);
             padding: 10px;
             border-radius: 12px;
+            background: var(--input-bg);
         }
 
         .platform-checkbox-item {
@@ -315,6 +392,7 @@
             align-items: center;
             gap: 8px;
             font-size: 13px;
+            color: var(--text-main);
         }
 
         .popup-actions {
@@ -325,33 +403,36 @@
         }
 
         .btn-cancel {
-            background-color: #e2e8f0;
-            color: #64748b;
+            background-color: var(--btn-cancel-bg);
+            color: var(--btn-cancel-text);
             border: none;
             padding: 10px 18px;
             border-radius: 30px;
             font-weight: 600;
             cursor: pointer;
+            transition: background 0.2s;
         }
 
         .btn-cancel:hover {
-            background-color: #cbd5e1;
+            background-color: var(--primary-hover);
+            color: white;
         }
 
         .btn-next,
         .btn-submit {
-            background-color: #FC8FB0;
+            background-color: var(--primary);
             color: #ffffff;
             border: none;
             padding: 10px 20px;
             border-radius: 30px;
             font-weight: 600;
             cursor: pointer;
+            transition: background 0.2s;
         }
 
         .btn-next:hover,
         .btn-submit:hover {
-            background-color: #d01159;
+            background-color: var(--primary-hover);
         }
 
         /* --- STYLE POUR DISCUSSION / TICKET ACTIF --- */
@@ -363,8 +444,8 @@
         }
 
         .messages-history {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: var(--chat-history-bg);
+            border: 1px solid var(--chat-history-border);
             border-radius: 14px;
             padding: 15px;
             max-height: 250px;
@@ -382,23 +463,23 @@
         }
 
         .message-bubble.user {
-            background: #fce7f0;
-            color: #3e2837;
+            background: var(--bubble-user-bg);
+            color: var(--bubble-user-text);
             align-self: flex-end;
             border-bottom-right-radius: 2px;
         }
 
         .message-bubble.admin {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #1e293b;
+            background: var(--bubble-admin-bg);
+            border: 1px solid var(--bubble-admin-border);
+            color: var(--bubble-admin-text);
             align-self: flex-start;
             border-bottom-left-radius: 2px;
         }
 
         .message-meta {
             font-size: 10px;
-            color: #64748b;
+            color: var(--text-muted);
             margin-bottom: 4px;
             display: block;
         }
@@ -417,7 +498,7 @@
         }
 
         .message-content a {
-            color: #d01159;
+            color: var(--primary);
             text-decoration: underline;
         }
 
@@ -451,18 +532,20 @@
         .reply-input {
             flex-grow: 1;
             padding: 10px 14px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--input-border);
             border-radius: 20px;
             font-size: 13px;
             outline: none;
+            background: var(--input-bg);
+            color: var(--input-text);
         }
 
         .reply-input:focus {
-            border-color: #FC8FB0;
+            border-color: var(--primary);
         }
 
         .btn-send-reply {
-            background-color: #FC8FB0;
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 10px 18px;
@@ -470,17 +553,18 @@
             font-weight: 600;
             cursor: pointer;
             font-size: 13px;
+            transition: background 0.2s;
         }
 
         .btn-send-reply:hover {
-            background-color: #d01159;
+            background-color: var(--primary-hover);
         }
 
         .ticket-closed-notice {
             text-align: center;
             font-size: 13px;
-            color: #64748b;
-            background: #f1f5f9;
+            color: var(--notice-text);
+            background: var(--notice-bg);
             padding: 10px;
             border-radius: 12px;
             margin-top: 10px;
@@ -541,7 +625,7 @@
         let userTicketsCache = [];
         let activeTicketView = null;
 
-        const platformsListRaw = `7Digital,ACRCloud,Alibaba,AliGenie,Amazon Music,Anghami,AGEDI,Akazoo,Apple Music,ITunes,AMI Entertainment,Audible Magic - Fulfillment360,Audible Magic - Rights360,Audiomack,Ambients App,AWA,Boomplay,Beatsource,BMAT,Claro Música,ClickNClear,Deezer,Dubset,DISCO,Google Play,Curve,PEX Attribution Engine,Gaana,Gracenote,FLO,Hungama,IHeart,IMI Mobile,Jaxsta,JioSaavn,Discogs,JOOX,Kanjian,KDigital Media,KKBOX,LINE Music,Mixcloud,Medianet,MoodAgent,MusicToday,MELON,NetEase Cloud Music,Pandora,Peloton,PEX,Play Network,Pretzel Rocks,Qobuz,Qub Musique,Rebelation,Rockbot,Roxi,Resso,Rhapsody,Napster,Rakuten,Shazam,Rakuten Music,Slacker Radio,Snapchat,Spinlet,Soundtrack Your Brand,Sirius XM,Soundtrack By Twitch,Twitch,Spotify,Tencent,Tidal,Styngr,Tesla Music,TouchTunes,Jazzed,MyMelo,Fan Label,Soundhound,Soundmouse,Kuaishou,Supernatural,Grandpad,Traxsource,Triller,TikTok,Trackdrip,United Media Agency (UMA),Yandex,VEVO,YouTube Music,Zvooq,VL Group,EMusic,Beat.no,Clone Digital,Music Reports,Mythical Games,JPay,Broadtime,Keefe Group,ViaPath,Turnkey Corrections,Adaptr,Artie,Oga Dance (MoveWorld),DanceFight,Lickd,Pinterest,Samsung Music,Hyundaicard Music,Melon Kt,Olleh+Genie,Mnet,Soribada,Bugs!,Dalkom,Kakao,Cyworld,Daum,Monkey3,Iguplus,Acer,Artistxite,Audiojungle,B612,China Unicom,Wo Music,Bilibili,Bleep,CCA,CDON,Celcom,Changba,Chunghwa Mobile,Coolvox,CTS Eventim AG,Dance All Day,DiGi,Digitally Imported,Douban Music,Douyin,Dragonfly FM,Echo,ExLibris,FETnet,Findspire,Flipagram,FNAC,Forest Incentives,Friday Music (Omusic),FUHU,Gismart,Global Radio,Hardstyle.com,High Res Audio,Himalayan FM,HMV,Hmv PLAY (Soliton),HTC One,Huawei Music,Huawei Music - Hi Res,Huawei South Africa,Huawei Middle Eeast,Iam+ Dial,IFeng,Jeou Tai,Jinli Music,Kanjian Music,Koala FM,Kobo,Kuyin Ringtone,La Musica,Last FM,Lenovo Music,Lenovo Sound,Lequ Music,Lizhi FM,Love Music (China Telecom),Mach By Mariposa,Maxis,Me2u Music,Media Markt,Medion,Mi Tracks,Migu Music (China Mobile),Mixette,Mixpixie,Mixup Digital,Moi Mir,MOOV,MQA,MusicQubed,MyMusic,Naver,NMusic,Odnoklassniki,Onkyo,Open Live,Overmax,Pledge,Pono,Prodigium,Infogo,Psonar,Pubbles,Pulselocker,QNX CAR,Raku,ROK Mobile,Sainsburys,Saturn,Stellar,TDC,T Star,Qianqian Music,TaiHua,Taiwan Mobile,TDC/TDC Mobile,Technics Tracks,The Overflow,TingTing FM,Triplay,Tunewiki,Tuzhan,U-Mobile,Ucmba,Vibe,VUE,Walkgame,Wasu TV,Weibo Music,Weltbild DE,We Sing,WEYV,Xiaomi Music,Xiaoying,Xiumi,Xiutang,Yiqixiu,FriDay,Alibaba Group,Migu Music,Netease Music,Kugou,Kuwo,QQ Music,Love Music,China Telecom,HUAWEI Hi-Res,24-7 Entertainment,Huawei Global Radio,Orange France,Tigo,Deutsche Telekom Austria And Netherlands,Swisscom,Fastweb,Belgacom,Tango,Ex Libris,Vibo Telecom,Huawei Middle East,HighResAudio,Line Music (JP),TIM Music,Kuack Media,Boomplay Music,Bugs Music,Naver Vibe,Slacker,Sunrise,Rhino,Bucher.de,Lissen,Mobilcom-Debitel,MePlaylist,CCI Distribution,Tonspion,Sonos,TELE2,Vodafone,3.DK,Bose,In8 Mobile,GHH Commerce,QNX CAR™,Music Worx,SberZvuk,Astro,T-Mobile,Spanish Broadcasting System,Turntable.fm,Tradebit,ShopTo,Senzari,RBS,NatWest,Gravity Mobile,DoubleTwist,Clip Interactive,Pure Music,Cyberlink,Huawei Ringtone,VIVO Hi-Res,KTV,Toutiao,Ooopic,Yunting,Yesoul,CIG,Kids+,CoSleep&Heartide,Wondershare,Tingxi,VCG,58pic,Qianku,Daily Yoga,Hidooro,Mangguofm,Kelakela,Jinshan,Gaoding,DOOLUU,Duitang,Dajiang,Bijian,Baotu,Babytree,AiyinsitanFM,Epub360,P.R.O. Agency,Litup,Lrts,Keep,Xiaohongshu,Audio Stock,Trebel,NEC,My Melo,Momople,Genie Music,WeSing,Tencent Video,Sohu Video,Sina Video,MGTV,Xplore Music Stores,PPTV,Youku&Tudou,IQiyi & PPS,RabbitPre,5sing,China Airlines,Jetstar,MOO,Nile Air,Qantas,Stardtb,UC,Viper HIFI,Babubabu,Rainbow Music,Duanku,Fliggy,Haitu,Hema,Huoshan,Viamaker,Whales,Juhuasuan,Ku FM,Kuwo Boom,Kuwo Juxing,Kuwo KTV,Kuwo Vedio,Kuwo Tingshu,QQ FM,Qingting,Virgin Australia,Kugou Sing,Kugou KTV,Kugou Ringtone,Kugou Live,Kugouzhibobanlv,Top Music,Meitu,Taobao,Tmall,Weishi,WeChat,Xigua Video,Intime,Intoo,Alipay,AirAsia,AirAsiaX,Air Vanuatu,Beijing Eye,Puxin,SUPERMONKEY,Alibaba Cloud Computing Co. Ltd.`;
+        const platformsListRaw = `7Digital,ACRCloud,Alibaba,AliGenie,Amazon Music,Anghami,AGEDI,Akazoo,Apple Music,ITunes,AMI Entertainment,Audible Magic - Fulfillment360,Audible Magic - Rights360,Audiomack,Ambients App,AWA,Boomplay,Beatsource,BMAT,Claro Música,ClickNClear,Deezer,Dubset,DISCO,Google Play,Curve,PEX Attribution Engine,Gaana,Gracenote,FLO,Hungama,IHeart,IMI Mobile,Jaxsta,JioSaavn,Discogs,JOOX,Kanjian,KDigital Media,KKBOX,LINE Music,Mixcloud,Medianet,MoodAgent,MusicToday,MELON,NetEase Cloud Music,Pandora,Peloton,PEX,Play Network,Pretzel Rocks,Qobuz,Qub Musique,Rebelation,Rockbot,Roxi,Resso,Rhapsody,Napster,Rakuten,Shazam,Rakuten Music,Slacker Radio,Snapchat,Spinlet,Soundtrack Your Brand,Sirius XM,Soundtrack By Twitch,Twitch,Spotify,Tencent,Tidal,Styngr,Tesla Music,TouchTunes,Jazzed,MyMelo,Fan Label,Soundhound,Soundmouse,Kuaishou,Supernatural,Grandpad,Traxsource,Triller,TikTok,Trackdrip,United Media Agency (UMA),Yandex,VEVO,YouTube Music,Zvooq,VL Group,EMusic,Beat.no,Clone Digital,Music Reports,Mythical Games,JPay,Broadtime,Keefe Group,ViaPath,Turnkey Corrections,Adaptr,Artie,Oga Dance (MoveWorld),DanceFight,Lickd,Pinterest,Samsung Music,Hyundaicard Music,Melon Kt,Olleh+Genie,Mnet,Soribada,Bugs!,Dalkom,Kakao,Cyworld,Daum,Monkey3,Iguplus,Acer,Artistxite,Audiojungle,B612,China Unicom,Wo Music,Bilibili,Bleep,CCA,CDON,Celcom,Changba,Chunghwa Mobile,Coolvox,CTS Eventim AG,Dance All Day,DiGi,Digitally Imported,Douban Music,Douyin,Dragonfly FM,Echo,ExLibris,FETnet,Findspire,Flipagram,FNAC,Forest Incentives,Friday Music (Omusic),FUHU,Gismart,Global Radio,Hardstyle.com,High Res Audio,Himalayan FM,HMV,Hmv PLAY (Soliton),HTC One,Huawei Music,Huawei Music - Hi Res,Huawei South Africa,Huawei Middle Eeast,Iam+ Dial,IFeng,Jeou Tai,Jinli Music,Kanjian Music,Koala FM,Kobo,Kuyin Ringtone,La Musica,Last FM,Lenovo Music,Lenovo Sound,Lequ Music,Lizhi FM,Love Music (China Telecom),Mach By Mariposa,Maxis,Me2u Music,Media Markt,Medion,Mi Tracks,Migu Music (China Mobile),Mixette,Mixpixie,Mixup Digital,Moi Mir,MOOV,MQA,MusicQubed,MyMusic,Naver,NMusic,Odnoklassniki,Onkyo,Open Live,Overmax,Pledge,Pono,Prodigium,Infogo,Psonar,Pubbles,Pulselocker,QNX CAR,Raku,ROK Mobile,Sainsburys,Saturn,Stellar,TDC,T Star,Qianqian Music,TaiHua,Taiwan Mobile,TDC/TDC Mobile,Technics Tracks,The Overflow,TingTing FM,Triplay,Tunewiki,Tuzhan,U-Mobile,Ucmba,Vibe,VUE,Walkgame,Wasu TV,Weibo Music,Weltbild DE,We Sing,WEYV,Xiaomi Music,Xiaoying,Xiumi,Xiutang,Yiqixiu,FriDay,Alibaba Group,Migu Music,Netease Music,Kugou,Kuwo,QQ Music,Love Music,China Telecom,HUAWEI Hi-Res,24-7 Entertainment,Huawei Global Radio,Orange France,Tigo,Deutsche Telekom Austria And Netherlands,Swisscom,Fastweb,Belgacom,Tango,Ex Libris,Vibo Telecom,Huawei Middle East,HighResAudio,Line Music (JP),TIM Music,Kuack Media,Boomplay Music,Bugs Music,Naver Vibe,Slacker,Sunrise,Rhino,Bucher.de,Lissen,Mobilcom-Debitel,MePlaylist,CCI Distribution,Tonspion,Sonos,TELE2,Vodafone,3.DK,Bose,In8 Mobile,GHH Commerce,QNX CAR™,Music Worx,SberZvuk,Astro,T-Mobile,Spanish Broadcasting System,Turntable.fm,Tradebit,ShopTo,Senzari,RBS,NatWest,Gravity Mobile,DoubleTwist,Clip Interactive,Pure Music,Cyberlink,Huawei Ringtone,VIVO Hi-Res,KTV,Toutiao,Ooopic,Yunting,Yesoul,CIG,Kids+,CoSleep&Heartide,Wondershare,Tingxi,VCG,58pic,Qianku,Daily Yoga,Hidooro,Mangguofm,Kelakela,Jinshan,Gaoding,DOOLUU,Duitang,Dajiang,Bijian,Baotu,Babytree,AiyinsitanFM,Epub360,P.R.O. Agency,Litup,Lrts,Keep,Xiaohongshu,Audio Stock,Trebel,NEC,My Melo,Momople,Genie Music,WeSing,Tencent Video,Sohu Video,Sina Video,MGTV,Xplore Music Stores,PPTV,Youku&Tudou,IQiyi & PPS,RabbitPre,5sing,China Airlines,Jetstar,MOO,Nile Air,Qantas,Stardtb,UC,Viper HIFI,Babubabu,Rainbow Music,Duanku,Fliggy,Haitu,Hema,Huoshan,Viamaker,Whales,Juhuasuan,Ku FM,Kuwo Boom,Kuwo Juxing,Kuwo KTV,Kuwo Tingshu,QQ FM,Qingting,Virgin Australia,Kugou Sing,Kugou KTV,Kugou Ringtone,Kugou Live,Kugouzhibobanlv,Top Music,Meitu,Taobao,Tmall,Weishi,WeChat,Xigua Video,Intime,Intoo,Alipay,AirAsia,AirAsiaX,Air Vanuatu,Beijing Eye,Puxin,SUPERMONKEY,Alibaba Cloud Computing Co. Ltd.`;
         availablePlatforms = platformsListRaw.split(',').map(p => p.trim()).filter(Boolean);
 
         const sectionsConfig = [
@@ -797,7 +881,6 @@
                 const userData = await api.get(`/api/users/${user.uid}`);
 
                 if (userData && !userData.error) {
-                    // On gère les différents formats que l'API SQL pourrait renvoyer
                     let userObj = userData;
 
                     if (Array.isArray(userData) && userData.length > 0) {
@@ -806,7 +889,6 @@
                         userObj = userData.results[0];
                     }
 
-                    // On cible les cas possibles selon la DB (camelCase ou snake_case)
                     currentUserName = userObj.firstName || userObj.first_name || userObj.prenom || userObj.name || "Artiste";
                     document.getElementById("welcome-title").innerText = `Bonjour ${currentUserName}, que se passe-t-il ?`;
                 }
@@ -881,7 +963,7 @@
             let messagesHtml = "";
             const messages = ticket.messages || [];
             if (messages.length === 0) {
-                messagesHtml = `<p style="font-size:12px; color:#64748b; text-align:center;">Aucun échange pour le moment. Le support va traiter votre demande.</p>`;
+                messagesHtml = `<p style="font-size:12px; color:var(--text-muted); text-align:center;">Aucun échange pour le moment. Le support va traiter votre demande.</p>`;
             } else {
                 messagesHtml = messages.map(msg => {
                     const isAdmin = msg.sender === 'admin' || msg.isAdmin;
@@ -890,7 +972,6 @@
                     const timeStr = msg.created_at ? new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
 
                     const rawText = msg.text || msg.message || '';
-                    // Utilisation de Marked.js pour parser le texte, avec conversion des sauts de ligne
                     const htmlContent = window.marked ? window.marked.parse(rawText, { breaks: true }) : `<p>${rawText}</p>`;
 
                     return `
@@ -1022,7 +1103,7 @@
                     valid = false;
                     inp.style.borderColor = '#ef4444';
                 } else {
-                    inp.style.borderColor = '#cbd5e1';
+                    inp.style.borderColor = 'var(--input-border)';
                 }
             });
 
