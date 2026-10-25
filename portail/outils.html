@@ -6,13 +6,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Outils & Gestion | Morgann Music CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="theme-color" content="#FFEFF4">
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #e07898;
+            --primary-light: #ffe4ec;
+            --dark: #1e293b;
+            --bg-glass: rgba(255, 255, 255, 0.6);
+            --border-glass: #ffffff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #e07898;
+                --primary-light: #ffe4ec;
+                --dark: #ffffff;
+                --bg-glass: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+            }
+        }
+
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            color: #1e293b;
+            color: var(--dark);
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #2c000d;
+                color: #ffffff;
+            }
         }
 
         .main-container {
@@ -46,15 +74,33 @@
             transition: all 0.2s ease;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .tab-btn {
+                background-color: rgba(20, 0, 6, 0.75);
+                border: 1px solid var(--border-glass);
+                color: #ffccd9;
+            }
+            .tab-btn:hover {
+                background-color: rgba(252, 143, 176, 0.2);
+                color: #ffffff;
+            }
+        }
+
         .tab-btn:hover {
             background-color: #ffe4ed;
             transform: translateY(-2px);
         }
 
         .tab-btn.active {
-            background-color: #FC8FB0;
+            background-color: var(--primary);
             color: #ffffff;
             box-shadow: 0 4px 16px rgba(252, 143, 176, 0.4);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .tab-btn.active {
+                color: #2c000d;
+            }
         }
 
         .tab-content {
@@ -79,15 +125,21 @@
         }
 
         .panel-card {
-            background-color: rgba(255, 255, 255, 0.6);
+            background-color: var(--bg-glass);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid #ffffff;
+            border: 1px solid var(--border-glass);
             border-radius: 34px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
             padding: 30px;
             margin-bottom: 25px;
             box-sizing: border-box;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .panel-card {
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
         }
 
         .panel-card h2 {
@@ -97,8 +149,36 @@
             font-weight: 800;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .panel-card h2 {
+                color: #ffffff;
+            }
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            background: #ffffff;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+            padding: 10px 15px;
+            border-radius: 16px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            input[type="text"],
+            input[type="date"],
+            select {
+                background: rgba(0, 0, 0, 0.4);
+                color: #ffffff;
+                border: 1px solid var(--border-glass);
+            }
+        }
+
         .btn-primary {
-            background-color: #FC8FB0;
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -106,6 +186,12 @@
             font-weight: 700;
             cursor: pointer;
             transition: opacity 0.2s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-primary {
+                color: #2c000d;
+            }
         }
 
         .btn-primary:hover {
@@ -124,6 +210,15 @@
             cursor: grab;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
             transition: background 0.2s;
+            color: #1e293b;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .tracklist-item {
+                background: rgba(20, 0, 6, 0.6);
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
         }
 
         .tracklist-item:active {
@@ -153,6 +248,12 @@
             padding-bottom: 10px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .cal-day-header {
+                color: #ffccd9;
+            }
+        }
+
         .cal-cell {
             background: rgba(255, 255, 255, 0.7);
             border: 1px solid #e2e8f0;
@@ -166,14 +267,27 @@
             position: relative;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .cal-cell {
+                background: rgba(20, 0, 6, 0.6);
+                border: 1px solid var(--border-glass);
+            }
+        }
+
         .cal-cell:hover {
-            border-color: #FC8FB0;
+            border-color: var(--primary);
         }
 
         .cal-date-num {
             font-weight: 700;
             font-size: 13px;
             color: #3e2837;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .cal-date-num {
+                color: #ffffff;
+            }
         }
 
         .cal-event-badge {
@@ -207,6 +321,13 @@
             color: #831843;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .type-Sortie, .type-Concert, .type-Répétition, .type-Anniversaire {
+                background: rgba(255, 255, 255, 0.15);
+                color: #ffccd9;
+            }
+        }
+
         #freeboard-canvas {
             width: 100%;
             height: 650px;
@@ -219,7 +340,14 @@
             cursor: default;
         }
 
-        /* Mode Plein Écran Global pour le FreeBoard (par-dessus tout, y compris navbar/sidebar) */
+        @media (prefers-color-scheme: dark) {
+            #freeboard-canvas {
+                background: rgba(10, 0, 3, 0.8);
+                border: 1px solid var(--border-glass);
+            }
+        }
+
+        /* Mode Plein Écran Global pour le FreeBoard */
         #tab-freeboard.fullscreen-mode {
             position: fixed !important;
             top: 0 !important;
@@ -231,6 +359,12 @@
             padding: 20px !important;
             box-sizing: border-box !important;
             overflow-y: auto !important;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            #tab-freeboard.fullscreen-mode {
+                background: #2c000d !important;
+            }
         }
 
         #tab-freeboard.fullscreen-mode .panel-card {
@@ -265,9 +399,21 @@
             color: #334155;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .fb-tool-btn {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
+            .fb-tool-btn:hover {
+                background: rgba(252, 143, 176, 0.2);
+                border-color: var(--primary);
+            }
+        }
+
         .fb-tool-btn:hover {
             background: #f1f5f9;
-            border-color: #FC8FB0;
+            border-color: var(--primary);
         }
 
         .fb-element {
@@ -280,11 +426,29 @@
             min-width: 150px;
             cursor: move;
             user-select: none;
+            color: #1e293b;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .fb-element {
+                background: rgba(40, 20, 30, 0.9);
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
         }
 
         .fb-element.postit {
             background: #fef08a;
             border-color: #fde047;
+            color: #1e293b;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .fb-element.postit {
+                background: rgba(80, 60, 20, 0.9);
+                border-color: rgba(252, 143, 176, 0.4);
+                color: #ffffff;
+            }
         }
 
         .fb-element.image-box {
@@ -307,9 +471,9 @@
             align-items: center;
             text-align: center;
             padding: 40px 20px;
-            background: rgba(255, 255, 255, 0.7);
+            background: var(--bg-glass);
             border-radius: 34px;
-            border: 1px solid #ffffff;
+            border: 1px solid var(--border-glass);
         }
 
         .mobile-restricted h2 {
@@ -317,9 +481,21 @@
             margin-bottom: 10px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .mobile-restricted h2 {
+                color: #ffffff;
+            }
+        }
+
         .mobile-restricted p {
             color: #64748b;
             font-size: 15px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .mobile-restricted p {
+                color: #ffccd9;
+            }
         }
 
         @media (max-width: 768px) {
@@ -329,6 +505,31 @@
 
             .mobile-restricted {
                 display: flex !important;
+            }
+        }
+
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .popup-content {
+                background: var(--bg-glass);
+                backdrop-filter: blur(40px);
+                -webkit-backdrop-filter: blur(40px);
+                color: #ffffff;
+                border: 1px solid var(--border-glass);
+            }
+            .popup-content h3 {
+                color: #ffffff !important;
+            }
+            .popup-content label {
+                color: #ffccd9 !important;
             }
         }
     </style>
@@ -355,9 +556,8 @@
                     <h2>Créer un nouvel Album ou EP en préparation</h2>
                     <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
                         <input type="text" id="new-project-title" placeholder="Nom de l'album ou EP"
-                            style="padding: 10px 15px; border-radius: 16px; border: 1px solid #cbd5e1; flex: 1; min-width: 200px; box-sizing: border-box;">
-                        <select id="new-project-type"
-                            style="padding: 10px 15px; border-radius: 16px; border: 1px solid #cbd5e1; background: white;">
+                            style="flex: 1; min-width: 200px;">
+                        <select id="new-project-type">
                             <option value="Album">Album</option>
                             <option value="EP">EP</option>
                         </select>
@@ -435,25 +635,24 @@
 
         <div id="cal-modal" class="popup-overlay"
             style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(6px); justify-content:center; align-items:center; z-index:9999;">
-            <div class="popup-content"
-                style="background:white; padding:30px; border-radius:24px; width:90%; max-width:400px; position:relative;">
+            <div class="popup-content">
                 <button onclick="fermerModalEvenement()"
-                    style="position:absolute; top:15px; right:15px; border:none; background:#FC8FB0; color:white; width:28px; height:28px; border-radius:50%; cursor:pointer; font-weight:bold;">✕</button>
+                    style="position:absolute; top:15px; right:15px; border:none; background:var(--primary); color:white; width:28px; height:28px; border-radius:50%; cursor:pointer; font-weight:bold;">✕</button>
                 <h3 id="modal-cal-title" style="margin-top:0; color:#3e2837;">Ajouter un événement</h3>
                 <div class="form-group" style="margin-bottom:12px;">
                     <label style="font-size:12px; font-weight:700; color:#64748b;">Titre</label>
                     <input type="text" id="ev-title" placeholder="Nom de l'événement"
-                        style="width:100%; padding:10px; border-radius:12px; border:1px solid #cbd5e1; box-sizing:border-box; margin-top:4px;">
+                        style="width:100%; margin-top:4px;">
                 </div>
                 <div class="form-group" style="margin-bottom:12px;">
                     <label style="font-size:12px; font-weight:700; color:#64748b;">Date</label>
                     <input type="date" id="ev-date"
-                        style="width:100%; padding:10px; border-radius:12px; border:1px solid #cbd5e1; box-sizing:border-box; margin-top:4px;">
+                        style="width:100%; margin-top:4px;">
                 </div>
                 <div class="form-group" style="margin-bottom:20px;">
                     <label style="font-size:12px; font-weight:700; color:#64748b;">Type</label>
                     <select id="ev-type"
-                        style="width:100%; padding:10px; border-radius:12px; border:1px solid #cbd5e1; background:white; margin-top:4px;">
+                        style="width:100%; margin-top:4px;">
                         <option value="Sortie">Sortie</option>
                         <option value="Concert">Concert</option>
                         <option value="Répétition">Répétition</option>
@@ -556,18 +755,18 @@
             container.innerHTML = projets.map(p => `
                 <div class="panel-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h2 style="margin:0;">${p.titre} <span style="font-size:13px; font-weight:normal; background:#ffe4ed; color:#d91159; padding:4px 10px; border-radius:10px;">${p.type}</span></h2>
+                        <h2 style="margin:0;">${p.titre} <span style="font-size:13px; font-weight:normal; background:var(--primary-light); color:#d91159; padding:4px 10px; border-radius:10px;">${p.type}</span></h2>
                         <button onclick="supprimerProjet(${p.id})" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:10px; cursor:pointer; font-weight:600;">Supprimer</button>
                     </div>
                     <div style="display:flex; gap:10px; margin-bottom:15px;">
-                        <input type="text" id="track-input-${p.id}" placeholder="Nom de la nouvelle piste" style="padding:8px 12px; border-radius:12px; border:1px solid #cbd5e1; flex:1;">
+                        <input type="text" id="track-input-${p.id}" placeholder="Nom de la nouvelle piste" style="flex:1;">
                         <button class="btn-primary" onclick="ajouterPiste(${p.id})">Ajouter la piste</button>
                     </div>
                     <div id="tracks-list-${p.id}">
                         ${Array.isArray(p.pistes) && p.pistes.length === 0 ? '<p style="color:#94a3b8; font-size:13px; font-style:italic;">Aucune piste pour le moment.</p>' :
                     (Array.isArray(p.pistes) ? p.pistes : []).map((t, idx) => `
                             <div class="tracklist-item" draggable="true" ondragstart="dragStart(event, ${p.id},${idx})" ondragover="event.preventDefault()" ondrop="dropTrack(event, ${p.id},${idx})">
-                                <span><b>${idx + 1}.</b>${t}</span>
+                                <span><b>${idx + 1}.</b> ${t}</span>
                                 <button onclick="supprimerPiste(${p.id},${idx})" style="border:none; background:none; color:#ef4444; font-weight:bold; cursor:pointer;">✕</button>
                             </div>
                           `).join('')}
@@ -838,12 +1037,6 @@
                 renderFreeboard();
             }
         };
-
-        function creerElementFB(data) {
-            freeboardItems.push(data);
-            renderFreeboard();
-            persistFreeboardState();
-        }
 
         window.fbAppliquerStyle = function (command) {
             if (!activeSelection || activeSelection.classList.contains('image-box')) return;

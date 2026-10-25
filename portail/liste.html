@@ -6,11 +6,32 @@
     <title>Gestion des Listes (GreenList & BlackList) - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FFEFF4">
 
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #e07898;
+            --primary-light: #ffe4ec;
+            --dark: #222222;
+            --bg-glass: rgba(255, 255, 255, 0.855);
+            --border-glass: rgba(189, 189, 189, 0.438);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #e07898;
+                --primary-light: #ffe4ec;
+                --dark: #ffffff;
+                --bg-glass: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+            }
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #000000;
+            color: var(--dark);
             margin: 0;
             padding: 20px;
             margin-top: 3.8rem;
@@ -19,7 +40,8 @@
 
         @media (prefers-color-scheme: dark) {
             body {
-                color: white;
+                background: #2c000d;
+                color: #ffffff;
             }
         }
 
@@ -35,6 +57,29 @@
             margin-bottom: 25px;
             flex-wrap: wrap;
             gap: 15px;
+        }
+
+        .header-actions h2 {
+            color: var(--dark);
+            margin: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .header-actions h2 {
+                color: #ffffff;
+            }
+        }
+
+        .header-actions p {
+            color: #6b7280;
+            margin-top: 4px;
+            font-size: 14px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .header-actions p {
+                color: #ffccd9;
+            }
         }
 
         .action-buttons {
@@ -64,21 +109,33 @@
         }
 
         .btn-green {
-            background-color: #FC8FB0;
+            background-color: var(--primary);
             color: white;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-green {
+                color: #2c000d;
+            }
         }
 
         .btn-green:hover {
-            background-color: #fc8fb0d4;
+            background-color: var(--primary-hover);
         }
 
         .btn-red {
-            background-color: #FC8FB0;
+            background-color: var(--primary);
             color: white;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .btn-red {
+                color: #2c000d;
+            }
+        }
+
         .btn-red:hover {
-            background-color: #fc8fb0ce;
+            background-color: var(--primary-hover);
         }
 
         .btn-secondary {
@@ -86,15 +143,28 @@
             color: white;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .btn-secondary {
+                background: rgba(255, 255, 255, 0.1);
+                color: #ffffff;
+            }
+        }
+
         .btn-outline {
             background: transparent;
-            border: 1px solid #FC8FB0;
-            color: #FC8FB0;
+            border: 1px solid var(--primary);
+            color: var(--primary);
         }
 
         .btn-outline:hover {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-outline:hover {
+                color: #2c000d;
+            }
         }
 
         .tabs-container {
@@ -105,6 +175,12 @@
             padding-bottom: 10px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .tabs-container {
+                border-bottom: 2px solid var(--border-glass);
+            }
+        }
+
         .tab-btn {
             padding: 10px 20px;
             border: none;
@@ -112,7 +188,7 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            color: #64748b;
+            color: #6b7280;
             border-radius: 30px;
             transition: all 0.2s;
         }
@@ -129,7 +205,7 @@
 
         @media (prefers-color-scheme: dark) {
             .tab-btn {
-                color: #94a3b8;
+                color: #ffccd9;
             }
 
             .tab-btn.active-green {
@@ -182,9 +258,12 @@
 
         @media (prefers-color-scheme: dark) {
             .modal-card {
-                background: #18181b;
-                color: white;
-                border: 1px solid #3f3f46;
+                background: var(--bg-glass);
+                backdrop-filter: blur(40px);
+                -webkit-backdrop-filter: blur(40px);
+                color: #ffffff;
+                border: 1px solid var(--border-glass);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             }
         }
 
@@ -199,6 +278,12 @@
             margin-bottom: 20px;
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(200, 200, 200, 0.2);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .modal-header {
+                border-bottom: 1px solid var(--border-glass);
+            }
         }
 
         .modal-title {
@@ -218,6 +303,12 @@
             line-height: 1;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .close-btn {
+                color: #ffccd9;
+            }
+        }
+
         .form-group {
             margin-bottom: 18px;
         }
@@ -227,6 +318,12 @@
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 8px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .form-label {
+                color: #ffffff;
+            }
         }
 
         .form-input,
@@ -247,16 +344,16 @@
 
             .form-input,
             .form-select {
-                background: #27272a;
-                color: #f4f4f5;
-                border-color: #52525b;
+                background: rgba(0, 0, 0, 0.4);
+                color: #ffffff;
+                border-color: var(--border-glass);
             }
         }
 
         .form-input:focus,
         .form-select:focus {
-            border-color: #FC8FB0;
-            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.3);
         }
 
         /* Custom Platform Selector with Logos */
@@ -279,17 +376,19 @@
             background: rgba(255, 255, 255, 0.5);
             font-size: 13px;
             font-weight: 600;
+            color: var(--dark);
         }
 
         @media (prefers-color-scheme: dark) {
             .platform-option {
-                border-color: #3f3f46;
-                background: rgba(39, 39, 42, 0.6);
+                border-color: var(--border-glass);
+                background: rgba(0, 0, 0, 0.3);
+                color: #ffffff;
             }
         }
 
         .platform-option:hover {
-            border-color: #FC8FB0;
+            border-color: var(--primary);
         }
 
         .platform-option.selected-green {
@@ -331,10 +430,28 @@
             flex-shrink: 0;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .remove-link-btn {
+                background: rgba(239, 68, 68, 0.2);
+                color: #f87171;
+            }
+        }
+
         .period-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
+        }
+
+        .period-group span {
+            font-size: 12px;
+            color: #888;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .period-group span {
+                color: #ffccd9;
+            }
         }
 
         /* Items List Display */
@@ -346,25 +463,26 @@
         }
 
         .item-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
+            background: var(--bg-glass);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
             border-radius: 24px;
             padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
             position: relative;
         }
 
         @media (prefers-color-scheme: dark) {
             .item-card {
-                background: rgba(0, 0, 0, 0.3);
-                border-color: rgba(255, 255, 255, 0.15);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             }
         }
 
         .item-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
         }
 
         .item-card-header {
@@ -383,6 +501,14 @@
             padding: 4px 10px;
             border-radius: 20px;
             background: rgba(0, 0, 0, 0.05);
+            color: var(--dark);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .item-platform-badge {
+                background: rgba(255, 255, 255, 0.1);
+                color: #ffffff;
+            }
         }
 
         .status-badge {
@@ -416,10 +542,40 @@
 
         .item-details p {
             margin: 4px 0;
+            color: var(--dark);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .item-details p {
+                color: #ffffff;
+            }
+        }
+
+        .item-details ul {
+            color: var(--dark);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .item-details ul {
+                color: #ffccd9;
+            }
+        }
+
+        .item-details small,
+        .item-details .sub-date {
+            color: #888;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .item-details small,
+            .item-details .sub-date {
+                color: #caa0ad;
+            }
         }
 
         .item-link {
-            color: #FC8FB0;
+            color: var(--primary);
             text-decoration: none;
             word-break: break-all;
             display: inline-block;
@@ -427,6 +583,24 @@
 
         .item-link:hover {
             text-decoration: underline;
+        }
+
+        .empty-state-container {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            color: #6b7280;
+            font-size: 15px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .empty-state-container {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid var(--border-glass);
+                color: #ffccd9;
+            }
         }
 
         /* Toast notifications */
@@ -448,6 +622,14 @@
             font-size: 14px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .toast {
+                background: #18181b;
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
         }
 
         @keyframes slideIn {
@@ -485,8 +667,7 @@
             <div class="header-actions">
                 <div>
                     <h2>Gestion des Listes</h2>
-                    <p style="color: #64748b; margin-top: -5px; font-size: 14px;">Gérez vos autorisations GreenList et
-                        vos signalements BlackList</p>
+                    <p>Gérez vos autorisations GreenList et vos signalements BlackList</p>
                 </div>
                 <div class="action-buttons">
                     <button class="btn btn-green" onclick="ouvrirModalGreenList()">
@@ -542,7 +723,6 @@
                 <div class="form-group">
                     <label class="form-label">Choisir la plateforme *</label>
                     <div class="platform-grid" id="green-platforms">
-                        <!-- Plateformes GreenList : YouTube, SoundCloud, Facebook, Instagram, TikTok -->
                         <div class="platform-option" data-platform="YouTube"
                             onclick="selectionnerPlateforme('green', 'YouTube', this)">
                             <svg class="platform-icon" viewBox="0 0 24 24" fill="#FF0000">
@@ -635,7 +815,7 @@
             </div>
 
             <form id="form-blacklist" onsubmit="soumettreBlackList(event)">
-                <!-- Plateformes BlackList : Dailymotion, SoundCloud, Twitch, Bolo Live, Lomotif, Rizzle, VK, ShareChat -->
+                <!-- Plateformes BlackList -->
                 <div class="form-group">
                     <label class="form-label">Choisir la plateforme *</label>
                     <div class="platform-grid" id="red-platforms">
@@ -726,11 +906,11 @@
                     <label class="form-label">Période d'effet (Optionnel)</label>
                     <div class="period-group">
                         <div>
-                            <span style="font-size: 12px; color: #888;">De (Début) :</span>
+                            <span>De (Début) :</span>
                             <input type="date" id="red-date-start" class="form-input">
                         </div>
                         <div>
-                            <span style="font-size: 12px; color: #888;">À (Fin) :</span>
+                            <span>À (Fin) :</span>
                             <input type="date" id="red-date-end" class="form-input">
                         </div>
                     </div>
@@ -757,7 +937,7 @@
         let plateformesVerteChoisie = "";
         let plateformesRougeChoisie = "";
         let mesSorties = [];
-        let ongletActif = "green"; // 'green' ou 'red'
+        let ongletActif = "green";
 
         let itemsGreenList = [];
         let itemsBlackList = [];
@@ -829,7 +1009,7 @@
             if (ongletActif === 'green') {
                 if (itemsGreenList.length === 0) {
                     container.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">
+                        <div class="empty-state-container">
                             <p>Aucune demande dans la Liste Verte (GreenList).</p>
                             <button class="btn btn-green" onclick="ouvrirModalGreenList()">Ajouter à la Liste Verte</button>
                         </div>
@@ -858,7 +1038,7 @@
                             <ul style="margin: 4px 0; padding-left: 20px;">
                                 ${linksList.map(l => `<li><a class="item-link" href="${l}" target="_blank" rel="noopener">${l}</a></li>`).join('')}
                             </ul>
-                            <p style="font-size: 11px; color: #888; margin-top: 10px;">
+                            <p class="sub-date" style="font-size: 11px; margin-top: 10px;">
                                 Soumis le ${new Date(item.createdAt || Date.now()).toLocaleDateString('fr-FR')}
                             </p>
                         </div>
@@ -869,7 +1049,7 @@
             } else {
                 if (itemsBlackList.length === 0) {
                     container.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">
+                        <div class="empty-state-container">
                             <p>Aucune demande dans la Liste Rouge (BlackList).</p>
                             <button class="btn btn-red" onclick="ouvrirModalBlackList()">Ajouter à la Liste Rouge</button>
                         </div>
@@ -882,7 +1062,7 @@
 
                     let periodeStr = "Non spécifiée";
                     if (item.startDate || item.endDate) {
-                        periodeStr = `Du ${item.startDate || '?'} au ${item.endDate || '?'}`;
+                        periodeStr = `Du ${item.startDate || '?'} au ${item.endDate || ' ?'}`;
                     }
 
                     const card = document.createElement("div");
@@ -900,7 +1080,7 @@
                             <p><strong>Sortie :</strong> ${releaseObj.title || item.releaseTitle || 'N/A'}</p>
                             <p><strong>Piste :</strong> ${item.track || 'N/A'}</p>
                             <p><strong>Période :</strong> ${periodeStr}</p>
-                            <p style="font-size: 11px; color: #888; margin-top: 10px;">
+                            <p class="sub-date" style="font-size: 11px; margin-top: 10px;">
                                 Soumis le ${new Date(item.createdAt || Date.now()).toLocaleDateString('fr-FR')}
                             </p>
                         </div>

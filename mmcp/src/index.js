@@ -273,9 +273,6 @@ export default {
     const hostname = url.hostname.toLowerCase();
     const method = request.method;
 
-    // --- 0. LAISSER PASSER LES PAGES STATIQUES & FICHIERS FRONTEND ---
-    // Si la route ne commence PAS par /api/ et n'est pas une page Open Graph spécifique,
-    // on la renvoie immédiatement vers Cloudflare Pages sans vérification d'auth.
     const isLinkDomain = hostname === "link.morgannmusic.uk";
     const isPlayDomain = hostname === "play.morgannmusic.uk";
     const isMmCpDomain = hostname === "mm-cp.uk" || hostname === "www.mm-cp.uk";
@@ -293,7 +290,6 @@ export default {
     if (!url.pathname.startsWith("/api/") && !isReleasePage && !isArtistPage) {
       return fetch(request);
     }
-
 
     if (isReleasePage || isArtistPage) {
       const userAgent = (request.headers.get("User-Agent") || "").toLowerCase();
@@ -370,7 +366,6 @@ export default {
     }
 
     try {
-      // --- ROUTES UPLOAD PUBLIQUES ET AUTHENTIFIÉES ---
       if (method === "POST" && (path === "/api/upload" || path.startsWith("/api/upload/"))) {
         const userId = (await extractUserId(request)) || "anonymous";
         if (path === "/api/upload/chunk") {
@@ -383,7 +378,6 @@ export default {
         return await uploadFile(env, userId, type, request);
       }
 
-      // Route Proxy dédiée pour télécharger des fichiers distants
       if (method === "GET" && path === "/api/proxy-download") {
         const targetUrl = url.searchParams.get("url");
         if (!targetUrl) {
@@ -407,12 +401,10 @@ export default {
         }
       }
 
-      // --- ROUTES PUBLIQUE POUR L'INSCRIPTION NEWSLETTER ---
       if (method === "POST" && path === "/api/newsletter/subscribe") {
         return await handlePublicNewsletterSubscribe(env, request, ctx);
       }
 
-      // --- ROUTES ADMIN POUR L'ENVOI D'EMAILS & NEWSLETTERS ---
       if (method === "POST" && path === "/api/admin/send-email") {
         return await handleAdminSendEmail(env, request);
       }
@@ -442,7 +434,6 @@ export default {
         return await getPublicPremiere(env, url);
       }
 
-      // Public / Global list endpoints for GreenList and BlackList
       if (method === "GET" && (path === "/api/greenlist" || path === "/api/admin/greenlist")) {
         return await getAllGreenlist(env);
       }
@@ -454,7 +445,6 @@ export default {
         return await handleGetNewsletterRecipients(env);
       }
 
-      // --- ROUTES PUBLIQUES ARTISTES & SORTIES ---
       if (method === "GET" && path.match(/^\/api\/artists\/(.+)$/)) {
         const param = decodeURIComponent(path.split("/").pop());
         const artist = await env.DB.prepare(
@@ -463,7 +453,6 @@ export default {
         if (!artist) return corsJson({ error: "Artiste non trouvé" }, 404);
         return corsJson(formatArtistRow(artist));
       }
-
 
       const labelItemMatch = path.match(/^\/api\/labels\/(\d+)$/);
       if (labelItemMatch) {
@@ -652,14 +641,12 @@ export default {
         }
       }
 
-      // --- VERIFICATION AUTHENTIFICATION SECTEUR SECURISE ---
       const userId = await extractUserId(request);
       if (!userId) {
         return corsJson({ error: "Authentification requise" }, 401);
       }
       const isAdminUser = await isAdmin(env, userId);
 
-      // --- GREENLIST ROUTES ---
       const userGreenlistMatch = path.match(/^\/api\/users\/([^/]+)\/greenlist$/);
       if (userGreenlistMatch) {
         const uid = userGreenlistMatch[1];
@@ -679,7 +666,6 @@ export default {
         if (method === "DELETE") return await deleteUserGreenlist(env, uid, itemId, isAdminUser);
       }
 
-      // --- BLACKLIST ROUTES ---
       const userBlacklistMatch = path.match(/^\/api\/users\/([^/]+)\/blacklist$/);
       if (userBlacklistMatch) {
         const uid = userBlacklistMatch[1];
@@ -699,7 +685,6 @@ export default {
         if (method === "DELETE") return await deleteUserBlacklist(env, uid, itemId, isAdminUser);
       }
 
-      // --- NOTIFICATIONS ROUTES ---
       const userNotificationsReadAllMatch = path.match(/^\/api\/users\/([^/]+)\/notifications\/read-all$/);
       if (userNotificationsReadAllMatch) {
         const uid = userNotificationsReadAllMatch[1];
@@ -741,7 +726,6 @@ export default {
         return await getMe(env, userId);
       }
 
-      // --- ROUTES DOCUMENTS UTILISATEUR ---
       const userDocumentsMatch = path.match(/^\/api\/users\/([^/]+)\/documents(\/([^/]+))?$/);
       if (userDocumentsMatch) {
         const uid = userDocumentsMatch[1];
@@ -874,6 +858,15 @@ export default {
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
         if (method === "GET") return await getUserArtists(env, uid);
         if (method === "POST") return await createArtist(env, uid, request);
+      }
+
+      const userArtistEditorMatch = path.match(/^\/api\/users\/([^/]+)\/artists\/([^/]+)\/editor$/);
+      if (userArtistEditorMatch) {
+        const uid = userArtistEditorMatch[1];
+        const artistId = userArtistEditorMatch[2];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "PUT" || method === "PATCH") return await upsertArtistEditor(env, uid, artistId, request);
       }
 
       const userArtistMatch = path.match(/^\/api\/users\/([^/]+)\/artists\/([^/]+)$/);
@@ -1742,12 +1735,6 @@ async function broadcastNotification(env, request, isAdminUser, ctx) {
   }
 }
 
-// --- AJOUT DES COLONNES TIKTOK & THREADS DANS LA TABLE ARTISTS ---
-// Assurez-vous d'exécuter ces modifications dans ensureTables (ou via migration D1) :
-// ALTER TABLE artists ADD COLUMN tiktok_url TEXT;
-// ALTER TABLE artists ADD COLUMN threads_url TEXT;
-
-// Mise à jour de la fonction ensureTables pour inclure automatiquement tiktok_url et threads_url
 async function ensureTables(db) {
   await db.batch([
     db.prepare(`
@@ -1778,6 +1765,7 @@ async function ensureTables(db) {
         version_line TEXT,
         licence_type TEXT DEFAULT 'Copyright',
         upc TEXT,
+        catalog_number TEXT,
         territories TEXT,
         tracks TEXT,
         feats TEXT,
@@ -1787,6 +1775,26 @@ async function ensureTables(db) {
         release_url TEXT,
         spotify_url TEXT,
         apple_url TEXT,
+        deezer_url TEXT,
+        amazon_url TEXT,
+        youtube_music_url TEXT,
+        tidal_url TEXT,
+        qobuz_url TEXT,
+        soundcloud_url TEXT,
+        bandcamp_url TEXT,
+        napster_url TEXT,
+        pandora_url TEXT,
+        beatport_url TEXT,
+        traxsource_url TEXT,
+        tiktok_url TEXT,
+        instagram_url TEXT,
+        shazam_url TEXT,
+        tencent_url TEXT,
+        netease_url TEXT,
+        boomplay_url TEXT,
+        anghami_url TEXT,
+        vk_url TEXT,
+        yandex_url TEXT,
         show_on_mmcp_catalog INTEGER DEFAULT 1,
         premiere_slug TEXT,
         premiere_password TEXT,
@@ -1917,8 +1925,31 @@ async function ensureTables(db) {
         birthdate TEXT,
         birthplace TEXT,
         contact_email TEXT,
+        biographie TEXT,
         schema_json TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS editeur (
+        id TEXT PRIMARY KEY,
+        user_uid TEXT NOT NULL,
+        artist_id TEXT NOT NULL,
+        writers TEXT,
+        credits TEXT,
+        primary_genre TEXT,
+        secondary_genre TEXT,
+        default_language TEXT,
+        timezone TEXT,
+        release_time TEXT,
+        manual_platforms TEXT,
+        manual_territories TEXT,
+        label_name TEXT,
+        line_copyright TEXT,
+        line_phonogram TEXT,
+        deliveries TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
       )
     `),
     db.prepare(`
@@ -2067,14 +2098,8 @@ async function ensureTables(db) {
     `)
   ]);
 
-  try {
-    await db.prepare("ALTER TABLE support_tickets ADD COLUMN messages TEXT").run();
-  } catch (e) { }
-
-  try {
-    await db.prepare('ALTER TABLE "artistes-labels" ADD COLUMN artiste TEXT').run();
-  } catch (e) { }
-
+  try { await db.prepare("ALTER TABLE support_tickets ADD COLUMN messages TEXT").run(); } catch (e) { }
+  try { await db.prepare('ALTER TABLE "artistes-labels" ADD COLUMN artiste TEXT').run(); } catch (e) { }
   try {
     await db.prepare("ALTER TABLE releases ADD COLUMN premiere_slug TEXT").run();
     await db.prepare("ALTER TABLE releases ADD COLUMN premiere_password TEXT").run();
@@ -2082,36 +2107,49 @@ async function ensureTables(db) {
     await db.prepare("ALTER TABLE releases ADD COLUMN premiere_end_date TEXT").run();
     await db.prepare("ALTER TABLE releases ADD COLUMN premiere_is_active INTEGER DEFAULT 0").run();
   } catch (e) { }
-
-  try {
-    await db.prepare("ALTER TABLE releases ADD COLUMN dolby_atmos INTEGER DEFAULT 0").run();
-  } catch (e) { }
-
-  try {
-    await db.prepare("ALTER TABLE releases ADD COLUMN schema_json TEXT").run();
-  } catch (e) { }
-
-  try {
-    await db.prepare("ALTER TABLE artists ADD COLUMN schema_json TEXT").run();
-  } catch (e) { }
-
-  try {
-    await db.prepare("ALTER TABLE users ADD COLUMN newsletter_enabled INTEGER DEFAULT 1").run();
-  } catch (e) { }
-
-  try {
-    await db.prepare("ALTER TABLE artists ADD COLUMN logo_url TEXT").run();
-  } catch (e) { }
-
-  try {
-    await db.prepare("ALTER TABLE artists ADD COLUMN tiktok_url TEXT").run();
-  } catch (e) { }
-
-  try {
-    await db.prepare("ALTER TABLE artists ADD COLUMN threads_url TEXT").run();
-  } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN dolby_atmos INTEGER DEFAULT 0").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN schema_json TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN catalog_number TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN deezer_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN amazon_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN youtube_music_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN tidal_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN qobuz_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN soundcloud_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN bandcamp_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN napster_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN pandora_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN beatport_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN traxsource_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN tiktok_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN instagram_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN shazam_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN tencent_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN netease_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN boomplay_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN anghami_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN vk_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE releases ADD COLUMN yandex_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN schema_json TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE users ADD COLUMN newsletter_enabled INTEGER DEFAULT 1").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN logo_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN tiktok_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN threads_url TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN biographie TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_apple TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_spotify TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_amazon TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_soundcloud TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_website TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_fb TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_insta TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_x TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN link_wiki TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN id_ddex TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN id_musicbrainz TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN id_allmusic TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN id_isni TEXT").run(); } catch (e) { }
 }
-
 
 async function deleteUserDocument(env, uid, docId) {
   try {
@@ -2794,10 +2832,82 @@ async function getUserArtists(env, uid) {
 async function getArtist(env, uid, artistId) {
   const row = await env.DB.prepare("SELECT * FROM artists WHERE id = ? AND user_uid = ?").bind(artistId, uid).first();
   if (!row) return corsJson({ error: "Artiste non trouvé" }, 404);
-  return corsJson(formatArtistRow(row));
+
+  const editorRow = await env.DB.prepare("SELECT * FROM editeur WHERE artist_id = ? AND user_uid = ?").bind(artistId, uid).first();
+
+  return corsJson({
+    artist: formatArtistRow(row),
+    editor: editorRow ? formatEditorRow(editorRow) : null
+  });
 }
 
-// Mise à jour de createArtist pour intégrer tiktok_url et threads_url
+function formatEditorRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    writers: row.writers,
+    credits: row.credits,
+    primaryGenre: row.primary_genre,
+    secondaryGenre: row.secondary_genre,
+    defaultLanguage: row.default_language,
+    timezone: row.timezone,
+    releaseTime: row.release_time,
+    manualPlatforms: row.manual_platforms,
+    manualTerritories: row.manual_territories,
+    labelName: row.label_name,
+    lineCopyright: row.line_copyright,
+    linePhonogram: row.line_phonogram,
+    deliveries: row.deliveries,
+    createdAt: row.created_at
+  };
+}
+
+async function upsertArtistEditor(env, uid, artistId, request) {
+  const data = await request.json();
+  const id = `${uid}_${artistId}`;
+  const now = new Date().toISOString();
+
+  await env.DB.prepare(`
+    INSERT INTO editeur (
+        id, user_uid, artist_id, writers, credits, primary_genre, secondary_genre, 
+        default_language, timezone, release_time, manual_platforms, manual_territories, 
+        label_name, line_copyright, line_phonogram, deliveries, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+        writers = excluded.writers,
+        credits = excluded.credits,
+        primary_genre = excluded.primary_genre,
+        secondary_genre = excluded.secondary_genre,
+        default_language = excluded.default_language,
+        timezone = excluded.timezone,
+        release_time = excluded.release_time,
+        manual_platforms = excluded.manual_platforms,
+        manual_territories = excluded.manual_territories,
+        label_name = excluded.label_name,
+        line_copyright = excluded.line_copyright,
+        line_phonogram = excluded.line_phonogram,
+        deliveries = excluded.deliveries
+  `).bind(
+    id, uid, artistId,
+    data.writers || null,
+    data.credits || null,
+    data.primaryGenre || null,
+    data.secondaryGenre || null,
+    data.defaultLanguage || null,
+    data.timezone || null,
+    data.releaseTime || null,
+    data.manualPlatforms || null,
+    data.manualTerritories || null,
+    data.labelName || null,
+    data.lineCopyright || null,
+    data.linePhonogram || null,
+    data.deliveries || null,
+    now
+  ).run();
+
+  return corsJson({ success: true });
+}
+
 async function createArtist(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
@@ -2809,12 +2919,8 @@ async function createArtist(env, uid, request) {
       user_uid, name, primary_genre, genre, feat, toolost_artist_id, spotify_id, 
       apple_music_id, audiomack_id, even_artist_id, facebook_url, instagram_url, 
       youtube_url, tiktok_url, threads_url, photo, logo_url, banner_url, birthdate, birthplace, contact_email, 
-      uploader_option, writers, credits, secondary_genre, default_language, timezone, 
-      release_time, manual_platforms, manual_territories, line_copyright, line_phonogram, 
-      label_name, deliveries, description, link_yt_chan, link_yt_music, link_apple, 
-      link_spotify, link_amazon, link_soundcloud, link_website, link_fb, link_insta, 
-      link_x, link_yt_social, link_wiki, id_ddex, id_musicbrainz, id_allmusic, id_isni, schema_json, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      schema_json, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING id
   `).bind(
     uid,
@@ -2838,43 +2944,12 @@ async function createArtist(env, uid, request) {
     data.birthdate || null,
     data.birthplace || null,
     data.contactEmail || null,
-    data.uploaderOption || null,
-    typeof data.writers === 'object' ? JSON.stringify(data.writers) : (data.writers || null),
-    typeof data.credits === 'object' ? JSON.stringify(data.credits) : (data.credits || null),
-    data.secondaryGenre || null,
-    data.defaultLanguage || null,
-    data.timezone || null,
-    data.releaseTime || null,
-    data.manualPlatforms || null,
-    data.manualTerritories || null,
-    data.lineCopyright || null,
-    data.linePhonogram || null,
-    data.labelName || null,
-    typeof data.deliveries === 'object' ? JSON.stringify(data.deliveries) : (data.deliveries || null),
-    data.description || null,
-    data.linkYtChan || null,
-    data.linkYtMusic || null,
-    data.linkApple || null,
-    data.linkSpotify || null,
-    data.linkAmazon || null,
-    data.linkSoundcloud || null,
-    data.linkWebsite || null,
-    data.linkFb || null,
-    data.linkInsta || null,
-    data.linkX || null,
-    data.linkYtSocial || null,
-    data.linkWiki || null,
-    data.idDdex || null,
-    data.idMusicbrainz || null,
-    data.idAllmusic || null,
-    data.idIsni || null,
     schemaJson,
     now
   ).first();
 
   return corsJson({ id: row.id, success: true }, 201);
 }
-
 
 async function createFeat(env, uid, request) {
   const data = await request.json();
@@ -2918,36 +2993,20 @@ async function patchArtist(env, uid, artistId, request) {
         logo_url = COALESCE(?, logo_url), 
         banner_url = COALESCE(?, banner_url), 
         birthdate = COALESCE(?, birthdate), 
-        birthplace = COALESCE(?, birthplace), 
-        uploader_option = COALESCE(?, uploader_option), 
-        writers = COALESCE(?, writers), 
-        credits = COALESCE(?, credits), 
-        secondary_genre = COALESCE(?, secondary_genre), 
-        default_language = COALESCE(?, default_language), 
-        timezone = COALESCE(?, timezone), 
-        release_time = COALESCE(?, release_time), 
-        manual_platforms = COALESCE(?, manual_platforms), 
-        manual_territories = COALESCE(?, manual_territories), 
-        line_copyright = COALESCE(?, line_copyright), 
-        line_phonogram = COALESCE(?, line_phonogram), 
-        label_name = COALESCE(?, label_name), 
-        deliveries = COALESCE(?, deliveries), 
-        description = COALESCE(?, description), 
-        link_yt_chan = COALESCE(?, link_yt_chan), 
-        link_yt_music = COALESCE(?, link_yt_music), 
-        link_apple = COALESCE(?, link_apple), 
-        link_spotify = COALESCE(?, link_spotify), 
-        link_amazon = COALESCE(?, link_amazon), 
-        link_soundcloud = COALESCE(?, link_soundcloud), 
-        link_website = COALESCE(?, link_website), 
-        link_fb = COALESCE(?, link_fb), 
-        link_insta = COALESCE(?, link_insta), 
-        link_x = COALESCE(?, link_x), 
-        link_yt_social = COALESCE(?, link_yt_social), 
-        link_wiki = COALESCE(?, link_wiki), 
-        id_ddex = COALESCE(?, id_ddex), 
-        id_musicbrainz = COALESCE(?, id_musicbrainz), 
-        id_allmusic = COALESCE(?, id_allmusic), 
+        birthplace = COALESCE(?, birthplace),
+        biographie = COALESCE(?, biographie),
+        link_apple = COALESCE(?, link_apple),
+        link_spotify = COALESCE(?, link_spotify),
+        link_amazon = COALESCE(?, link_amazon),
+        link_soundcloud = COALESCE(?, link_soundcloud),
+        link_website = COALESCE(?, link_website),
+        link_fb = COALESCE(?, link_fb),
+        link_insta = COALESCE(?, link_insta),
+        link_x = COALESCE(?, link_x),
+        link_wiki = COALESCE(?, link_wiki),
+        id_ddex = COALESCE(?, id_ddex),
+        id_musicbrainz = COALESCE(?, id_musicbrainz),
+        id_allmusic = COALESCE(?, id_allmusic),
         id_isni = COALESCE(?, id_isni),
         schema_json = COALESCE(?, schema_json)
     WHERE id = ? AND (user_uid = ? OR ? = 1)
@@ -2960,29 +3019,14 @@ async function patchArtist(env, uid, artistId, request) {
     data.facebookUrl !== undefined ? data.facebookUrl : null,
     data.instagramUrl !== undefined ? data.instagramUrl : null,
     data.youtubeUrl !== undefined ? data.youtubeUrl : null,
-    data.tiktokUrl !== undefined ? data.tiktokUrl : (data.tiktok_url !== undefined ? data.tiktok_url : (data.linkTiktok !== undefined ? data.linkTiktok : null)),
-    data.threadsUrl !== undefined ? data.threadsUrl : (data.threads_url !== undefined ? data.threads_url : (data.linkThreads !== undefined ? data.linkThreads : null)),
+    data.tiktokUrl !== undefined ? data.tiktokUrl : null,
+    data.threadsUrl !== undefined ? data.threadsUrl : null,
     data.photo !== undefined ? data.photo : null,
-    data.logoUrl !== undefined ? data.logoUrl : (data.logo !== undefined ? data.logo : (data.logo_url !== undefined ? data.logo_url : null)),
+    data.logoUrl !== undefined ? data.logoUrl : null,
     data.bannerUrl !== undefined ? data.bannerUrl : null,
     data.birthdate !== undefined ? data.birthdate : null,
     data.birthplace !== undefined ? data.birthplace : null,
-    data.uploaderOption !== undefined ? data.uploaderOption : null,
-    data.writers !== undefined ? (typeof data.writers === 'object' ? JSON.stringify(data.writers) : data.writers) : null,
-    data.credits !== undefined ? (typeof data.credits === 'object' ? JSON.stringify(data.credits) : data.credits) : null,
-    data.secondaryGenre !== undefined ? data.secondaryGenre : null,
-    data.defaultLanguage !== undefined ? data.defaultLanguage : null,
-    data.timezone !== undefined ? data.timezone : null,
-    data.releaseTime !== undefined ? data.releaseTime : null,
-    data.manualPlatforms !== undefined ? data.manualPlatforms : null,
-    data.manualTerritories !== undefined ? data.manualTerritories : null,
-    data.lineCopyright !== undefined ? data.lineCopyright : null,
-    data.linePhonogram !== undefined ? data.linePhonogram : null,
-    data.labelName !== undefined ? data.labelName : null,
-    data.deliveries !== undefined ? (typeof data.deliveries === 'object' ? JSON.stringify(data.deliveries) : data.deliveries) : null,
-    data.description !== undefined ? data.description : null,
-    data.linkYtChan !== undefined ? data.linkYtChan : null,
-    data.linkYtMusic !== undefined ? data.linkYtMusic : null,
+    data.biographie !== undefined ? data.biographie : null,
     data.linkApple !== undefined ? data.linkApple : null,
     data.linkSpotify !== undefined ? data.linkSpotify : null,
     data.linkAmazon !== undefined ? data.linkAmazon : null,
@@ -2991,7 +3035,6 @@ async function patchArtist(env, uid, artistId, request) {
     data.linkFb !== undefined ? data.linkFb : null,
     data.linkInsta !== undefined ? data.linkInsta : null,
     data.linkX !== undefined ? data.linkX : null,
-    data.linkYtSocial !== undefined ? data.linkYtSocial : null,
     data.linkWiki !== undefined ? data.linkWiki : null,
     data.idDdex !== undefined ? data.idDdex : null,
     data.idMusicbrainz !== undefined ? data.idMusicbrainz : null,
@@ -3005,7 +3048,6 @@ async function patchArtist(env, uid, artistId, request) {
 
   return corsJson({ success: true });
 }
-
 
 async function deleteArtist(env, uid, artistId) {
   await env.DB.prepare("DELETE FROM artists WHERE id = ? AND user_uid = ?").bind(artistId, uid).run();
@@ -3045,41 +3087,24 @@ function formatArtistRow(row) {
     birthdate: row.birthdate,
     birthplace: row.birthplace,
     contactEmail: row.contact_email,
-    uploaderOption: row.uploader_option,
-    writers: row.writers,
-    credits: row.credits,
-    secondaryGenre: row.secondary_genre,
-    defaultLanguage: row.default_language,
-    timezone: row.timezone,
-    releaseTime: row.release_time,
-    manualPlatforms: row.manual_platforms,
-    manualTerritories: row.manual_territories,
-    lineCopyright: row.line_copyright,
-    linePhonogram: row.line_phonogram,
-    labelName: row.label_name,
-    deliveries: row.deliveries,
-    description: row.description,
-    linkYtChan: row.link_yt_chan,
-    linkYtMusic: row.link_yt_music,
-    linkApple: row.link_apple,
-    linkSpotify: row.link_spotify,
-    linkAmazon: row.link_amazon,
-    linkSoundcloud: row.link_soundcloud,
-    linkWebsite: row.link_website,
-    linkFb: row.link_fb,
-    linkInsta: row.link_insta,
-    linkX: row.link_x,
-    linkYtSocial: row.link_yt_social,
-    linkWiki: row.link_wiki,
-    idDdex: row.id_ddex,
-    idMusicbrainz: row.id_musicbrainz,
-    idAllmusic: row.id_allmusic,
-    idIsni: row.id_isni,
+    biographie: row.biographie,
+    linkApple: row.link_apple || "",
+    linkSpotify: row.link_spotify || "",
+    linkAmazon: row.link_amazon || "",
+    linkSoundcloud: row.link_soundcloud || "",
+    linkWebsite: row.link_website || "",
+    linkFb: row.link_fb || "",
+    linkInsta: row.link_insta || "",
+    linkX: row.link_x || "",
+    linkWiki: row.link_wiki || "",
+    idDdex: row.id_ddex || "",
+    idMusicbrainz: row.id_musicbrainz || "",
+    idAllmusic: row.id_allmusic || "",
+    idIsni: row.id_isni || "",
     schemaJson,
     createdAt: row.created_at,
   };
 }
-
 
 async function getAllReleases(env, url) {
   const status = url.searchParams.get("status");
@@ -3129,12 +3154,12 @@ async function createRelease(env, uid, request, ctx) {
     : (data.territories || "Tous les pays (Monde entier)");
 
   const artistName = data.artistName || "";
-  const labelName = data.labelName?.trim() ? data.labelName : "Morgann Music CP";
+  const labelName = (data.labelName || data.label || "Morgann Music CP").trim();
   const copyrightLineC = data.copyrightLineC?.trim() ? data.copyrightLineC : artistName;
   const copyrightLineP = data.copyrightLineP?.trim() ? data.copyrightLineP : "Morgann Music CP";
   const schemaJson = typeof data.schemaJson === "object" ? JSON.stringify(data.schemaJson) : (data.schemaJson || data.schema_json || null);
 
-  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date, premiere_end_date, premiere_is_active, dolby_atmos, schema_json, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
+  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, catalog_number, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, deezer_url, amazon_url, youtube_music_url, tidal_url, qobuz_url, soundcloud_url, bandcamp_url, napster_url, pandora_url, beatport_url, traxsource_url, tiktok_url, instagram_url, shazam_url, tencent_url, netease_url, boomplay_url, anghami_url, vk_url, yandex_url, show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date, premiere_end_date, premiere_is_active, dolby_atmos, schema_json, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
     uid,
     data.title || "",
     data.type || "Single",
@@ -3160,6 +3185,7 @@ async function createRelease(env, uid, request, ctx) {
     data.versionLine || "",
     data.licenceType || "Copyright",
     data.upc || "",
+    data.catalogNumber || "",
     formattedTerritories,
     JSON.stringify(data.tracks || []),
     JSON.stringify(data.feats || []),
@@ -3169,6 +3195,26 @@ async function createRelease(env, uid, request, ctx) {
     data.releaseUrl || null,
     data.spotifyUrl || null,
     data.appleUrl || null,
+    data.deezerUrl || null,
+    data.amazonUrl || null,
+    data.youtubeMusicUrl || null,
+    data.tidalUrl || null,
+    data.qobuzUrl || null,
+    data.soundcloudUrl || null,
+    data.bandcampUrl || null,
+    data.napsterUrl || null,
+    data.pandoraUrl || null,
+    data.beatportUrl || null,
+    data.traxsourceUrl || null,
+    data.tiktokUrl || null,
+    data.instagramUrl || null,
+    data.shazamUrl || null,
+    data.tencentUrl || null,
+    data.neteaseUrl || null,
+    data.boomplayUrl || null,
+    data.anghamiUrl || null,
+    data.vkUrl || null,
+    data.yandexUrl || null,
     data.showOnMmcpCatalog !== false ? 1 : 0,
     data.premiereSlug || null,
     data.premierePassword || null,
@@ -3214,7 +3260,9 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
       schemaJson = typeof val === "object" ? JSON.stringify(val) : val;
     }
 
-    await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), premiere_slug = COALESCE(?, premiere_slug), premiere_password = COALESCE(?, premiere_password), premiere_start_date = COALESCE(?, premiere_start_date), premiere_end_date = COALESCE(?, premiere_end_date), premiere_is_active = COALESCE(?, premiere_is_active), dolby_atmos = COALESCE(?, dolby_atmos), schema_json = COALESCE(?, schema_json), updated_at = ? WHERE id = ?`).bind(
+    const resolvedLabelName = data.labelName !== undefined ? data.labelName : (data.label !== undefined ? data.label : null);
+
+    await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), catalog_number = COALESCE(?, catalog_number), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), deezer_url = COALESCE(?, deezer_url), amazon_url = COALESCE(?, amazon_url), youtube_music_url = COALESCE(?, youtube_music_url), tidal_url = COALESCE(?, tidal_url), qobuz_url = COALESCE(?, qobuz_url), soundcloud_url = COALESCE(?, soundcloud_url), bandcamp_url = COALESCE(?, bandcamp_url), napster_url = COALESCE(?, napster_url), pandora_url = COALESCE(?, pandora_url), beatport_url = COALESCE(?, beatport_url), traxsource_url = COALESCE(?, traxsource_url), tiktok_url = COALESCE(?, tiktok_url), instagram_url = COALESCE(?, instagram_url), shazam_url = COALESCE(?, shazam_url), tencent_url = COALESCE(?, tencent_url), netease_url = COALESCE(?, netease_url), boomplay_url = COALESCE(?, boomplay_url), anghami_url = COALESCE(?, anghami_url), vk_url = COALESCE(?, vk_url), yandex_url = COALESCE(?, yandex_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), premiere_slug = COALESCE(?, premiere_slug), premiere_password = COALESCE(?, premiere_password), premiere_start_date = COALESCE(?, premiere_start_date), premiere_end_date = COALESCE(?, premiere_end_date), premiere_is_active = COALESCE(?, premiere_is_active), dolby_atmos = COALESCE(?, dolby_atmos), schema_json = COALESCE(?, schema_json), updated_at = ? WHERE id = ?`).bind(
       data.title !== undefined ? data.title : null,
       data.type !== undefined ? data.type : null,
       data.artistName !== undefined ? data.artistName : null,
@@ -3229,7 +3277,7 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
       data.secondaryGenre !== undefined ? data.secondaryGenre : null,
       data.language !== undefined ? data.language : null,
       data.isInstrumental !== undefined ? (data.isInstrumental ? 1 : 0) : null,
-      data.labelName !== undefined ? data.labelName : null,
+      resolvedLabelName,
       data.copyrightLineC !== undefined ? data.copyrightLineC : null,
       data.copyrightLineP !== undefined ? data.copyrightLineP : null,
       data.stdCopyright !== undefined ? data.stdCopyright : null,
@@ -3239,6 +3287,7 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
       data.versionLine !== undefined ? data.versionLine : null,
       data.licenceType !== undefined ? data.licenceType : null,
       data.upc !== undefined ? data.upc : null,
+      data.catalogNumber !== undefined ? data.catalogNumber : null,
       formattedTerritories,
       data.tracks !== undefined ? JSON.stringify(data.tracks) : null,
       data.feats !== undefined ? JSON.stringify(data.feats) : null,
@@ -3248,6 +3297,26 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
       data.releaseUrl !== undefined ? data.releaseUrl : null,
       data.spotifyUrl !== undefined ? data.spotifyUrl : null,
       data.appleUrl !== undefined ? data.appleUrl : null,
+      data.deezerUrl !== undefined ? data.deezerUrl : null,
+      data.amazonUrl !== undefined ? data.amazonUrl : null,
+      data.youtubeMusicUrl !== undefined ? data.youtubeMusicUrl : null,
+      data.tidalUrl !== undefined ? data.tidalUrl : null,
+      data.qobuzUrl !== undefined ? data.qobuzUrl : null,
+      data.soundcloudUrl !== undefined ? data.soundcloudUrl : null,
+      data.bandcampUrl !== undefined ? data.bandcampUrl : null,
+      data.napsterUrl !== undefined ? data.napsterUrl : null,
+      data.pandoraUrl !== undefined ? data.pandoraUrl : null,
+      data.beatportUrl !== undefined ? data.beatportUrl : null,
+      data.traxsourceUrl !== undefined ? data.traxsourceUrl : null,
+      data.tiktokUrl !== undefined ? data.tiktokUrl : null,
+      data.instagramUrl !== undefined ? data.instagramUrl : null,
+      data.shazamUrl !== undefined ? data.shazamUrl : null,
+      data.tencentUrl !== undefined ? data.tencentUrl : null,
+      data.neteaseUrl !== undefined ? data.neteaseUrl : null,
+      data.boomplayUrl !== undefined ? data.boomplayUrl : null,
+      data.anghamiUrl !== undefined ? data.anghamiUrl : null,
+      data.vkUrl !== undefined ? data.vkUrl : null,
+      data.yandexUrl !== undefined ? data.yandexUrl : null,
       data.showOnMmcpCatalog !== undefined ? (data.showOnMmcpCatalog ? 1 : 0) : null,
       data.premiereSlug !== undefined ? data.premiereSlug : null,
       data.premierePassword !== undefined ? data.premierePassword : null,
@@ -3286,9 +3355,10 @@ async function adminPatchRelease(env, userId, request, path, ctx) {
       schemaJson = typeof val === "object" ? JSON.stringify(val) : val;
     }
 
-    await env.DB.prepare(`UPDATE releases SET status = COALESCE(?, status), upc = COALESCE(?, upc), schema_json = COALESCE(?, schema_json), updated_at = ? WHERE id = ?`).bind(
+    await env.DB.prepare(`UPDATE releases SET status = COALESCE(?, status), upc = COALESCE(?, upc), catalog_number = COALESCE(?, catalog_number), schema_json = COALESCE(?, schema_json), updated_at = ? WHERE id = ?`).bind(
       data.status || null,
       data.upc || null,
+      data.catalogNumber || null,
       schemaJson,
       new Date().toISOString(),
       releaseId
@@ -3340,7 +3410,7 @@ function formatReleaseRow(row) {
   } catch (e) { }
 
   const artistName = row.artist_name || "";
-  let labelName = row.label_name || "";
+  let labelName = row.label_name || row.label_name || "";
   let copyrightLineC = row.copyright_line_c || "";
   let copyrightLineP = row.copyright_line_p || "";
 
@@ -3366,7 +3436,8 @@ function formatReleaseRow(row) {
     secondaryGenre: row.secondary_genre || "",
     language: row.language || "",
     isInstrumental: Boolean(row.is_instrumental),
-    labelName,
+    label: labelName,
+    labelName: labelName,
     copyrightLineC,
     copyrightLineP,
     std_copyright: row.std_copyright || "",
@@ -3376,6 +3447,7 @@ function formatReleaseRow(row) {
     versionLine: row.version_line || "",
     licenceType: row.licence_type || "Copyright",
     upc: row.upc || "",
+    catalogNumber: row.catalog_number || "",
     territories,
     tracks,
     feats,
@@ -3385,6 +3457,26 @@ function formatReleaseRow(row) {
     releaseUrl: row.release_url || null,
     spotifyUrl: row.spotify_url || null,
     appleUrl: row.apple_url || null,
+    deezerUrl: row.deezer_url || null,
+    amazonUrl: row.amazon_url || null,
+    youtubeMusicUrl: row.youtube_music_url || null,
+    tidalUrl: row.tidal_url || null,
+    qobuzUrl: row.qobuz_url || null,
+    soundcloudUrl: row.soundcloud_url || null,
+    bandcampUrl: row.bandcamp_url || null,
+    napsterUrl: row.napster_url || null,
+    pandoraUrl: row.pandora_url || null,
+    beatportUrl: row.beatport_url || null,
+    traxsourceUrl: row.traxsource_url || null,
+    tiktokUrl: row.tiktok_url || null,
+    instagramUrl: row.instagram_url || null,
+    shazamUrl: row.shazam_url || null,
+    tencentUrl: row.tencent_url || null,
+    neteaseUrl: row.netease_url || null,
+    boomplayUrl: row.boomplay_url || null,
+    anghamiUrl: row.anghami_url || null,
+    vkUrl: row.vk_url || null,
+    yandexUrl: row.yandex_url || null,
     showOnMmcpCatalog: row.show_on_mmcp_catalog !== 0,
     premiereSlug: row.premiere_slug || null,
     premierePassword: row.premiere_password || null,

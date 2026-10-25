@@ -1,0 +1,156 @@
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            margin: 4rem 0 0 0;
+            padding: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: white;
+            }
+
+            .modal-content {
+                background: rgba(0, 0, 0, 0.281) !important;
+            }
+        }
+
+        .modal-content {
+            border-radius: 44px !important;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #FC8FB0;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #FC8FB0;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .form-section {
+            border-bottom: 1px solid #FC8FB0;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-section h3 {
+            margin-top: 0;
+            color: #495057;
+            font-size: 16px;
+            border-left: 4px solid #FC8FB0;
+            padding-left: 8px;
+            border-radius: 3px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .form-section h3 {
+                color: white;
+            }
+
+            .form-group label {
+                color: rgba(255, 255, 255, 0.823) !important;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 8px;
+            border: 1px solid #FC8FB0;
+            border-radius: 19px;
+            font-size: 14px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        .input-artistname {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+
+        .dynamic-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .info-panel {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            border-radius: 19px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .info-panel {
+                background-color: #856404;
+                color: #fff3cd;
+                border-color: #ffeeba;
+            }
+        }

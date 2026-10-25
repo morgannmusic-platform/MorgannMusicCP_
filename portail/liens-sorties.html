@@ -6,12 +6,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Liens & Smartlinks - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="theme-color" content="#FFEFF4">
 
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #e07898;
+            --primary-light: #ffe4ec;
+            --dark: #222222;
+            --bg-glass: rgba(255, 255, 255, 0.855);
+            --border-glass: rgba(189, 189, 189, 0.438);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #e07898;
+                --primary-light: #ffe4ec;
+                --dark: #ffffff;
+                --bg-glass: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+            }
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
-            color: #333;
+            color: var(--dark);
             padding: 20px;
+            padding-top: 3rem;
+            margin: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #2c000d;
+            }
         }
 
         .container {
@@ -27,13 +56,55 @@
         .header-title h1 {
             font-size: 28px;
             margin: 0;
-            color: #111827;
+            color: var(--dark);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .header-title h1 {
+                color: #ffffff;
+            }
         }
 
         .header-title p {
             color: #6b7280;
             margin-top: 4px;
             font-size: 14px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .header-title p {
+                color: #ffccd9;
+            }
+        }
+
+        .search-box {
+            margin-top: 15px;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--primary);
+            border-radius: 50px;
+            color: #222222;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .search-input {
+                background: rgba(0, 0, 0, 0.4);
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.3);
         }
 
         .releases-grid {
@@ -43,10 +114,10 @@
         }
 
         .release-card {
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: var(--bg-glass);
             backdrop-filter: blur(40px);
             -webkit-backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--border-glass);
             border-radius: 24px;
             padding: 20px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
@@ -54,6 +125,12 @@
             flex-direction: column;
             gap: 12px;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .release-card {
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
         }
 
         .release-card:hover {
@@ -71,6 +148,12 @@
             align-items: center;
             justify-content: center;
             position: relative;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .cover-wrapper {
+                background: rgba(0, 0, 0, 0.3);
+            }
         }
 
         .release-cover {
@@ -96,6 +179,12 @@
             text-overflow: ellipsis;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .card-title {
+                color: #ffffff;
+            }
+        }
+
         .card-artist {
             font-size: 14px;
             color: #6b7280;
@@ -105,9 +194,21 @@
             text-overflow: ellipsis;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .card-artist {
+                color: #ffccd9;
+            }
+        }
+
         .card-date {
             font-size: 12px;
             color: #9ca3af;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .card-date {
+                color: #caa0ad;
+            }
         }
 
         .link-box {
@@ -121,6 +222,13 @@
             margin-top: auto;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .link-box {
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-glass);
+            }
+        }
+
         .link-url {
             font-size: 12px;
             color: #007bff;
@@ -131,8 +239,14 @@
             flex: 1;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .link-url {
+                color: var(--primary);
+            }
+        }
+
         .btn-copy {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
             border: none;
             border-radius: 10px;
@@ -142,6 +256,12 @@
             cursor: pointer;
             transition: transform 0.1s ease, background 0.2s;
             flex-shrink: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-copy {
+                color: #2c000d;
+            }
         }
 
         .btn-copy:active {
@@ -157,6 +277,14 @@
             color: #6b7280;
             font-size: 15px;
         }
+
+        @media (prefers-color-scheme: dark) {
+            .empty-state {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid var(--border-glass);
+                color: #ffccd9;
+            }
+        }
     </style>
 </head>
 
@@ -171,6 +299,10 @@
             <div class="header-title">
                 <h1>Mes Liens & Smartlinks</h1>
                 <p>Retrouvez l'ensemble des liens de vos sorties disponibles sur les plateformes.</p>
+                <div class="search-box">
+                    <input type="text" id="search-input" class="search-input"
+                        placeholder="Rechercher par titre ou artiste..." oninput="filtrerSorties()">
+                </div>
             </div>
 
             <div class="releases-grid" id="smartlinks-grid">
@@ -185,6 +317,7 @@
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const DEFAULT_COVER = "/assets/img/icons/brouillon.png";
+        let toutesLesSorties = [];
 
         function getCoverUrl(release) {
             let rawCover = release.coverUrl || release.cover || release.cover_url || release.pochetteUrl;
@@ -207,21 +340,72 @@
             return rawCover;
         }
 
-        // Copier le lien
         window.copierLien = function (url, btnId) {
             navigator.clipboard.writeText(url).then(() => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
                     btn.innerText = "Copié !";
                     btn.style.background = "#28a745";
+                    btn.style.color = "#ffffff";
                     setTimeout(() => {
                         btn.innerText = "Copier";
                         btn.style.background = "#FC8FB0";
+                        btn.style.color = window.matchMedia('(prefers-color-scheme: dark)').matches ? "#2c000d" : "white";
                     }, 2000);
                 }
             }).catch(err => {
                 console.error("Erreur de copie :", err);
             });
+        };
+
+        function afficherSorties(releases) {
+            const grid = document.getElementById("smartlinks-grid");
+            let count = 0;
+            let htmlContent = "";
+
+            releases.forEach((data, index) => {
+                if (data.releaseUrl && data.releaseUrl.trim() !== "") {
+                    count++;
+                    const cover = getCoverUrl(data);
+                    const title = data.title || "Sans titre";
+                    const artist = data.artistName || "Artiste";
+                    const date = data.releaseDate ? `Sortie le : ${data.releaseDate}` : "";
+                    const btnId = `btn-copy-${data.id || index}`;
+
+                    htmlContent += `
+                        <div class="release-card">
+                            <div class="cover-wrapper">
+                                <img src="${cover}" class="release-cover" alt="Pochette ${title}" onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
+                            </div>
+                            <div class="card-info">
+                                <h3 class="card-title">${title}</h3>
+                                <p class="card-artist">${artist}</p>
+                                ${date ? `<span class="card-date">${date}</span>` : ''}
+                            </div>
+                            <div class="link-box">
+                                <a href="${data.releaseUrl}" target="_blank" class="link-url" title="${data.releaseUrl}">${data.releaseUrl}</a>
+                                <button id="${btnId}" class="btn-copy" onclick="copierLien('${data.releaseUrl}', '${btnId}')">Copier</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (count > 0) {
+                grid.innerHTML = htmlContent;
+            } else {
+                grid.innerHTML = `<div class="empty-state">Aucun lien de sortie ne correspond à votre recherche.</div>`;
+            }
+        }
+
+        window.filtrerSorties = function () {
+            const query = document.getElementById("search-input").value.toLowerCase().trim();
+            const filtered = toutesLesSorties.filter(data => {
+                const title = (data.title || "").toLowerCase();
+                const artist = (data.artistName || "").toLowerCase();
+                return title.includes(query) || artist.includes(query);
+            });
+            afficherSorties(filtered);
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -234,49 +418,11 @@
 
             try {
                 const dataResponse = await api.get(`/api/users/${user.uid}/releases`);
-                const releases = Array.isArray(dataResponse) ? dataResponse : (dataResponse.releases || []);
-
-                let count = 0;
-                let htmlContent = "";
-
-                releases.forEach((data, index) => {
-                    // Filtrer uniquement les sorties avec un lien renseigné
-                    if (data.releaseUrl && data.releaseUrl.trim() !== "") {
-                        count++;
-                        const cover = getCoverUrl(data);
-                        const title = data.title || "Sans titre";
-                        const artist = data.artistName || "Artiste";
-                        const date = data.releaseDate ? `Sortie le : ${data.releaseDate}` : "";
-                        const btnId = `btn-copy-${data.id || index}`;
-
-                        htmlContent += `
-                            <div class="release-card">
-                                <div class="cover-wrapper">
-                                    <img src="${cover}" class="release-cover" alt="Pochette ${title}" onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
-                                </div>
-                                <div class="card-info">
-                                    <h3 class="card-title">${title}</h3>
-                                    <p class="card-artist">${artist}</p>
-                                    ${date ? `<span class="card-date">${date}</span>` : ''}
-                                </div>
-                                <div class="link-box">
-                                    <a href="${data.releaseUrl}" target="_blank" class="link-url" title="${data.releaseUrl}">${data.releaseUrl}</a>
-                                    <button id="${btnId}" class="btn-copy" onclick="copierLien('${data.releaseUrl}', '${btnId}')">Copier</button>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-
-                if (count > 0) {
-                    grid.innerHTML = htmlContent;
-                } else {
-                    grid.innerHTML = `<div class="empty-state">Aucun lien de sortie disponible pour le moment.</div>`;
-                }
-
+                toutesLesSorties = Array.isArray(dataResponse) ? dataResponse : (dataResponse.releases || []);
+                afficherSorties(toutesLesSorties);
             } catch (err) {
                 console.error("Erreur chargement sorties :", err);
-                grid.innerHTML = `<div class="empty-state" style="color:#ef4444;">Erreur lors du chargement des liens.</div>`;
+                grid.innerHTML = `<div class="empty-state" style="color:#ff6b6b;">Erreur lors du chargement des liens.</div>`;
             }
         });
     </script>

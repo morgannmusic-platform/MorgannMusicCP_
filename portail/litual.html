@@ -7,8 +7,13 @@
     <title>Litual AI | Portail utilisateur</title>
     <link rel="icon" href="/assets/img/litual/litual-logo.png" type="image/png" />
     <link rel="stylesheet" href="/portail/js/reponsive.css" />
+    <meta name="theme-color" content="#FFEFF4">
     <style>
         :root {
+            --primary: #FC8FB0;
+            --primary-hover: #e07898;
+            --primary-light: #ffe4ec;
+            --dark: #1d1a27;
             --bg-soft: #f7eef3;
             --panel: rgba(255, 255, 255, 0.74);
             --line: rgba(156, 120, 170, 0.14);
@@ -21,6 +26,31 @@
             --success: #299c74;
             --surface: #f2f3f7;
             --shadow: 0 20px 50px rgba(58, 40, 67, 0.10);
+            --bg-glass: rgba(255, 255, 255, 0.855);
+            --border-glass: rgba(189, 189, 189, 0.438);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #e07898;
+                --primary-light: #ffe4ec;
+                --dark: #ffffff;
+                --bg-soft: #2c000d;
+                --panel: rgba(20, 0, 6, 0.75);
+                --line: rgba(252, 143, 176, 0.25);
+                --text: #ffffff;
+                --muted: #ffccd9;
+                --pink: #FC8FB0;
+                --pink-deep: #e07898;
+                --purple: #9d86ff;
+                --purple-deep: #7b6bf6;
+                --success: #299c74;
+                --surface: rgba(0, 0, 0, 0.4);
+                --shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+                --bg-glass: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+            }
         }
 
         * {
@@ -33,20 +63,21 @@
             color: var(--text);
             font-family: "Segoe UI", system-ui, sans-serif;
             overflow: hidden;
-            /* Empêche le scroll global qui parasite l'interface */
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #2c000d;
+            }
         }
 
         /* VERROUILLAGE ABSOLU DE LA ZONE DE CHAT */
         main.main-content.litual-main {
             position: fixed !important;
             top: 110px !important;
-            /* Démarre pile sous la navbar */
             bottom: 20px !important;
-            /* Marge en bas sur PC */
             left: 210px !important;
-            /* Esquive la sidebar PC */
             right: 20px !important;
-            /* Marge à droite sur PC */
             width: auto !important;
             height: auto !important;
             margin: 0 !important;
@@ -81,6 +112,13 @@
             height: 100%;
             max-height: none;
             backdrop-filter: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .conversation-sidebar {
+                background: rgba(20, 0, 6, 0.85);
+                border-left: 1px solid var(--border-glass);
+            }
         }
 
         .sidebar-header {
@@ -122,12 +160,18 @@
         .new-conversation-btn {
             border: none;
             border-radius: 12px;
-            background: #FC8FB0;
+            background: var(--primary);
             color: #ffffff;
             font-weight: 800;
             padding: 9px 12px;
             cursor: pointer;
             box-shadow: 0 10px 20px rgba(117, 90, 155, 0.18);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .new-conversation-btn {
+                color: #2c000d;
+            }
         }
 
         .profile-confirm-row {
@@ -201,14 +245,27 @@
             background: #fc8fb01f;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .conversation-item {
+                background: rgba(252, 143, 176, 0.1);
+                border-color: var(--border-glass);
+            }
+        }
+
         .conversation-item.active {
-            background: linear-gradient(135deg, #FC8FB0, #fc8fb068);
+            background: linear-gradient(135deg, var(--primary), rgba(252, 143, 176, 0.4));
             border-color: rgba(123, 107, 246, 0.18);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .conversation-item.active {
+                color: #2c000d;
+            }
         }
 
         .conversation-item:hover {
             transform: translateY(-1px);
-            border-color: #FC8FB0;
+            border-color: var(--primary);
         }
 
         .conversation-main {
@@ -268,6 +325,13 @@
             box-shadow: inset 0 -1px 0 rgba(156, 120, 170, 0.12);
         }
 
+        @media (prefers-color-scheme: dark) {
+            .chat-header {
+                background: linear-gradient(135deg, rgba(20, 0, 6, 0.90), rgba(20, 0, 6, 0.35));
+                border-bottom: 1px solid var(--border-glass);
+            }
+        }
+
         .chat-header-copy {
             flex: 1;
             min-width: 0;
@@ -287,6 +351,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--text);
         }
 
         .rename-btn,
@@ -298,6 +363,16 @@
             font-weight: 700;
             padding: 9px 12px;
             cursor: pointer;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .rename-btn,
+            .history-toggle {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
         }
 
         .history-toggle {
@@ -314,6 +389,13 @@
             font-size: 0.8rem;
             font-weight: 700;
             color: var(--text);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .conversation-name-badge {
+                background: rgba(252, 143, 176, 0.15);
+                border: 1px solid var(--border-glass);
+            }
         }
 
         .hidden {
@@ -342,8 +424,14 @@
         .msg.user {
             align-self: flex-end;
             color: #fff;
-            background: #FC8FB0;
+            background: var(--primary);
             border-bottom-right-radius: 10px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .msg.user {
+                color: #2c000d;
+            }
         }
 
         .msg.ai {
@@ -352,6 +440,14 @@
             background: #ffd2e0;
             border: 1px solid rgba(123, 107, 246, 0.10);
             border-bottom-left-radius: 10px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .msg.ai {
+                background: rgba(252, 143, 176, 0.25);
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
         }
 
         .msg p,
@@ -379,6 +475,13 @@
             align-self: flex-start;
             background: rgba(255, 255, 255, 0.88);
             border: 1px solid rgba(123, 107, 246, 0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .thinking-indicator {
+                background: rgba(20, 0, 6, 0.85);
+                border: 1px solid var(--border-glass);
+            }
         }
 
         .thinking-row {
@@ -440,6 +543,13 @@
             box-shadow: inset 0 1px 0 rgba(156, 120, 170, 0.10), 0 -10px 20px rgba(123, 107, 246, 0.04);
         }
 
+        @media (prefers-color-scheme: dark) {
+            .chat-form {
+                background: linear-gradient(135deg, rgba(20, 0, 6, 0.45), rgba(20, 0, 6, 0.75));
+                border-top: 1px solid var(--border-glass);
+                border-bottom: 1px solid var(--border-glass);
+            }
+        }
 
         .chat-input-wrap {
             flex: 1;
@@ -453,8 +563,15 @@
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .chat-input-wrap {
+                background: rgba(0, 0, 0, 0.4);
+                border: 1px solid var(--border-glass);
+            }
+        }
+
         .chat-input-wrap:focus-within {
-            border-color: #FC8FB0;
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.15);
         }
 
@@ -487,7 +604,7 @@
             min-width: 136px;
             height: 52px;
             padding: 0 18px;
-            background: #FC8FB0;
+            background: var(--primary);
             color: #341d3f;
             font-weight: 800;
             cursor: pointer;
@@ -496,6 +613,12 @@
             align-items: center;
             justify-content: center;
             align-self: center;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .send-button {
+                color: #2c000d;
+            }
         }
 
         .send-button:disabled {
@@ -513,12 +636,18 @@
             background: rgba(255, 255, 255, 0.4);
         }
 
+        @media (prefers-color-scheme: dark) {
+            .empty-state {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px dashed var(--border-glass);
+                color: #ffccd9;
+            }
+        }
+
         @media (max-width: 980px) {
             main.main-content.litual-main {
                 top: 100px !important;
-                /* Sous la navbar mobile */
                 bottom: 110px !important;
-                /* Au dessus du dock mobile */
                 left: 12px !important;
                 right: 12px !important;
             }

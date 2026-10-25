@@ -6,23 +6,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demande de Retrait - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
+    <meta name="theme-color" content="#FFEFF4">
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #e07898;
+            --primary-light: #ffe4ec;
+            --dark: #333333;
+            --bg-glass: rgba(232, 232, 232, 0.35);
+            --border-glass: rgba(189, 189, 189, 0.44);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #e07898;
+                --primary-light: #ffe4ec;
+                --dark: #ffffff;
+                --bg-glass: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+            }
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
-            color: #333;
+            color: var(--dark);
             margin: 4rem 0 0 0;
             padding: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #2c000d;
+                color: #ffffff;
+            }
         }
 
         .container {
             max-width: 600px;
             margin: 30px auto;
-            background: rgba(232, 232, 232, 0.35);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(189, 189, 189, 0.44);
+            background: var(--bg-glass);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border-glass);
             border-radius: 24px;
             padding: 30px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .container {
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
         }
 
         h2,
@@ -31,21 +66,42 @@
             color: #482732;
         }
 
+        @media (prefers-color-scheme: dark) {
+
+            h2,
+            h3 {
+                color: #ffffff;
+            }
+        }
+
         h2 {
             border-bottom: 1px solid #482732;
             padding-bottom: 10px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            h2 {
+                border-bottom: 1px solid var(--border-glass);
+            }
+        }
+
         /* Encadré Portefeuille */
         .wallet-card {
             background: #ffffff;
-            border: 1px solid #FC8FB0;
+            border: 1px solid var(--primary);
             border-radius: 16px;
             padding: 15px 20px;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .wallet-card {
+                background: rgba(0, 0, 0, 0.4);
+                border: 1px solid var(--border-glass);
+            }
         }
 
         .wallet-title {
@@ -55,10 +111,29 @@
             text-transform: uppercase;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .wallet-title {
+                color: #ffccd9;
+            }
+        }
+
+        .wallet-card small,
+        .wallet-card div>div:nth-child(2) {
+            color: #888;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .wallet-card small,
+            .wallet-card div>div:nth-child(2) {
+                color: #caa0ad !important;
+            }
+        }
+
         .wallet-balance {
             font-size: 22px;
             font-weight: 700;
-            color: #FC8FB0;
+            color: var(--primary);
         }
 
         .form-group {
@@ -72,20 +147,48 @@
             font-size: 14px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            label {
+                color: #ffffff;
+            }
+        }
+
         input[type="number"],
         input[type="text"] {
             width: 100%;
             padding: 10px;
-            border: 1px solid #FC8FB0;
+            border: 1px solid var(--primary);
             border-radius: 12px;
             box-sizing: border-box;
             font-size: 14px;
             outline: none;
+            background: #ffffff;
+            color: #333;
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            input[type="number"],
+            input[type="text"] {
+                background: rgba(0, 0, 0, 0.4);
+                color: #ffffff;
+                border: 1px solid var(--border-glass);
+            }
         }
 
         input[type="number"]:focus,
         input[type="text"]:focus {
             box-shadow: 0 0 5px rgba(252, 143, 176, 0.5);
+        }
+
+        .form-group small {
+            color: #666;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .form-group small {
+                color: #ffccd9 !important;
+            }
         }
 
         .checkbox-group {
@@ -95,9 +198,15 @@
             font-size: 13px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .checkbox-group {
+                color: #ffffff;
+            }
+        }
+
         .btn-submit {
             width: 100%;
-            background: #FC8FB0;
+            background: var(--primary);
             color: #fff;
             border: none;
             padding: 12px;
@@ -108,8 +217,14 @@
             transition: background 0.2s;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .btn-submit {
+                color: #2c000d;
+            }
+        }
+
         .btn-submit:hover {
-            background: #e07495;
+            background: var(--primary-hover);
         }
 
         .alert {
@@ -125,15 +240,31 @@
             color: #d32f2f;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .alert-error {
+                background: rgba(211, 47, 47, 0.2);
+                color: #f87171;
+                border: 1px solid rgba(211, 47, 47, 0.4);
+            }
+        }
+
         .alert-success {
             background: #e8f5e9;
             color: #2e7d32;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .alert-success {
+                background: rgba(46, 125, 50, 0.2);
+                color: #4ade80;
+                border: 1px solid rgba(46, 125, 50, 0.4);
+            }
+        }
+
         .back-link {
             display: inline-block;
             margin-bottom: 15px;
-            color: #FC8FB0;
+            color: var(--primary);
             text-decoration: none;
             font-weight: 600;
         }
@@ -143,6 +274,12 @@
             margin-top: 35px;
             border-top: 1px solid rgba(72, 39, 50, 0.2);
             padding-top: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .history-section {
+                border-top: 1px solid var(--border-glass);
+            }
         }
 
         table {
@@ -159,13 +296,28 @@
             border-bottom: 1px solid #ddd;
         }
 
+        @media (prefers-color-scheme: dark) {
+
+            th,
+            td {
+                border-bottom: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
+        }
+
         th {
-            background: #FC8FB0;
+            background: var(--primary);
             color: #fff;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 11px;
             border-radius: 8px 8px 0 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            th {
+                color: #2c000d;
+            }
         }
 
         .badge {
@@ -189,6 +341,23 @@
         .badge-refuse {
             background: #f8d7da;
             color: #721c24;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .badge-demande {
+                background: rgba(255, 243, 205, 0.2);
+                color: #fde047;
+            }
+
+            .badge-envoye {
+                background: rgba(212, 237, 218, 0.2);
+                color: #4ade80;
+            }
+
+            .badge-refuse {
+                background: rgba(248, 215, 218, 0.2);
+                color: #f87171;
+            }
         }
     </style>
 </head>
@@ -280,13 +449,11 @@
                 currentUser = user;
 
                 try {
-                    // 1. Charger Profil utilisateur pour l'IBAN
                     const userData = await api.get(`/api/users/${user.uid}`);
                     if (userData && userData.iban) {
                         document.getElementById('iban').value = userData.iban;
                     }
 
-                    // 2. Calculer le solde et charger l'historique
                     await calculerSoldeEtHistorique(user.uid);
                 } catch (err) {
                     console.error("Erreur d'initialisation :", err);
@@ -299,7 +466,6 @@
         async function calculerSoldeEtHistorique(userId) {
             const tbody = document.getElementById("user-history-body");
             try {
-                // A. Récupérer toutes les entrées financières (les gains positifs ET les retraits négatifs générés par le backend)
                 const finances = await api.get(`/api/users/${userId}/finances`);
                 let soldeTotal = 0;
                 if (Array.isArray(finances)) {
@@ -308,13 +474,11 @@
                     });
                 }
 
-                // On assigne le total calculé directement au solde disponible
                 soldeDisponible = soldeTotal;
                 if (soldeDisponible < 0) soldeDisponible = 0;
 
                 document.getElementById("wallet-balance-display").textContent = `${soldeDisponible.toFixed(2)} €`;
 
-                // B. Récupérer uniquement l'historique pour l'affichage du tableau
                 const withdrawals = await api.get(`/api/withdrawals`);
                 let userWithdrawals = [];
 
@@ -322,7 +486,6 @@
                     userWithdrawals = withdrawals.filter(w => w.userId === userId || w.user_uid === userId || w.userEmail === currentUser.email);
                 }
 
-                // Remplir le tableau d'historique
                 tbody.innerHTML = "";
                 if (userWithdrawals.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">Aucune demande effectuée pour le moment.</td></tr>`;
@@ -380,7 +543,6 @@
                     await api.patch(`/api/users/${currentUser.uid}`, { iban: iban });
                 }
 
-                // Envoi effectif de la demande de retrait vers le Worker
                 const response = await api.post('/api/withdrawals', {
                     userId: currentUser.uid,
                     userEmail: currentUser.email || "",

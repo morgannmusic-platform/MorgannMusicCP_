@@ -27,13 +27,11 @@ async function checkAccompagnementAccess() {
 
     let userRole = localStorage.getItem("user_role");
 
-    // Si le rôle est déjà connu en cache, on applique directement
     if (userRole === "admin" || userRole === "artist") {
         lienAccompagnement.style.display = "flex";
         return;
     }
 
-    // Vérifie si un token d'authentification existe avant d'appeler l'API pour éviter le 401
     const hasToken = localStorage.getItem("token") || sessionStorage.getItem("token");
 
     if (hasToken) {
@@ -51,7 +49,6 @@ async function checkAccompagnementAccess() {
         }
     }
 
-    // Analyse de secours de la page si aucun rôle n'a pu être récupéré via l'API
     if (!userRole) {
         const pageText = document.body.innerText.toLowerCase();
         if (pageText.includes("admin") || pageText.includes("artist")) {
@@ -67,22 +64,50 @@ async function checkAccompagnementAccess() {
 }
 
 function activerLienSidebar() {
-    const currentPath = window.location.pathname;
-    const sidebarLinks = document.querySelectorAll("#sidebar-container a, .sidebar a, .responsive-nav a");
+    // Nettoie et normalise un chemin d'URL
+    const normalizePath = (p) => {
+        if (!p) return "";
+        let path = p.split("?")[0].split("#")[0];
+        if (path.length > 1 && path.endsWith("/")) {
+            path = path.slice(0, -1);
+        }
+        if (path === "/portail/index.html" || path === "/portail") {
+            return "/portail/index.html";
+        }
+        return path;
+    };
+
+    const currentPath = normalizePath(window.location.pathname);
+    const sidebarLinks = document.querySelectorAll("#sidebar-container a, .responsive-nav a");
+
+    let isMoreChildActive = false;
 
     sidebarLinks.forEach(link => {
         link.classList.remove("active");
         const href = link.getAttribute("href");
         if (!href) return;
 
-        const absoluteHref = new URL(href, window.location.origin).pathname;
+        const absolutePath = normalizePath(new URL(href, window.location.origin).pathname);
 
-        if (currentPath === absoluteHref) {
+        if (currentPath === absolutePath) {
             link.classList.add("active");
-        } else if ((href === "index.html" || href === "/") && (currentPath === "/portail/" || currentPath === "/portail")) {
-            link.classList.add("active");
+
+            // Si le lien actif est dans le menu "Plus", on retient l'information
+            if (link.closest(".more-menu")) {
+                isMoreChildActive = true;
+            }
         }
     });
+
+    // Si une sous-page du menu "Plus" est active, on applique la classe .active sur le déclencheur
+    const btnMore = document.getElementById("btn-more");
+    if (btnMore) {
+        if (isMoreChildActive) {
+            btnMore.classList.add("active");
+        } else {
+            btnMore.classList.remove("active");
+        }
+    }
 }
 
 function initNavbarMoreMenu() {

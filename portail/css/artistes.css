@@ -1,0 +1,198 @@
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            margin: 4rem 0 0 0;
+            padding: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: white;
+            }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #FC8FB0;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #fff7fa;
+            color: #FC8FB0;
+            border: 2px solid #FC8FB0;
+        }
+
+        .artist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .artist-card {
+            background-color: rgba(232, 232, 232, 0.50);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 22px rgba(0, 0, 0, 0.385);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .artist-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ddd;
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.119);
+            justify-content: center;
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            padding: 30px;
+            width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.418);
+            backdrop-filter: blur(42px);
+            -webkit-backdrop-filter: blur(42px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 22px rgba(0, 0, 0, 0.385);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .artist-card {
+                background-color: rgba(0, 0, 0, 0.281) !important;
+                border-color: white !important;
+            }
+        }
+
+        .form-section {
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #444;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .form-group label {
+                color: #ffffffc3;
+            }
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #FC8FB0;
+            border-radius: 50px;
+            font-size: 14px;
+        }
+
+        /* Animation de rotation du logo Litual */
+        @keyframes litualRotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .litual-spinner {
+            animation: litualRotate 2s linear infinite;
+        }
+
+        /* Animation du texte "..." clignotant point par point */
+        .dots::after {
+            content: '';
+            animation: blinkDots 1.5s infinite steps(4);
+        }
+
+        @keyframes blinkDots {
+            0% {
+                content: '';
+            }
+
+            25% {
+                content: '.';
+            }
+
+            50% {
+                content: '..';
+            }
+
+            75% {
+                content: '...';
+            }
+
+            100% {
+                content: '';
+            }
+        }
+
+        /* Style des pilules de noms d'artistes */
+        .artist-pill {
+            background: #f0f2f5;
+            border: 1px solid #ddd;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .artist-pill:hover {
+            background: #E8FDC4;
+            border-color: #FC8FB0;
+            color: #333;
+            transform: scale(1.03);
+        }

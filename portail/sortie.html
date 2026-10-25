@@ -6,13 +6,66 @@
     <title>Détails de la Sortie - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FC8FB0">
 
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #f96490;
+            --bg-color: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --text-label: #888888;
+            --card-bg: rgba(255, 255, 255, 0.397);
+            --border-glass: rgba(189, 189, 189, 0.438);
+            --border-white: rgb(255, 255, 255);
+            --banner-bg: rgba(255, 255, 255, 0.397);
+            --popup-bg: rgba(255, 255, 255, 0.95);
+            --input-bg: #ffffff;
+            --input-border: #ccc;
+            --input-text: #222222;
+            --track-bg: rgba(255, 255, 255, 0.877);
+            --track-hover: #fff3f7;
+            --premiere-bg: #fff9fa;
+            --premiere-border: rgba(252, 143, 176, 0.2);
+            --pill-bg: #f1f5f9;
+            --pill-border: #e2e8f0;
+            --pill-text: #333333;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #ff7da4;
+                --bg-color: #2c000d;
+                --text-main: #ffffff;
+                --text-muted: #ffccd9;
+                --text-label: #caa0ad;
+                --card-bg: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+                --border-white: rgba(252, 143, 176, 0.25);
+                --banner-bg: rgba(0, 0, 0, 0.4);
+                --popup-bg: rgba(20, 0, 6, 0.92);
+                --input-bg: rgba(0, 0, 0, 0.4);
+                --input-border: rgba(252, 143, 176, 0.3);
+                --input-text: #ffffff;
+                --track-bg: rgba(0, 0, 0, 0.4);
+                --track-hover: rgba(252, 143, 176, 0.15);
+                --premiere-bg: rgba(20, 0, 6, 0.6);
+                --premiere-border: rgba(252, 143, 176, 0.3);
+                --pill-bg: rgba(0, 0, 0, 0.4);
+                --pill-border: rgba(252, 143, 176, 0.3);
+                --pill-text: #ffffff;
+            }
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
-            color: #333;
+            color: var(--text-main);
+            background: var(--bg-color);
             margin: 0;
             padding: 20px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -26,10 +79,10 @@
             gap: 40px;
             margin-bottom: 30px;
             flex-wrap: wrap;
-            background-color: rgba(255, 255, 255, 0.397);
+            background-color: var(--card-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgb(255, 255, 255);
+            border: 1px solid var(--border-white);
             border-radius: 40px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
         }
@@ -46,7 +99,7 @@
             height: 250px;
             border-radius: 29px;
             overflow: hidden;
-            background-color: rgba(255, 255, 255, 0.397);
+            background-color: var(--banner-bg);
             position: relative;
         }
 
@@ -58,7 +111,7 @@
         }
 
         .btn-download-cover {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 6px 14px;
@@ -67,12 +120,12 @@
             font-weight: bold;
             cursor: pointer;
             text-decoration: none;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, background 0.2s;
             text-align: center;
         }
 
         .btn-download-cover:hover {
-            opacity: 0.85;
+            background: var(--primary-hover);
         }
 
         .badge-animated-cover {
@@ -96,6 +149,9 @@
         .release-main-info {
             flex: 1;
             min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .release-title-row {
@@ -109,6 +165,7 @@
             font-size: 28px;
             margin: 0;
             font-weight: bold;
+            color: var(--text-main);
         }
 
         .badge {
@@ -156,13 +213,19 @@
             color: white;
         }
 
-        .metadata-grid {
+        .custom-info-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 5px;
+            border-top: 1px solid var(--border-glass);
+            padding-top: 15px;
+        }
+
+        .grid-row {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-            margin-top: 15px;
         }
 
         .meta-item {
@@ -175,28 +238,36 @@
             font-size: 10px;
             text-transform: uppercase;
             font-weight: bold;
-            color: #999;
+            color: var(--text-label);
         }
 
         .meta-value {
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: var(--text-main);
         }
 
         .meta-select {
             padding: 4px 8px;
             border-radius: 12px;
-            border: 1px solid #ccc;
-            background: white;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--input-text);
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             margin-top: 2px;
+            width: max-content;
+            outline: none;
+        }
+
+        .meta-select option {
+            background: var(--bg-color);
+            color: var(--text-main);
         }
 
         .btn-popup-trigger {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 6px 12px;
@@ -206,27 +277,32 @@
             cursor: pointer;
             margin-top: 4px;
             width: max-content;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, background 0.2s;
         }
 
         .btn-popup-trigger:hover {
-            opacity: 0.85;
+            background: var(--primary-hover);
         }
 
         .tracks-section {
-            background-color: rgba(255, 255, 255, 0.397);
+            background-color: var(--card-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--border-glass);
             border-radius: 40px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             padding: 30px;
             margin-bottom: 30px;
         }
 
+        .tracks-section h2 {
+            color: var(--text-main);
+            margin-top: 0;
+        }
+
         .premiere-section {
-            background-color: #fff9fa;
-            border: 1px solid rgba(252, 143, 176, 0.2);
+            background-color: var(--premiere-bg);
+            border: 1px solid var(--premiere-border);
             border-radius: 40px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             padding: 30px;
@@ -238,7 +314,11 @@
             align-items: center;
             gap: 10px;
             margin-top: 0;
-            color: #333;
+            color: var(--text-main);
+        }
+
+        .premiere-section p {
+            color: var(--text-muted);
         }
 
         .track-row {
@@ -248,18 +328,22 @@
             padding: 14px 20px;
             margin-bottom: 8px;
             cursor: pointer;
-            background-color: rgba(255, 255, 255, 0.877);
+            background-color: var(--track-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--border-glass);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             transition: all 0.3s ease;
         }
 
+        .track-row div {
+            color: var(--text-main);
+        }
+
         .track-row:hover {
-            background: #fff3f7;
-            border-color: #FC8FB0;
+            background: var(--track-hover);
+            border-color: var(--primary);
         }
 
         .popup-overlay {
@@ -268,7 +352,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.25);
+            background: rgba(0, 0, 0, 0.4);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -286,10 +370,10 @@
         }
 
         .popup-content {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: var(--popup-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--border-glass);
             border-radius: 34px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             padding: 30px;
@@ -298,13 +382,19 @@
             max-height: 85vh;
             overflow-y: auto;
             position: relative;
+            color: var(--text-main);
+        }
+
+        .popup-content h2,
+        .popup-content h3 {
+            color: var(--text-main);
         }
 
         .popup-close {
             position: absolute;
             top: 20px;
             right: 20px;
-            background-color: #FC8FB0;
+            background-color: var(--primary);
             border: none;
             width: 30px;
             height: 30px;
@@ -327,8 +417,13 @@
             text-decoration: none;
             margin: 10px 0;
             display: none;
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
+            transition: background 0.2s;
+        }
+
+        .btmodif:hover {
+            background: var(--primary-hover);
         }
 
         .form-group {
@@ -342,50 +437,54 @@
             font-size: 12px;
             text-transform: uppercase;
             font-weight: bold;
-            color: #666;
+            color: var(--text-label);
         }
 
         .form-group input {
             padding: 10px 15px;
             border-radius: 20px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border);
             font-size: 14px;
-            background: rgba(255, 255, 255, 0.8);
+            background: var(--input-bg);
+            color: var(--input-text);
             outline: none;
             width: 100%;
             box-sizing: border-box;
         }
 
         .form-group input:focus {
-            border-color: #FC8FB0;
+            border-color: var(--primary);
         }
 
         .premiere-section .form-group input {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--input-text);
             padding: 12px 16px;
             transition: all 0.2s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         }
 
         .premiere-section .form-group input:focus {
-            border-color: #FC8FB0;
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.1);
         }
 
         .premiere-section .form-group label {
-            color: #4a5568;
+            color: var(--text-muted);
             letter-spacing: 0.5px;
         }
 
         .premiere-result {
             margin-top: 15px;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.8);
+            background: var(--input-bg);
+            border: 1px solid var(--border-glass);
             border-radius: 20px;
             font-size: 13px;
             display: none;
             word-break: break-all;
+            color: var(--text-main);
         }
 
         .modal-list-grid {
@@ -396,14 +495,14 @@
         }
 
         .modal-item-pill {
-            background: #f1f5f9;
+            background: var(--pill-bg);
             padding: 8px 12px;
             border-radius: 12px;
             font-size: 13px;
             font-weight: 600;
-            color: #333;
+            color: var(--pill-text);
             text-align: center;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--pill-border);
         }
     </style>
 </head>
@@ -425,13 +524,57 @@
                         la pochette</a>
                 </div>
                 <div class="release-main-info">
+                    <!-- Ligne 1 : Titre -->
                     <div class="release-title-row">
                         <h1 id="release-title">-</h1>
-                        <span id="release-status" class="badge">-</span>
                     </div>
-                    <div id="release-artist" style="color:#666; margin: 5px 0 15px 0;">-</div>
+                    <!-- Ligne 2 : Artiste, Feat, Statut, Nombre de piste, Si dolby atmos -->
+                    <div id="release-line-2"
+                        style="font-size: 14px; font-weight: 600; color: var(--text-muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        -
+                    </div>
 
-                    <div class="metadata-grid" id="global-metadata"></div>
+                    <!-- Grille structurée (Lignes 1, 2, 3 demandées) -->
+                    <div class="custom-info-grid">
+                        <!-- Ligne 1 : UPC, Format (type), label, date de sortie -->
+                        <div class="grid-row">
+                            <div class="meta-item"><span class="meta-label">UPC</span><span class="meta-value"
+                                    id="grid-upc">-</span></div>
+                            <div class="meta-item"><span class="meta-label">Format (Type)</span><span class="meta-value"
+                                    id="grid-format">-</span></div>
+                            <div class="meta-item"><span class="meta-label">Label</span><span class="meta-value"
+                                    id="grid-label">-</span></div>
+                            <div class="meta-item"><span class="meta-label">Date de sortie</span><span
+                                    class="meta-value" id="grid-release-date">-</span></div>
+                        </div>
+                        <!-- Ligne 2 : Date de sortie originale, genre, code catalogue, langue -->
+                        <div class="grid-row">
+                            <div class="meta-item"><span class="meta-label">Date de sortie originale</span><span
+                                    class="meta-value" id="grid-orig-date">-</span></div>
+                            <div class="meta-item"><span class="meta-label">Genre</span><span class="meta-value"
+                                    id="grid-genre">-</span></div>
+                            <div class="meta-item"><span class="meta-label">Code catalogue</span><span
+                                    class="meta-value" id="grid-catalog">-</span></div>
+                            <div class="meta-item"><span class="meta-label">Langue</span><span class="meta-value"
+                                    id="grid-lang">-</span></div>
+                        </div>
+                        <!-- Ligne 3 : C ligne, P Ligne + Boutons additionnels Territoires / Plateformes / Catalogue MMCP -->
+                        <div class="grid-row" style="align-items: flex-end;">
+                            <div class="meta-item"><span class="meta-label">C Ligne</span><span class="meta-value"
+                                    id="grid-c-line">-</span></div>
+                            <div class="meta-item"><span class="meta-label">P Ligne</span><span class="meta-value"
+                                    id="grid-p-line">-</span></div>
+                            <div class="meta-item" id="grid-extra-buttons"
+                                style="flex-direction: row; gap: 8px; flex-wrap: wrap;"></div>
+                            <div class="meta-item">
+                                <span class="meta-label">Catalogue MMCP</span>
+                                <select id="select-mmcp-catalog" class="meta-select">
+                                    <option value="true">Oui</option>
+                                    <option value="false">Non</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -446,7 +589,7 @@
                         style="background: #FC8FB0; color: white; border-radius: 8px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px;">🌟</span>
                     Lien Morgann Music Première (D1)
                 </h2>
-                <p style="font-size: 14px; color: #64748b; margin-bottom: 25px;">Configure l'accès en avant-première
+                <p style="font-size: 14px; margin-bottom: 25px;">Configure l'accès en avant-première
                     pour cette sortie stocké dans Cloudflare D1.</p>
 
                 <div class="form-group">
@@ -471,19 +614,18 @@
                 </div>
 
                 <div class="form-group"
-                    style="flex-direction: row; align-items: center; gap: 12px; margin-top: 15px; margin-bottom: 25px; background: white; padding: 15px; border-radius: 16px; border: 1px solid #e2e8f0; width: max-content;">
+                    style="flex-direction: row; align-items: center; gap: 12px; margin-top: 15px; margin-bottom: 25px; background: var(--input-bg); padding: 15px; border-radius: 16px; border: 1px solid var(--border-glass); width: max-content;">
                     <input type="checkbox" id="premiere-is-active"
                         style="width: 20px; height: 20px; cursor: pointer; accent-color: #007bff; margin: 0;">
                     <label for="premiere-is-active"
-                        style="cursor: pointer; margin: 0; font-weight: 700; color: #1e293b; font-size: 14px; text-transform: none;">Activer
+                        style="cursor: pointer; margin: 0; font-weight: 700; color: var(--text-main); font-size: 14px; text-transform: none;">Activer
                         manuellement ce lien Première</label>
                 </div>
 
                 <button type="button" id="btn-save-premiere" class="btmodif"
-                    style="display: inline-block; margin-top: 0; background-color: #f9a8d4; color: white; padding: 12px 24px; font-size: 15px;">Enregistrer
+                    style="display: inline-block; margin-top: 0; background-color: var(--primary); color: white; padding: 12px 24px; font-size: 15px;">Enregistrer
                     dans D1</button>
-                <div id="premiere-result-box" class="premiere-result"
-                    style="background: white; border: 1px solid #e2e8f0; margin-top: 20px; padding: 15px; border-radius: 16px;">
+                <div id="premiere-result-box" class="premiere-result">
                 </div>
             </div>
 
@@ -498,9 +640,9 @@
     <div id="track-popup" class="popup-overlay">
         <div class="popup-content">
             <button class="popup-close" onclick="fermerPopup()">✕</button>
-            <h2 id="pop-title" style="margin:0; color:#222;">-</h2>
+            <h2 id="pop-title" style="margin:0;">-</h2>
             <div class="metadata-grid" id="popup-metadata" style="border:none; margin-top:20px;"></div>
-            <h3 style="margin-top:20px; font-size:14px; color:#666; text-transform:uppercase;">Écoute Audio</h3>
+            <h3 style="margin-top:20px; font-size:14px; text-transform:uppercase;">Écoute Audio</h3>
             <div id="pop-audio-container"></div>
         </div>
     </div>
@@ -509,8 +651,8 @@
     <div id="general-info-popup" class="popup-overlay">
         <div class="popup-content">
             <button class="popup-close" onclick="fermerInfoPopup()">✕</button>
-            <h2 id="general-popup-title" style="margin:0 0 10px 0; color:#222; font-size: 20px;">-</h2>
-            <p id="general-popup-count" style="font-size: 13px; color: #666; margin-bottom: 15px;"></p>
+            <h2 id="general-popup-title" style="margin:0 0 10px 0; font-size: 20px;">-</h2>
+            <p id="general-popup-count" style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;"></p>
             <div id="general-popup-grid" class="modal-list-grid"></div>
         </div>
     </div>
@@ -560,13 +702,11 @@
                 listePistesGlobal = typeof data.tracks === 'string' ? JSON.parse(data.tracks) : (data.tracks || []);
                 const nombrePistes = listePistesGlobal.length;
 
-                // Vérification Dolby Atmos (présence sur la sortie ou sur l'une des pistes)
                 let hasDolbyAtmos = data.hasDolbyAtmos || data.dolbyAtmos || false;
                 if (!hasDolbyAtmos && listePistesGlobal.length > 0) {
-                    hasDolbyAtmos = listePistesGlobal.some(t => t.atmosFileUrl || t.atmos_file_url || t.atmosAudioUrl || t.atmosUrl);
+                    hasDolbyAtmos = listePistesGlobal.some(t => t.atmosFileUrl || t.atmos_file_url || t.atmosAudioUrl || t.atmosUrl || t.atmos_url);
                 }
 
-                // 1. Gestion de la pochette & bouton téléchargement
                 const coverContainer = document.getElementById("cover-container-wrapper");
                 const btnDownloadCover = document.getElementById("btn-download-cover");
                 const animatedCoverUrl = data.animatedCoverUrl || data.animatedCover;
@@ -587,70 +727,51 @@
                     btnDownloadCover.setAttribute("download", `pochette_${releaseId}`);
                 }
 
-                // 2. Infos principales
                 document.getElementById("release-title").innerText = data.title || "Sans titre";
                 const chaineFeats = formaterLesFeaturings(data.feats);
-                document.getElementById("release-artist").innerText = `${nomArtisteActuel}${chaineFeats} • ${data.type || 'Single'}`;
-
                 const sb = (data.status || "verification mmcp").toLowerCase();
                 const conf = configurationsBadges[sb] || { texte: sb, classe: "status-verification-mmcp" };
-                document.getElementById("release-status").innerText = conf.texte;
-                document.getElementById("release-status").className = `badge ${conf.classe}`;
 
-                // 3. Extraction Territoires et Plateformes
+                const line2Html = `
+                    <span>${nomArtisteActuel}${chaineFeats}</span>
+                    <span>•</span>
+                    <span class="badge ${conf.classe}">${conf.texte}</span>
+                    <span>•</span>
+                    <span>${nombrePistes} piste${nombrePistes > 1 ? 's' : ''}</span>
+                    ${hasDolbyAtmos ? '<span>•</span><span style="color: #0284c7; font-weight: bold;">Dolby Atmos 🔊</span>' : ''}
+                `;
+                document.getElementById("release-line-2").innerHTML = line2Html;
+
                 territoiresGlobal = Array.isArray(data.territories) ? data.territories : (typeof data.territories === 'string' ? data.territories.split(',').map(s => s.trim()).filter(Boolean) : []);
                 plateformesGlobal = Array.isArray(data.selectedPlatforms) ? data.selectedPlatforms : (typeof data.selectedPlatforms === 'string' ? data.selectedPlatforms.split(',').map(s => s.trim()).filter(Boolean) : []);
 
-                // 4. Grille de métadonnées restreinte aux informations demandées
-                const grid = document.getElementById("global-metadata");
-                const mapFields = [
-                    { l: "Status", v: conf.texte },
-                    { l: "Nombre de pistes", v: nombrePistes },
-                    { l: "Dolby Atmos", v: hasDolbyAtmos ? "Oui" : "Non" },
-                    { l: "Code UPC", v: data.upc },
-                    { l: "Format", v: data.format },
-                    { l: "Label", v: data.label || data.labelName },
-                    { l: "Date de Sortie", v: data.releaseDate },
-                    { l: "Genre", v: data.primaryGenre || data.secondaryGenre },
-                    { l: "ID Catalogue", v: data.catalogNumber },
-                    { l: "Langue", v: data.language },
-                    { l: "Ligne Copyright", v: data.stdCopyright || data.copyrightLineC },
-                    { l: "Ligne Phonographe", v: data.copyrightLineP }
-                ];
+                document.getElementById("grid-upc").innerText = data.upc || "Non renseigné";
+                document.getElementById("grid-format").innerText = data.type || data.format || "Single";
+                document.getElementById("grid-label").innerText = data.label || data.labelName || "Morgann Music CP";
+                document.getElementById("grid-release-date").innerText = data.releaseDate || "Non définie";
 
-                let htmlGrid = mapFields.map(f => f.v !== undefined && f.v !== null && f.v !== "" ? `<div class="meta-item"><span class="meta-label">${f.l}</span><span class="meta-value">${f.v}</span></div>` : '').join('');
+                document.getElementById("grid-orig-date").innerText = data.originalReleaseDate || "Aucune";
+                document.getElementById("grid-genre").innerText = data.primaryGenre ? (data.secondaryGenre ? `${data.primaryGenre} / ${data.secondaryGenre}` : data.primaryGenre) : "Non défini";
+                document.getElementById("grid-catalog").innerText = data.catalogNumber || data.id || "N/A";
+                document.getElementById("grid-lang").innerText = data.language || "Français";
 
+                document.getElementById("grid-c-line").innerText = data.stdCopyright || data.copyrightLineC || "Non renseigné";
+                document.getElementById("grid-p-line").innerText = data.copyrightLineP || "Morgann Music CP";
+
+                const extraBtnsContainer = document.getElementById("grid-extra-buttons");
+                let extraBtnsHtml = "";
                 if (territoiresGlobal.length > 0) {
-                    htmlGrid += `
-                        <div class="meta-item">
-                            <span class="meta-label">Territoires (${territoiresGlobal.length})</span>
-                            <button class="btn-popup-trigger" onclick="ouvrirInfoPopup('territoires')">Voir les pays</button>
-                        </div>
-                    `;
+                    extraBtnsHtml += `<button class="btn-popup-trigger" onclick="ouvrirInfoPopup('territoires')">Territoires (${territoiresGlobal.length})</button>`;
                 }
-
                 if (plateformesGlobal.length > 0) {
-                    htmlGrid += `
-                        <div class="meta-item">
-                            <span class="meta-label">Plateformes (${plateformesGlobal.length})</span>
-                            <button class="btn-popup-trigger" onclick="ouvrirInfoPopup('plateformes')">Voir les plateformes</button>
-                        </div>
-                    `;
+                    extraBtnsHtml += `<button class="btn-popup-trigger" onclick="ouvrirInfoPopup('plateformes')">Plateformes (${plateformesGlobal.length})</button>`;
                 }
+                extraBtnsContainer.innerHTML = extraBtnsHtml;
 
                 const isCatalog = data.showOnMmcpCatalog !== false;
-                htmlGrid += `
-                    <div class="meta-item">
-                        <span class="meta-label">Catalogue MMCP</span>
-                        <select id="select-mmcp-catalog" class="meta-select">
-                            <option value="true" ${isCatalog ? 'selected' : ''}>Oui</option>
-                            <option value="false" ${!isCatalog ? 'selected' : ''}>Non</option>
-                        </select>
-                    </div>
-                `;
-                grid.innerHTML = htmlGrid;
-
-                document.getElementById("select-mmcp-catalog").addEventListener("change", async (e) => {
+                const selectCatalog = document.getElementById("select-mmcp-catalog");
+                selectCatalog.value = isCatalog ? "true" : "false";
+                selectCatalog.addEventListener("change", async (e) => {
                     const newValue = e.target.value === "true";
                     try {
                         await api.patch(`/api/users/${user.uid}/releases/${releaseId}`, { showOnMmcpCatalog: newValue });
@@ -659,7 +780,6 @@
                     }
                 });
 
-                // 5. Chargement de la configuration Première depuis D1
                 if (data.premiereSlug) {
                     document.getElementById("premiere-custom-text").value = data.premiereSlug;
                     document.getElementById("premiere-password").value = data.premierePassword || "";
@@ -671,10 +791,9 @@
                     const fullLink = `${window.location.origin}/premiere/?artiste=${encodeURIComponent(artisteSlug)}&slug=${data.premiereSlug}`;
                     const resultBox = document.getElementById("premiere-result-box");
                     resultBox.style.display = "block";
-                    resultBox.innerHTML = `Lien actuel (D1) : <br><a href="${fullLink}" target="_blank" style="color: #FC8FB0; font-weight: bold;">${fullLink}</a>`;
+                    resultBox.innerHTML = `Lien actuel (D1) : <br><a href="${fullLink}" target="_blank" style="color: var(--primary); font-weight: bold;">${fullLink}</a>`;
                 }
 
-                // 6. Enregistrement direct dans D1 via l'API
                 document.getElementById("btn-save-premiere").onclick = async () => {
                     const rawCustomText = document.getElementById("premiere-custom-text").value.trim();
                     const password = document.getElementById("premiere-password").value;
@@ -689,7 +808,6 @@
                     }
 
                     const customSlug = rawCustomText.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
-
                     const payloadD1 = {
                         premiereSlug: customSlug,
                         premierePassword: password || null,
@@ -700,29 +818,26 @@
 
                     try {
                         await api.patch(`/api/users/${user.uid}/releases/${releaseId}`, payloadD1);
-
                         const artisteSlug = nomArtisteActuel.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
                         const fullLink = `${window.location.origin}/premiere/?artiste=${encodeURIComponent(artisteSlug)}&slug=${customSlug}`;
                         resultBox.style.display = "block";
-                        resultBox.innerHTML = `Lien enregistré dans D1 avec succès ! <br><a href="${fullLink}" target="_blank" style="color: #FC8FB0; font-weight: bold;">${fullLink}</a>`;
+                        resultBox.innerHTML = `Lien enregistré dans D1 avec succès ! <br><a href="${fullLink}" target="_blank" style="color: var(--primary); font-weight: bold;">${fullLink}</a>`;
                     } catch (err) {
                         console.error("Erreur enregistrement D1 Première :", err);
                         alert("Erreur lors de l'enregistrement dans D1.");
                     }
                 };
 
-                // 7. Liste des Pistes
                 const tList = document.getElementById("tracks-list");
                 tList.innerHTML = "";
                 listePistesGlobal.forEach((t, i) => {
                     const r = document.createElement("div");
                     r.className = "track-row";
                     r.onclick = () => ouvrirPopup(i);
-                    r.innerHTML = `<div style="font-weight:bold;"><span style="color:#bbb; margin-right:15px;">${String(i + 1).padStart(2, '0')}</span>${t.title || 'Sans titre'}</div><button class="badge status-verification-mmcp" style="border:none; cursor:pointer;">Détails</button>`;
+                    r.innerHTML = `<div style="font-weight:bold;"><span style="color:var(--text-label); margin-right:15px;">${String(i + 1).padStart(2, '0')}</span>${t.title || 'Sans titre'}</div><button class="badge status-verification-mmcp" style="border:none; cursor:pointer;">Détails</button>`;
                     tList.appendChild(r);
                 });
 
-                // 8. Bouton Modifier
                 const btnModifier = document.getElementById("btn-modifier-sortie");
                 if (btnModifier) {
                     btnModifier.style.display = "inline-block";
@@ -761,36 +876,28 @@
                 return "";
             };
 
-            const mainAudio = resolveTrackSource(
-                t.fileUrl, t.file_url, t.audioUrl, t.audio_url, t.mp3Url, t.mp3_url, t.previewUrl, t.preview_url, t.url, t.src
-            );
-            const instAudio = resolveTrackSource(
-                t.instrumentalFileUrl, t.instrumental_file_url, t.instrumentalAudioUrl, t.instrumental_audio_url, t.instUrl, t.inst_url
-            );
-            const atmosMain = resolveTrackSource(
-                t.atmosFileUrl, t.atmos_file_url, t.atmosAudioUrl, t.atmos_audio_url, t.atmosUrl, t.atmos_url
-            );
-            const atmosInst = resolveTrackSource(
-                t.atmosInstrumentalFileUrl, t.atmos_instrumental_file_url, t.atmosInstrumentalAudioUrl, t.atmos_instrumental_audio_url, t.atmosInstUrl, t.atmos_inst_url
-            );
+            const mainAudio = resolveTrackSource(t.fileUrl, t.file_url, t.audioUrl, t.audio_url, t.mp3Url, t.mp3_url, t.previewUrl, t.preview_url, t.url, t.src);
+            const instAudio = resolveTrackSource(t.instrumentalFileUrl, t.instrumental_file_url, t.instrumentalAudioUrl, t.instrumental_audio_url, t.instUrl, t.inst_url);
+            const atmosMain = resolveTrackSource(t.atmosFileUrl, t.atmos_file_url, t.atmosAudioUrl, t.atmos_audio_url, t.atmosUrl, t.atmos_url);
+            const atmosInst = resolveTrackSource(t.atmosInstrumentalFileUrl, t.atmos_instrumental_file_url, t.atmosInstrumentalAudioUrl, t.atmos_instrumental_audio_url, t.atmosInstUrl, t.atmos_inst_url);
 
             if (mainAudio) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Principal</span><br><audio controls src="${api.fileUrl(mainAudio)}" style="width:100%; margin-top:4px;"></audio></div>`;
             if (instAudio) audioHTML += `<div style="margin-bottom:12px;"><span class="meta-label">Fichier Stéréo Instrumental</span><br><audio controls src="${api.fileUrl(instAudio)}" style="width:100%; margin-top:4px;"></audio></div>`;
 
             if (atmosMain) {
-                audioHTML += `<div style="margin-bottom:12px; padding:10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd;">
+                audioHTML += `<div style="margin-bottom:12px; padding:10px; background:rgba(224, 242, 254, 0.2); border-radius:6px; border:1px solid #bae6fd;">
                     <span class="meta-label" style="color:#0369a1;">🔊 Master Dolby Atmos (Principal)</span><br>
                     <a href="${api.fileUrl(atmosMain)}" target="_blank" style="display:inline-block; margin-top:6px; font-size:13px; color:#0284c7; font-weight:bold; text-decoration:none;">🔗 Ouvrir / Télécharger le Master Atmos</a>
                   </div>`;
             }
             if (atmosInst) {
-                audioHTML += `<div style="margin-bottom:12px; padding:10px; background:#e0f2fe; border-radius:6px; border:1px solid #bae6fd;">
+                audioHTML += `<div style="margin-bottom:12px; padding:10px; background:rgba(224, 242, 254, 0.2); border-radius:6px; border:1px solid #bae6fd;">
                     <span class="meta-label" style="color:#0369a1;">🔊 Master Dolby Atmos (Instrumental)</span><br>
                     <a href="${api.fileUrl(atmosInst)}" target="_blank" style="display:inline-block; margin-top:6px; font-size:13px; color:#0284c7; font-weight:bold; text-decoration:none;">🔗 Ouvrir / Télécharger l'Instrumental Atmos</a>
                   </div>`;
             }
 
-            document.getElementById("pop-audio-container").innerHTML = audioHTML || '<p style="font-size:13px; color:#999;">Aucun fichier audio disponible</p>';
+            document.getElementById("pop-audio-container").innerHTML = audioHTML || '<p style="font-size:13px; color:var(--text-muted);">Aucun fichier audio disponible</p>';
             document.getElementById("track-popup").classList.add("show");
         };
 

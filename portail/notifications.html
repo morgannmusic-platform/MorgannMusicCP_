@@ -6,11 +6,32 @@
     <title>Mes Notifications - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FFEFF4">
 
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #e07898;
+            --primary-light: #ffe4ec;
+            --dark: #222222;
+            --bg-glass: rgba(255, 255, 255, 0.855);
+            --border-glass: rgba(189, 189, 189, 0.438);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #e07898;
+                --primary-light: #ffe4ec;
+                --dark: #ffffff;
+                --bg-glass: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+            }
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #000000;
+            color: var(--dark);
             margin: 0;
             padding: 20px;
             margin-top: 3.8rem;
@@ -19,7 +40,8 @@
 
         @media (prefers-color-scheme: dark) {
             body {
-                color: white;
+                background: #2c000d;
+                color: #ffffff;
             }
         }
 
@@ -37,16 +59,27 @@
             gap: 12px;
         }
 
+        .header-actions h2 {
+            color: var(--dark);
+            margin: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .header-actions h2 {
+                color: #ffffff;
+            }
+        }
+
         .filter-bar {
             display: flex;
             gap: 15px;
             margin-bottom: 25px;
             flex-wrap: wrap;
-            background-color: rgba(232, 232, 232, 0.4);
-            backdrop-filter: blur(62px);
-            -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             border-radius: 50px;
             padding: 12px 20px;
             align-items: center;
@@ -54,11 +87,8 @@
         }
 
         @media (prefers-color-scheme: dark) {
-
-            .filter-bar,
-            .notif-card {
-                background-color: rgba(0, 0, 0, 0.281) !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            .filter-bar {
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             }
         }
 
@@ -79,6 +109,12 @@
             pointer-events: none;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .filter-input-wrapper svg {
+                fill: #ffccd9;
+            }
+        }
+
         .filter-input,
         .filter-select {
             padding: 10px 16px;
@@ -91,6 +127,16 @@
             font-family: inherit;
         }
 
+        @media (prefers-color-scheme: dark) {
+
+            .filter-input,
+            .filter-select {
+                background: rgba(0, 0, 0, 0.4);
+                color: #ffffff;
+                border: 1px solid var(--border-glass);
+            }
+        }
+
         .filter-input {
             width: 100%;
             padding-left: 42px;
@@ -99,8 +145,8 @@
 
         .filter-input:focus,
         .filter-select:focus {
-            border-color: #FC8FB0;
-            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.3);
         }
 
         .btn {
@@ -124,8 +170,14 @@
         }
 
         .btn-primary {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-primary {
+                color: #2c000d;
+            }
         }
 
         .btn-secondary {
@@ -135,10 +187,29 @@
             font-size: 13px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .btn-secondary {
+                background: rgba(255, 255, 255, 0.1);
+                color: #ffffff;
+                border: 1px solid var(--border-glass);
+            }
+        }
+
         .btn-outline {
             background: transparent;
-            border: 1px solid #FC8FB0;
-            color: #FC8FB0;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-outline:hover {
+                color: #2c000d;
+            }
         }
 
         .btn-danger {
@@ -146,6 +217,14 @@
             color: white;
             padding: 8px 14px;
             font-size: 13px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-danger {
+                background: rgba(220, 53, 98, 0.3);
+                border: 1px solid rgba(220, 53, 98, 0.5);
+                color: #ffccd9;
+            }
         }
 
         /* Liste des notifications */
@@ -157,11 +236,11 @@
         }
 
         .notif-card {
-            background-color: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             border-radius: 28px;
             padding: 20px 24px;
             display: flex;
@@ -171,20 +250,26 @@
             transition: all 0.3s ease;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .notif-card {
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
+        }
+
         .notif-card.unread {
-            border-left: 6px solid #FC8FB0 !important;
+            border-left: 6px solid var(--primary) !important;
             background-color: rgba(255, 245, 248, 0.9);
         }
 
         @media (prefers-color-scheme: dark) {
             .notif-card.unread {
-                background-color: rgba(50, 15, 30, 0.4) !important;
+                background-color: rgba(50, 15, 30, 0.6) !important;
             }
         }
 
         .notif-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
         }
 
         .notif-icon {
@@ -197,6 +282,13 @@
             flex-shrink: 0;
             background: #E8FDC4;
             color: #2c3e10;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .notif-icon {
+                background: rgba(255, 255, 255, 0.1);
+                color: #ffffff;
+            }
         }
 
         .type-release {
@@ -224,6 +316,18 @@
             color: #475569;
         }
 
+        @media (prefers-color-scheme: dark) {
+
+            .type-release,
+            .type-finance,
+            .type-withdrawal,
+            .type-support,
+            .type-info {
+                background: rgba(255, 255, 255, 0.1);
+                color: #ffccd9;
+            }
+        }
+
         .notif-content {
             flex: 1;
         }
@@ -249,7 +353,7 @@
             }
 
             .notif-message {
-                color: #cbd5e1 !important;
+                color: #ffccd9 !important;
             }
         }
 
@@ -257,6 +361,12 @@
             font-size: 12px;
             color: #94a3b8;
             white-space: nowrap;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .notif-date {
+                color: #caa0ad;
+            }
         }
 
         .notif-message {
@@ -277,7 +387,7 @@
         .unread-dot {
             width: 10px;
             height: 10px;
-            background: #FC8FB0;
+            background: var(--primary);
             border-radius: 50%;
             display: inline-block;
             margin-right: 6px;
@@ -318,6 +428,17 @@
             transition: transform 0.2s ease;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .modal-box {
+                background: var(--bg-glass);
+                backdrop-filter: blur(40px);
+                -webkit-backdrop-filter: blur(40px);
+                color: #ffffff;
+                border: 1px solid var(--border-glass);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            }
+        }
+
         .modal-overlay.active .modal-box {
             transform: scale(1);
         }
@@ -329,11 +450,23 @@
             margin-bottom: 10px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .modal-title {
+                color: #ffffff;
+            }
+        }
+
         .modal-desc {
             font-size: 14px;
             color: #64748b;
             margin-bottom: 20px;
             line-height: 1.5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .modal-desc {
+                color: #ffccd9;
+            }
         }
 
         .modal-actions {
@@ -361,6 +494,14 @@
             font-size: 14px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .toast {
+                background: #18181b;
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
         }
 
         @keyframes slideIn {

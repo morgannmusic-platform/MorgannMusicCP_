@@ -1,19 +1,5 @@
-const logos = [
-    'Amazonmusic.logo.png',
-    'Google_Play_2022_logo.svg.png',
-    'Shazam_logo.svg.png',
-    'Spotify_logo_with_text.svg.png',
-    'TIDAL_Music_AB.png',
-    'TikTok-Logo-650x366.png',
-    'og__ckjrh2mu8b2a_image avec arrière-plan supprimé.png',
-    'Twitch-Logo.png',
-    'akazoo-logo.png',
-    'ali-baba-music-logo-1605371086.jpg.png',
-    '604203b036a4e80a5e8c1f47_Vevo Logo - Artwork.png',
-    'Tesla-Embleme.png',
-    '5563.1412784896.png',
-    '1200x680 avec arrière-plan supprimé.png'
-];
+// On génère le tableau direct de 1.png à 18.png
+const logos = Array.from({ length: 18 }, (_, i) => `${i + 1}.png`);
 
 function addLogosTo(trackId) {
     const track = document.getElementById(trackId);

@@ -6,13 +6,56 @@
     <title>Profil Artiste - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FC8FB0">
 
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #f96490;
+            --bg-color: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --text-label: #999999;
+            --card-bg: rgba(232, 232, 232, 0.349);
+            --border-glass: rgba(189, 189, 189, 0.438);
+            --banner-bg: #cbd5e1;
+            --avatar-border: #ffffff;
+            --popup-bg: rgba(255, 255, 255, 0.92);
+            --input-bg: #ffffff;
+            --input-border: #ccc;
+            --input-text: #333333;
+            --select-item-bg: rgba(255, 255, 255, 0.877);
+            --select-item-hover: #fff3f7;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #ff7da4;
+                --bg-color: #2c000d;
+                --text-main: #ffffff;
+                --text-muted: #ffccd9;
+                --text-label: #caa0ad;
+                --card-bg: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+                --banner-bg: rgba(0, 0, 0, 0.4);
+                --avatar-border: #2c000d;
+                --popup-bg: rgba(20, 0, 6, 0.92);
+                --input-bg: rgba(0, 0, 0, 0.4);
+                --input-border: rgba(252, 143, 176, 0.3);
+                --input-text: #ffffff;
+                --select-item-bg: rgba(0, 0, 0, 0.4);
+                --select-item-hover: rgba(252, 143, 176, 0.15);
+            }
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
-            color: #333;
+            color: var(--text-main);
+            background: var(--bg-color);
             margin: 4.6rem 0 0 0;
             padding: 20px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -23,10 +66,10 @@
         /* En-tête Profil (Bannière + Photo + Titre) */
         .profile-header-card {
             position: relative;
-            background-color: rgba(232, 232, 232, 0.349);
+            background-color: var(--card-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--border-glass);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             overflow: hidden;
@@ -36,7 +79,7 @@
         .banner-container {
             width: 100%;
             height: 220px;
-            background: #cbd5e1;
+            background: var(--banner-bg);
             position: relative;
         }
 
@@ -62,9 +105,9 @@
             height: 130px;
             border-radius: 50%;
             overflow: hidden;
-            border: 5px solid #ffffff;
+            border: 5px solid var(--avatar-border);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            background: #cbd5e1;
+            background: var(--banner-bg);
             flex-shrink: 0;
         }
 
@@ -79,9 +122,9 @@
             height: 70px;
             border-radius: 18px;
             overflow: hidden;
-            border: 3px solid #ffffff;
+            border: 3px solid var(--avatar-border);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-            background: rgba(255, 255, 255, 0.8);
+            background: var(--card-bg);
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -103,18 +146,24 @@
             font-size: 28px;
             font-weight: bold;
             margin: 0;
+            color: var(--text-main);
         }
 
         /* Section Informations & Métadonnées */
         .info-section {
-            background-color: rgba(232, 232, 232, 0.349);
+            background-color: var(--card-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--border-glass);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             padding: 30px;
             margin-bottom: 30px;
+        }
+
+        .info-section h2 {
+            color: var(--text-main);
+            margin-top: 0;
         }
 
         .metadata-grid {
@@ -134,13 +183,13 @@
             font-size: 10px;
             text-transform: uppercase;
             font-weight: bold;
-            color: #999;
+            color: var(--text-label);
         }
 
         .meta-value {
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: var(--text-main);
         }
 
         /* Pop-up Overlay */
@@ -150,7 +199,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.4);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -168,10 +217,10 @@
         }
 
         .popup-content {
-            background-color: rgba(255, 255, 255, 0.92);
+            background-color: var(--popup-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--border-glass);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             padding: 30px;
@@ -180,20 +229,29 @@
             max-height: 85vh;
             overflow-y: auto;
             position: relative;
+            color: var(--text-main);
+        }
+
+        .popup-content h2 {
+            color: var(--text-main);
+        }
+
+        .popup-content p {
+            color: var(--text-muted);
         }
 
         .popup-close {
             position: absolute;
             top: 20px;
             right: 20px;
-            background-color: #FC8FB0;
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            background-color: var(--primary);
+            border: 1px solid var(--border-glass);
             width: 30px;
             height: 30px;
             border-radius: 50%;
             cursor: pointer;
             font-weight: bold;
-            color: rgb(255, 255, 255);
+            color: #ffffff;
         }
 
         /* Formulaire & Inputs */
@@ -208,23 +266,30 @@
             font-size: 11px;
             text-transform: uppercase;
             font-weight: bold;
-            color: #777;
+            color: var(--text-label);
         }
 
         .form-group input,
         .form-group select {
             padding: 10px 14px;
             border-radius: 12px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border);
             outline: none;
             font-size: 14px;
-            background: #fff;
+            background: var(--input-bg);
+            color: var(--input-text);
         }
 
         .form-group input[type="file"] {
             padding: 8px;
-            background: #f8fafc;
+            background: var(--input-bg);
+            color: var(--input-text);
             cursor: pointer;
+        }
+
+        .form-group select option {
+            background: var(--bg-color);
+            color: var(--text-main);
         }
 
         .btmodif {
@@ -235,29 +300,35 @@
             font-weight: bold;
             font-size: 14px;
             text-decoration: none;
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
             display: inline-block;
             margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+
+        .btmodif:hover {
+            background: var(--primary-hover);
         }
 
         .artist-select-item {
             padding: 14px 20px;
             margin-bottom: 8px;
             cursor: pointer;
-            background-color: rgba(255, 255, 255, 0.877);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            background-color: var(--select-item-bg);
+            border: 1px solid var(--border-glass);
             border-radius: 20px;
             transition: all 0.2s ease;
             font-weight: bold;
             display: flex;
             align-items: center;
             gap: 15px;
+            color: var(--text-main);
         }
 
         .artist-select-item:hover {
-            background: #fff3f7;
-            border-color: #FC8FB0;
+            background: var(--select-item-hover);
+            border-color: var(--primary);
         }
 
         .artist-select-item img {
@@ -291,7 +362,8 @@
                     </div>
                     <div class="artist-details-header">
                         <h1 id="artist-name" class="artist-name">Chargement...</h1>
-                        <div id="artist-genre-sub" style="color:#666; margin-top: 5px; font-weight: 600;">-</div>
+                        <div id="artist-genre-sub" style="color:var(--text-muted); margin-top: 5px; font-weight: 600;">-
+                        </div>
                     </div>
                 </div>
             </div>
@@ -311,9 +383,8 @@
 
     <div id="select-artist-popup" class="popup-overlay">
         <div class="popup-content">
-            <h2 style="margin-top:0; color:#222;">Sélectionner un artiste</h2>
-            <p style="color:#666; font-size:14px; margin-bottom: 20px;">Veuillez choisir un artiste rattaché à votre
-                compte :</p>
+            <h2 style="margin-top:0;">Sélectionner un artiste</h2>
+            <p style="font-size:14px; margin-bottom: 20px;">Veuillez choisir un artiste rattaché à votre compte :</p>
             <div id="user-artists-list">
             </div>
         </div>
@@ -322,7 +393,7 @@
     <div id="edit-profile-popup" class="popup-overlay">
         <div class="popup-content">
             <button class="popup-close" onclick="fermerPopupEdition()">✕</button>
-            <h2 style="margin-top:0; color:#222;">Modifier le profil</h2>
+            <h2 style="margin-top:0;">Modifier le profil</h2>
 
             <form id="edit-artist-form" style="margin-top:20px;">
                 <div class="form-group">
@@ -391,7 +462,6 @@
             }
         });
 
-        // Téléversement d'un fichier brut vers l'API R2
         async function uploadFileToCloudflare(file, type = "cover") {
             const formData = new FormData();
             formData.append("file", file);
@@ -401,7 +471,6 @@
             throw new Error(res.error || "Échec du téléversement du fichier.");
         }
 
-        // 1. Sélection d'un artiste si pas d'ID
         async function afficherPopupSelection(uid) {
             const popup = document.getElementById("select-artist-popup");
             const containerList = document.getElementById("user-artists-list");
@@ -440,7 +509,6 @@
             }
         }
 
-        // 2. Chargement du profil
         async function chargerDonneesArtiste(uid, id) {
             try {
                 const res = await api.get(`/api/users/${uid}/artists/${id}`);
@@ -465,7 +533,7 @@
                     }
 
                     const grid = document.getElementById("artist-metadata");
-                    const logoFormatted = logoUrl ? `<a href="${logoUrl.startsWith("http") ? logoUrl : api.fileUrl(logoUrl)}" target="_blank" style="color:#FC8FB0;">Voir le logo</a>` : '-';
+                    const logoFormatted = logoUrl ? `<a href="${logoUrl.startsWith("http") ? logoUrl : api.fileUrl(logoUrl)}" target="_blank" style="color:var(--primary);">Voir le logo</a>` : '-';
                     const fields = [
                         { l: "Date de Naissance / Création", v: artist.birthdate },
                         { l: "Ville de Naissance / Origine", v: artist.birthplace },
@@ -481,7 +549,6 @@
                         </div>
                     `).join('');
 
-                    // Pré-remplir les champs
                     document.getElementById("edit-name").value = artist.name || "";
                     document.getElementById("edit-logo-url").value = logoUrl || "";
                     document.getElementById("edit-birthdate").value = artist.birthdate || "";
@@ -497,7 +564,6 @@
             }
         }
 
-        // 3. Modales & Édition avec API D1 / R2
         window.ouvrirPopupEdition = function () {
             document.getElementById("edit-profile-popup").classList.add("show");
         };
@@ -521,16 +587,12 @@
             try {
                 let photo = currentArtistData.photo || currentArtistData.avatarUrl || "";
                 let bannerUrl = currentArtistData.bannerUrl || currentArtistData.banUrl || "";
-
-                // Récupération directe de l'URL renseignée dans le champ texte
                 const logoUrl = document.getElementById("edit-logo-url").value.trim();
 
-                // Envoi de la photo de profil vers R2
                 if (avatarFileInput.files && avatarFileInput.files[0]) {
                     photo = await uploadFileToCloudflare(avatarFileInput.files[0], "cover");
                 }
 
-                // Envoi de la bannière vers R2
                 if (bannerFileInput.files && bannerFileInput.files[0]) {
                     bannerUrl = await uploadFileToCloudflare(bannerFileInput.files[0], "cover");
                 }

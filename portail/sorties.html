@@ -6,21 +6,70 @@
     <title>Gestion des Sorties - MM-CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FC8FB0">
 
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #f96490;
+            --bg-color: #ffffff;
+            --text-main: #000000;
+            --text-muted: #64748b;
+            --text-label: #888888;
+            --filter-bg: rgba(232, 232, 232, 0.4);
+            --filter-border: rgba(255, 255, 255, 0.7);
+            --input-bg: rgb(255, 255, 255);
+            --input-border: rgb(194, 194, 194);
+            --input-text: #333;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(255, 255, 255, 0.9);
+            --modal-bg: #ffffff;
+            --modal-title: #0f172a;
+            --modal-desc: #64748b;
+            --page-btn-bg: #ffffff;
+            --page-btn-border: #FC8FB0;
+            --page-btn-color: #FC8FB0;
+            --page-btn-disabled-bg: #f1f5f9;
+            --page-btn-disabled-border: #cbd5e1;
+            --page-btn-disabled-color: #94a3b8;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #ff7da4;
+                --bg-color: #2c000d;
+                --text-main: #ffffff;
+                --text-muted: rgba(255, 255, 255, 0.542);
+                --text-label: #caa0ad;
+                --filter-bg: rgba(0, 0, 0, 0.281);
+                --filter-border: rgb(255, 255, 255);
+                --input-bg: rgba(0, 0, 0, 0.4);
+                --input-border: rgba(252, 143, 176, 0.3);
+                --input-text: #ffffff;
+                --card-bg: rgba(0, 0, 0, 0.281);
+                --card-border: rgb(255, 255, 255);
+                --modal-bg: rgba(20, 0, 6, 0.92);
+                --modal-title: #ffffff;
+                --modal-desc: #ffccd9;
+                --page-btn-bg: #200009;
+                --page-btn-border: #4b222e;
+                --page-btn-color: #FC8FB0;
+                --page-btn-disabled-bg: #200009;
+                --page-btn-disabled-border: #4b222e;
+                --page-btn-disabled-color: #4b222e;
+            }
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #000000;
+            color: var(--text-main);
+            background: var(--bg-color);
             margin: 0;
             padding: 20px;
             margin-top: 3.8rem;
             box-sizing: border-box;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                color: white;
-            }
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -35,30 +84,24 @@
             margin-bottom: 20px;
         }
 
+        .header-actions h2 {
+            color: var(--text-main);
+        }
+
         .filter-bar {
             display: flex;
             gap: 15px;
             margin-bottom: 25px;
             flex-wrap: wrap;
-            background-color: rgba(232, 232, 232, 0.4);
+            background-color: var(--filter-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--filter-border);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             border-radius: 50px;
             padding: 12px 20px;
             align-items: center;
             transition: all 0.3s;
-        }
-
-        @media (prefers-color-scheme: dark) {
-
-            .filter-bar,
-            .release-card {
-                background-color: rgba(0, 0, 0, 0.281) !important;
-                border: 1px solid rgb(255, 255, 255) !important;
-
-            }
         }
 
         .filter-bar:hover {
@@ -79,39 +122,44 @@
             left: 14px;
             width: 18px;
             height: 18px;
-            fill: #888;
+            fill: var(--text-label);
             pointer-events: none;
         }
 
         .filter-input {
             width: 100%;
             padding: 10px 16px 10px 42px;
-            border: 1px solid rgb(194, 194, 194);
+            border: 1px solid var(--input-border);
             border-radius: 30px;
-            background-color: rgb(255, 255, 255);
+            background-color: var(--input-bg);
             font-size: 14px;
             outline: none;
-            color: #333;
+            color: var(--input-text);
             font-family: inherit;
             box-sizing: border-box;
         }
 
         .filter-select {
             padding: 10px 16px;
-            border: 1px solid rgb(194, 194, 194);
+            border: 1px solid var(--input-border);
             border-radius: 30px;
-            background: rgb(255, 255, 255);
+            background: var(--input-bg);
             font-size: 14px;
             outline: none;
-            color: #333;
+            color: var(--input-text);
             font-family: inherit;
             cursor: pointer;
         }
 
         .filter-input:focus,
         .filter-select:focus {
-            border-color: #FC8FB0;
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.2);
+        }
+
+        .filter-select option {
+            background: var(--bg-color);
+            color: var(--text-main);
         }
 
         .btn {
@@ -135,22 +183,30 @@
         }
 
         .btn-primary {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
         }
 
         .btn-success {
             background: #E8FDC4;
             color: #d85c80;
-            border: 1px solid #FC8FB0;
+            border: 1px solid var(--primary);
             margin-left: 10px;
         }
 
         .btn-view {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
             padding: 8px 14px;
             font-size: 13px;
+        }
+
+        .btn-view:hover {
+            background: var(--primary-hover);
         }
 
         .btn-secondary {
@@ -182,10 +238,10 @@
         }
 
         .release-card {
-            background-color: rgba(255, 255, 255, 0.85);
+            background-color: var(--card-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--card-border);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             border-radius: 40px !important;
             padding: 16px;
@@ -205,7 +261,7 @@
         .cover-wrapper {
             width: 100%;
             aspect-ratio: 1/1;
-            background: #f1f5f9;
+            background: rgba(0, 0, 0, 0.1);
             border-radius: 24px;
             margin-bottom: 12px;
             overflow: hidden;
@@ -226,25 +282,15 @@
             font-size: 16px;
             font-weight: 700;
             margin: 6px 0 2px 0;
-            color: #0f172a;
+            color: var(--text-main);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        @media (prefers-color-scheme: dark) {
-            .release-title {
-                color: white;
-            }
-
-            .release-artist {
-                color: rgba(255, 255, 255, 0.542) !important;
-            }
-        }
-
         .release-artist {
             font-size: 14px;
-            color: #64748b;
+            color: var(--text-muted);
             margin: 0 0 10px 0;
             white-space: nowrap;
             overflow: hidden;
@@ -321,43 +367,32 @@
 
         .page-btn {
             padding: 8px 16px;
-            border: 1px solid #FC8FB0;
-            background: white;
+            border: 1px solid var(--page-btn-border);
+            background: var(--page-btn-bg);
             cursor: pointer;
             border-radius: 50px;
             font-weight: bold;
-            color: #FC8FB0;
+            color: var(--page-btn-color);
             transition: all 0.2s;
         }
 
-
         .page-btn:hover:not(:disabled) {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
+            border-color: var(--primary);
         }
 
         .page-btn:disabled {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
+            background: var(--page-btn-disabled-bg);
+            border-color: var(--page-btn-disabled-border);
             cursor: not-allowed;
-            color: #94a3b8;
+            color: var(--page-btn-disabled-color);
         }
 
         .page-btn.active {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .page-btn {
-                background: #200009;
-            }
-
-            .page-btn:disabled {
-                background: #200009;
-                color: #4b222e;
-                border-color: #4b222e;
-            }
+            border-color: var(--primary);
         }
 
         /* --- MODAL DE CONFIRMATION PERSO --- */
@@ -384,7 +419,10 @@
         }
 
         .modal-box {
-            background: white;
+            background: var(--modal-bg);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid var(--card-border);
             padding: 24px;
             border-radius: 24px;
             max-width: 400px;
@@ -402,13 +440,13 @@
         .modal-title {
             font-size: 18px;
             font-weight: bold;
-            color: #0f172a;
+            color: var(--modal-title);
             margin-bottom: 10px;
         }
 
         .modal-desc {
             font-size: 14px;
-            color: #64748b;
+            color: var(--modal-desc);
             margin-bottom: 20px;
             line-height: 1.5;
         }
@@ -482,7 +520,6 @@
                         </svg>
                         Créer une sortie
                     </a>
-
                 </div>
             </div>
 
@@ -603,7 +640,7 @@
 
         async function recupererToutesLesSorties() {
             const listContainer = document.getElementById("releases-list");
-            listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #64748b;'>Chargement des sorties...</p>";
+            listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: var(--text-muted);'>Chargement des sorties...</p>";
 
             try {
                 const res = await api.get(`/api/users/${uidConnecte}/releases`);
@@ -665,7 +702,7 @@
             listContainer.innerHTML = "";
 
             if (sortiesFiltrees.length === 0) {
-                listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b;'>Aucune sortie ne correspond à vos critères de recherche.</p>";
+                listContainer.innerHTML = "<p style='grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);'>Aucune sortie ne correspond à vos critères de recherche.</p>";
                 genererNumerosPage(0);
                 return;
             }

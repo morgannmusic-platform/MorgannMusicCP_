@@ -86,6 +86,9 @@ function chargerProfilEtAuth() {
             return;
         }
 
+        // Charger les notifications de l'utilisateur connecté
+        chargerNotifications(user.uid);
+
         let isAdmin = false;
 
         try {
@@ -118,7 +121,7 @@ function chargerProfilEtAuth() {
                     adminLink.className = "admin-link-item";
                     adminLink.innerHTML = `<i class="fa-solid fa-user-shield"></i> Administration`;
 
-                    const logoutBtn = dropdownProfile.querySelector("#btn-logout");
+                    const logoutBtn = dropdownProfile.querySelector("#logout-button") || dropdownProfile.querySelector("#btn-logout");
                     if (logoutBtn) {
                         dropdownProfile.insertBefore(adminLink, logoutBtn);
                     } else {
@@ -133,12 +136,67 @@ function chargerProfilEtAuth() {
     });
 }
 
+async function chargerNotifications(uid) {
+    const listEl = document.getElementById("nav-notif-list");
+    const badgeEl = document.getElementById("nav-notif-badge");
+
+    if (!listEl) return;
+
+    try {
+        const notifications = await api.get(`/api/users/${uid}/notifications`);
+
+        if (!Array.isArray(notifications) || notifications.length === 0) {
+            listEl.innerHTML = `<div class="notif-item-empty">Aucune notification</div>`;
+            if (badgeEl) badgeEl.style.display = "none";
+            return;
+        }
+
+        // Compter les notifications non lues
+        const unreadCount = notifications.filter(n => !n.isRead && !n.read).length;
+
+        if (badgeEl) {
+            if (unreadCount > 0) {
+                badgeEl.textContent = unreadCount > 99 ? "99+" : unreadCount;
+                badgeEl.style.display = "inline-block";
+            } else {
+                badgeEl.style.display = "none";
+            }
+        }
+
+        // Afficher les 5 notifications les plus récentes
+        const recentNotifs = notifications.slice(0, 5);
+        listEl.innerHTML = recentNotifs.map(n => {
+            const isUnread = !n.isRead && !n.read;
+            const targetUrl = n.link || "notification.html";
+            return `
+                <a href="${targetUrl}" class="notif-item ${isUnread ? 'unread' : ''}">
+                    <div class="notif-title">${escapeHtml(n.title || 'Notification')}</div>
+                    <div class="notif-body">${escapeHtml(n.message || '')}</div>
+                </a>
+            `;
+        }).join("");
+
+    } catch (error) {
+        console.error("Erreur lors du chargement des notifications:", error);
+        listEl.innerHTML = `<div class="notif-item-empty">Erreur de chargement</div>`;
+    }
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function configurerDeconnexion() {
     document.addEventListener("click", (e) => {
-        if (e.target && e.target.id === "btn-logout") {
+        if (e.target && (e.target.id === "btn-logout" || e.target.id === "logout-button")) {
             e.preventDefault();
             signOut(auth).then(() => {
-                window.location.href = "../login.html";
+                window.location.href = "/login.html";
             }).catch(error => {
                 console.error("Erreur déconnexion:", error);
             });

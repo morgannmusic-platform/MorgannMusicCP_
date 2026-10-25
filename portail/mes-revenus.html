@@ -5,15 +5,43 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="js/reponsive.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FFEFF4">
 
     <title>Mes Rapports Financiers - MM-CP</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #e07898;
+            --primary-light: #ffe4ec;
+            --dark: #222222;
+            --bg-glass: rgba(255, 255, 255, 0.855);
+            --border-glass: rgba(189, 189, 189, 0.438);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #e07898;
+                --primary-light: #ffe4ec;
+                --dark: #ffffff;
+                --bg-glass: rgba(20, 0, 6, 0.75);
+                --border-glass: rgba(252, 143, 176, 0.25);
+            }
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
-            color: #333;
+            color: var(--dark);
             margin: 4rem 0 0 0;
             padding: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #2c000d;
+                color: #ffffff;
+            }
         }
 
         .layout-table {
@@ -42,14 +70,20 @@
         }
 
         .client-card {
-            background-color: rgba(232, 232, 232, 0.349);
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
-            border-radius: 34px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            background-color: var(--bg-glass);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             padding: 24px;
             margin-bottom: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .client-card {
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            }
         }
 
         .card-header-actions {
@@ -63,11 +97,23 @@
             gap: 10px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .card-header-actions {
+                border-bottom: 1px solid var(--border-glass);
+            }
+        }
+
         .card-title {
             font-size: 18px;
             font-weight: 700;
-            color: #000000;
+            color: var(--dark);
             margin: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .card-title {
+                color: #ffffff;
+            }
         }
 
         /* Message d'information sur les délais de versement */
@@ -84,9 +130,18 @@
             gap: 10px;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .info-notice {
+                background-color: rgba(252, 143, 176, 0.15);
+                border-left: 4px solid var(--primary);
+                color: #ffccd9;
+                border: 1px solid var(--border-glass);
+            }
+        }
+
         /* Bouton de retrait */
         .btn-withdraw {
-            background: #FC8FB0;
+            background: var(--primary);
             color: #ffffff;
             text-decoration: none;
             padding: 8px 16px;
@@ -97,15 +152,21 @@
             display: inline-block;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .btn-withdraw {
+                color: #2c000d;
+            }
+        }
+
         .btn-withdraw:hover {
-            background: #e07495;
+            background: var(--primary-hover);
             transform: translateY(-1px);
         }
 
         /* Selecteur d'année stylisé */
         .year-select {
             background: #ffffff;
-            border: 1px solid #FC8FB0;
+            border: 1px solid var(--primary);
             color: #333;
             padding: 6px 14px;
             border-radius: 20px;
@@ -113,6 +174,14 @@
             font-weight: 600;
             outline: none;
             cursor: pointer;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .year-select {
+                background: rgba(0, 0, 0, 0.4);
+                border: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
         }
 
         .year-select:focus {
@@ -141,8 +210,17 @@
             border-bottom: 1px solid #553342;
         }
 
+        @media (prefers-color-scheme: dark) {
+
+            th,
+            td {
+                border-bottom: 1px solid var(--border-glass);
+                color: #ffffff;
+            }
+        }
+
         th {
-            background: #FC8FB0;
+            background: var(--primary);
             color: #ffffff;
             font-weight: 600;
             font-size: 11px;
@@ -150,16 +228,34 @@
             border-radius: 20px 20px 0 0;
         }
 
+        @media (prefers-color-scheme: dark) {
+            th {
+                color: #2c000d;
+            }
+        }
+
         tr:hover {
             background: #ffbed2;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            tr:hover {
+                background: rgba(252, 143, 176, 0.1);
+            }
         }
 
         tr:hover .text-green {
             color: #553342;
         }
 
+        @media (prefers-color-scheme: dark) {
+            tr:hover .text-green {
+                color: #ffccd9;
+            }
+        }
+
         .text-green {
-            color: #FC8FB0;
+            color: var(--primary);
             font-weight: 700;
         }
 
@@ -169,8 +265,20 @@
             font-weight: 700;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .text-red {
+                color: #f87171;
+            }
+        }
+
         tr:hover .text-red {
             color: #b71c1c;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            tr:hover .text-red {
+                color: #fca5a5;
+            }
         }
     </style>
 </head>
@@ -344,7 +452,6 @@
 
                 donneesGraphique[totalMoisKey] = (donneesGraphique[totalMoisKey] || 0) + amount;
 
-                // Logique conditionnelle pour l'affichage visuel des gains/retraits
                 const isNegative = amount < 0;
                 const formattedAmount = isNegative
                     ? `- ${Math.abs(amount).toFixed(2)} €`
@@ -369,6 +476,7 @@
 
         function genererGraphique(labels, data) {
             const ctx = document.getElementById('analyticsChart').getContext('2d');
+            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
             if (chartInstance) {
                 chartInstance.destroy();
@@ -396,12 +504,12 @@
                     },
                     scales: {
                         y: {
-                            grid: { color: 'rgba(0,0,0,0.05)' },
-                            ticks: { color: '#666' }
+                            grid: { color: isDarkMode ? 'rgba(252, 143, 176, 0.1)' : 'rgba(0,0,0,0.05)' },
+                            ticks: { color: isDarkMode ? '#ffccd9' : '#666' }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#666' }
+                            ticks: { color: isDarkMode ? '#ffccd9' : '#666' }
                         }
                     }
                 }

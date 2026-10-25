@@ -211,13 +211,10 @@
                         </div>
                         <div class="form-group"><label>Code UPC</label><input type="text" id="edit-upc"
                                 class="form-control" oninput="verifierEtGenererCatalog()"></div>
-                        <div class="form-group"><label>Code Catalogue MMCP</label><input type="text"
-                                id="edit-catalogNumber" class="form-control" readonly
-                                style="background:#0f172a; font-weight:bold; color:#d01159;"></div>
+                        <div class="form-group"><label>Code Catalogue MMCP (catalogNumber)</label><input type="text"
+                                id="edit-catalogNumber" class="form-control" placeholder="MMCPXXXXXXXXXX"></div>
                         <div class="form-group"><label>Label</label><input type="text" id="edit-label"
                                 class="form-control"></div>
-                        <div class="form-group"><label>Nom du Label (LabelName)</label><input type="text"
-                                id="edit-labelName" class="form-control"></div>
                         <div class="form-group"><label>Dolby Atmos</label>
                             <select id="edit-dolbyAtmos" class="form-control">
                                 <option value="false">Non</option>
@@ -232,8 +229,6 @@
                                 class="form-control"></div>
                         <div class="form-group"><label>Type de Licence</label><input type="text" id="edit-licenceType"
                                 class="form-control"></div>
-                        <div class="form-group"><label>Copyright Standard</label><input type="text"
-                                id="edit-stdCopyright" class="form-control"></div>
                         <div class="form-group"><label>Ligne de Copyright C</label><input type="text"
                                 id="edit-copyrightLineC" class="form-control"></div>
                         <div class="form-group"><label>Ligne de Copyright P</label><input type="text"
@@ -265,12 +260,62 @@
                             <div id="animated-cover-preview" style="margin-top: 12px;"></div>
                         </div>
 
+                        <!-- Section Liens vers les Plateformes -->
+                        <div class="form-group full-width" style="margin-top: 20px;">
+                            <h3 style="color: #000000; margin-bottom: 8px; font-size: 16px;">Liens Plateformes de
+                                Distribution</h3>
+                            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Renseignez les liens directs
+                                pour chaque plateforme.</p>
+                        </div>
+
                         <div class="form-group"><label>Spotify URL</label><input type="text" id="edit-spotifyUrl"
-                                class="form-control"></div>
+                                class="form-control" placeholder="https://open.spotify.com/..."></div>
                         <div class="form-group"><label>Apple Music URL</label><input type="text" id="edit-appleUrl"
+                                class="form-control" placeholder="https://music.apple.com/..."></div>
+                        <div class="form-group"><label>Deezer URL</label><input type="text" id="edit-deezerUrl"
+                                class="form-control" placeholder="https://www.deezer.com/..."></div>
+                        <div class="form-group"><label>Amazon Music URL</label><input type="text" id="edit-amazonUrl"
+                                class="form-control" placeholder="https://music.amazon.com/..."></div>
+                        <div class="form-group"><label>YouTube Music URL</label><input type="text"
+                                id="edit-youtubeMusicUrl" class="form-control"
+                                placeholder="https://music.youtube.com/..."></div>
+                        <div class="form-group"><label>Tidal URL</label><input type="text" id="edit-tidalUrl"
+                                class="form-control" placeholder="https://tidal.com/..."></div>
+                        <div class="form-group"><label>Qobuz URL</label><input type="text" id="edit-qobuzUrl"
+                                class="form-control" placeholder="https://www.qobuz.com/..."></div>
+                        <div class="form-group"><label>SoundCloud URL</label><input type="text" id="edit-soundcloudUrl"
+                                class="form-control" placeholder="https://soundcloud.com/..."></div>
+                        <div class="form-group"><label>Bandcamp URL</label><input type="text" id="edit-bandcampUrl"
+                                class="form-control" placeholder="https://...bandcamp.com"></div>
+                        <div class="form-group"><label>Napster URL</label><input type="text" id="edit-napsterUrl"
                                 class="form-control"></div>
-                        <div class="form-group"><label>Territoires</label><input type="text" id="edit-territories"
+                        <div class="form-group"><label>Pandora URL</label><input type="text" id="edit-pandoraUrl"
                                 class="form-control"></div>
+                        <div class="form-group"><label>Beatport URL</label><input type="text" id="edit-beatportUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>Traxsource URL</label><input type="text" id="edit-traxsourceUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>TikTok URL</label><input type="text" id="edit-tiktokUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>Instagram URL</label><input type="text" id="edit-instagramUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>Shazam URL</label><input type="text" id="edit-shazamUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>Tencent URL</label><input type="text" id="edit-tencentUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>NetEase URL</label><input type="text" id="edit-neteaseUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>Boomplay URL</label><input type="text" id="edit-boomplayUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>Anghami URL</label><input type="text" id="edit-anghamiUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>VKontakte URL</label><input type="text" id="edit-vkUrl"
+                                class="form-control"></div>
+                        <div class="form-group"><label>Yandex Music URL</label><input type="text" id="edit-yandexUrl"
+                                class="form-control"></div>
+
+                        <div class="form-group full-width"><label>Territoires</label><input type="text"
+                                id="edit-territories" class="form-control"></div>
 
                         <div class="form-group"><label>Afficher sur le catalogue MMCP</label>
                             <select id="edit-showOnMmcpCatalog" class="form-control">
@@ -694,10 +739,16 @@
                 detectUserId = data.userId || data.user_id;
                 ancienStatut = data.status || "";
 
-                const simples = ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "releaseUrl", "spotifyUrl", "appleUrl", "territories", "status"];
+                const simples = ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "primaryGenre", "secondaryGenre", "language", "licenceType", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "releaseUrl", "spotifyUrl", "appleUrl", "deezerUrl", "amazonUrl", "youtubeMusicUrl", "tidalUrl", "qobuzUrl", "soundcloudUrl", "bandcampUrl", "napsterUrl", "pandoraUrl", "beatportUrl", "traxsourceUrl", "tiktokUrl", "instagramUrl", "shazamUrl", "tencentUrl", "neteaseUrl", "boomplayUrl", "anghamiUrl", "vkUrl", "yandexUrl", "territories", "status"];
                 simples.forEach(f => {
                     const el = document.getElementById(`edit-${f}`);
-                    if (el) el.value = data[f] || "";
+                    if (el) {
+                        if (f === "label") {
+                            el.value = data.label || data.labelName || "";
+                        } else {
+                            el.value = data[f] || "";
+                        }
+                    }
                 });
 
                 const schemaVal = data.schemaJson || data.schema_json || "";
@@ -816,8 +867,16 @@
                 schemaJson: rawSchema
             };
 
-            ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "labelName", "primaryGenre", "secondaryGenre", "language", "licenceType", "stdCopyright", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "releaseUrl", "spotifyUrl", "appleUrl", "territories"].forEach(f => {
-                updateData[f] = document.getElementById("edit-" + f).value;
+            const simples = ["title", "versionLine", "artistName", "type", "format", "upc", "catalogNumber", "label", "primaryGenre", "secondaryGenre", "language", "licenceType", "copyrightLineC", "copyrightLineP", "releaseDate", "originalReleaseDate", "preorderDate", "exactTime", "timezone", "releaseUrl", "spotifyUrl", "appleUrl", "deezerUrl", "amazonUrl", "youtubeMusicUrl", "tidalUrl", "qobuzUrl", "soundcloudUrl", "bandcampUrl", "napsterUrl", "pandoraUrl", "beatportUrl", "traxsourceUrl", "tiktokUrl", "instagramUrl", "shazamUrl", "tencentUrl", "neteaseUrl", "boomplayUrl", "anghamiUrl", "vkUrl", "yandexUrl", "territories"];
+            simples.forEach(f => {
+                const el = document.getElementById("edit-" + f);
+                if (el) {
+                    if (f === "label") {
+                        updateData["label_name"] = el.value;
+                    } else {
+                        updateData[f] = el.value;
+                    }
+                }
             });
 
             updateData["status"] = nouveauStatut;
@@ -837,6 +896,5 @@
         }
     </script>
 </body>
-
 
 </html>

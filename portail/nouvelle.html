@@ -6,15 +6,54 @@
     <title>Créer une Nouvelle Sortie - MM-CP</title>
     <meta name="theme-color" content="#FC8FB0">
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #f96490;
+            --bg-color: #FC8FB0;
+            --modal-bg: rgba(232, 232, 232, 0.349);
+            --modal-border: rgba(189, 189, 189, 0.438);
+            --text-main: #222;
+            --text-label: #555;
+            --card-bg: rgb(232, 232, 232);
+            --card-hover-bg: #fff0f5;
+            --input-bg: #ffffff;
+            --input-border: #FC8FB0;
+            --input-text: #222222;
+            --btn-secondary-bg: #a1717f;
+            --btn-secondary-hover: #aa5a68;
+            --btn-disabled-bg: #b39da5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #FC8FB0;
+                --primary-hover: #ff7da4;
+                --bg-color: #2c000d;
+                --modal-bg: rgba(20, 0, 6, 0.75);
+                --modal-border: rgba(252, 143, 176, 0.25);
+                --text-main: #ffffff;
+                --text-label: #ffccd9;
+                --card-bg: rgba(0, 0, 0, 0.4);
+                --card-hover-bg: rgba(252, 143, 176, 0.15);
+                --input-bg: rgba(0, 0, 0, 0.4);
+                --input-border: rgba(252, 143, 176, 0.3);
+                --input-text: #ffffff;
+                --btn-secondary-bg: #5c3541;
+                --btn-secondary-hover: #734352;
+                --btn-disabled-bg: #4a2833;
+            }
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #FC8FB0;
+            background: var(--bg-color);
             margin: 0;
             padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
+            transition: background 0.3s ease;
         }
 
         .modal-overlay {
@@ -30,10 +69,10 @@
         }
 
         .modal-content {
-            background-color: rgba(232, 232, 232, 0.349);
+            background-color: var(--modal-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--modal-border);
             border-radius: 54px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
 
@@ -46,7 +85,7 @@
 
         h2 {
             margin-top: 0;
-            color: #222;
+            color: var(--text-main);
             font-size: 22px;
             margin-bottom: 20px;
         }
@@ -67,10 +106,10 @@
         }
 
         .type-card {
-            background-color: rgb(232, 232, 232);
+            background-color: var(--card-bg);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--modal-border);
             border-radius: 24px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             padding: 20px;
@@ -78,16 +117,17 @@
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 16px;
+            color: var(--text-main);
         }
 
         .type-card:hover {
-            border-color: #FC8FB0;
-            background: #fff0f5;
+            border-color: var(--primary);
+            background: var(--card-hover-bg);
         }
 
         .type-card.selected {
             border-color: #ffffff;
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
         }
 
@@ -100,16 +140,24 @@
             display: block;
             font-weight: bold;
             margin-bottom: 8px;
-            color: #555;
+            color: var(--text-label);
         }
 
         .form-control {
             width: 100%;
             padding: 12px;
-            border: 1px solid #FC8FB0;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
             border-radius: 50px;
             font-size: 16px;
+            color: var(--input-text);
             box-sizing: border-box;
+            outline: none;
+        }
+
+        .form-control option {
+            background: var(--bg-color);
+            color: var(--text-main);
         }
 
         .btn {
@@ -120,28 +168,29 @@
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
-            background: #FC8FB0;
+            background: var(--primary);
             border: 1px solid #ffffff;
             color: white;
             transition: background 0.2s;
         }
 
         .btn:hover {
-            background: #f96490;
+            background: var(--primary-hover);
         }
 
         .btn:disabled {
-            background: #b39da5;
+            background: var(--btn-disabled-bg);
+            border-color: transparent;
             cursor: not-allowed;
         }
 
         .btn-secondary {
-            background: #a1717f;
+            background: var(--btn-secondary-bg);
             margin-top: 10px;
         }
 
         .btn-secondary:hover {
-            background: #aa5a68;
+            background: var(--btn-secondary-hover);
         }
     </style>
 </head>
@@ -224,6 +273,7 @@
         import { api } from "/assets/js/api.js";
 
         let uidConnecte = null;
+        let artistesDataMap = {};
         let donneesSortie = {
             type: "",
             title: "",
@@ -240,7 +290,6 @@
             }
         });
 
-        // Attachement explicite à l'objet window pour le HTML
         window.selectionnerType = function (type, element) {
             document.querySelectorAll('.type-card').forEach(card => card.classList.remove('selected'));
             element.classList.add('selected');
@@ -262,28 +311,54 @@
         async function chargerListeArtistes() {
             try {
                 const selectArtist = document.getElementById("release-artist");
-                const artistes = await api.get(`/api/users/${uidConnecte}/artists`); // Route sécurisée correcte
+                const artistes = await api.get(`/api/users/${uidConnecte}/artists`);
 
                 selectArtist.innerHTML = '<option value="">-- Choisir un artiste --</option>';
+                artistesDataMap = {};
 
                 if (artistes && artistes.length > 0) {
                     artistes.forEach((artist) => {
+                        artistesDataMap[artist.name] = artist;
                         selectArtist.innerHTML += `<option value="${artist.name}">${artist.name}</option>`;
                     });
                 } else {
                     selectArtist.innerHTML = '<option value="">Aucun artiste trouvé.</option>';
                 }
             } catch (error) {
-                console.error("Erreur API :", error);
+                console.error("Erreur API artistes :", error);
             }
         }
-        // Rendre la fonction accessible si appelée depuis le HTML (optionnel mais propre)
         window.chargerListeArtistes = chargerListeArtistes;
 
-        window.validerEtape3 = function () {
+        window.validerEtape3 = async function () {
             const artisteSelectionne = document.getElementById('release-artist').value;
             donneesSortie.artistName = artisteSelectionne;
             document.getElementById('btn-submit').disabled = (artisteSelectionne === "");
+
+            if (artisteSelectionne && artistesDataMap[artisteSelectionne]) {
+                const artistObj = artistesDataMap[artisteSelectionne];
+
+                try {
+                    const response = await api.get(`/api/users/${uidConnecte}/artists/${artistObj.id}`);
+                    const fullData = response.artist || response;
+                    const editorData = response.editor || {};
+
+                    donneesSortie.primaryGenre = editorData.primaryGenre || fullData.primaryGenre || "";
+                    donneesSortie.secondaryGenre = editorData.secondaryGenre || fullData.secondaryGenre || "";
+                    donneesSortie.language = editorData.defaultLanguage || fullData.defaultLanguage || "";
+                    donneesSortie.timezone = editorData.timezone || fullData.timezone || "";
+                    donneesSortie.exactTime = editorData.releaseTime || fullData.releaseTime || "";
+                    donneesSortie.labelName = editorData.labelName || fullData.labelName || "Morgann Music CP";
+                    donneesSortie.copyrightLineC = editorData.lineCopyright || fullData.lineCopyright || artisteSelectionne;
+                    donneesSortie.copyrightLineP = editorData.linePhonogram || fullData.linePhonogram || "Morgann Music CP";
+
+                    donneesSortie.writers = editorData.writers || fullData.writers || [];
+                    donneesSortie.credits = editorData.credits || fullData.credits || [];
+                    donneesSortie.additionalDeliveries = editorData.deliveries || fullData.deliveries || [];
+                } catch (e) {
+                    console.error("Erreur lors du chargement des options de l'éditeur pour l'artiste :", e);
+                }
+            }
         };
 
         window.creerNouvelleSortie = async function () {
