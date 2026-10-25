@@ -18,7 +18,7 @@
         --beige: #FC8FB0;
         --text: #fbb4cb;
         --muted: #fbb4cb;
-        --card: rgba(0, 0, 0, 0.25);
+        --card: rgba(0, 0, 0, 0.35);
         --border: rgba(252, 143, 176, 0.25);
         --container1: #6a4c57;
         --container2: #4d5942;
@@ -42,57 +42,70 @@ body {
 }
 
 .tarifs-page {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 1.4rem 1rem 2.2rem;
+    padding: 2rem 1.2rem 3rem;
 }
 
 .tarifs-hero {
-    margin-bottom: 1.4rem;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .tarifs-kicker {
     color: var(--muted);
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
+    font-weight: 600;
 }
 
 h1 {
     color: var(--beige);
-    margin-top: 0.25rem;
-    margin-bottom: 0.45rem;
-    font-size: clamp(2rem, 4vw, 3rem);
+    margin-top: 0.3rem;
+    margin-bottom: 0.5rem;
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    font-weight: 700;
 }
 
 .tarifs-subtitle,
 .section-intro {
     color: var(--muted);
+    font-size: 1.05rem;
 }
 
 .pricing-section {
-    margin-top: 1.2rem;
-    margin-bottom: 1.4rem;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .pricing-section h2 {
-    margin-bottom: 0.9rem;
+    margin-bottom: 1.5rem;
     color: var(--text);
+    text-align: center;
+    font-size: 1.8rem;
 }
 
+/* Grille centrée pour les 4 plans restants */
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
+    justify-content: center;
+    align-items: stretch;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
+/* Design moderne et épuré des cartes */
 .price-card {
-    background: linear-gradient(140deg, var(--container1) 0%, var(--container3) 100%);
+    background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 32px;
-    padding: 2.5rem 1.5rem;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(8px);
+    border-radius: 28px;
+    padding: 2.2rem 1.4rem;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -101,19 +114,19 @@ h1 {
 }
 
 .price-card:hover {
-    transform: translateY(-12px);
+    transform: translateY(-8px);
     border-color: var(--beige);
-    box-shadow: 0 32px 90px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.1);
 }
 
 .price-card.featured {
     border-color: var(--beige);
     border-width: 2px;
-    transform: scale(1.05);
+    background: linear-gradient(145deg, rgba(252, 143, 176, 0.12), var(--container1));
 }
 
 .price-card.special {
-    background: linear-gradient(145deg, rgba(252, 143, 176, 0.2), var(--container2));
+    background: linear-gradient(145deg, rgba(252, 143, 176, 0.15), var(--container2));
 }
 
 .plan-tag {
@@ -123,38 +136,41 @@ h1 {
     transform: translateX(-50%);
     background: var(--beige);
     color: white;
-    padding: 4px 12px;
+    padding: 4px 14px;
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(252, 143, 176, 0.3);
 }
 
 .price-card h3 {
-    margin-bottom: 0.5rem;
-    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+    font-size: 1.4rem;
     text-align: center;
     color: var(--beige);
+    font-weight: 700;
 }
 
 .price {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
     color: var(--beige);
     text-align: center;
 }
 
 .price span {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
     color: var(--muted);
-    margin-left: 0.25rem;
+    margin-left: 0.2rem;
 }
 
 .note {
-    margin-top: 0.45rem;
+    margin-top: 0.4rem;
     color: var(--muted);
-    font-size: 0.92rem;
+    font-size: 0.9rem;
+    text-align: center;
 }
 
 .plan-features {
@@ -162,67 +178,80 @@ h1 {
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    font-size: 0.95rem;
+    gap: 0.75rem;
+    font-size: 0.9rem;
     color: var(--muted);
+    flex-grow: 1;
 }
 
+.plan-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    line-height: 1.4;
+}
+
+.plan-features li::before {
+    content: "•";
+    color: var(--beige);
+    font-weight: bold;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+/* Boutons pilules en Liquid Glass avec bordure */
 .plan-button {
     margin-top: auto;
-    padding: 0.8rem;
+    padding: 0.85rem 1.5rem;
     text-align: center;
-    border-radius: 12px;
-    background: var(--beige);
-    color: white;
+    border-radius: 9999px;
+    background: rgba(252, 143, 176, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid var(--beige);
+    color: var(--text);
     text-decoration: none;
     font-weight: 600;
+    font-size: 0.92rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    width: 100%;
 }
 
 .plan-button:hover {
-    opacity: 0.9;
-    transform: scale(1.02);
-    box-shadow: 0 4px 15px rgba(252, 143, 176, 0.3);
+    background: var(--beige);
+    color: white;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(252, 143, 176, 0.35);
 }
 
-.pricing-section.alt .price-card {
-    margin-top: 1.5rem;
-}
-
-.pricing-grid.two-cols {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    justify-content: center;
-}
-
-@media (max-width: 1200px) {
-    .pricing-grid {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    }
-}
-
-.pay-per-release {
-    margin-top: 4rem;
-    text-align: center;
-    color: var(--muted);
-}
-
-.pay-per-release span {
-    font-weight: 600;
-    color: var(--text);
-}
-
-@media (max-width: 980px) {
+/* --- Responsive Tablettes & Téléphones --- */
+@media (max-width: 1024px) {
     .pricing-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-width: 700px;
     }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 640px) {
+    .tarifs-page {
+        padding: 1rem 1rem 2rem;
+    }
+
     .pricing-grid {
         grid-template-columns: 1fr;
+        max-width: 420px;
+        gap: 1.5rem;
+    }
+
+    .price-card {
+        padding: 1.8rem 1.2rem;
+        border-radius: 24px;
+    }
+
+    .price {
+        font-size: 2rem;
     }
 }
 
@@ -314,7 +343,9 @@ h1 {
 
 #chat-window {
     width: 500px;
+    max-width: calc(100vw - 40px);
     height: 560px;
+    max-height: calc(100vh - 120px);
     background: var(--container1);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
