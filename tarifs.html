@@ -14,17 +14,6 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script type="module" src="/assets/js/navbar.js"></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
-    <script>
-        window.ageverifload = () => { console.log('AgeVerif chargé'); };
-        window.ageverifReady = () => { console.log('AgeVerif prêt'); };
-        window.errorAgeverif = () => { alert('Erreur du module de vérification.'); };
-        // window.ageverifSucces est défini dans tarifs-script.js pour lancer Stripe
-    </script>
-    <script
-        src="https://www.ageverif.com/checker.js?key=PKTXmq3PJXybZx2p4qD6SKp62v791vsGdaPjDjdb&nostart&lang=fr&onload=ageverifload&onready=ageverifReady&onsuccess=ageverifSucces&onerror=errorAgeverif"
-        async defer></script>
-    <!-- À placer dans le <head> de tarifs.html -->
-
 </head>
 
 <body>

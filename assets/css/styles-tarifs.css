@@ -593,3 +593,203 @@ h1 {
         transform: none !important;
     }
 }
+
+/* --- MODAL VÉRIFICATION D'ÂGE --- */
+.identity-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.identity-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.identity-modal {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    width: 95%;
+    max-width: 600px;
+    /* Plus grand pour le confort de lecture */
+    padding: 32px;
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    position: relative;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.identity-modal-header {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.identity-modal-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.identity-modal-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.identity-trust-box {
+    background: rgba(252, 143, 176, 0.08);
+    border: 1px solid rgba(252, 143, 176, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.identity-trust-box .trust-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.identity-modal .close-modal {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.identity-modal .close-modal:hover {
+    color: var(--text);
+}
+
+.identity-options {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.identity-option-btn {
+    flex: 1;
+    padding: 20px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.02);
+}
+
+.identity-option-btn span.btn-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.identity-option-btn span.btn-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.identity-option-btn:hover {
+    background: var(--beige);
+    color: white;
+    border-color: var(--beige);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(252, 143, 176, 0.25);
+}
+
+.identity-option-btn:hover span.btn-desc {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.camera-preview-container {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.camera-preview-container video,
+.camera-preview-container canvas {
+    width: 100%;
+    border-radius: 20px;
+    background: var(--container1);
+    max-height: 320px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+}
+
+.identity-progress-container {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.identity-progress-bar-bg {
+    width: 100%;
+    height: 14px;
+    background: var(--container2);
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.identity-progress-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--beige);
+    transition: width 0.4s ease;
+    border-radius: 999px;
+}
+
+.identity-progress-status {
+    font-size: 0.95rem;
+    color: var(--muted);
+    text-align: center;
+    font-weight: 600;
+}
+
+#identity-result {
+    display: none;
+    text-align: center;
+    margin-top: 16px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 16px;
+    border-radius: 16px;
+    line-height: 1.5;
+}
