@@ -15,7 +15,7 @@ if (contactForm) {
         submitBtn.disabled = true;
         submitBtn.textContent = "Envoi en cours...";
         formStatus.style.color = "var(--text-secondary, #64748b)";
-        formStatus.textContent = "Enregistrement dans la base D1...";
+        formStatus.textContent = "Envoi du message...";
 
         try {
             await api.post("/api/messages", {
@@ -24,12 +24,12 @@ if (contactForm) {
             });
 
             formStatus.style.color = "#4ade80";
-            formStatus.textContent = "Message enregistré avec succès dans D1 ! Nous vous répondrons rapidement.";
+            formStatus.textContent = "Message envoyé ! Nous vous répondrons rapidement.";
             contactForm.reset();
         } catch (error) {
-            console.error("Erreur lors de l'enregistrement D1 :", error);
+            console.error("Erreur lors de l'envoi :", error);
             formStatus.style.color = "#f87171";
-            formStatus.textContent = "Une erreur est survenue. Veuillez réessayer ou utiliser nos e-mails.";
+            formStatus.textContent = "Une erreur est survenue. Veuillez réessayer.";
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = "Envoyer le message";
