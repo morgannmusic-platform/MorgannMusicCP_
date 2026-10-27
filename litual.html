@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description"
+        content="Découvrez Litual AI : l'assistant intelligent de Morgann Music CP qui optimise vos sorties, analyse le marché musical et vérifie la conformité de votre catalogue. 100% assistant stratégique, 0% génération de son.">
+    <meta name="keywords"
+        content="Litual AI, intelligence artificielle musique, analyse de données streaming, conseil distribution musicale, Morgann Music CP, assistant artiste, pas de generation de son">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="theme-color" content="#FC8FB0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#52303c" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#FC8FB0">
+    <meta name="apple-mobile-web-app-title" content="Litual AI - Morgann Music CP">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mm-cp.uk/litual.html">
+    <meta property="og:title" content="Litual AI | Votre Co-pilote Stratégique & Distribution">
+    <meta property="og:description"
+        content="Analysez les tendances du marché, planifiez vos releases et optimisez vos métadonnées avec Litual AI. Outil de conseil 100% analytique (aucune génération sonore).">
+    <meta property="og:image" content="/assets/img/Banières/accueil.png">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="Morgann Music CP">
+
+    <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png">
+    <link rel="icon" type="image/png" href="/assets/img/icons/clair.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/assets/img/icons/sombre.png" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/assets/img/icons/icon.png">
+
+    <link rel="canonical" href="https://mm-cp.uk/litual.html">
+
+    <title>Litual AI | Assistant Stratégique Morgann Music CP</title>
+    <link rel="stylesheet" href="/assets/css/styles-accueil.css">
+    <link rel="stylesheet" href="/assets/footers/accueil/footer.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="/assets/js/background.js"></script>
+    <script type="module" src="/assets/js/navbar.js" defer></script>
+    <script src="/assets/footers/accueil/footer.js" defer></script>
+
+    <!-- Schema.org -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Litual AI",
+  "operatingSystem": "Web",
+  "applicationCategory": "BusinessApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Morgann Music CP",
+    "url": "https://mm-cp.uk/"
+  },
+  "description": "Assistant intelligent intégré au portail Morgann Music CP pour l'analyse de données musicales, la planification de sorties et le conseil en distribution. Ne génère aucun contenu sonore."
+}
+</script>
+
+    <style>
+        /* Styles spécifiques pour la page Litual AI */
+        .no-sound-alert {
+            background: linear-gradient(135deg, rgba(252, 143, 176, 0.15), var(--container1));
+            border: 2px dashed var(--rose);
+            border-radius: 36px;
+            padding: 2.2rem;
+            margin: 3rem auto;
+            max-width: 1100px;
+            display: flex;
+            align-items: center;
+            gap: 1.8rem;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.05);
+        }
+
+        .no-sound-badge-icon {
+            font-size: 3rem;
+            flex-shrink: 0;
+            background: var(--container3);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .no-sound-text h3 {
+            font-size: 1.35rem;
+            color: var(--rose);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .no-sound-text p {
+            color: var(--text-secondary);
+            font-size: 0.98rem;
+            line-height: 1.65;
+            margin: 0;
+        }
+
+        .litual-hero-logo-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .litual-hero-logo-box img {
+            max-width: 220px;
+            height: auto;
+            filter: drop-shadow(0 15px 30px rgba(252, 143, 176, 0.3));
+            animation: rotation 16s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            .no-sound-alert {
+                flex-direction: column;
+                text-align: center;
+                padding: 1.6rem 1.2rem;
+            }
+
+            .litual-hero-logo-box img {
+                max-width: 140px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar"></div>
+    <div class="content-wrapper">
+
+        <!-- HERO SECTION LITUAL -->
+        <header class="hero-section">
+            <div class="hero-content">
+                <span class="hero-pill">🤖 Intelligence Analytique & Assistant Portal</span>
+                <h1 class="banner-title">
+                    <span class="word">Litual</span>
+                    <span class="word">AI</span>
+                </h1>
+                <p class="banner-subtitle">Le co-pilote intelligent de ta carrière indépendante.</p>
+                <p class="hero-description">
+                    Directement intégré à ton espace artiste <strong>Morgann Music CP</strong>, Litual AI t'accompagne
+                    dans la gestion, la planification et l'analyse de tes projets musicaux. Un véritable couteau suisse
+                    pour prendre les bonnes décisions au bon moment.
+                </p>
+                <div class="hero-actions">
+                    <a href="/tarifs.html" class="cta-button">Accéder avec un Plan MMCP</a>
+                    <a href="/pourquoi-nous.html" class="hero-cta-secondary">Voir toutes les fonctionnalités</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat-card">
+                        <h3>24/7</h3>
+                        <p>Disponible dans le portal</p>
+                    </div>
+                    <div class="hero-stat-card">
+                        <h3>100%</h3>
+                        <p>Analytique & Stratégie</p>
+                    </div>
+                    <div class="hero-stat-card">
+                        <h3>0%</h3>
+                        <p>Génération Sonore</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="litual-hero-logo-box">
+                <img src="/assets/img/litual/litual-logo.png" alt="Logo Litual AI" draggable="false">
+            </div>
+        </header>
+
+        <!-- AVERTISSEMENT / CLARIFICATION : AUCUNE GÉNÉRATION DE SON -->
+        <section class="no-sound-alert">
+            <div class="no-sound-badge-icon">🚫🎵</div>
+            <div class="no-sound-text">
+                <h3>Clarification importante : Zéro création ni génération sonore</h3>
+                <p>
+                    <strong>Litual AI ne produit, n'enregistre et ne génère AUCUN son, morceau ou instru.</strong><br>
+                    Chez Morgann Music CP, nous croyons à 100% en la vraie création artistique humaine. Litual est
+                    uniquement un **assistant stratégique et technique** (analyse de marché, recommandations de dates,
+                    optimisation de pochettes et métadonnées). Ta musique reste purement et entièrement TON œuvre.
+                </p>
+            </div>
+        </section>
+
+        <!-- RÔLES ET UTILITÉ DANS LE PORTAIL MMCP -->
+        <section class="managed-media-section">
+            <div class="managed-media-header">
+                <span class="managed-media-pill">À quoi sert Litual AI ?</span>
+                <h2>L'utilité de Litual AI dans votre Portail Artiste</h2>
+                <p>Découvrez concrètement ce que fait l'IA en arrière-plan et au quotidien pour vous simplifier la vie.
+                </p>
+            </div>
+
+            <div class="managed-media-grid">
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">📊</div>
+                    <h3>Analyse de Marché & Algorithmes</h3>
+                    <p>Litual étudie les tendances d'écoute et les patterns des plateformes pour t'aider à cibler ton
+                        audience et maximiser tes chances de rentrer en playlist.</p>
+                </article>
+
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">📅</div>
+                    <h3>Planning & Dates de Sortie</h3>
+                    <p>Obtiens des conseils sur les meilleurs moments pour sortir tes singles ou albums selon ton genre
+                        musical et le calendrier de l'industrie.</p>
+                </article>
+
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">🎨</div>
+                    <h3>Vérification de Conformité Visuelle</h3>
+                    <p>Conseils et diagnostics sur tes visuels, pochettes et formats Motion Artworks pour éviter les
+                        refus par les modérateurs Apple Music ou Spotify.</p>
+                </article>
+
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">💬</div>
+                    <h3>Chat Intégré & Support 24/7</h3>
+                    <p>Pose toutes tes questions sur la distribution, les codes ISRC, les dépôts Sacem ou la promotion
+                        directement à l'IA depuis ton tableau de bord.</p>
+                </article>
+
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">🌍</div>
+                    <h3>Traduction & Support International</h3>
+                    <p>Traduis et formate tes mails, biographies d'artiste ou descriptions de projets pour contacter des
+                        curateurs de playlists ou des médias internationaux.</p>
+                </article>
+
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">🔍</div>
+                    <h3>Optimisation des Métadonnées</h3>
+                    <p>Litual passe au peigne fin tes featurings, titres et crédits d'auteurs pour s'assurer que tes
+                        royalties te reviennent sans aucune perte.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- SECTION VALEURS : RESPECT DE LA CRÉATION HUMAINE -->
+        <section class="behind-scenes-section">
+            <div class="behind-scenes-header">
+                <span class="behind-scenes-pill">Notre Philosophie</span>
+                <h2>Pourquoi l'IA sans génération de son ?</h2>
+                <p>Une vision claire de l'intelligence artificielle au service de l'artiste indépendant.</p>
+            </div>
+
+            <div class="behind-scenes-grid">
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">🎨</div>
+                    <h3>L'Artiste reste le créateur</h3>
+                    <p>La musique est une émotion humaine. Litual AI n'est pas là pour remplacer ton talent ou fabriquer
+                        des chansons synthétiques, mais pour t'aider à diffuser ta propre création avec l'efficacité
+                        d'une majore.</p>
+                </article>
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">🛡️</div>
+                    <h3>Protection contre la saturation</h3>
+                    <p>Les plateformes croulent sous les sons générés automatiquement. Chez Morgann Music CP, nous
+                        défendons les vrais projets indépendants en garantissant une distribution propre et respectée.
+                    </p>
+                </article>
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">⚡</div>
+                    <h3>Gain de temps administratif</h3>
+                    <p>Gagne des heures sur la paperasse, le calcul des crédits et la vérification technique pour te
+                        concentrer à 100% sur ta musique et ton studio.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- ABONNEMENTS AVEC LITUAL AI -->
+        <section class="future-legende-section">
+            <div class="future-legende-container">
+                <div class="future-legende-content">
+                    <span class="hero-panel-badge">Accès à Litual AI</span>
+                    <h2>Litual AI est inclus dans vos offres MMCP</h2>
+                    <p>Accédez sans surcoût à l'assistant Litual AI avec les abonnements <strong>Pro</strong> et
+                        <strong>Future Légende (-18 ans à 0,99€/mois)</strong>.</p>
+                    <a href="/tarifs.html" class="cta-button">Découvrir nos tarifs</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEO PILLS -->
+        <section class="seo-funny-section">
+            <div class="seo-funny-container">
+                <p class="seo-tagline">À propos de Litual AI sur Morgann Music CP</p>
+                <div class="seo-pills-wrapper">
+                    <a href="/pourquoi-nous.html" class="seo-pill">Assistant IA distribution musicale</a>
+                    <a href="/litual.html" class="seo-pill">IA analyse streaming sans generation de musique</a>
+                    <a href="/tarifs.html" class="seo-pill">Litual AI Morgann Music CP</a>
+                    <a href="/mmcp-futurelegende.html" class="seo-pill">Conseil artiste indépendant IA</a>
+                    <a href="/pourquoi-nous.html" class="seo-pill">Distribution musique 100% création humaine</a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <div id="footer"></div>
+
+    <script src="/assets/js/pltfrm-def.js"></script>
+    <script src="/assets/js/accueil-gsap.js"></script>
+</body>
+
+</html>

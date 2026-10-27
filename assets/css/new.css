@@ -1,0 +1,228 @@
+/* Header style Hero */
+.updates-hero {
+    padding: 140px 20px 70px;
+    text-align: center;
+    background: radial-gradient(circle at top, rgba(252, 143, 176, 0.466) 0%, transparent 50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 0 20px rgba(252, 143, 176, 0.466);
+    border-radius: 36px;
+    margin: 10px 10px 40px 10px;
+}
+
+.updates-hero-badge {
+    background: rgba(252, 143, 176, 0.15);
+    color: #FC8FB0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(252, 143, 176, 0.3);
+}
+
+.updates-hero h1 {
+    font-size: clamp(36px, 5vw, 65px);
+    font-weight: 800;
+    margin: 0 0 20px 0;
+    line-height: 1.1;
+}
+
+.updates-hero h1 span {
+    color: #FC8FB0;
+}
+
+.updates-hero p {
+    font-size: 18px;
+    color: #666;
+    max-width: 750px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+    .updates-hero p {
+        color: #aaa;
+    }
+}
+
+/* Layout Zigzag Alterné */
+.zigzag-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.zigzag-row {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    margin-bottom: 100px;
+}
+
+.zigzag-row:nth-child(even) {
+    flex-direction: row-reverse;
+}
+
+.zigzag-text {
+    flex: 1;
+}
+
+.zigzag-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 55px;
+    height: 55px;
+    background: rgba(252, 143, 176, 0.15);
+    color: #FC8FB0;
+    border-radius: 50px;
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+.zigzag-text h2 {
+    font-size: 30px;
+    margin-bottom: 15px;
+    font-weight: 800;
+}
+
+.zigzag-text p {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .zigzag-text p {
+        color: #aaa;
+    }
+}
+
+/* Boîtes visuelles & Glassmorphism */
+.zigzag-visual {
+    flex: 1;
+    position: relative;
+    width: 100%;
+}
+
+.visual-box {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(252, 143, 176, 0.3);
+    border-radius: 36px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .visual-box {
+        background: rgba(30, 25, 35, 0.6);
+    }
+}
+
+.visual-blob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    background: #FC8FB0;
+    filter: blur(60px);
+    opacity: 0.2;
+    z-index: 1;
+}
+
+/* Composants UI d'illustration */
+.fake-card {
+    background: rgba(252, 143, 176, 0.1);
+    border: 1px solid rgba(252, 143, 176, 0.25);
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.fake-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+    background: #FC8FB0;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.fake-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.fake-title {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.fake-sub {
+    font-size: 12px;
+    color: #777;
+}
+
+@media (prefers-color-scheme: dark) {
+    .fake-sub {
+        color: #aaa;
+    }
+}
+
+.platform-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.platform-badge-item {
+    background: rgba(252, 143, 176, 0.12);
+    border: 1px solid rgba(252, 143, 176, 0.3);
+    border-radius: 16px;
+    padding: 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: #FC8FB0;
+}
+
+.link-highlight {
+    color: #FC8FB0;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.link-highlight:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+
+    .zigzag-row,
+    .zigzag-row:nth-child(even) {
+        flex-direction: column;
+        gap: 40px;
+        margin-bottom: 60px;
+    }
+}

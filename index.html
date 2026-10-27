@@ -49,7 +49,7 @@
     <script type="module" src="/assets/js/navbar.js" defer></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
 
-    <!-- Données structurées Schema.org pour Google Knowledge Graph -->
+    <!-- Schema.org -->
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -106,25 +106,28 @@
     <div id="navbar"></div>
     <div class="content-wrapper">
 
+        <!-- HERO SECTION -->
         <header class="hero-section">
             <div class="hero-content">
+                <span class="hero-pill">✨ Le Distributeur Nouvelle Génération</span>
                 <h1 class="banner-title">
                     <span class="word">Morgann</span>
                     <span class="word">Music</span>
                     <img src="/assets/img/logo/logo-rose.svg" alt="Logo Morgann Music CP" class="banner-logo"
                         draggable="false">
                 </h1>
-                <p class="banner-subtitle">Imaginez. Concevez. Distribuez. </p>
+                <p class="banner-subtitle">Imaginez. Concevez. Distribuez.</p>
                 <p class="hero-description">
-                    Diffusez vos titres sur <a href="plateformes.html" style="color: #c14f7d;">478
-                        plateformes</a> et sur <a href="pays.html" style="color: #c14f7d;">251 pays</a>. Distribuez avec
-                    des fonctionnalités avancées : <br>
-                    Apple Motion Artworks, Apple Digital Masters, Dolby Atmos et audio Lossless.
+                    Diffusez vos titres sur <a href="plateformes.html" style="color: var(--rose); font-weight:600;">478
+                        plateformes</a>
+                    et dans <a href="pays.html" style="color: var(--rose); font-weight:600;">251 pays</a>.
+                    Profitez de fonctionnalités haute fidélité : Apple Motion Artworks, Apple Digital Masters, Dolby
+                    Atmos et Lossless.
                 </p>
                 <div class="hero-actions">
-                    <a href="/pourquoi-nous.html" class="cta-button">Pourquoi nous ?</a>
-                    <a href="/nous.html" class="hero-cta-secondary">Que faisons-nous lors de votre première sortie ?</a>
-                    <a href="/tarifs.html" class="hero-cta-secondary">Voir les offres</a>
+                    <a href="/tarifs.html" class="cta-button">Voir les abonnements</a>
+                    <a href="/pourquoi-nous.html" class="hero-cta-secondary">Pourquoi nous ?</a>
+                    <a href="/nous.html" class="hero-cta-secondary">Notre fonctionnement</a>
                 </div>
                 <div class="hero-stats">
                     <div class="hero-stat-card">
@@ -133,42 +136,45 @@
                     </div>
                     <div class="hero-stat-card">
                         <h3>100%</h3>
-                        <p>Transparent</p>
+                        <p>Transparence</p>
                     </div>
                     <div class="hero-stat-card">
                         <h3>100%</h3>
-                        <p>Français 🇫🇷</p>
+                        <p>Label Français 🇫🇷</p>
                     </div>
                 </div>
             </div>
+
             <div class="hero-panel">
                 <img src="/assets/img/litual/litual-logo.png" alt="Logo Litual AI" class="hero-litual-logo"
                     draggable="false">
-                <span class="hero-panel-badge">Exclusivité</span>
+                <span class="hero-panel-badge">Exclusivité Litual</span>
                 <h2>Optimisé par Litual AI</h2>
-                <p>Analysez les données du marché musical pour planifier vos sorties avec précision, anticiper les
-                    algorithmes et cibler votre audience.</p>
+                <p>Analysez les tendances du marché musical pour planifier vos sorties, dompter les algorithmes et
+                    cibler l'audience idéale.</p>
             </div>
         </header>
 
+        <!-- RÈGLE D'OR & OFFRE MINIMA -->
         <section class="future-legende-section">
             <div class="future-legende-container">
                 <div class="future-legende-content">
                     <span class="hero-panel-badge">Règle d'or</span>
-                    <h2>Un petit abonnement. 0% de commission. Tu gardes tout.</h2>
-                    <p>Pas de douille, pas de frais cachés. Tu prends ton abonnement, tu balances ta musique sur 478
-                        plateformes, et l'argent des streams t'appartient à 100%. Point barre.</p>
-                    <a href="/tarifs.html" class="cta-button">Voir les abonnements</a>
+                    <h2>Un abonnement fixe. 0% de commission. Tu gardes 100%.</h2>
+                    <p>Aucun frais caché, aucune douille. Tu prends ton abonnement, tu balances ta musique sur 478
+                        plateformes, et l'intégralité de tes revenus de streaming reste dans ta poche.</p>
+                    <a href="/tarifs.html" class="cta-button">Découvrir les offres</a>
                 </div>
             </div>
         </section>
 
+        <!-- SECTION PLATFORMES (Défilement horizontal uniquement) -->
         <section class="platforms-section">
-            <h2>Votre musique présente sur <a href="plateformes.html" style="color: #c14f7d;">478
-                    plateformes</a></h2>
-            <p>De Apple Music à TikTok en passant par toutes les plateformes internationales : maximisez votre
-                visibilité mondiale.
-            </p>
+            <span class="managed-media-pill">Diffusion Mondiale</span>
+            <h2>Votre musique disponible partout</h2>
+            <p>Présent sur plus de <a href="plateformes.html" style="color: var(--rose); font-weight: 600;">478
+                    plateformes</a> dans <a href="pays.html" style="color: var(--rose); font-weight: 600;">251 pays</a>
+                (Spotify, Apple Music, TikTok, Deezer...)</p>
 
             <div class="marquee" aria-hidden="true" data-nosnippet>
                 <div class="marquee-track" id="marquee1"></div>
@@ -179,314 +185,301 @@
             </div>
         </section>
 
-        <section class="managed-media-section">
-            <div class="managed-media-header">
-                <span class="managed-media-pill">Nouvelle fonctionnalité</span>
-                <h2>Managed Media, <br>monétisez les espaces public.</h2>
-                <p>Diffusez et rentabilisez votre catalogue dans des milliers lieux publics sélectionnés (commerces,
-                    hôtels, bars, boites de nuit).</p>
-            </div>
 
-            <div class="managed-media-grid">
-                <article class="managed-media-card">
-                    <div class="managed-media-icon">🏙️</div>
-                    <h3>Placement Premium</h3>
-                    <p>Vos titres diffusés avec une qualité sonore optimale dans des espaces à forte fréquentation.</p>
-                </article>
-                <article class="managed-media-card">
-                    <div class="managed-media-icon">📈</div>
-                    <h3>Revenus Complémentaires</h3>
-                    <p>Générez des royalties pour chaque diffusion publique. Une nouvelle source de revenus passive.</p>
-                </article>
-                <article class="managed-media-card">
-                    <div class="managed-media-icon">⚡</div>
-                    <h3>Activation Simplifiée</h3>
-                    <p>Intégration directe lors de l'envoi de vos pistes via l'option de livraison additionnelle.</p>
-                </article>
-            </div>
-        </section>
-
+        <!-- POURQUOI NOUS -->
         <section class="why-us-section">
             <h2>Pourquoi choisir Morgann Music CP ?</h2>
-            <p class="section-intro">L'infrastructure d'un label majeur, la liberté d'un artiste indépendant.</p>
+            <p class="section-intro">La puissance de frappe d'un grand label avec l'indépendance d'un artiste libre.</p>
             <div class="why-us-grid">
                 <div class="why-us-card">
                     <div class="why-us-icon">💰</div>
                     <h3>Transparence Financière</h3>
-                    <p>Vous percevez la majorité de vos revenus générés par les streams selon le plan choisi. Aucune
-                        commission cachée.</p>
+                    <p>Conservez la totalité de vos revenus selon le plan choisi. Zéro frais masqué ou mauvaise
+                        surprise.</p>
                 </div>
                 <div class="why-us-card">
                     <div class="why-us-icon">⚡</div>
-                    <h3>Déploiement mondial</h3>
-                    <p>150 à 200 plateformes chez la concurrence ? Nous vous distribuons sur près de 500 plateformes.
-                    </p>
+                    <h3>Portée Mondiale</h3>
+                    <p>Là où les autres s'arrêtent à 150 plateformes, nous livrons vos morceaux sur près de 500 services
+                        majeurs.</p>
                 </div>
                 <div class="why-us-card">
                     <div class="why-us-icon">🛡️</div>
-                    <h3>Propriété Absolue</h3>
-                    <p>Vos droits d'auteurs et vos masters vous appartiennent. Vous restez l'unique décisionnaire de vos
-                        œuvres.</p>
+                    <h3>100% Propriétaire</h3>
+                    <p>Vos droits d'auteurs et vos enregistrements originaux restent votre propriété absolue.</p>
                 </div>
                 <div class="why-us-card">
                     <div class="why-us-icon">🤝</div>
-                    <h3>Support Dédié</h3>
-                    <p>Une équipe réactive pour vous accompagner dans la gestion de votre catalogue musical.</p>
+                    <h3>Accompagnement Dédié</h3>
+                    <p>Une équipe réactive et humaine pour vous soutenir à chaque étape de votre carrière.</p>
                 </div>
             </div>
             <div class="why-us-action">
-                <a href="/pourquoi-nous.html" class="hero-cta-secondary">Découvrir notre fonctionnement</a>
+                <a href="/pourquoi-nous.html" class="hero-cta-secondary">En savoir plus sur notre philosophie</a>
             </div>
         </section>
 
-        <section class="behind-scenes-section">
-            <div class="behind-scenes-header">
-                <span class="behind-scenes-pill">Coulisses & Expertise</span>
-                <h2>Nous dans l'ombre</h2>
-                <p>Ce que nos équipes font chaque jour en coulisses pour vous simplifier la vie, sans vous surtaxer.</p>
-            </div>
-
-            <div class="behind-scenes-grid">
-                <article class="behind-scenes-card">
-                    <div class="behind-scenes-icon">🎨</div>
-                    <h3>Pochettes & Formats ajustés</h3>
-                    <p>Une pochette ne respecte pas exactement les critères stricts des plateformes ? Au lieu de vous
-                        prendre la tête et de vous demander d'en refaire une, nos agents la convertissent ou font le
-                        nécessaire pour que tout passe du premier coup.</p>
-                </article>
-                <article class="behind-scenes-card">
-                    <div class="behind-scenes-icon">✨</div>
-                    <h3>Pochettes Animées Apple Music</h3>
-                    <p>Pareil pour les pochettes animées d'Apple Music (Motion Artworks) : nos administrateurs les
-                        encodent et les vérifient avec précision, sans vous faire perdre votre temps ni vous surtaxer.
-                    </p>
-                </article>
-                <article class="behind-scenes-card">
-                    <div class="behind-scenes-icon">🎧</div>
-                    <h3>Fichiers Audio & Masters</h3>
-                    <p>Format WAV non conforme, échantillonnage ou pics de saturation ? Nos équipes vérifient, nettoient
-                        et réajustent vos pistes audio en amont pour garantir une validation instantanée sur toutes les
-                        plateformes.</p>
-                </article>
-                <article class="behind-scenes-card">
-                    <div class="behind-scenes-icon">📝</div>
-                    <h3>Métadonnées & Crédits</h3>
-                    <p>Erreurs de typographie, featurings mal formatés ou oublis dans les crédits : nous rectifions les
-                        détails techniques pour éviter les retards et les rejets de distribution.</p>
-                </article>
-                <article class="behind-scenes-card">
-                    <div class="behind-scenes-icon">🔍</div>
-                    <h3>Référencement & Schema.org automatisé</h3>
-                    <p>Pour que Google et les moteurs de recherche affichent votre profil en grand, nous intégrons et
-                        générons automatiquement les balises Schema.org et les données structurées de votre catalogue
-                        sans que vous ayez à y toucher ou à y connaître quoi que ce soit.</p>
-                </article>
-                <article class="behind-scenes-card">
-                    <div class="behind-scenes-icon">🌐</div>
-                    <h3>Synchronisation MusicBrainz & Identifiants</h3>
-                    <p>Vos liens d'artistes sont éparpillés ? Nous lions vos œuvres aux bases de données mondiales
-                        (MusicBrainz, ISRC, etc.) en arrière-plan pour structurer votre présence officielle sur le web
-                        et les plateformes de streaming.</p>
-                </article>
-            </div>
-        </section>
-
-        <section class="future-legende-section">
-            <div class="future-legende-container">
-                <div class="future-legende-content">
-                    <span class="hero-panel-badge">Offre Moins de 18 ans</span>
-                    <h2>Plan Future Légende</h2>
-                    <p>L'offre exclusive pour les mineurs. Accédez à la distribution illimitée, au format Dolby Atmos et
-                        à la technologie Litual AI pour seulement <strong>0,99€/mois</strong>.</p>
-                    <a href="/mmcp-futurelegende.html" class="cta-button">Découvrir Future Légende</a>
-                </div>
-            </div>
-        </section>
-
+        <!-- STANDARDS DE L'INDUSTRIE -->
         <section class="feature-cards-section">
-            <h2>Les standards de l'industrie musicale</h2>
+            <h2>Les standards d'excellence audio</h2>
             <div class="feature-cards-grid">
                 <article class="feature-card" data-nosnippet>
                     <div class="feature-card-image">
-                        <img src="/assets/img/fonctionnalitées/1.png" alt="Audio Spatial" role="presentation"
-                            draggable="false">
+                        <img src="/assets/img/fonctionnalitées/1.png" alt="Dolby Atmos Ready" draggable="false">
                     </div>
                     <h3>Dolby Atmos Ready</h3>
-                    <p>Proposez une expérience audio spatiale immersive, répondant aux exigences techniques d'Apple
-                        Music.</p>
+                    <p>Offrez une immersion sonore tridimensionnelle conforme aux standards Apple Music et Amazon Music.
+                    </p>
                 </article>
                 <article class="feature-card" data-nosnippet>
                     <div class="feature-card-image">
-                        <img src="/assets/img/fonctionnalitées/2.png" alt="Apple Digital Master" role="presentation"
-                            draggable="false">
+                        <img src="/assets/img/fonctionnalitées/2.png" alt="Apple Digital Master" draggable="false">
                     </div>
                     <h3>Apple Digital Master</h3>
-                    <p>Distribuez vos fichiers au format Lossless pour préserver l'intégrité de votre mixage studio.</p>
+                    <p>Diffusez votre musique en haute résolution Lossless sans aucune perte de qualité master.</p>
                 </article>
                 <article class="feature-card" data-nosnippet>
                     <div class="feature-card-image">
-                        <img src="/assets/img/fonctionnalitées/3.png" alt="Apple Motion Artwork" role="presentation"
-                            draggable="false">
+                        <img src="/assets/img/fonctionnalitées/3.png" alt="Motion Artwork" draggable="false">
                     </div>
                     <h3>Motion Artwork</h3>
-                    <p>Intégrez des visuels animés (Apple Motion Artwork) sur Apple Music pour renforcer votre identité
-                        visuelle.</p>
+                    <p>Donnez de la vie à vos artworks avec des pochettes animées sur Apple Music.</p>
                 </article>
                 <article class="feature-card" data-nosnippet>
                     <div class="feature-card-image">
-                        <img src="/assets/img/fonctionnalitées/4.png" alt="Clips Vidéo" role="presentation"
-                            draggable="false">
+                        <img src="/assets/img/fonctionnalitées/4.png" alt="Distribution Vidéo" draggable="false">
                     </div>
                     <h3>Distribution Vidéo</h3>
-                    <p>Monétisez prochainement vos clips officiels sur les plateformes d'hébergement vidéo majeures.</p>
+                    <p>Monétisez prochainement vos clips officiels sur les plus grandes plateformes vidéo.</p>
                     <span class="soon-badge">Prochainement</span>
                 </article>
             </div>
         </section>
 
-        <section class="pricing-preview-section">
-            <h2>Des tarifs clairs, sans engagement.</h2>
-            <p class="section-intro">Choisissez le plan adapté à vos besoins et annulez à tout moment.</p>
-            <div class="pricing-preview-grid">
-                <div class="pricing-card">
-                    <span class="pricing-tag">Populaire</span>
-                    <h3>Pro</h3>
-                    <div class="pricing-price">3,99€ <span>/mois</span></div>
-                    <p>Toutes les fonctionnalités indispensables pour votre carrière.</p>
-                    <ul class="pricing-list">
-                        <li>Fonctionnalités Starter incluses</li>
-                        <li>Analyse avancée Litual AI 4</li>
-                        <li>Support prioritaire en 24h</li>
-                    </ul>
-                    <a href="/tarifs.html" class="hero-cta-secondary">Détails du plan</a>
-                </div>
-                <div class="pricing-card highlighted">
-                    <span class="pricing-tag popular">Moins de 18 ans</span>
-                    <h3>Future Légende</h3>
-                    <div class="pricing-price">0,99€ <span>/mois</span></div>
-                    <p>Le plan optimisé pour les talents de moins de 18 ans.</p>
-                    <ul class="pricing-list">
-                        <li>Distribution illimitée sur 478 plateformes</li>
-                        <li>Dolby Atmos & Lossless inclus</li>
-                        <li>Analytique Litual AI</li>
-                    </ul>
-                    <a href="/mmcp-futurelegende.html" class="cta-button">Sélectionner ce plan</a>
-                </div>
-                <div class="pricing-card">
-                    <span class="pricing-tag">Pour les structures</span>
-                    <h3>Marque Blanche</h3>
-                    <div class="pricing-price">Sur devis <span>(max 99€/mois)</span></div>
-                    <p>Développez votre propre label grâce à notre infrastructure.</p>
-                    <ul class="pricing-list">
-                        <li>Fonctionnalités Label incluses</li>
-                        <li>Tableau de bord label dédié</li>
-                        <li>Espace personnalisable pour vos artistes</li>
-                    </ul>
-                    <a href="/tarifs.html" class="hero-cta-secondary">Nous contacter</a>
+        <!-- MANAGED MEDIA -->
+        <section class="managed-media-section">
+            <div class="managed-media-header">
+                <span class="managed-media-pill">Service Innovant</span>
+                <h2>Managed Media : Monétisez dans les lieux publics</h2>
+                <p>Faites diffuser votre musique dans des milliers d'établissements (boutiques, hôtels, bars, clubs) et
+                    touchez des royalties supplémentaires.</p>
+            </div>
+            <div class="managed-media-grid">
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">🏙️</div>
+                    <h3>Diffusion In-Store</h3>
+                    <p>Pénétration sonore de vos morceaux dans des lieux publics à forte fréquentation.</p>
+                </article>
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">📈</div>
+                    <h3>Revenus Additionnels</h3>
+                    <p>Générez un flux de royalties complémentaires pour chaque morceau joué en public.</p>
+                </article>
+                <article class="managed-media-card">
+                    <div class="managed-media-icon">⚡</div>
+                    <h3>Activation en 1 Clic</h3>
+                    <p>Option directement disponible lors du téléversement de vos sorties.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- NOUS DANS L'OMBRE (COULISSES) -->
+        <section class="behind-scenes-section">
+            <div class="behind-scenes-header">
+                <span class="behind-scenes-pill">Coulisses & Expertise</span>
+                <h2>Nous dans l'ombre</h2>
+                <p>Toutes les tâches techniques que notre équipe effectue en arrière-plan pour garantir zéro rejet.</p>
+            </div>
+            <div class="behind-scenes-grid">
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">🎨</div>
+                    <h3>Pochettes & Formats ajustés</h3>
+                    <p>Pochette hors normes ? Nous la recadrons et l'adaptons gratuitement sans bloquer votre sortie.
+                    </p>
+                </article>
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">✨</div>
+                    <h3>Pochettes Animées Apple Music</h3>
+                    <p>Encodage et vérification minutieuse des Motion Artworks par nos administrateurs.</p>
+                </article>
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">🎧</div>
+                    <h3>Fichiers Audio & Masters</h3>
+                    <p>Correction des pics de saturation et ajustements des taux d'échantillonnage de vos WAV.</p>
+                </article>
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">📝</div>
+                    <h3>Métadonnées & Crédits</h3>
+                    <p>Contrôle rigoureux des featurings, titres et crédits pour éviter les rejets des plateformes.</p>
+                </article>
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">🔍</div>
+                    <h3>Données Structurées Schema.org</h3>
+                    <p>Génération automatique du balisage web pour faire briller votre profil sur Google.</p>
+                </article>
+                <article class="behind-scenes-card">
+                    <div class="behind-scenes-icon">🌐</div>
+                    <h3>Base MusicBrainz & ISRC</h3>
+                    <p>Liaison de vos œuvres aux identifiants universels pour une traçabilité mondiale impeccable.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- FUTURE LÉGENDE SPOTLIGHT -->
+        <section class="future-legende-section">
+            <div class="future-legende-container">
+                <div class="future-legende-content">
+                    <span class="hero-panel-badge">Offre Moins de 18 ans</span>
+                    <h2>Plan Future Légende</h2>
+                    <p>L'offre ultime pour la nouvelle génération d'artistes mineurs. Distribution illimitée, Dolby
+                        Atmos et assistant IA Litual pour <strong>0,99€/mois</strong> seulement.</p>
+                    <a href="/mmcp-futurelegende.html" class="cta-button">Découvrir le Plan Future Légende</a>
                 </div>
             </div>
         </section>
 
-        <section class="timeline-section">
-            <h2>Distribuer un titre n'a jamais été aussi simple</h2>
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>1. Importation</h3>
-                        <p>Téléversez vos fichiers audio (WAV), vos métadonnées et votre pochette haute définition sur
-                            notre plateforme.</p>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>2. Validation technique</h3>
-                        <p>Nos équipes vérifient la conformité de vos éléments pour garantir l'acceptation par les
-                            plateformes.</p>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>3. Déploiement</h3>
-                        <p>Votre projet est automatiquement livré aux 478 plateformes pour une disponibilité mondiale à
-                            la date choisie.</p>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <h3>4. Suivi et revenus</h3>
-                        <p>Analysez vos performances en temps réel et percevez vos royalties directement depuis votre
-                            tableau de bord.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="litual-section">
-            <div class="litual-container">
-                <div class="litual-content">
-                    <img src="/assets/img/litual/litual-logo.png" alt="Logo Litual AI" class="litual-logo"
-                        draggable="false">
-                    <h2>Boosté par l'intelligence Litual AI</h2>
-                    <p>Passez à l'étape supérieure. Litual analyse le marché en continu pour vous fournir des
-                        recommandations stratégiques, optimiser votre visibilité et accroître vos revenus.</p>
-                </div>
-            </div>
-        </section>
-
+        <!-- OUTILS & CERTIFICATIONS -->
         <section class="extra-features-section">
             <div class="feature-cards-grid extra-grid">
                 <article class="feature-card color-logo" data-nosnippet>
                     <div class="feature-card-image">
                         <img src="/assets/img/fonctionnalitées/applemusicforartist.png" alt="Apple Music for Artists"
-                            role="presentation" draggable="false">
+                            draggable="false">
                     </div>
-                    <h3>Profils d'Artistes</h3>
-                    <p>Morgann Music CP vous aide à obtenir votre profil d'artiste sur les plateformes.</p>
+                    <h3>Profils Artistes Officiels</h3>
+                    <p>Obtenez vos accès certifiés et cochez la case vérifiée sur Spotify et Apple Music.</p>
                 </article>
                 <article class="feature-card color-logo" data-nosnippet>
                     <div class="feature-card-image">
-                        <img src="/assets/img/fonctionnalitées/ytmusic-oac.webp" alt="YouTube OAC" role="presentation"
-                            draggable="false">
+                        <img src="/assets/img/fonctionnalitées/ytmusic-oac.webp" alt="YouTube OAC" draggable="false">
                     </div>
                     <h3>Certification YouTube OAC</h3>
-                    <p>Validez votre Chaîne d'Artiste Officielle et regroupez l'ensemble de votre catalogue musical sur
-                        YouTube.</p>
+                    <p>Validez votre Chaîne d'Artiste Officielle et regroupez l'ensemble de vos vidéos sous une note de
+                        musique.</p>
                 </article>
                 <article class="feature-card color-logo" data-nosnippet>
                     <div class="feature-card-image">
-                        <img src="/assets/img/fonctionnalitées/litual.png" alt="Paroles" role="presentation"
-                            draggable="false">
+                        <img src="/assets/img/fonctionnalitées/litual.png" alt="Chat Litual AI" draggable="false">
                     </div>
                     <h3>Chat Litual AI</h3>
-                    <p>Discutez avec Litual pour préparer vos prochaines sorties. Ayez des conseils sur les dates de
-                        sorties, les pochettes, etc.</p>
+                    <p>Bénéficiez des conseils sur-mesure de Litual pour préparer le calendrier et les visuels de vos
+                        sorties.</p>
                 </article>
             </div>
         </section>
 
-        <!-- Section Extension Chrome MMCP Connect (Positionnée tout en bas avec le logo) -->
+        <!-- TIMELINE -->
+        <section class="timeline-section">
+            <h2>Comment distribuer avec Morgann Music CP ?</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>1. Téléversement</h3>
+                        <p>Déposez vos fichiers audio WAV, vos visuels et vos infos sur votre espace personnel.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>2. Audit & Optimisation</h3>
+                        <p>Nos équipes et nos outils vérifient la conformité de vos éléments sous 24h à 48h.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>3. Livraison Globale</h3>
+                        <p>Votre catalogue est propulsé sur 478 plateformes à travers le monde entier.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3>4. Analyse & Encaissement</h3>
+                        <p>Suivez vos statistiques détaillées et retirez vos royalties en toute transparence.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TARIFS PREVIEW -->
+        <section class="pricing-preview-section">
+            <h2>Des tarifs simples, transparents et sans surprise</h2>
+            <p class="section-intro">Choisissez la formule qui convient à vos ambitions et résiliez librement.</p>
+            <div class="pricing-preview-grid">
+                <div class="pricing-card">
+                    <span class="pricing-tag">Recommandé Artiste</span>
+                    <h3>Pro</h3>
+                    <div class="pricing-price">3,99€ <span>/mois</span></div>
+                    <p>Tout le nécessaire pour gérer une carrière musicale pro.</p>
+                    <ul class="pricing-list">
+                        <li>Distribution illimitée 478 plateformes</li>
+                        <li>Analyse et conseils Litual AI</li>
+                        <li>Support prioritaire sous 24h</li>
+                    </ul>
+                    <a href="/tarifs.html" class="hero-cta-secondary">Voir les détails</a>
+                </div>
+                <div class="pricing-card highlighted">
+                    <span class="pricing-tag popular">Moins de 18 ans</span>
+                    <h3>Future Légende</h3>
+                    <div class="pricing-price">0,99€ <span>/mois</span></div>
+                    <p>Le plan le plus accessible du marché pour les jeunes talents.</p>
+                    <ul class="pricing-list">
+                        <li>Distribution illimitée mondiale</li>
+                        <li>Dolby Atmos & Lossless inclus</li>
+                        <li>Accès complet à l'IA Litual</li>
+                    </ul>
+                    <a href="/mmcp-futurelegende.html" class="cta-button">Prendre l'offre</a>
+                </div>
+                <div class="pricing-card">
+                    <span class="pricing-tag">Pour Labels & Roster</span>
+                    <h3>Marque Blanche</h3>
+                    <div class="pricing-price">Sur devis <span>(max 99€/mois)</span></div>
+                    <p>Créez votre propre structure de distribution sur nos serveurs.</p>
+                    <ul class="pricing-list">
+                        <li>Tableau de bord label sur mesure</li>
+                        <li>Multi-artistes illimité</li>
+                        <li>Infrastructure dédiée</li>
+                    </ul>
+                    <a href="/tarifs.html" class="hero-cta-secondary">Contactez-nous</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- LITUAL SECTION -->
+        <section class="litual-section">
+            <div class="litual-container">
+                <div class="litual-content">
+                    <img src="/assets/img/litual/litual-logo.png" alt="Logo Litual AI" class="litual-logo"
+                        draggable="false">
+                    <h2>Pilotez vos sorties avec Litual AI</h2>
+                    <p>Profitez d'une intelligence artificielle dédiée à la musique pour repérer les niches rentables,
+                        affiner vos campagnes et maximiser l'impact de vos morceaux.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXTENSION CHROME -->
         <section class="chrome-extension-section">
             <div class="chrome-extension-container">
                 <div class="chrome-extension-content">
                     <img src="/assets/img/icons/accueil.png" alt="Logo MMCP Connect" class="chrome-extension-logo"
                         draggable="false">
                     <span class="hero-panel-badge">Outil Officiel</span>
-                    <h2>Extension Chrome</h2>
-                    <p>Gérez, suivez et connectez-vous rapidement à vos services de distribution et à votre espace
-                        artiste directement depuis votre navigateur.</p>
-                    <a href="https://chromewebstore.google.com/detail/mmcp-connect/hbiihciodnloeamjnflfdokccdlopomf?utm_campaign=pmaxfrroblox&utm_content=roblox3&utm_medium=ga&utm_source=bgads1"
+                    <h2>Extension Chrome MMCP Connect</h2>
+                    <p>Connectez-vous directement à votre tableau de bord et suivez vos statistiques en un clic depuis
+                        votre navigateur.</p>
+                    <a href="https://chromewebstore.google.com/detail/mmcp-connect/hbiihciodnloeamjnflfdokccdlopomf"
                         target="_blank" rel="noopener noreferrer" class="cta-button">Ajouter à Chrome</a>
                 </div>
             </div>
         </section>
 
+        <!-- SEO PILLS -->
         <section class="seo-funny-section">
             <div class="seo-funny-container">
-                <p class="seo-tagline">Excusez-nous, on pose ça là.</p>
+                <p class="seo-tagline">Hop, un peu de référencement au passage 😉</p>
                 <div class="seo-pills-wrapper">
                     <a href="/pourquoi-nous.html" class="seo-pill">Alternative DistroKid sans frais cachés</a>
                     <a href="/pourquoi-nous.html" class="seo-pill">Pourquoi TuneCore est trop cher ?</a>

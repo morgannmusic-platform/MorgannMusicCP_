@@ -1,10 +1,10 @@
-// On génère le tableau direct de 1.png à 18.png
 const logos = Array.from({ length: 18 }, (_, i) => `${i + 1}.png`);
 
-function addLogosTo(trackId) {
+function addLogosToMarquee(trackId) {
     const track = document.getElementById(trackId);
     if (!track) return [];
     const imgs = [];
+
     for (let rep = 0; rep < 2; rep++) {
         logos.forEach(name => {
             const item = document.createElement('div');
@@ -23,9 +23,10 @@ function addLogosTo(trackId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const imgs1 = addLogosTo('marquee1');
-    const imgs2 = addLogosTo('marquee2');
+    const imgs1 = addLogosToMarquee('marquee1');
+    const imgs2 = addLogosToMarquee('marquee2');
     const allImgs = imgs1.concat(imgs2);
+
     const loadPromises = allImgs.map(img => new Promise(resolve => {
         if (img.complete && img.naturalWidth !== 0) return resolve();
         img.addEventListener('load', resolve);
