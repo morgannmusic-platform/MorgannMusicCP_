@@ -1,0 +1,20 @@
+name = "morgann-music-cover-converter"
+main = "src/index.js"
+compatibility_date = "2026-08-10"
+
+# Route pour lancer la conversion facilement depuis ton domaine principal
+routes = [
+  { pattern = "api.worker.mm-cp.uk/run-migration*", zone_name = "mm-cp.uk" }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ma-super-base"
+database_id = "e21ef4d8-7e6a-436f-8cf4-eca72daf322f"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "morgann-music-files"
+
+[vars]
+CORS_ORIGIN = "*"
