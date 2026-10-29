@@ -45,6 +45,10 @@
                 <ul>
                     <li><strong>Informations d'identification et de compte :</strong> Nom, prénom, adresse e-mail, nom
                         d'artiste ou de label.</li>
+                    <li><strong>Mots de passe et identifiants de connexion (password) :</strong> L'extension et la
+                        plateforme gèrent l'authentification des utilisateurs. Les mots de passe saisis sont transmis de
+                        manière strictement chiffrée (HTTPS/TLS) à notre service d'authentification sécurisé et ne sont
+                        jamais stockés en clair ni lus par l'extension.</li>
                     <li><strong>Coordonnées et facturation :</strong> Adresse postale, ville, code postal, IBAN (si
                         renseigné) et données de transaction gérées via notre prestataire Stripe.</li>
                     <li><strong>Données de sécurité et d'accès :</strong> Clés secrètes d'authentification à deux
@@ -63,7 +67,8 @@
                 <p>Les données collectées font l'objet d'un traitement informatique automatisé et sont utilisées
                     exclusivement pour les finalités suivantes :</p>
                 <ul>
-                    <li>Gestion, création, authentification et sécurisation de votre compte utilisateur.</li>
+                    <li>Gestion, création, authentification et sécurisation de votre compte utilisateur (via le
+                        traitement chiffré des mots de passe et identifiants).</li>
                     <li>Exécution des abonnements, traitement des paiements sécurisés via Stripe et gestion de la
                         facturation.</li>
                     <li>Fourniture des services de distribution musicale et gestion des flux vers les plateformes

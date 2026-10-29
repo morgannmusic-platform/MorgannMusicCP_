@@ -21,6 +21,23 @@ function absoluteMediaUrl(url, domain) {
   return `https://api.worker.mm-cp.uk/api/files/${encodeURIComponent(value)}`;
 }
 
+function sanitizeSchemaJson(rawSchema) {
+  if (!rawSchema) return "";
+  let clean = String(rawSchema).trim();
+  if (!clean) return "";
+
+  // Retrait des balises <script> englobantes si déjà présent dans la chaîne D1
+  clean = clean.replace(/^<script[^>]*>/i, "").replace(/<\/script>$/i, "").trim();
+
+  try {
+    // Si c'est un objet valide, on le reformate proprement
+    const parsed = JSON.parse(clean);
+    return JSON.stringify(parsed, null, 2);
+  } catch (e) {
+    return clean;
+  }
+}
+
 function generateReleaseOgHtml(release, currentUrl, domain, artistUser = null) {
   const siteName = getSiteName(domain);
   const releaseTitle = release?.title || 'Sortie musicale';
@@ -37,6 +54,24 @@ function generateReleaseOgHtml(release, currentUrl, domain, artistUser = null) {
   let coverUrl = absoluteMediaUrl(release?.cover_url || release?.animated_cover_url, domain);
   if (!coverUrl) {
     coverUrl = "https://mm-cp.uk/assets/img/icons/sombre.png";
+  }
+
+  // Génération / Récupération des données structurées Schema.org (JSON-LD)
+  let schemaContent = sanitizeSchemaJson(release?.schema_json);
+  if (!schemaContent) {
+    const defaultSchema = {
+      "@context": "https://schema.org",
+      "@type": "MusicAlbum",
+      "name": releaseTitle,
+      "byArtist": {
+        "@type": "MusicGroup",
+        "name": artistName
+      },
+      "image": coverUrl,
+      "url": currentUrl,
+      "description": description
+    };
+    schemaContent = JSON.stringify(defaultSchema, null, 2);
   }
 
   return `<!DOCTYPE html>
@@ -61,6 +96,11 @@ function generateReleaseOgHtml(release, currentUrl, domain, artistUser = null) {
     <meta name="twitter:title" content="${title}">
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${coverUrl}">
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+${schemaContent}
+    </script>
 </head>
 <body>
     <h1>${title}</h1>
@@ -95,6 +135,20 @@ function generateArtistOgHtml(artist, currentUrl, domain, latestRelease = null, 
   const latestReleaseTitle = latestRelease?.title || 'Aucune sortie récente';
   let latestReleaseCover = absoluteMediaUrl(latestRelease?.cover_url || latestRelease?.animated_cover_url, domain);
 
+  // Génération / Récupération des données structurées Schema.org (JSON-LD)
+  let schemaContent = sanitizeSchemaJson(artist?.schema_json);
+  if (!schemaContent) {
+    const defaultSchema = {
+      "@context": "https://schema.org",
+      "@type": "MusicGroup",
+      "name": name,
+      "image": photoUrl,
+      "url": currentUrl,
+      "description": description
+    };
+    schemaContent = JSON.stringify(defaultSchema, null, 2);
+  }
+
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -117,6 +171,11 @@ function generateArtistOgHtml(artist, currentUrl, domain, latestRelease = null, 
     <meta name="twitter:title" content="${title}">
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${photoUrl}">
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+${schemaContent}
+    </script>
 </head>
 <body>
     <h1>${title}</h1>
