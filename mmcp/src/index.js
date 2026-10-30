@@ -340,19 +340,20 @@ async function addUserLitualMessage(env, uid, conversationId, payload = {}) {
   }, 201);
 }
 
-// Fonction utilitaire pour déclencher le worker de migration de pochette HD -> WebP en arrière-plan
-function triggerCoverMigration(ctx) {
-  const migrationUrl = "https://api.worker.mm-cp.uk/run-migration";
-  if (ctx && typeof ctx.waitUntil === "function") {
-    ctx.waitUntil(
-      fetch(migrationUrl).catch((err) =>
-        console.error("Erreur déclenchement migration pochette:", err)
-      )
-    );
-  } else {
-    fetch(migrationUrl).catch((err) =>
+// Fonction utilitaire pour déclencher le worker de migration de pochette uniquement si une pochette est renseignée
+function triggerCoverMigration(ctx, coverUrl = "", hdCoverUrl = "") {
+  if (!coverUrl && !hdCoverUrl) return;
+
+  const runMigration = () => {
+    fetch("https://api.worker.mm-cp.uk/run-migration").catch((err) =>
       console.error("Erreur déclenchement migration pochette:", err)
     );
+  };
+
+  if (ctx && typeof ctx.waitUntil === "function") {
+    ctx.waitUntil(runMigration());
+  } else {
+    runMigration();
   }
 }
 
@@ -3273,15 +3274,42 @@ async function createRelease(env, uid, request, ctx) {
   const copyrightLineP = data.copyrightLineP?.trim() ? data.copyrightLineP : "Morgann Music CP";
   const schemaJson = typeof data.schemaJson === "object" ? JSON.stringify(data.schemaJson) : (data.schemaJson || data.schema_json || null);
 
-  const pochetteHD = data.pochetteHauteDefinition || data.pochette_haute_definition || data.coverUrl || "";
+  const coverUrl = data.coverUrl || "";
+  const pochetteHd = data.pochetteHauteDefinition || data.pochette_haute_definition || "";
 
-  const res = await env.DB.prepare(`INSERT INTO releases ( user_uid, title, type, artist_name, cover_url, pochette_haute_definition, status, release_date, original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre, language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright, manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type, upc, catalog_number, territories, tracks, feats, apple_motion_11, apple_motion_34, animated_cover_url, release_url, spotify_url, apple_url, deezer_url, amazon_url, youtube_music_url, tidal_url, qobuz_url, soundcloud_url, bandcamp_url, napster_url, pandora_url, beatport_url, traxsource_url, tiktok_url, instagram_url, shazam_url, tencent_url, netease_url, boomplay_url, anghami_url, vk_url, yandex_url, show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date, premiere_end_date, premiere_is_active, dolby_atmos, schema_json, created_at, updated_at ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )`).bind(
+  const res = await env.DB.prepare(`
+    INSERT INTO releases (
+      user_uid, title, type, artist_name, cover_url, pochette_haute_definition, status, release_date,
+      original_release_date, preorder_date, timezone, exact_time, primary_genre, secondary_genre,
+      language, is_instrumental, label_name, copyright_line_c, copyright_line_p, std_copyright,
+      manual_platforms, selected_platforms, additional_deliveries, version_line, licence_type,
+      upc, catalog_number, territories, tracks, feats, apple_motion_11, apple_motion_34,
+      animated_cover_url, release_url, spotify_url, apple_url, deezer_url, amazon_url,
+      youtube_music_url, tidal_url, qobuz_url, soundcloud_url, bandcamp_url, napster_url,
+      pandora_url, beatport_url, traxsource_url, tiktok_url, instagram_url, shazam_url,
+      tencent_url, netease_url, boomplay_url, anghami_url, vk_url, yandex_url,
+      show_on_mmcp_catalog, premiere_slug, premiere_password, premiere_start_date,
+      premiere_end_date, premiere_is_active, dolby_atmos, schema_json, created_at, updated_at
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?,
+      ?, ?, ?, ?, ?, ?
+    )
+  `).bind(
     uid,
     data.title || "",
     data.type || "Single",
     artistName,
-    data.coverUrl || "",
-    pochetteHD,
+    coverUrl,
+    pochetteHd,
     data.status || "brouillon",
     data.releaseDate || "",
     data.originalReleaseDate || "",
@@ -3354,8 +3382,8 @@ async function createRelease(env, uid, request, ctx) {
     `/sortie.html?id=${res.meta.last_row_id}`
   );
 
-  // Déclenchement de la migration de pochette en arrière-plan
-  triggerCoverMigration(ctx);
+  // Déclenchement conditionnel de la migration
+  triggerCoverMigration(ctx, coverUrl, pochetteHd);
 
   return corsJson({ id: res.meta.last_row_id, success: true }, 201);
 }
@@ -3365,7 +3393,7 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
     const data = await request.json();
     const now = new Date().toISOString();
 
-    const rel = await env.DB.prepare("SELECT user_uid, title, status FROM releases WHERE id = ?").bind(releaseId).first();
+    const rel = await env.DB.prepare("SELECT user_uid, title, status, cover_url, pochette_haute_definition FROM releases WHERE id = ?").bind(releaseId).first();
 
     let formattedTerritories = null;
     if (data.territories !== undefined) {
@@ -3381,14 +3409,81 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
     }
 
     const resolvedLabelName = data.labelName !== undefined ? data.labelName : (data.label !== undefined ? data.label : null);
-    const pochetteHD = data.pochetteHauteDefinition !== undefined ? data.pochetteHauteDefinition : (data.pochette_haute_definition !== undefined ? data.pochette_haute_definition : null);
+    const pochetteHd = data.pochetteHauteDefinition !== undefined ? data.pochetteHauteDefinition : (data.pochette_haute_definition !== undefined ? data.pochette_haute_definition : null);
 
-    await env.DB.prepare(`UPDATE releases SET title = COALESCE(?, title), type = COALESCE(?, type), artist_name = COALESCE(?, artist_name), cover_url = COALESCE(?, cover_url), pochette_haute_definition = COALESCE(?, pochette_haute_definition), status = COALESCE(?, status), release_date = COALESCE(?, release_date), original_release_date = COALESCE(?, original_release_date), preorder_date = COALESCE(?, preorder_date), timezone = COALESCE(?, timezone), exact_time = COALESCE(?, exact_time), primary_genre = COALESCE(?, primary_genre), secondary_genre = COALESCE(?, secondary_genre), language = COALESCE(?, language), is_instrumental = COALESCE(?, is_instrumental), label_name = COALESCE(?, label_name), copyright_line_c = COALESCE(?, copyright_line_c), copyright_line_p = COALESCE(?, copyright_line_p), std_copyright = COALESCE(?, std_copyright), manual_platforms = COALESCE(?, manual_platforms), selected_platforms = COALESCE(?, selected_platforms), additional_deliveries = COALESCE(?, additional_deliveries), version_line = COALESCE(?, version_line), licence_type = COALESCE(?, licence_type), upc = COALESCE(?, upc), catalog_number = COALESCE(?, catalog_number), territories = COALESCE(?, territories), tracks = COALESCE(?, tracks), feats = COALESCE(?, feats), apple_motion_11 = COALESCE(?, apple_motion_11), apple_motion_34 = COALESCE(?, apple_motion_34), animated_cover_url = COALESCE(?, animated_cover_url), release_url = COALESCE(?, release_url), spotify_url = COALESCE(?, spotify_url), apple_url = COALESCE(?, apple_url), deezer_url = COALESCE(?, deezer_url), amazon_url = COALESCE(?, amazon_url), youtube_music_url = COALESCE(?, youtube_music_url), tidal_url = COALESCE(?, tidal_url), qobuz_url = COALESCE(?, qobuz_url), soundcloud_url = COALESCE(?, soundcloud_url), bandcamp_url = COALESCE(?, bandcamp_url), napster_url = COALESCE(?, napster_url), pandora_url = COALESCE(?, pandora_url), beatport_url = COALESCE(?, beatport_url), traxsource_url = COALESCE(?, traxsource_url), tiktok_url = COALESCE(?, tiktok_url), instagram_url = COALESCE(?, instagram_url), shazam_url = COALESCE(?, shazam_url), tencent_url = COALESCE(?, tencent_url), netease_url = COALESCE(?, netease_url), boomplay_url = COALESCE(?, boomplay_url), anghami_url = COALESCE(?, anghami_url), vk_url = COALESCE(?, vk_url), yandex_url = COALESCE(?, yandex_url), show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog), premiere_slug = COALESCE(?, premiere_slug), premiere_password = COALESCE(?, premiere_password), premiere_start_date = COALESCE(?, premiere_start_date), premiere_end_date = COALESCE(?, premiere_end_date), premiere_is_active = COALESCE(?, premiere_is_active), dolby_atmos = COALESCE(?, dolby_atmos), schema_json = COALESCE(?, schema_json), updated_at = ? WHERE id = ?`).bind(
+    await env.DB.prepare(`
+      UPDATE releases SET 
+        title = COALESCE(?, title),
+        type = COALESCE(?, type),
+        artist_name = COALESCE(?, artist_name),
+        cover_url = COALESCE(?, cover_url),
+        pochette_haute_definition = COALESCE(?, pochette_haute_definition),
+        status = COALESCE(?, status),
+        release_date = COALESCE(?, release_date),
+        original_release_date = COALESCE(?, original_release_date),
+        preorder_date = COALESCE(?, preorder_date),
+        timezone = COALESCE(?, timezone),
+        exact_time = COALESCE(?, exact_time),
+        primary_genre = COALESCE(?, primary_genre),
+        secondary_genre = COALESCE(?, secondary_genre),
+        language = COALESCE(?, language),
+        is_instrumental = COALESCE(?, is_instrumental),
+        label_name = COALESCE(?, label_name),
+        copyright_line_c = COALESCE(?, copyright_line_c),
+        copyright_line_p = COALESCE(?, copyright_line_p),
+        std_copyright = COALESCE(?, std_copyright),
+        manual_platforms = COALESCE(?, manual_platforms),
+        selected_platforms = COALESCE(?, selected_platforms),
+        additional_deliveries = COALESCE(?, additional_deliveries),
+        version_line = COALESCE(?, version_line),
+        licence_type = COALESCE(?, licence_type),
+        upc = COALESCE(?, upc),
+        catalog_number = COALESCE(?, catalog_number),
+        territories = COALESCE(?, territories),
+        tracks = COALESCE(?, tracks),
+        feats = COALESCE(?, feats),
+        apple_motion_11 = COALESCE(?, apple_motion_11),
+        apple_motion_34 = COALESCE(?, apple_motion_34),
+        animated_cover_url = COALESCE(?, animated_cover_url),
+        release_url = COALESCE(?, release_url),
+        spotify_url = COALESCE(?, spotify_url),
+        apple_url = COALESCE(?, apple_url),
+        deezer_url = COALESCE(?, deezer_url),
+        amazon_url = COALESCE(?, amazon_url),
+        youtube_music_url = COALESCE(?, youtube_music_url),
+        tidal_url = COALESCE(?, tidal_url),
+        qobuz_url = COALESCE(?, qobuz_url),
+        soundcloud_url = COALESCE(?, soundcloud_url),
+        bandcamp_url = COALESCE(?, bandcamp_url),
+        napster_url = COALESCE(?, napster_url),
+        pandora_url = COALESCE(?, pandora_url),
+        beatport_url = COALESCE(?, beatport_url),
+        traxsource_url = COALESCE(?, traxsource_url),
+        tiktok_url = COALESCE(?, tiktok_url),
+        instagram_url = COALESCE(?, instagram_url),
+        shazam_url = COALESCE(?, shazam_url),
+        tencent_url = COALESCE(?, tencent_url),
+        netease_url = COALESCE(?, netease_url),
+        boomplay_url = COALESCE(?, boomplay_url),
+        anghami_url = COALESCE(?, anghami_url),
+        vk_url = COALESCE(?, vk_url),
+        yandex_url = COALESCE(?, yandex_url),
+        show_on_mmcp_catalog = COALESCE(?, show_on_mmcp_catalog),
+        premiere_slug = COALESCE(?, premiere_slug),
+        premiere_password = COALESCE(?, premiere_password),
+        premiere_start_date = COALESCE(?, premiere_start_date),
+        premiere_end_date = COALESCE(?, premiere_end_date),
+        premiere_is_active = COALESCE(?, premiere_is_active),
+        dolby_atmos = COALESCE(?, dolby_atmos),
+        schema_json = COALESCE(?, schema_json),
+        updated_at = ?
+      WHERE id = ?
+    `).bind(
       data.title !== undefined ? data.title : null,
       data.type !== undefined ? data.type : null,
       data.artistName !== undefined ? data.artistName : null,
       data.coverUrl !== undefined ? data.coverUrl : null,
-      pochetteHD,
+      pochetteHd,
       data.status !== undefined ? data.status : null,
       data.releaseDate !== undefined ? data.releaseDate : null,
       data.originalReleaseDate !== undefined ? data.originalReleaseDate : null,
@@ -3455,8 +3550,10 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
       await triggerReleaseStatusNotification(env, ctx, rel.user_uid, rel.title, releaseId, rel.status, data.status);
     }
 
-    // Déclenchement de la migration de pochette en arrière-plan
-    triggerCoverMigration(ctx);
+    // Déclenchement conditionnel de la migration si une pochette existe
+    const finalCover = data.coverUrl !== undefined ? data.coverUrl : rel?.cover_url;
+    const finalHd = pochetteHd !== null ? pochetteHd : rel?.pochette_haute_definition;
+    triggerCoverMigration(ctx, finalCover, finalHd);
 
     return corsJson({ id: releaseId, success: true });
   } catch (err) {

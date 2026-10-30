@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Profil Artiste - MM-CP</title>
+    <title>Profil d'artiste | Portail MMCP</title>
     <link rel="stylesheet" href="js/reponsive.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#FC8FB0">
@@ -52,7 +52,6 @@
         body {
             font-family: 'Segoe UI', sans-serif;
             color: var(--text-main);
-            background: var(--bg-color);
             margin: 4.6rem 0 0 0;
             padding: 20px;
             transition: background 0.3s ease, color 0.3s ease;
@@ -407,8 +406,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Lien du logo de l'artiste (URL)</label>
-                    <input type="url" id="edit-logo-url" placeholder="https://exemple.com/mon-logo.png">
+                    <label>Importer le logo de l'artiste</label>
+                    <input type="file" id="edit-logo-file" accept="image/*">
                 </div>
 
                 <div class="form-group">
@@ -465,10 +464,40 @@
         async function uploadFileToCloudflare(file, type = "cover") {
             const formData = new FormData();
             formData.append("file", file);
-            const res = await api.upload(`/api/upload/${type}`, formData);
+
+            // On utilise l'URL absolue du worker pour éviter que le Live Server (127.0.0.1) intercepte le POST
+            // Remplacez 'https://api.worker.mm-cp.uk' par l'URL de votre worker si elle est différente
+            const workerUrl = "https://api.worker.mm-cp.uk";
+
+            // On récupère le token d'authentification si la route en a besoin
+            let token = "";
+            if (auth.currentUser) {
+                token = await auth.currentUser.getIdToken();
+            }
+
+            const response = await fetch(`${workerUrl}/api/upload/${type}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const text = await response.text();
+            let res;
+            try {
+                res = JSON.parse(text);
+            } catch (e) {
+                throw new Error(`Erreur serveur (${response.status}) : ${text || response.statusText}`);
+            }
+
+            if (!response.ok) {
+                throw new Error(res.error || "Échec du téléversement du fichier.");
+            }
+
             if (res && res.url) return res.url;
             if (res && res.key) return api.fileUrl(res.key);
-            throw new Error(res.error || "Échec du téléversement du fichier.");
+            throw new Error("Réponse de téléversement invalide.");
         }
 
         async function afficherPopupSelection(uid) {
@@ -550,7 +579,6 @@
                     `).join('');
 
                     document.getElementById("edit-name").value = artist.name || "";
-                    document.getElementById("edit-logo-url").value = logoUrl || "";
                     document.getElementById("edit-birthdate").value = artist.birthdate || "";
                     document.getElementById("edit-birthplace").value = artist.birthplace || "";
                     document.getElementById("edit-genre").value = artist.genre || "";
@@ -579,6 +607,7 @@
 
             const avatarFileInput = document.getElementById("edit-avatar-file");
             const bannerFileInput = document.getElementById("edit-banner-file");
+            const logoFileInput = document.getElementById("edit-logo-file");
 
             const submitBtn = document.getElementById("btn-submit-form");
             submitBtn.innerText = "Envoi vers le serveur...";
@@ -587,10 +616,14 @@
             try {
                 let photo = currentArtistData.photo || currentArtistData.avatarUrl || "";
                 let bannerUrl = currentArtistData.bannerUrl || currentArtistData.banUrl || "";
-                const logoUrl = document.getElementById("edit-logo-url").value.trim();
+                let logoUrl = currentArtistData.logoUrl || currentArtistData.logo_url || "";
 
                 if (avatarFileInput.files && avatarFileInput.files[0]) {
                     photo = await uploadFileToCloudflare(avatarFileInput.files[0], "cover");
+                }
+
+                if (logoFileInput.files && logoFileInput.files[0]) {
+                    logoUrl = await uploadFileToCloudflare(logoFileInput.files[0], "logo");
                 }
 
                 if (bannerFileInput.files && bannerFileInput.files[0]) {
