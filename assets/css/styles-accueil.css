@@ -945,3 +945,10 @@ img {
 .google-ai-list strong {
     color: var(--rose);
 }
+
+.google-ai-note {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    line-height: 1.5;
+}
