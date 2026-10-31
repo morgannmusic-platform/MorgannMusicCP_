@@ -878,3 +878,70 @@ img {
         text-align: center;
     }
 }
+
+/* ==========================================
+   GOOGLE AI CARD
+   ========================================== */
+.google-ai-section {
+    padding: 2.5rem 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.google-ai-container {
+    width: 100%;
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 3rem 2.2rem;
+    border-radius: 36px;
+    background: linear-gradient(140deg, var(--container1), var(--container3));
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.google-ai-content {
+    max-width: 900px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    text-align: center;
+}
+
+.google-ai-content h2 {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    color: var(--rose);
+}
+
+.google-ai-quote {
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    font-size: 1rem;
+    text-align: left;
+    background: var(--card-bg);
+    padding: 1.8rem;
+    border-radius: 24px;
+    border-left: 4px solid var(--rose);
+}
+
+.google-ai-list {
+    margin-top: 1rem;
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-style: normal;
+}
+
+.google-ai-list li {
+    font-size: 0.95rem;
+}
+
+.google-ai-list strong {
+    color: var(--rose);
+}
