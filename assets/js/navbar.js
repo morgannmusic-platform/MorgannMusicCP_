@@ -12,6 +12,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const navbarPath = "/assets/navbars/accueil/navbar.html";
 
+    // --- GESTION DU CACHE LOCALSTORAGE ---
+    const CACHE_KEY = "mm_user_cache";
+
+    const saveUserCache = (data) => {
+        try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.error("Erreur sauvegarde cache:", e);
+        }
+    };
+
+    const getUserCache = () => {
+        try {
+            const cached = localStorage.getItem(CACHE_KEY);
+            return cached ? JSON.parse(cached) : null;
+        } catch (e) {
+            return null;
+        }
+    };
+
+    const clearUserCache = () => {
+        localStorage.removeItem(CACHE_KEY);
+    };
+
     fetch(navbarPath)
         .then((response) => {
             if (!response.ok) {
@@ -32,40 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            const animateNavbar = () => {
-                if (typeof gsap !== "undefined" && !reducedMotion) {
-                    const tl = gsap.timeline();
-                    tl.to(".navbar", {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.6,
-                        ease: "power2.out",
-                        startAt: { y: -20, opacity: 0 }
-                    });
-
-                    tl.to([".nav-logo", ".nav-auth"], {
-                        opacity: 1,
-                        duration: 0.4,
-                        ease: "power1.out"
-                    }, "-=0.2");
-
-                    tl.to(".nav-item", {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.4,
-                        stagger: 0.06,
-                        ease: "power1.out",
-                        startAt: { y: -5, opacity: 0 }
-                    }, "-=0.25");
-                } else {
-                    const bar = navbarContainer.querySelector(".navbar");
-                    if (bar) bar.style.opacity = "1";
-                    navbarContainer.querySelectorAll(".nav-logo, .nav-auth, .nav-item").forEach((el) => {
-                        el.style.opacity = "1";
-                    });
-                }
-            };
-
             const mobileNavLinksContainer = document.createElement('div');
             mobileNavLinksContainer.className = 'mobile-nav-links';
             if (desktopNavLinks) mobileNavLinksContainer.innerHTML = desktopNavLinks.innerHTML;
@@ -82,6 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             const renderDisconnected = () => {
+                clearUserCache();
                 const authHtml = `
                     <a class="auth-link" href="/login.html">Se connecter</a>
                     <a class="auth-link" href="/signin.html">S'inscrire</a>
@@ -98,7 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     ? `<a href="/portail/admin/index.html">Tableau de bord admin</a>`
                     : "";
 
-                // Vérification stricte ou insensible à la casse
                 const isLabel = planName && planName.toLowerCase() === "label";
                 const portalHref = isLabel ? "/portail/label/index.html" : "/portail/index.html";
                 const portalText = isLabel ? "Portail Label" : "Portail Utilisateur";
@@ -150,6 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
 
                     logoutButton?.addEventListener("click", async () => {
+                        clearUserCache();
                         await signOut(auth);
                         window.location.href = "/login.html";
                     });
@@ -157,12 +148,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const mobileLogoutBtn = mobileAuthLinksDiv.querySelector("#mobile-logout-button");
                 mobileLogoutBtn?.addEventListener("click", async () => {
+                    clearUserCache();
                     await signOut(auth);
                     window.location.href = "/login.html";
                 });
 
                 setupProfileMenu(navAuth);
                 attachMobileMenuLinkListeners();
+            };
+
+            // ⚡ CHARGEMENT IMMÉDIAT DU PROFIL DEPUIS LE CACHE LOCALSTORAGE
+            const cachedUser = getUserCache();
+            if (cachedUser) {
+                renderConnected(cachedUser.user, cachedUser.isAdmin, cachedUser.customPhotoURL, cachedUser.planName);
+            }
+
+            const animateNavbar = () => {
+                if (typeof gsap !== "undefined" && !reducedMotion) {
+                    const tl = gsap.timeline();
+                    tl.to(".navbar", {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.6,
+                        ease: "power2.out",
+                        startAt: { y: -20, opacity: 0 }
+                    });
+
+                    tl.to([".nav-logo", ".nav-auth"], {
+                        opacity: 1,
+                        duration: 0.4,
+                        ease: "power1.out"
+                    }, "-=0.2");
+
+                    tl.to(".nav-item", {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.4,
+                        stagger: 0.06,
+                        ease: "power1.out",
+                        startAt: { y: -5, opacity: 0 },
+                        onComplete: () => {
+                            // Supprime uniquement 'transform' pour débloquer le hover CSS sans réinitialiser l'opacité à 0
+                            gsap.set(".nav-item", { clearProps: "transform" });
+                            gsap.set(".navbar", { clearProps: "transform" });
+                        }
+                    }, "-=0.25");
+                } else {
+                    const bar = navbarContainer.querySelector(".navbar");
+                    if (bar) bar.style.opacity = "1";
+                    navbarContainer.querySelectorAll(".nav-logo, .nav-auth, .nav-item").forEach((el) => {
+                        el.style.opacity = "1";
+                    });
+                }
             };
 
             const openMobileMenu = () => {
@@ -208,6 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (e.target === mobileMenuOverlay) closeMobileMenu();
             });
 
+            // VÉRIFICATION FIREBASE EN ARRIÈRE-PLAN
             onAuthStateChanged(auth, async (user) => {
                 if (!user) {
                     renderDisconnected();
@@ -223,13 +261,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (userData) {
                         isAdmin = userData.role === "admin";
                         customPhotoURL = userData.photoURL || null;
-                        planName = userData.planName || null; // Utilisation de planName (camelCase renvoyé par l'API)
+                        planName = userData.planName || null;
                     }
                 } catch (error) {
                     console.error("Erreur récupération profil D1:", error);
                 }
 
-                renderConnected(user, isAdmin, customPhotoURL, planName);
+                const userDataToCache = {
+                    user: { uid: user.uid, photoURL: user.photoURL },
+                    isAdmin,
+                    customPhotoURL,
+                    planName
+                };
+
+                saveUserCache(userDataToCache);
+                renderConnected(userDataToCache.user, isAdmin, customPhotoURL, planName);
             });
 
             animateNavbar();

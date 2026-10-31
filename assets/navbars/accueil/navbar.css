@@ -71,10 +71,7 @@
     gap: 30px;
 }
 
-.nav-links a:hover {
-    transform: scale(1.05);
-    transition: all 0.3s ease;
-}
+
 
 @media (max-width: 768px) {
     #desktop-nav-links {
@@ -82,17 +79,22 @@
     }
 }
 
+/* Supprime ou commente .nav-links a:hover */
+
 .nav-item {
-    font-size: 12px;
+    display: inline-block;
+    /* Requis pour que transform fonctionne */
+    font-size: 13px;
     text-decoration: none;
     color: var(--text-nb);
     opacity: 0;
-    font-weight: 400;
-    transition: opacity 0.2s ease;
+    font-weight: 600;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .nav-item:hover {
     opacity: 0.6;
+    transform: scale(1.05);
 }
 
 .nav-menu {
