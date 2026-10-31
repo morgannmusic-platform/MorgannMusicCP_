@@ -567,112 +567,6 @@ export default {
         return corsJson(formatArtistRow(artist));
       }
 
-      const labelItemMatch = path.match(/^\/api\/labels\/(\d+)$/);
-      if (labelItemMatch) {
-        const labelId = labelItemMatch[1];
-        if (method === "GET") {
-          try {
-            const row = await env.DB.prepare("SELECT * FROM labels WHERE id = ?").bind(labelId).first();
-            if (!row) return corsJson({ error: "Label non trouvé" }, 404);
-            return corsJson(row);
-          } catch (err) {
-            return corsJson({ error: err.message }, 500);
-          }
-        }
-      }
-
-      if (path === "/api/artists-labels") {
-        if (method === "GET") {
-          try {
-            const labelId = url.searchParams.get("label_id");
-            let query = 'SELECT * FROM "artistes-labels"';
-            let params = [];
-            if (labelId) {
-              query += ' WHERE id_label = ?';
-              params.push(labelId);
-            }
-            query += ' ORDER BY created_at DESC';
-            const { results } = await env.DB.prepare(query).bind(...params).all();
-            return corsJson(results || []);
-          } catch (err) {
-            return corsJson({ error: err.message }, 500);
-          }
-        }
-        if (method === "POST") {
-          try {
-            const data = await request.json();
-            const now = new Date().toISOString();
-            const nomArtiste = data.artiste || data.nom_artiste || "";
-
-            const res = await env.DB.prepare(`
-              INSERT INTO "artistes-labels" (nom, prenom, email, uid, id_label, artiste, created_at)
-              VALUES (?, ?, ?, ?, ?, ?, ?)
-            `).bind(
-              data.nom || "",
-              data.prenom || "",
-              data.email || "",
-              data.uid || "",
-              String(data.id_label || ""),
-              nomArtiste,
-              now
-            ).run();
-
-            if (data.id_label && data.uid) {
-              const labelRow = await env.DB.prepare("SELECT uid FROM labels WHERE id = ?").bind(data.id_label).first();
-              if (labelRow) {
-                const artistName = nomArtiste || `${data.prenom} ${data.nom}`;
-                await env.DB.prepare(`
-                  INSERT INTO artists (user_uid, name, contact_email, created_at)
-                  VALUES (?, ?, ?, ?)
-                `).bind(labelRow.uid, artistName, data.email, now).run();
-
-                await sendNotification(
-                  env,
-                  ctx,
-                  labelRow.uid,
-                  "Nouvel artiste rejoint le label",
-                  `${artistName} a rejoint votre label.`,
-                  "label",
-                  "/artistes.html"
-                );
-              }
-            }
-
-            return corsJson({ id: res.meta.last_row_id, success: true }, 201);
-          } catch (err) {
-            return corsJson({ error: err.message }, 500);
-          }
-        }
-      }
-
-      const artistLabelItemMatch = path.match(/^\/api\/artists-labels\/(\d+)$/);
-      if (artistLabelItemMatch) {
-        const inviteId = artistLabelItemMatch[1];
-        if (method === "PUT" || method === "PATCH") {
-          try {
-            const data = await request.json();
-            await env.DB.prepare(`
-              UPDATE "artistes-labels" 
-              SET nom = COALESCE(?, nom), 
-                  prenom = COALESCE(?, prenom), 
-                  email = COALESCE(?, email), 
-                  artiste = COALESCE(?, artiste)
-              WHERE id = ?
-            `).bind(
-              data.nom || null,
-              data.prenom || null,
-              data.email || null,
-              data.artiste || data.nom_artiste || null,
-              inviteId
-            ).run();
-
-            return corsJson({ success: true });
-          } catch (err) {
-            return corsJson({ error: err.message }, 500);
-          }
-        }
-      }
-
       if (method === "GET" && path === "/api/versions") {
         return await getAllVersions(env);
       }
@@ -917,15 +811,6 @@ export default {
         if (method === "GET") return await getUser(env, uid);
         if (method === "PUT") return await upsertUser(env, uid, request);
         if (method === "PATCH") return await patchUser(env, uid, request);
-      }
-
-      const userLabelsMatch = path.match(/^\/api\/users\/([^/]+)\/labels$/);
-      if (userLabelsMatch) {
-        const uid = userLabelsMatch[1];
-        const isSelf = uid === userId;
-        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
-        if (method === "POST") return await createLabel(env, uid, request);
-        if (method === "GET") return await getUserLabels(env, uid);
       }
 
       const userFinanceItemMatch = path.match(/^\/api\/users\/([^/]+)\/finances\/([^/]+)$/);
@@ -2135,32 +2020,6 @@ async function ensureTables(db) {
       )
     `),
     db.prepare(`
-      CREATE TABLE IF NOT EXISTS labels (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        uid TEXT NOT NULL,
-        nom TEXT NOT NULL,
-        url TEXT,
-        accent_color TEXT,
-        bg_color TEXT,
-        icon_url TEXT,
-        favicon_url TEXT,
-        logo_url TEXT,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-      )
-    `),
-    db.prepare(`
-      CREATE TABLE IF NOT EXISTS "artistes-labels" (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nom TEXT NOT NULL,
-        prenom TEXT NOT NULL,
-        email TEXT NOT NULL,
-        uid TEXT NOT NULL,
-        id_label TEXT NOT NULL,
-        artiste TEXT,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-      )
-    `),
-    db.prepare(`
       CREATE TABLE IF NOT EXISTS user_tools_data (
         user_uid TEXT PRIMARY KEY,
         tracklists TEXT,
@@ -2214,7 +2073,6 @@ async function ensureTables(db) {
 
   try { await db.prepare("ALTER TABLE releases ADD COLUMN pochette_haute_definition TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE support_tickets ADD COLUMN messages TEXT").run(); } catch (e) { }
-  try { await db.prepare('ALTER TABLE "artistes-labels" ADD COLUMN artiste TEXT').run(); } catch (e) { }
   try {
     await db.prepare("ALTER TABLE releases ADD COLUMN premiere_slug TEXT").run();
     await db.prepare("ALTER TABLE releases ADD COLUMN premiere_password TEXT").run();
@@ -2454,42 +2312,6 @@ async function saveUserFreeboard(env, uid, request) {
     return corsJson({ success: true });
   } catch (err) {
     return corsJson({ error: err.message }, 500);
-  }
-}
-
-async function createLabel(env, uid, request) {
-  try {
-    const data = await request.json();
-    const nom = data.nom;
-    const url = data.url || "";
-    const accentColor = data.accentColor || "";
-    const bgColor = data.bgColor || "";
-    const iconUrl = data.iconUrl || "";
-    const faviconUrl = data.faviconUrl || "";
-    const logoUrl = data.logoUrl || "";
-    const now = new Date().toISOString();
-
-    if (!nom) {
-      return corsJson({ error: "Le nom du label est obligatoire" }, 400);
-    }
-
-    const res = await env.DB.prepare(`
-      INSERT INTO labels (uid, nom, url, accent_color, bg_color, icon_url, favicon_url, logo_url, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(uid, nom, url, accentColor, bgColor, iconUrl, faviconUrl, logoUrl, now).run();
-
-    return corsJson({ id: res.meta.last_row_id, success: true }, 201);
-  } catch (err) {
-    return corsJson({ error: err.message }, 500);
-  }
-}
-
-async function getUserLabels(env, uid) {
-  try {
-    const { results } = await env.DB.prepare("SELECT * FROM labels WHERE uid = ? ORDER BY created_at DESC").bind(uid).all();
-    return corsJson(results || []);
-  } catch (err) {
-    return corsJson([], 200);
   }
 }
 

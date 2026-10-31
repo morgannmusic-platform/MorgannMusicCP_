@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portail Label | Morgann Music CP</title>
+    <title>Portail utilisateur | Morgann Music CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
     <style>
         body {
@@ -56,21 +56,16 @@
         }
 
         .card a {
-            font-size: 18px;
+            font-size: 21px;
             font-weight: 500;
             color: #ffffff;
             margin: 0px;
             text-decoration: none;
             background: #FC8FB0;
             width: max-content;
-            padding: 8px 16px;
+            padding: 10px;
             margin-top: auto;
             border-radius: 40px;
-            transition: background 0.2s;
-        }
-
-        .card a:hover {
-            background: #d01159;
         }
 
         .revenus-header {
@@ -103,15 +98,15 @@
             letter-spacing: -0.5px;
         }
 
+        /* --- STYLE DU POP-UP DE BIENVENUE --- */
         .popup-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -130,12 +125,10 @@
             background: #ffffff;
             padding: 30px;
             border-radius: 34px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
-            text-align: left;
-            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 400px;
             width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
             box-sizing: border-box;
             border: 1px solid rgba(189, 189, 189, 0.438);
         }
@@ -144,114 +137,30 @@
             margin-top: 0;
             color: #3e2837;
             font-size: 24px;
-            text-align: center;
         }
 
-        .popup-content p.subtitle {
+        .popup-content p {
             color: #64748b;
-            font-size: 14px;
-            margin-bottom: 20px;
-            text-align: center;
+            font-size: 16px;
+            margin-bottom: 24px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 14px;
-        }
-
-        .form-group label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #3e2837;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            padding: 12px 16px;
-            border-radius: 16px;
-            border: 1px solid #cbd5e1;
-            outline: none;
-            font-family: inherit;
-            font-size: 14px;
-            background: #f8fafc;
-            transition: border-color 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: #FC8FB0;
-            background: #ffffff;
-        }
-
-        .domain-type-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-
-        .domain-type-btn {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 8px 12px;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            cursor: pointer;
-            color: #475569;
-        }
-
-        .domain-type-btn input {
-            margin: 0;
-            cursor: pointer;
-        }
-
-        .subdomain-input-wrapper {
-            display: flex;
-            align-items: center;
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-radius: 16px;
-            padding-right: 12px;
-            overflow: hidden;
-        }
-
-        .subdomain-input-wrapper input {
-            border: none;
-            background: transparent;
-            flex: 1;
-        }
-
-        .subdomain-suffix {
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-        }
-
-        .btn-submit-label {
-            width: 100%;
+        .btn-popup {
+            display: inline-block;
             background-color: #FC8FB0;
             color: #ffffff;
-            border: none;
-            padding: 14px;
+            text-decoration: none;
+            padding: 12px 24px;
             border-radius: 40px;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
+            font-weight: 600;
             transition: background 0.2s;
         }
 
-        .btn-submit-label:hover {
+        .btn-popup:hover {
             background-color: #d01159;
         }
 
+        /* --- DESIGN DE LA SECTION DES SORTIES --- */
         .releases-section {
             margin-top: 3rem;
             display: flex;
@@ -286,6 +195,8 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.411);
             padding: 12px 20px;
             gap: 16px;
+            text-decoration: none;
+            color: inherit;
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
@@ -297,6 +208,8 @@
         .release-cover {
             width: 50px;
             height: 50px;
+            min-width: 50px;
+            min-height: 50px;
             border-radius: 13px;
             object-fit: cover;
             background-color: #e2e8f0;
@@ -307,6 +220,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            overflow: hidden;
         }
 
         .release-title {
@@ -314,12 +228,18 @@
             font-weight: 700;
             color: #1e293b;
             margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .release-meta {
             font-size: 12px;
             color: #64748b;
             margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .release-status {
@@ -328,16 +248,12 @@
             padding: 4px 10px;
             border-radius: 20px;
             text-transform: uppercase;
+            white-space: nowrap;
         }
 
         .status-brouillon {
             background: rgba(100, 116, 139, 0.15);
             color: #64748b;
-        }
-
-        .status-attente-label {
-            background: rgba(236, 72, 153, 0.15);
-            color: #db2777;
         }
 
         .status-verification {
@@ -373,154 +289,92 @@
             <div class="card">
                 <div class="revenus-header">
                     <div class="revenus-title-block">
-                        <span class="revenus-icon">🏢</span>
+                        <span class="revenus-icon">💰</span>
                         <span class="revenus-title">Revenus Label</span>
                     </div>
                 </div>
                 <div class="revenus-main">
                     <div class="revenus-amount-wrapper">
-                        <div id="label-revenus-total" class="revenus-amount">0,00 €</div>
+                        <div id="user-revenus-total" class="revenus-amount">0,00 €</div>
                     </div>
                 </div>
-                <a href="finances-label.html">Détails financiers</a>
+                <a href="https://support.mm-cp.uk/type-de-compte">En savoir plus</a>
             </div>
 
             <div class="card">
-                <p>Label actif</p>
-                <h1 id="label-name-display">Chargement...</h1>
+                <p>Artistes</p>
+                <h1 id="user-artist-count">Chargement...</h1>
                 <a href="artistes.html">Gérer les artistes</a>
             </div>
 
             <div class="card">
-                <p>Abonnement Label</p>
+                <p>Plan</p>
                 <h1 id="plan">Chargement...</h1>
                 <a href="https://billing.stripe.com/p/login/dRmbJ1gpx2cB3uQ9se9EI00" target="_blank">Gérer</a>
             </div>
 
             <div class="card">
-                <p>Espace Label</p>
+                <p>Compte</p>
                 <h1 id="compte">Chargement...</h1>
-                <a href="parametres-label.html">Configuration</a>
+                <a href="https://support.mm-cp.uk/type-de-compte">En savoir plus</a>
             </div>
 
         </div>
-
         <div class="releases-section">
 
             <div class="releases-block">
-                <h2> Sorties à valider par le Label</h2>
-                <div id="pending-label-releases-list" class="releases-grid">
-                    <p class="loading-text">Chargement des demandes d'artistes...</p>
+                <h2>Dernières sorties ajoutées</h2>
+                <div id="recent-releases-list" class="releases-grid">
+                    <p class="loading-text">Chargement des sorties...</p>
                 </div>
             </div>
 
             <div class="releases-block">
-                <h2> Transmis à MMCP (En cours de distribution)</h2>
-                <div id="mmcp-releases-list" class="releases-grid">
-                    <p class="loading-text">Chargement des sorties transmises...</p>
+                <h2>Sorties en cours de vérification MMCP</h2>
+                <div id="verification-releases-list" class="releases-grid">
+                    <p class="loading-text">Chargement des vérifications...</p>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <div id="label-popup-overlay" class="popup-overlay">
+    <!-- POP-UP DE BIENVENUE PORTAIL LABEL -->
+    <div id="welcome-popup-overlay" class="popup-overlay">
         <div class="popup-content">
-            <h2>Créer votre Label</h2>
-            <p class="subtitle">Configurez votre structure pour débloquer votre portail et gérer vos artistes.</p>
-
-            <form id="create-label-form">
-                <div class="form-group">
-                    <label for="label-name">Nom du Label *</label>
-                    <input type="text" id="label-name" placeholder="Ex: Lune Rouge Records" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="label-manager">Nom de la gérante / du gérant *</label>
-                    <input type="text" id="label-manager" placeholder="Ex: Alex Martin" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Adresse du Portail Label (Optionnel)</label>
-                    <div class="domain-type-selector">
-                        <label class="domain-type-btn">
-                            <input type="radio" name="domain_type" value="subdomain" checked id="radio-subdomain">
-                            Sous-domaine .mm-cp.uk
-                        </label>
-                        <label class="domain-type-btn">
-                            <input type="radio" name="domain_type" value="custom" id="radio-custom">
-                            Mon Domaine Pro
-                        </label>
-                    </div>
-
-                    <div id="block-subdomain" class="subdomain-input-wrapper">
-                        <input type="text" id="label-subdomain" placeholder="lunerouge">
-                        <span class="subdomain-suffix">.mm-cp.uk</span>
-                    </div>
-
-                    <div id="block-custom-domain" style="display: none;">
-                        <input type="text" id="label-custom-domain" placeholder="ex: monlabelrecords.com"
-                            style="width: 100%; box-sizing: border-box;">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="label-email">Email de contact professionnel</label>
-                    <input type="email" id="label-email" placeholder="contact@monlabel.com">
-                </div>
-
-                <div class="form-group">
-                    <label for="label-description">Présentation courte / Bio (Optionnel)</label>
-                    <textarea id="label-description" rows="2"
-                        placeholder="Label indépendant spécialisé en..."></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit-label">Créer mon Label</button>
-            </form>
+            <h2>Votre compte n'est pas encore associé à un label.</h2>
+            <p>Présentez-le nous !</p>
+            <a href="label.html" class="btn-popup">Présentez nous votre label !</a>
         </div>
     </div>
 
     <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
 
-        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        const DEFAULT_COVER = "/assets/img/icons/brouillon.png";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
-            measurementId: "G-FKSSXYEZF0"
-        };
-
-        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let currentUser = null;
-        let activeLabelId = null;
-
-        const radioSubdomain = document.getElementById("radio-subdomain");
-        const radioCustom = document.getElementById("radio-custom");
-        const blockSubdomain = document.getElementById("block-subdomain");
-        const blockCustomDomain = document.getElementById("block-custom-domain");
-
-        radioSubdomain.addEventListener("change", () => {
-            if (radioSubdomain.checked) {
-                blockSubdomain.style.display = "flex";
-                blockCustomDomain.style.display = "none";
+        function getCoverUrl(release) {
+            let rawCover = release.coverUrl || release.cover || release.cover_url || release.pochetteUrl;
+            if (!rawCover && release.data) {
+                rawCover = release.data.coverUrl || release.data.cover || release.data.cover_url || release.data.pochetteUrl;
             }
-        });
+            if (!rawCover) return DEFAULT_COVER;
 
-        radioCustom.addEventListener("change", () => {
-            if (radioCustom.checked) {
-                blockSubdomain.style.display = "none";
-                blockCustomDomain.style.display = "block";
+            try {
+                if (typeof api.fileUrl === 'function') {
+                    return api.fileUrl(rawCover);
+                }
+            } catch (e) {
+                console.warn("Erreur résolution pochette via api.fileUrl :", e);
             }
-        });
+
+            if (rawCover.startsWith("http://") || rawCover.startsWith("https://") || rawCover.startsWith("data:")) {
+                return rawCover;
+            }
+            return rawCover;
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -528,130 +382,92 @@
                 return;
             }
 
-            currentUser = user;
-
-            // 1. RECUPERATION DU LABEL PRINCIPAL DANS LE FIRESTORE
+            // PARTIE A : Vérification du label et affichage du pop-up si inexistant
+            let hasLabel = false;
             try {
-                const labelsSnapshot = await getDocs(collection(db, "users", user.uid, "labels"));
-                const elLabelNameDisplay = document.getElementById("label-name-display");
+                const labelResponse = await api.get(`/api/users/${user.uid}/labels`);
+                const labelData = Array.isArray(labelResponse) ? labelResponse[0] : labelResponse;
 
-                if (labelsSnapshot.empty) {
-                    document.getElementById("label-popup-overlay").classList.add("show");
-                    if (elLabelNameDisplay) elLabelNameDisplay.innerText = "Aucun label";
-                    document.getElementById("pending-label-releases-list").innerHTML = '<p class="empty-text">Veuillez d\'abord créer un label.</p>';
-                    document.getElementById("mmcp-releases-list").innerHTML = '<p class="empty-text">Veuillez d\'abord créer un label.</p>';
-                    return;
+                if (labelData && labelData.nom) {
+                    hasLabel = true;
                 } else {
-                    let firstDoc = labelsSnapshot.docs[0];
-                    activeLabelId = firstDoc.id;
-                    if (elLabelNameDisplay) elLabelNameDisplay.innerText = firstDoc.data().name || "Mon Label";
+                    document.getElementById("welcome-popup-overlay").classList.add("show");
+                }
+            } catch (e) {
+                console.error("Erreur vérification label:", e);
+                document.getElementById("welcome-popup-overlay").classList.add("show");
+            }
+
+            // PARTIE B : Finances du label
+            try {
+                const finances = await api.get(`/api/users/${user.uid}/finances`);
+
+                const total = Array.isArray(finances)
+                    ? finances.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+                    : 0;
+
+                document.getElementById("user-revenus-total").innerText = total.toLocaleString('fr-FR', {
+                    style: 'currency',
+                    currency: 'EUR'
+                });
+            } catch (err) {
+                console.error("Erreur widget finances:", err);
+                document.getElementById("user-revenus-total").innerText = "Erreur";
+            }
+
+            // PARTIE C : Nombre d'artistes du label
+            try {
+                const artistsList = await api.get(`/api/users/${user.uid}/artists`);
+                const elArtistCount = document.getElementById("user-artist-count");
+
+                if (!Array.isArray(artistsList) || artistsList.length === 0) {
+                    if (elArtistCount) elArtistCount.innerText = "0";
+                } else {
+                    if (elArtistCount) elArtistCount.innerText = artistsList.length.toString();
                 }
             } catch (error) {
-                console.error("Erreur vérification collection labels:", error);
+                console.error("Erreur lors de la récupération des artistes:", error);
+                if (document.getElementById("user-artist-count")) {
+                    document.getElementById("user-artist-count").innerText = "Erreur";
+                }
             }
 
-            // 2. RECUPERATION DES FINANCES
+            // PARTIE D : Récupérer le plan et le rôle
             try {
-                const querySnapshot = await getDocs(collection(db, "users", user.uid, "finances"));
-                let totalGains = 0;
-                querySnapshot.forEach((doc) => {
-                    totalGains += doc.data().amount || 0;
-                });
-                document.getElementById("label-revenus-total").innerText = totalGains.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
-            } catch (err) {
-                console.error("Erreur finances label:", err);
-            }
+                const userData = await api.get(`/api/users/${user.uid}`);
 
-            // 3. RECUPERATION DU PLAN ET DU ROLE
-            try {
-                const userDocRef = doc(db, "users", user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-
-                if (userDocSnap.exists()) {
-                    const userData = userDocSnap.data();
-                    const userPlan = userData.planName || "Plan Label Base";
-                    const userRole = userData.role || "Gérant Label";
-
+                if (userData && !userData.error) {
+                    const userPlan = userData.planName || "Aucun plan";
+                    const userRole = userData.role || "Utilisateur";
                     adapterLesCartes(userPlan, userRole);
                 } else {
                     document.getElementById("plan").innerText = "Non trouvé";
                     document.getElementById("compte").innerText = "Non trouvé";
                 }
             } catch (error) {
-                console.error("Erreur profil label:", error);
+                console.error("Erreur chargement profil D1:", error);
                 document.getElementById("plan").innerText = "Erreur";
                 document.getElementById("compte").innerText = "Erreur";
             }
 
-            // 4. RECUPERATION DES SORTIES DANS users/{uid}/labels/{activeLabelId}/releases
-            if (activeLabelId) {
-                try {
-                    const releasesSnapshot = await getDocs(collection(db, "users", user.uid, "labels", activeLabelId, "releases"));
-
-                    let allReleases = [];
-                    releasesSnapshot.forEach((doc) => {
-                        allReleases.push({ id: doc.id, ...doc.data() });
-                    });
-
-                    const pendingLabelReleases = allReleases.filter(r => r.status === "en attente label" || r.status === "brouillon");
-                    afficherSorties(pendingLabelReleases, "pending-label-releases-list", "Aucune sortie en attente de votre validation.");
-
-                    const mmcpReleases = allReleases.filter(r => r.status === "verification mmcp" || r.status === "publié" || r.status === "validé");
-                    afficherSorties(mmcpReleases, "mmcp-releases-list", "Aucune sortie en cours chez MMCP.");
-
-                } catch (error) {
-                    console.error("Erreur récupération releases du label:", error);
-                }
-            }
-        });
-
-        document.getElementById("create-label-form").addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            if (!currentUser) return;
-
-            const name = document.getElementById("label-name").value.trim();
-            const manager = document.getElementById("label-manager").value.trim();
-            const email = document.getElementById("label-email").value.trim();
-            const description = document.getElementById("label-description").value.trim();
-
-            let subdomainVal = null;
-            let customDomainVal = null;
-
-            if (radioSubdomain.checked) {
-                const rawSub = document.getElementById("label-subdomain").value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-                if (rawSub) subdomainVal = rawSub;
-            } else if (radioCustom.checked) {
-                const rawCustom = document.getElementById("label-custom-domain").value.trim().toLowerCase();
-                if (rawCustom) customDomainVal = rawCustom;
-            }
-
-            const btnSubmit = e.target.querySelector("button[type='submit']");
-            btnSubmit.innerText = "Création en cours...";
-            btnSubmit.disabled = true;
-
+            // PARTIE E : Récupérer et lister les sorties (Releases)
             try {
-                const newLabelRef = await addDoc(collection(db, "users", currentUser.uid, "labels"), {
-                    name: name,
-                    managerName: manager,
-                    subdomain: subdomainVal,
-                    customDomain: customDomainVal,
-                    contactEmail: email || currentUser.email,
-                    description: description || "",
-                    createdAt: serverTimestamp()
-                });
+                const allReleases = await api.get(`/api/users/${user.uid}/releases`);
+                const releasesList = Array.isArray(allReleases) ? allReleases : [];
 
-                document.getElementById("label-popup-overlay").classList.remove("show");
-                document.getElementById("label-name-display").innerText = name;
+                const latestReleases = [...releasesList]
+                    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+                    .slice(0, 6);
 
-                // On recharge la page pour initialiser le statut avec le nouveau labelId
-                window.location.reload();
+                afficherSorties(latestReleases, "recent-releases-list");
+
+                const verificationReleases = releasesList.filter(r => r.status === "verification mmcp");
+                afficherSorties(verificationReleases, "verification-releases-list", "Aucune sortie en cours de vérification.");
 
             } catch (error) {
-                console.error("Erreur lors de la création du label:", error);
-                alert("Erreur lors de la création du label. Veuillez réessayer.");
-                btnSubmit.innerText = "Créer mon Label";
-                btnSubmit.disabled = false;
+                console.error("Erreur lors de la récupération des releases D1:", error);
+                document.getElementById("recent-releases-list").innerHTML = "<p class='empty-text'>Erreur de chargement.</p>";
+                document.getElementById("verification-releases-list").innerHTML = "<p class='empty-text'>Erreur de chargement.</p>";
             }
         });
 
@@ -659,8 +475,13 @@
             const elPlan = document.getElementById("plan");
             const elCompte = document.getElementById("compte");
 
-            if (elPlan) elPlan.innerText = plan;
-            if (elCompte) elCompte.innerText = role.charAt(0).toUpperCase() + role.slice(1);
+            if (elPlan) {
+                elPlan.innerText = plan;
+            }
+
+            if (elCompte) {
+                elCompte.innerText = role.charAt(0).toUpperCase() + role.slice(1);
+            }
         }
 
         function afficherSorties(liste, targetId, messageVide = "Aucune sortie trouvée.") {
@@ -676,33 +497,30 @@
 
             liste.forEach(release => {
                 const title = release.title || "Sans titre";
-                const artist = release.artistName || "Artiste du Label";
+                const artist = release.artistName || "Artiste inconnu";
                 const type = release.type || "Single";
-                const cover = release.coverUrl || "/assets/img/icons/android-chrome-512x512.png";
+                const cover = getCoverUrl(release);
                 const status = release.status || "brouillon";
 
                 let statusClass = "status-brouillon";
-                if (status === "en attente label") statusClass = "status-attente-label";
                 if (status === "verification mmcp") statusClass = "status-verification";
                 if (status === "publié" || status === "validé") statusClass = "status-valide";
 
                 const itemHTML = `
-                    <a href="sortie.html?id=${release.id}" style="text-decoration: none; color: inherit; display: block;">
-                        <div class="release-item">
-                            <img src="${cover}" alt="Pochette de ${title}" class="release-cover">
-                            <div class="release-info">
-                                <h3 class="release-title">${title}</h3>
-                                <p class="release-meta">${artist} • ${type}</p>
-                            </div>
-                            <span class="release-status ${statusClass}">${status}</span>
+                    <a href="sortie.html?id=${release.id}" class="release-item">
+                        <img src="${cover}" alt="Pochette" class="release-cover" onerror="this.onerror=null; this.src='${DEFAULT_COVER}';">
+                        <div class="release-info">
+                            <h3 class="release-title">${title}</h3>
+                            <p class="release-meta">${artist} • ${type}</p>
                         </div>
+                        <span class="release-status ${statusClass}">${status}</span>
                     </a>
                 `;
                 container.insertAdjacentHTML("beforeend", itemHTML);
             });
         }
-
     </script>
+    <script src="js/responsive.js"></script>
 </body>
 
 </html>

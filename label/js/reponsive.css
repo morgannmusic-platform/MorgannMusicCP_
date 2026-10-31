@@ -1,21 +1,18 @@
-/* Par défaut sur mobile : on ajoute de l'espace en bas pour ne pas que la barre cache le contenu */
-.main-content {
-    padding: 20px;
-    padding-bottom: 100px;
-}
+/* reponsive.css - Nettoyé de l'overlay de chargement moche */
 
+/* Transition douce de base pour le corps de page */
 body {
-    background: #FFEFF4;
+    background-color: #FFEFF4;
     margin-top: 50px;
+    opacity: 1;
+    /* Affiché direct sans effet d'opacité bloquant */
 }
 
 /* Sur PC : on pousse le contenu vers la droite pour laisser la place à la sidebar */
 @media (min-width: 768px) {
     .main-content {
         margin-left: 210px;
-        /* Plus grand que la largeur de la sidebar (80px + marges) */
         padding-bottom: 20px;
-
         margin-right: 20px;
     }
 }

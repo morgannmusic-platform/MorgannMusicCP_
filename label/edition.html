@@ -4,11 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Éditeur de Sortie - MM-CP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#FFEFF4">
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
     <style>
+        :root {
+            --primary: #FC8FB0;
+            --primary-hover: #e07898;
+            --primary-light: #ffe4ec;
+            --dark: #222222;
+            --bg-glass: rgba(255, 255, 255, 0.855);
+            --border-glass: rgba(189, 189, 189, 0.438);
+            --warning: #fd7e14;
+            --danger: #dc3545;
+            --success: #28a745;
+        }
+
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #FC8FB0;
             color: var(--dark);
             margin: 0;
@@ -21,8 +34,8 @@
 
         .navbar {
             height: 60px;
-            background: rgba(255, 255, 255, 0.855);
-            border-bottom: 1px solid #ffe4ec;
+            background: var(--bg-glass);
+            border-bottom: 1px solid var(--primary-light);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
@@ -31,6 +44,7 @@
             justify-content: space-between;
             padding: 0 20px;
             box-sizing: border-box;
+            z-index: 10;
         }
 
         .navbar img {
@@ -38,18 +52,22 @@
         }
 
         .btn-nav-exit {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 8px 16px;
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.2s ease;
         }
 
-        /* Style amélioré et très visible pour l'ajout de pistes */
+        .btn-nav-exit:hover {
+            background: var(--primary-hover);
+        }
+
         .btn-add-track {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -62,7 +80,7 @@
         }
 
         .btn-add-track:hover {
-            background: #e07898;
+            background: var(--primary-hover);
             transform: translateY(-1px);
         }
 
@@ -75,14 +93,14 @@
 
         .sidebar-main {
             width: 240px;
-            background: rgba(255, 255, 255, 0.855);
-            border-right: 1px solid #ffe4ec;
+            background: var(--bg-glass);
+            border-right: 1px solid var(--primary-light);
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 20px 0;
-            z-index: 1;
+            z-index: 2;
             box-sizing: border-box;
         }
 
@@ -104,32 +122,31 @@
             cursor: pointer;
             color: #555;
             border-left: 4px solid transparent;
+            transition: all 0.2s;
         }
 
         .nav-btn:hover {
             color: #000000;
             background: #ffbed1;
             border-left-color: #000000;
-
         }
 
         .nav-btn.active {
             color: #000000;
-            background: #FC8FB0;
+            background: var(--primary);
             border-left-color: #000000;
         }
 
         .sidebar-sub {
             width: 200px;
             display: none;
-            background: rgba(255, 255, 255, 0.855);
-            border-right: 1px solid #ffe4ec;
+            background: var(--bg-glass);
+            border-right: 1px solid var(--primary-light);
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
-
             flex-direction: column;
             padding: 20px 0;
             box-sizing: border-box;
-            z-index: 0;
+            z-index: 1;
         }
 
         .sub-btn {
@@ -148,7 +165,7 @@
 
         .sub-btn.active {
             color: #000000;
-            background: #FC8FB0;
+            background: var(--primary);
             border-left-color: #000000;
         }
 
@@ -163,7 +180,7 @@
             border-radius: 25px;
             border: 1px solid white;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.295);
-            padding: 15px
+            padding: 15px;
         }
 
         .content-area {
@@ -172,13 +189,12 @@
             overflow-y: auto;
             box-sizing: border-box;
             margin: 15px;
-            background: rgba(255, 255, 255, 0.855);
+            background: var(--bg-glass);
             backdrop-filter: blur(62px);
             -webkit-backdrop-filter: blur(62px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--border-glass);
             border-radius: 34px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
-
         }
 
         .section-panel {
@@ -202,13 +218,13 @@
             padding: 12px;
             background: #ffffff;
             border: 1px solid #fcc;
-            border-radius: 30px;
+            border-radius: 20px;
             font-size: 12px;
         }
 
         .console-header {
             font-weight: bold;
-            color: #FC8FB0;
+            color: var(--primary);
             margin-bottom: 5px;
             cursor: pointer;
             display: flex;
@@ -219,13 +235,15 @@
             margin: 5px 0 0 0;
             padding-left: 15px;
             color: #666;
+            max-height: 120px;
+            overflow-y: auto;
         }
 
         h2 {
             margin-top: 0;
             color: #111;
             font-size: 20px;
-            border-bottom: 2px solid var(--bg);
+            border-bottom: 2px solid var(--primary-light);
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
@@ -251,10 +269,16 @@
         }
 
         .form-control {
-            padding: 10px;
-            border: 1px solid #FC8FB0;
+            padding: 10px 15px;
+            border: 1px solid var(--primary);
             border-radius: 50px;
             font-size: 14px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.3);
         }
 
         .checkbox-label {
@@ -267,6 +291,29 @@
             margin: 10px 0;
         }
 
+        .badge-pastille {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
         .pochette-container {
             display: flex;
             gap: 30px;
@@ -277,13 +324,15 @@
             width: 250px;
             height: 250px;
             background: #eee;
-            border: 2px dashed #FC8FB0;
+            border: 2px dashed var(--primary);
             border-radius: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             position: relative;
+            text-align: center;
+            padding: 10px;
         }
 
         .pochette-preview img {
@@ -303,12 +352,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.253);
-            background: rgba(255, 255, 255, 0.342);
+            padding: 12px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.8);
             border: 1px solid white;
             border-radius: 50px;
-            cursor: grab;
         }
 
         .modal {
@@ -321,28 +369,19 @@
             align-items: center;
             justify-content: center;
             z-index: 2000;
-        }
-
-        .truc {
-            text-align: left;
-            font-size: 13px;
-            background: #ffffff36;
-            padding: 15px;
-            border-radius: 25px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.473);
-            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(8px);
         }
 
         .modal-content {
-            background: rgba(255, 255, 255, 0.418);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
-            border: 1px solid rgba(189, 189, 189, 0.438);
+            border: 1px solid var(--border-glass);
             border-radius: 34px;
-            box-shadow: 0 0 32px rgba(0, 0, 0, 0.493);
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
             padding: 25px;
             width: 90%;
-            max-width: 600px;
+            max-width: 650px;
             max-height: 85vh;
             overflow-y: auto;
             position: relative;
@@ -350,7 +389,7 @@
 
         .modal-nav {
             display: flex;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid #eee;
             margin-bottom: 20px;
         }
 
@@ -392,18 +431,26 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 13px;
+            transition: all 0.2s ease;
         }
 
         .btn-save {
             background: #ffffff75;
-            color: #FC8FB0;
-            border: 1px solid #FC8FB0;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
 
+        .btn-save:hover {
+            background: var(--primary-light);
         }
 
         .btn-pub {
-            background: #FC8FB0;
+            background: var(--primary);
             color: white;
+        }
+
+        .btn-pub:hover {
+            background: var(--primary-hover);
         }
 
         .btn-pub:disabled {
@@ -411,15 +458,17 @@
             cursor: not-allowed;
         }
 
-        .platform-grid {
+        .platform-grid,
+        .country-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 10px;
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            background: #fafafa;
         }
 
         .progress-bar {
@@ -438,13 +487,36 @@
             width: 0%;
             transition: width 0.1s;
         }
+
+        .search-box {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+        }
+
+        .action-bar-small {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .badge-count {
+            background: var(--primary);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 
 <body>
-
-    <div class="toast-container" id="toast-box"></div>
-
 
     <div class="navbar">
         <img src="/assets/img/logo/logo-rose.svg" alt="MM-CP">
@@ -455,11 +527,12 @@
 
         <div class="sidebar-main">
             <div class="nav-group">
-                <button type="button" class="nav-btn active" onclick="basculerSection('basique')">Information
+                <button type="button" class="nav-btn active" onclick="basculerSection('basique', event)">Information
                     basique</button>
-                <button type="button" class="nav-btn" onclick="basculerSection('pochettes')">Pochettes</button>
-                <button type="button" class="nav-btn" onclick="basculerSection('sortie')">Information sortie</button>
-                <button type="button" class="nav-btn" onclick="basculerSection('pistes')">Pistes</button>
+                <button type="button" class="nav-btn" onclick="basculerSection('pochettes', event)">Pochettes</button>
+                <button type="button" class="nav-btn" onclick="basculerSection('sortie', event)">Information
+                    sortie</button>
+                <button type="button" class="nav-btn" onclick="basculerSection('pistes', event)">Pistes</button>
             </div>
 
             <div>
@@ -473,8 +546,7 @@
 
                 <div class="sidebar-footer">
                     <button type="button" id="btn-enregistrer" class="btn-side btn-save"
-                        onclick="sauvegarderEtQuitter()">Enregistrer et
-                        quitter</button>
+                        onclick="sauvegarderEtQuitter()">Enregistrer et quitter</button>
                     <button type="button" id="btn-publier" class="btn-side btn-pub" onclick="publierSortie()"
                         disabled>Publier</button>
                 </div>
@@ -482,22 +554,26 @@
         </div>
 
         <div id="sub-sidebar" class="sidebar-sub">
-            <button type="button" class="sub-btn active" onclick="basculerSousSection('date')">Date de sortie</button>
-            <button type="button" class="sub-btn" onclick="basculerSousSection('genre')">Genre</button>
-            <button type="button" class="sub-btn" onclick="basculerSousSection('langue')">Langue</button>
+            <button type="button" class="sub-btn active" onclick="basculerSousSection('date', event)">Date de
+                sortie</button>
+            <button type="button" class="sub-btn" onclick="basculerSousSection('genre', event)">Genre</button>
+            <button type="button" class="sub-btn" onclick="basculerSousSection('langue', event)">Langue</button>
             <div id="wl-sub-menu" style="display:none; flex-direction:column;">
-                <button type="button" class="sub-btn" onclick="basculerSousSection('identite')">Identité &
+                <button type="button" class="sub-btn" onclick="basculerSousSection('identite', event)">Identité &
                     Labels</button>
             </div>
-            <button type="button" class="sub-btn" onclick="basculerSousSection('copyright')">Copyright</button>
-            <button type="button" class="sub-btn" onclick="basculerSousSection('plateformes')">Plate-formes</button>
-            <button type="button" class="sub-btn" onclick="basculerSousSection('livraison')">Livraisons
+            <button type="button" class="sub-btn" onclick="basculerSousSection('copyright', event)">Copyright</button>
+            <button type="button" class="sub-btn"
+                onclick="basculerSousSection('plateformes', event)">Plate-formes</button>
+            <button type="button" class="sub-btn" onclick="basculerSousSection('livraison', event)">Livraisons
                 additionnelles</button>
-            <button type="button" class="sub-btn" onclick="basculerSousSection('optionnel')">Informations
+            <button type="button" class="sub-btn" onclick="basculerSousSection('optionnel', event)">Informations
                 optionnelles</button>
         </div>
 
         <div class="content-area">
+
+            <!-- SECTION BASIQUE -->
             <div id="sec-basique" class="section-panel active">
                 <h2>Information basique</h2>
                 <div class="form-group">
@@ -522,23 +598,23 @@
                 <div id="selected-feats-list" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button type="button" class="btn-side btn-save" onclick="ouvrirPopupFeatExistant()">+ Ajouter
-                        un
+                    <button type="button" class="btn-side btn-save" onclick="ouvrirPopupFeatExistant()">+ Ajouter un
                         artiste existant</button>
-                    <button type="button" class="btn-side btn-pub" onclick="ouvrirPopupNouveauFeat()">+
-                        Nouvel/Nouvelle
+                    <button type="button" class="btn-side btn-pub" onclick="ouvrirPopupNouveauFeat()">+ Nouvel/Nouvelle
                         artiste</button>
                 </div>
             </div>
 
-            <div id="modal-nouveau-feat"
-                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
-                <div
-                    style="background:#fff; color:#333; padding:25px; border-radius:8px; width:90%; max-width:500px; max-height:90vh; overflow-y:auto;">
+            <!-- MODAL NOUVEAU FEAT -->
+            <div id="modal-nouveau-feat" class="modal">
+                <div class="modal-content">
                     <h3>Créer un nouvel Artiste (Feat)</h3>
+                    <p style="font-size:12px; color:#666;">Créer un artiste invité pour cette sortie uniquement. Il ne
+                        sera pas ajouté en tant qu'artiste principal du compte.</p>
                     <div class="form-group" style="margin-bottom:15px;">
                         <label>Nom de l'artiste *</label>
-                        <input type="text" id="feat-new-name" class="form-control">
+                        <input type="text" id="feat-new-name" class="form-control"
+                            placeholder="Nom de scène de l'artiste">
                     </div>
 
                     <h4>Profils Plateformes</h4>
@@ -546,103 +622,77 @@
                     <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span>Apple Music</span>
-                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('apple')">Lier un
-                                profil</button>
+                            <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                                onclick="toggleFeatInput('apple')">Lier un profil</button>
                         </div>
                         <div id="div-feat-apple" style="display:none; margin-top:5px;">
                             <input type="text" id="url-feat-apple" class="form-control"
                                 placeholder="music.apple.com/...">
-                            <small class="err-msg" id="err-feat-apple" style="color:red; display:none;">Il faut un lien
-                                valide de la plateforme (music.apple.com)</small>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span>Spotify</span>
-                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('spotify')">Lier un
-                                profil</button>
+                            <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                                onclick="toggleFeatInput('spotify')">Lier un profil</button>
                         </div>
                         <div id="div-feat-spotify" style="display:none; margin-top:5px;">
                             <input type="text" id="url-feat-spotify" class="form-control"
-                                placeholder="open.spotify.uk/...">
-                            <small class="err-msg" id="err-feat-spotify" style="color:red; display:none;">Il faut un
-                                lien valide de la plateforme (open.spotify.uk)</small>
+                                placeholder="open.spotify.com/artist/...">
                         </div>
                     </div>
 
                     <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span>Amazon Music</span>
-                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('amazon')">Lier un
-                                profil</button>
+                            <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                                onclick="toggleFeatInput('amazon')">Lier un profil</button>
                         </div>
                         <div id="div-feat-amazon" style="display:none; margin-top:5px;">
-                            <input type="text" id="url-feat-amazon" class="form-control" placeholder="music.amazon/...">
-                            <small class="err-msg" id="err-feat-amazon" style="color:red; display:none;">Il faut un lien
-                                valide de la plateforme (music.amazon)</small>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>SoundCloud</span>
-                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('soundcloud')">Lier un
-                                profil</button>
-                        </div>
-                        <div id="div-feat-soundcloud" style="display:none; margin-top:5px;">
-                            <input type="text" id="url-feat-soundcloud" class="form-control"
-                                placeholder="soundcloud.com/...">
-                            <small class="err-msg" id="err-feat-soundcloud" style="color:red; display:none;">Il faut un
-                                lien valide de la plateforme (soundcloud.com)</small>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Meta</span>
-                            <button type="button" class="btn btn-sm" onclick="toggleFeatInput('meta')">Lier un
-                                profil</button>
-                        </div>
-                        <div id="div-feat-meta" style="display:none; margin-top:5px;">
-                            <input type="text" id="url-feat-meta" class="form-control"
-                                placeholder="instagram.com/... ou facebook.com/...">
-                            <small class="err-msg" id="err-feat-meta" style="color:red; display:none;">Il faut un lien
-                                valide de la plateforme (instagram.com ou facebook.com)</small>
+                            <input type="text" id="url-feat-amazon" class="form-control"
+                                placeholder="music.amazon.com/...">
                         </div>
                     </div>
 
                     <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                        <button type="button" class="btn btn-light"
+                        <button type="button" class="btn-side btn-save" style="width:100px;"
                             onclick="fermerPopupFeat('nouveau')">Annuler</button>
-                        <button type="button" class="btn btn-success"
+                        <button type="button" class="btn-side btn-pub" style="width:120px;"
                             onclick="sauvegarderNouveauFeat()">Enregistrer</button>
                     </div>
                 </div>
             </div>
 
-            <div id="modal-existant-feat"
-                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
-                <div style="background:#fff; color:#333; padding:25px; border-radius:8px; width:90%; max-width:500px;">
+            <!-- MODAL FEAT EXISTANT -->
+            <div id="modal-existant-feat" class="modal">
+                <div class="modal-content">
                     <h3>Sélectionner un Artiste existant</h3>
+                    <p style="font-size:12px; color:#666;">Liste incluant les artistes de votre compte ainsi que les
+                        feats précédemment créés.</p>
+                    <div class="search-box">
+                        <input type="text" id="search-feat-input" class="form-control"
+                            placeholder="Rechercher un artiste..." oninput="filtrerArtistesExistants()">
+                    </div>
                     <div id="liste-feat-existants"
-                        style="max-height:300px; overflow-y:auto; margin:15px 0; border:1px solid #eee; padding:10px; border-radius:5px;">
+                        style="max-height:300px; overflow-y:auto; margin:15px 0; border:1px solid #eee; padding:10px; border-radius:15px;">
                         <p style="color:#777; font-size:14px;">Chargement des artistes...</p>
                     </div>
                     <div style="display:flex; justify-content:flex-end; gap:10px;">
-                        <button type="button" class="btn btn-light"
+                        <button type="button" class="btn-side btn-save" style="width:100px;"
                             onclick="fermerPopupFeat('existant')">Fermer</button>
                     </div>
                 </div>
             </div>
 
+            <!-- SECTION POCHETTES -->
             <div id="sec-pochettes" class="section-panel">
                 <h2>Pochettes & Arts Visuels</h2>
                 <div class="pochette-container">
                     <div>
                         <div class="pochette-preview" id="box-preview-cover">
                             <span id="txt-preview-cover">Aucun fichier (3000x3000px min)*</span>
-                            <img id="img-cover-element" style="display:none;">
+                            <img id="img-cover-element" style="display:none;" alt="Pochette">
                         </div>
                         <input type="file" id="file-cover" accept="image/*" style="display:none;"
                             onchange="traiterFichierPochette()">
@@ -656,11 +706,18 @@
                     <div style="flex:1;">
                         <div class="truc2">
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                                <img src="/assets/img/platforms/Apple_Music_icon.svg" style="height:20px;" alt="Apple">
                                 <strong style="font-size:14px;">Apple Motion Art (Optionnel)</strong>
                             </div>
                             <p style="font-size:12px; color:#666; margin:0 0 15px 0;">Donnez vie à vos pochettes animées
-                                sur les appareils Apple.</p>
+                                sur Apple Music.</p>
+
+                            <div id="motion-status-summary" style="margin-bottom:12px; font-size:13px; color:#444;">
+                                <div>1:1 (Carré) : <span id="status-motion-11" style="font-weight:bold; color:#777;">Non
+                                        configuré</span></div>
+                                <div>3:4 (Portrait) : <span id="status-motion-34"
+                                        style="font-weight:bold; color:#777;">Non configuré</span></div>
+                            </div>
+
                             <button type="button" class="btn-side btn-save" onclick="ouvrirModalMotion()">Importer des
                                 Apple Motion Art</button>
                         </div>
@@ -668,17 +725,24 @@
                 </div>
             </div>
 
+            <!-- SECTION INFORMATION SORTIE -->
             <div id="sec-sortie" class="section-panel">
 
+                <!-- SUBSEC DATE -->
                 <div id="subsec-date" class="sub-section-panel active">
                     <h2>Date de sortie</h2>
                     <div class="form-group">
                         <label>Date de Sortie Principale *</label>
-                        <input type="date" id="date-release" class="form-control" onchange="validerStructuresDates()">
-                        <small id="date-alert"
-                            style="color:#fd7e14; font-size:12px; margin-top:5px; display:none;">Attention : Nous vous
-                            recommandons de prévoir 2 semaines de délai. En sortant avant, certaines plateformes
-                            risquent de ne pas recevoir le projet à temps.</small>
+                        <input type="date" id="date-release" class="form-control"
+                            onchange="validerStructuresDates(); analyserConsole();">
+
+                        <!-- Badges et pastilles pour les dates -->
+                        <div id="date-release-pastille" class="badge-pastille badge-warning" style="display:none;">
+                            ⚠️ Délai &lt; 14 jours : Les plateformes n'auront pas toutes reçu la sortie à temps.
+                        </div>
+                        <div id="date-release-error" class="badge-pastille badge-danger" style="display:none;">
+                            ❌ La date de sortie ne peut pas être dans le passé.
+                        </div>
                     </div>
 
                     <label class="checkbox-label">
@@ -686,7 +750,12 @@
                             onchange="toggleDateVisuelle('box-date-ori', this)"> Ajouter une date de sortie originale
                     </label>
                     <div class="form-group" id="box-date-ori" style="display:none;">
-                        <input type="date" id="date-original" class="form-control" onchange="validerStructuresDates()">
+                        <label>Date de sortie originale (doit être antérieure à aujourd'hui)</label>
+                        <input type="date" id="date-original" class="form-control"
+                            onchange="validerStructuresDates(); analyserConsole();">
+                        <div id="date-original-error" class="badge-pastille badge-danger" style="display:none;">
+                            ❌ La date originale doit être avant la date du jour.
+                        </div>
                     </div>
 
                     <label class="checkbox-label">
@@ -694,7 +763,12 @@
                             onchange="toggleDateVisuelle('box-date-pre', this)"> Configurer une date de précommande
                     </label>
                     <div class="form-group" id="box-date-pre" style="display:none;">
-                        <input type="date" id="date-preorder" class="form-control" onchange="validerStructuresDates()">
+                        <label>Date de précommande (doit être après aujourd'hui et avant la date de sortie)</label>
+                        <input type="date" id="date-preorder" class="form-control"
+                            onchange="validerStructuresDates(); analyserConsole();">
+                        <div id="date-preorder-error" class="badge-pastille badge-danger" style="display:none;">
+                            ❌ La date de précommande doit être après aujourd'hui et avant la date de sortie.
+                        </div>
                     </div>
 
                     <label class="checkbox-label">
@@ -718,6 +792,7 @@
                     </div>
                 </div>
 
+                <!-- SUBSEC GENRE -->
                 <div id="subsec-genre" class="sub-section-panel">
                     <h2>Sélection des Genres Musicaux</h2>
                     <div class="form-row">
@@ -732,6 +807,7 @@
                     </div>
                 </div>
 
+                <!-- SUBSEC LANGUE -->
                 <div id="subsec-langue" class="sub-section-panel">
                     <h2>Langue & Propriétés Vocales</h2>
                     <div class="form-group">
@@ -744,6 +820,7 @@
                     </label>
                 </div>
 
+                <!-- SUBSEC IDENTITE -->
                 <div id="subsec-identite" class="sub-section-panel">
                     <h2>Identité & Marques de Distribution</h2>
                     <div class="form-group" id="box-wl-label-name" style="display:none;">
@@ -764,6 +841,7 @@
                     </div>
                 </div>
 
+                <!-- SUBSEC COPYRIGHT -->
                 <div id="subsec-copyright" class="sub-section-panel">
                     <h2>Mentions Légales</h2>
                     <div class="form-group">
@@ -772,6 +850,7 @@
                     </div>
                 </div>
 
+                <!-- SUBSEC PLATEFORMES -->
                 <div id="subsec-plateformes" class="sub-section-panel">
                     <h2>Canaux de Vente & Canaux de Streaming</h2>
                     <label class="checkbox-label">
@@ -780,17 +859,31 @@
                         plateformes de distribution
                     </label>
                     <div id="box-platform-selection" style="display:none; margin-top:15px;">
-                        <p style="font-size:12px; color:#666; margin-bottom:10px;">Cochez uniquement les canaux de
-                            diffusion autorisés :</p>
+                        <div class="action-bar-small">
+                            <span class="badge-count" id="count-selected-platforms">0 sélectionnée(s)</span>
+                            <div style="display:flex; gap:8px;">
+                                <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                                    onclick="toutSelectionnerPlateformes(true)">Tout cocher</button>
+                                <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                                    onclick="toutSelectionnerPlateformes(false)">Tout décocher</button>
+                            </div>
+                        </div>
+                        <div class="search-box">
+                            <input type="text" id="search-platforms-input" class="form-control"
+                                placeholder="Filtrer les plateformes (ex: Spotify, TikTok...)"
+                                oninput="filtrerPlateformes()">
+                        </div>
                         <div id="platform-checkbox-list" class="platform-grid"></div>
                     </div>
                 </div>
 
+                <!-- SUBSEC LIVRAISON -->
                 <div id="subsec-livraison" class="sub-section-panel">
                     <h2>Réseaux & Monétisations Additionnels</h2>
                     <div id="additional-deliveries-list" style="display:flex; flex-direction:column; gap:10px;"></div>
                 </div>
 
+                <!-- SUBSEC OPTIONNEL -->
                 <div id="subsec-optionnel" class="sub-section-panel">
                     <h2>Informations Optionnelles Référencées</h2>
                     <div class="form-row">
@@ -814,21 +907,27 @@
                                 placeholder="Entrez les 12 ou 13 chiffres">
                         </div>
                         <div class="form-group">
-                            <label>Restriction Territoriale (ISO Codes séparés par des virgules)</label>
-                            <input type="text" id="opt-territories" class="form-control"
-                                value="FR,CA,US,BE,CH,GB,DE,JP">
+                            <label>Restriction Territoriale (Pays inclus/exclus)</label>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <input type="text" id="opt-territories" class="form-control"
+                                    value="Tous les pays (Monde entier)" readonly style="flex:1;">
+                                <button type="button" class="btn-side btn-save"
+                                    style="width:auto; padding:8px 16px; white-space:nowrap;"
+                                    onclick="ouvrirModalPays()">Gérer la liste des pays</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- SECTION PISTES -->
             <div id="sec-pistes" class="section-panel">
                 <h2>Pistes & Catalogue Sonore</h2>
                 <div style="display:flex; gap:15px; margin-bottom:20px;">
-                    <button type="button" class="btn-add-track" onclick="ouvrirLancementFichierAudio()">Importer des
-                        pistes (.wav)</button>
-                    <button type="button" class="btn-nav-exit" onclick="window.ouvrirCatalogue()">Sélectionner des
-                        pistes existantes</button>
+                    <button type="button" class="btn-add-track" onclick="ouvrirLancementFichierAudio()">+ Importer de
+                        nouvelles pistes (.wav)</button>
+                    <button type="button" class="btn-nav-exit" onclick="ouvrirModalCataloguePistes()">Sélectionner des
+                        pistes existantes (Bibliothèque)</button>
                 </div>
 
                 <input type="file" id="file-audio-main" accept=".wav, audio/wav" style="display:none;" multiple
@@ -843,8 +942,57 @@
     </div>
 
 
-    <div class="modal" id="modal-upload-progress"
-        style="z-index:99999; background:rgba(0,0,0,0.45); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+    <!-- MODAL POPUP PAYS -->
+    <div class="modal" id="modal-pays">
+        <div class="modal-content">
+            <h2>Gestion des Territoires & Pays</h2>
+            <p style="font-size:12px; color:#666;">Cochez/Décocher les pays dans lesquels votre musique sera disponible.
+            </p>
+
+            <div class="action-bar-small">
+                <span class="badge-count" id="count-selected-countries">0 sélectionné(s)</span>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                        onclick="toutSelectionnerPays(true)">Tout cocher</button>
+                    <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                        onclick="toutSelectionnerPays(false)">Tout décocher</button>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="search-country-input" class="form-control" placeholder="Rechercher un pays..."
+                    oninput="filtrerPays()">
+            </div>
+
+            <div id="country-checkbox-list" class="country-grid"></div>
+
+            <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" class="btn-side btn-pub" style="width:140px;"
+                    onclick="validerSelectionPays()">Valider</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CATALOGUE PISTES (BIBLIOTHÈQUE) -->
+    <div class="modal" id="modal-catalogue-pistes">
+        <div class="modal-content">
+            <h2>Bibliothèque Sonore (Pistes Existantes)</h2>
+            <p style="font-size:12px; color:#666;">Sélectionnez une piste enregistrée dans votre bibliothèque. Toutes
+                ses métadonnées (ISRC, Dolby, Version, etc.) seront automatiquement conservées.</p>
+
+            <div id="container-catalogue-pistes"
+                style="display:flex; flex-direction:column; gap:10px; max-height:350px; overflow-y:auto; margin:15px 0;">
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" class="btn-side btn-save" style="width:120px;"
+                    onclick="fermerModalCataloguePistes()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL UPLOAD PROGRESS -->
+    <div class="modal" id="modal-upload-progress" style="z-index:99999;">
         <div class="modal-content" style="text-align:center; max-width:420px;">
             <h2 id="modal-upload-title">Téléversement en cours</h2>
             <p id="modal-upload-text" style="font-size:14px; color:#555; margin-bottom:20px;">Veuillez patienter pendant
@@ -852,7 +1000,8 @@
             <div
                 style="width:100%; height:14px; background:#eee; border-radius:7px; overflow:hidden; margin-bottom:12px;">
                 <div id="modal-upload-fill"
-                    style="width:0%; height:100%; background:var(--primary); border-radius:7px; transition:none;"></div>
+                    style="width:0%; height:100%; background:var(--primary); border-radius:7px; transition:width 0.1s;">
+                </div>
             </div>
             <span id="modal-upload-percent" style="font-weight:bold; font-size:22px; color:#333;">0%</span>
             <div id="modal-upload-close-container" style="display:none; margin-top:20px;">
@@ -862,41 +1011,56 @@
         </div>
     </div>
 
+    <!-- MODAL APPLE MOTION ART -->
     <div class="modal" id="modal-motion">
         <div class="modal-content">
             <h2>Spécifications Apple Motion Art</h2>
-            <div class="truc">
-                <strong>Obligations Techniques Absolues :</strong>
-                <ul>
-                    <li>Codec requis : ProRes 422 ou ProRes 4444 (.mov)</li>
-                    <li>Images par Seconde (IPS) : Entre 23.976 et 30 IPS</li>
-                    <li>Durée calibrée : De 15 à 35 secondes maximum</li>
-                    <li>Espace Colorimétrique exigé : Rec 709 / sRGB</li>
+            <div
+                style="background:#ffffff36; padding:15px; border-radius:20px; font-size:13px; margin-bottom:15px; border:1px solid #eee;">
+                <strong>Obligations Techniques :</strong>
+                <ul style="margin:5px 0; padding-left:20px;">
+                    <li>ProRes 422 / ProRes 4444 ou MP4 / MOV HD</li>
+                    <li>23.976 à 30 IPS | Durée : 15 à 35 secondes</li>
+                    <li>Ratio 1:1 Carré ou Ratio 3:4 Portrait</li>
                 </ul>
             </div>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <button type="button" class="btn-side btn-save"
-                    onclick="document.getElementById('file-motion-1-1').click()">1:1 Carré : Mac, iPad, Apple TV
-                    Importer</button>
-                <input type="file" id="file-motion-1-1" accept="video/quicktime, video/mp4, image/gif"
-                    style="display:none;" onchange="window.traiterUploadMotion(1)">
-                <div id="motion-1-1-preview" style="font-size:12px; color:green;"></div>
-                <button type="button" class="btn-side btn-save"
-                    onclick="document.getElementById('file-motion-3-4').click()">3:4 Portrait : iPhone Importer</button>
-                <input type="file" id="file-motion-3-4" accept="video/quicktime, video/mp4, image/gif"
-                    style="display:none;" onchange="window.traiterUploadMotion(2)">
-                <div id="motion-3-4-preview" style="font-size:12px; color:green;"></div>
-                <button type="button" class="btn-side btn-pub"
-                    onclick="document.getElementById('modal-motion').style.display='none'">Fermer</button>
+
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <div>
+                    <label style="font-weight:bold; font-size:13px;">Pochette animée 1:1 Carré (Mac, iPad, Apple
+                        TV)</label>
+                    <div style="display:flex; gap:10px; margin-top:5px; align-items:center;">
+                        <button type="button" class="btn-side btn-save"
+                            onclick="document.getElementById('file-motion-1-1').click()">Importer 1:1 Carré</button>
+                        <span id="motion-1-1-preview" style="font-size:12px; color:green; font-weight:bold;"></span>
+                    </div>
+                    <input type="file" id="file-motion-1-1" accept="video/quicktime, video/mp4, image/gif"
+                        style="display:none;" onchange="traiterUploadMotion(1)">
+                </div>
+
+                <div>
+                    <label style="font-weight:bold; font-size:13px;">Pochette animée 3:4 Portrait (iPhone)</label>
+                    <div style="display:flex; gap:10px; margin-top:5px; align-items:center;">
+                        <button type="button" class="btn-side btn-save"
+                            onclick="document.getElementById('file-motion-3-4').click()">Importer 3:4 Portrait</button>
+                        <span id="motion-3-4-preview" style="font-size:12px; color:green; font-weight:bold;"></span>
+                    </div>
+                    <input type="file" id="file-motion-3-4" accept="video/quicktime, video/mp4, image/gif"
+                        style="display:none;" onchange="traiterUploadMotion(2)">
+                </div>
+
+                <div style="margin-top:15px; display:flex; justify-content:flex-end;">
+                    <button type="button" class="btn-side btn-pub" style="width:120px;"
+                        onclick="document.getElementById('modal-motion').style.display='none'">Fermer</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- MODAL ÉDITION DE PISTE -->
     <div class="modal" id="modal-track-editor">
         <div class="modal-content">
             <h2 id="modal-track-title">Édition de la piste</h2>
-
-
 
             <div class="modal-nav">
                 <button type="button" class="modal-tab active"
@@ -941,23 +1105,6 @@
             </div>
 
             <div id="t-parts" class="modal-pane">
-                <h4>Rôles d'Artistes sur la Piste</h4>
-                <div class="form-group">
-                    <label>Artiste & Rôle</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" id="t-new-art-name" class="form-control" placeholder="Nom de l'artiste"
-                            style="flex:2;">
-                        <select id="t-new-art-role" class="form-control" style="flex:1;">
-                            <option value="Primary">Primaire</option>
-                            <option value="Featuring">Featuring</option>
-                            <option value="Remixer">Remixeur</option>
-                        </select>
-                        <button type="button" class="btn-nav-exit" style="background:var(--primary);"
-                            onclick="ajouterArtistePiste()">+</button>
-                    </div>
-                </div>
-                <ul id="t-list-artists" style="margin-bottom:20px; font-size:13px;"></ul>
-
                 <h4>Écrivains & Compositeurs</h4>
                 <div class="form-group">
                     <input type="text" id="t-writer-name" class="form-control"
@@ -974,53 +1121,35 @@
             <div id="t-audio" class="modal-pane">
                 <div style="display:flex; flex-direction:column; gap:15px;">
                     <div>
+                        <label style="font-size:12px; font-weight:bold;">Version Spatial Audio Dolby Atmos</label>
+                        <div style="display:flex; gap:10px; margin-top:4px;">
+                            <button type="button" class="btn-side btn-save"
+                                onclick="document.getElementById('file-audio-atmos').click()">Importer Dolby Atmos
+                                (.wav)</button>
+                        </div>
                         <input type="file" id="file-audio-atmos" accept=".wav, audio/wav" style="display:none;"
                             onchange="traiterUploadAtmos()">
-                        <button type="button" class="btn-side btn-save"
-                            onclick="document.getElementById('file-audio-atmos').click()">Importer un mixage Spatial
-                            Dolby
-                            Atmos</button>
-                        <div class="progress-bar" id="progress-atmos-container">
-                            <div class="progress-fill" id="progress-atmos-fill"></div>
-                        </div>
-                        <div id="status-atmos" style="font-size:11px; color:#555; margin-top:4px; display:none;"></div>
+                        <div id="status-atmos" style="font-size:11px; color:#555; margin-top:4px;"></div>
                     </div>
                     <div>
+                        <label style="font-size:12px; font-weight:bold;">Version Instrumental Alternative</label>
+                        <div style="display:flex; gap:10px; margin-top:4px;">
+                            <button type="button" class="btn-side btn-save"
+                                onclick="document.getElementById('file-audio-inst').click()">Importer Instrumental
+                                (.wav)</button>
+                        </div>
                         <input type="file" id="file-audio-inst" accept=".wav, audio/wav" style="display:none;"
                             onchange="traiterUploadInstrumental()">
-                        <button type="button" class="btn-side btn-save"
-                            onclick="document.getElementById('file-audio-inst').click()">Importer la version
-                            Instrumentale Alternative</button>
-                        <div class="progress-bar" id="progress-inst-container">
-                            <div class="progress-fill" id="progress-inst-fill"></div>
-                        </div>
-                        <div id="status-inst" style="font-size:11px; color:#555; margin-top:4px; display:none;"></div>
+                        <div id="status-inst" style="font-size:11px; color:#555; margin-top:4px;"></div>
                     </div>
-                    <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
-                    <div class="form-group">
-                        <label>Maison de Mastering Validée Apple (Email)</label>
-                        <input type="email" id="t-apple-master-email" class="form-control"
-                            placeholder="mastering@studio.com" oninput="verifierEmailAppleMastering()">
-                    </div>
-                    <input type="file" id="file-audio-adm" accept=".wav, audio/wav" style="display:none;"
-                        onchange="traiterUploadADM()">
-                    <button type="button" id="btn-apple-digital-master" class="btn-side btn-save"
-                        style="background:#eee; color:#aaa;" disabled
-                        onclick="document.getElementById('file-audio-adm').click()">Importer Apple
-                        Digital
-                        Master</button>
-                    <div class="progress-bar" id="progress-adm-container">
-                        <div class="progress-fill" id="progress-adm-fill"></div>
-                    </div>
-                    <div id="status-adm" style="font-size:11px; color:#555; margin-top:4px; display:none;"></div>
                 </div>
             </div>
 
             <div id="t-lyrics" class="modal-pane">
                 <label class="checkbox-label"><input type="radio" name="lyric-content" id="rad-exp"> Contient des
                     paroles Explicites (Explicit Content)</label>
-                <label class="checkbox-label"><input type="radio" name="lyric-content" id="rad-clean"> Contient des
-                    paroles Propres nettoyées (Clean Version)</label>
+                <label class="checkbox-label"><input type="radio" name="lyric-content" id="rad-clean" checked> Contient
+                    des paroles Propres nettoyées (Clean Version)</label>
                 <div class="form-group" style="margin-top:15px;">
                     <label>Texte intégral des paroles</label>
                     <textarea id="t-lyrics-text" class="form-control" rows="8"
@@ -1033,35 +1162,85 @@
                     onclick="sauvegarderMetaDonneesPiste()">Valider</button>
             </div>
         </div>
-
-
     </div>
 
-
-    <div id="popup-quitter"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
+    <!-- POPUP QUITTER -->
+    <div id="popup-quitter" class="modal">
         <div
-            style="background-color: rgba(255, 255, 255, 0.95); border: 1px solid rgba(189, 189, 189, 0.5); border-radius: 34px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); padding: 35px; width: 90%; max-width: 400px; text-align: center; font-family: 'Segoe UI', sans-serif;">
+            style="background-color: rgba(255, 255, 255, 0.95); border-radius: 34px; padding: 35px; width: 90%; max-width: 400px; text-align: center;">
             <h2 style="margin: 0 0 15px 0; color: #222; font-size: 22px; font-weight: bold;">Attention !</h2>
             <p style="color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 30px;">
                 Êtes-vous sûr de vouloir quitter ? Toutes vos modifications non enregistrées seront définitivement
                 perdues.
             </p>
             <div style="display: flex; justify-content: center; gap: 15px;">
-                <button type="button" onclick="fermerPopupQuitter()"
-                    style="padding: 12px 24px; border: 1px solid rgba(189, 189, 189, 0.8); background: transparent; color: #333; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 14px; transition: all 0.2s;">
-                    Rester ici
-                </button>
-                <button type="button" onclick="confirmerQuitter()"
-                    style="padding: 12px 24px; border: none; background: #dc3545; color: white; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);">
-                    Quitter
-                </button>
+                <button type="button" onclick="fermerPopupQuitter()" class="btn-side btn-save">Rester ici</button>
+                <button type="button" onclick="confirmerQuitter()" class="btn-side btn-pub"
+                    style="background:var(--danger);">Quitter</button>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // À placer tout en haut dans votre <script type="module">
+        import { auth } from "/assets/js/firebase.js?v=20260927-1";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { api } from "/assets/js/api.js?v=20260927-1";
+
+        const listePlateformesToutes = [
+            "7Digital", "ACRCloud", "Alibaba", "AliGenie", "Amazon Music", "Anghami", "AGEDI", "Akazoo", "Apple Music", "ITunes",
+            "AMI Entertainment", "Audible Magic - Fulfillment360", "Audible Magic - Rights360", "Audiomack", "Ambients App", "AWA", "Boomplay", "Beatsource", "BMAT", "Claro Música",
+            "ClickNClear", "Deezer", "Dubset", "DISCO", "Google Play", "Curve", "Gaana", "Gracenote", "FLO", "Hungama",
+            "IHeart", "IMI Mobile", "Jaxsta", "JioSaavn", "Discogs", "JOOX", "Kanjian", "KDigital Media", "KKBOX", "LINE Music",
+            "Mixcloud", "Medianet", "MoodAgent", "MusicToday", "MELON", "NetEase Cloud Music", "Pandora", "Peloton", "PEX", "Play Network",
+            "Pretzel Rocks", "Qobuz", "Qub Musique", "Rebelation", "Rockbot", "Roxi", "Resso", "Rhapsody", "Napster", "Rakuten",
+            "Shazam", "Rakuten Music", "Slacker Radio", "Snapchat", "Spinlet", "Soundtrack Your Brand", "Sirius XM", "Soundtrack By Twitch", "Twitch", "Spotify",
+            "Tencent", "Tidal", "Styngr", "Tesla Music", "TouchTunes", "Jazzed", "MyMelo", "Fan Label", "Soundhound", "Soundmouse",
+            "Kuaishou", "Supernatural", "Grandpad", "Traxsource", "Triller", "TikTok", "Trackdrip", "United Media Agency (UMA)", "Yandex", "VEVO",
+            "YouTube Music", "Zvooq", "EMusic", "Beat.no", "Clone Digital", "Music Reports", "Mythical Games", "JPay", "Adaptr", "Pinterest",
+            "Samsung Music", "Bandcamp", "VKontakte", "Qishui Music", "Kwai", "Canva", "Musixmatch", "Soda Music"
+        ];
+
+        const listeTousLesPays = [
+            "Afghanistan", "Aland Islands", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua And Barbuda",
+            "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+            "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia And Herzegovina", "Botswana", "Brazil", "Brunei Darussalam", "Bulgaria", "Burkina Faso",
+            "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Colombia",
+            "Comoros", "Congo", "Costa Rica", "Cote D'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+            "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Fiji", "Finland", "France", "French Guiana", "French Polynesia",
+            "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guatemala", "Guinea", "Haiti",
+            "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+            "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Korea", "Kuwait", "Kyrgyzstan", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya",
+            "Liechtenstein", "Lithuania", "Luxembourg", "Macao", "Macedonia", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Martinique",
+            "Mauritania", "Mauritius", "Mayotte", "Mexico", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia",
+            "Nepal", "Netherlands", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Norway", "Oman", "Pakistan", "Panama", "Papua New Guinea",
+            "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Puerto Rico", "Qatar", "Reunion", "Romania", "Russian Federation", "Rwanda", "Saint Barthelemy",
+            "Saint Lucia", "Samoa", "San Marino", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
+            "South Africa", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan", "Tajikistan", "Tanzania",
+            "Thailand", "Togo", "Trinidad And Tobago", "Tunisia", "Turkey", "Turkmenistan", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
+            "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Viet Nam", "Yemen", "Zambia", "Zimbabwe"
+        ];
+
+        const listeGenres = ["Alternative", "Alternative/Experimental", "Ambient/New Age", "Blues", "Classical", "Country", "Dance", "Electronic", "Electronic/Deep House", "Electronic/Techno", "Hip-Hop/Rap", "House", "Jazz", "Latin", "Pop", "Pop/J-Pop", "Pop/K-Pop"];
+        const listeLangues = ["Français", "Anglais", "Espagnol", "Allemand", "Italien", "Portugais", "Japonais", "Coréen", "Chinois", "Arabe", "Russe"];
+        const livraisonsAdditionnellesRefs = ["Beatport", "YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Tracklib", "Hook", "LyricFind", "EVEN", "Roblox"];
+
+        let currentReleaseId = new URLSearchParams(window.location.search).get("sortie");
+        let userPlan = "starter";
+        let indexPisteEnCoursEdition = null;
+        let featsSelectionnes = [];
+        let paysSelectionnes = [...listeTousLesPays];
+        let tousLesArtistesDisponibles = [];
+
+        let objetSortie = {
+            title: "", type: "Single", artistName: "", coverUrl: "", status: "brouillon",
+            releaseDate: "", originalReleaseDate: "", preorderDate: "",
+            timezone: "", exactTime: "", primaryGenre: "", secondaryGenre: "", language: "", isInstrumental: false,
+            labelName: "", copyrightLineC: "", copyrightLineP: "", stdCopyright: "", manualPlatforms: false,
+            selectedPlatforms: [], additionalDeliveries: [], versionLine: "", licenceType: "Copyright",
+            upc: "", territories: "Tous les pays (Monde entier)", tracks: [], feats: [],
+            appleMotion11: null, appleMotion34: null
+        };
+
         window.analyserConsole = function () {
             const listElem = document.getElementById("console-items");
             const countElem = document.getElementById("console-count");
@@ -1069,7 +1248,6 @@
 
             let erreurs = [];
 
-            // Vérifications basiques des champs obligatoires
             const title = document.getElementById("rel-title")?.value;
             if (!title || !title.trim()) erreurs.push("Titre de la sortie manquant");
 
@@ -1079,163 +1257,278 @@
             const lang = document.getElementById("rel-lang")?.value;
             if (!lang) erreurs.push("Langue de la sortie non renseignée");
 
-            if (typeof objetSortie !== 'undefined' && (!objetSortie.tracks || objetSortie.tracks.length === 0)) {
+            if (!objetSortie.coverUrl) {
+                erreurs.push("Pochette d'art manquante");
+            }
+
+            const dateRel = document.getElementById("date-release")?.value;
+            if (!dateRel) {
+                erreurs.push("Date de sortie principale non renseignée");
+            } else {
+                const today = new Date().toISOString().split('T')[0];
+                if (dateRel < today) {
+                    erreurs.push("La date de sortie ne peut pas être dans le passé");
+                }
+            }
+
+            if (userPlan === "label" || userPlan === "white-label") {
+                if (!document.getElementById("line-c")?.value.trim()) erreurs.push("Ligne de Copyright (©) requise");
+                if (!document.getElementById("line-p")?.value.trim()) erreurs.push("Ligne de Phonogramme (℗) requise");
+                if (userPlan === "white-label" && !document.getElementById("wl-label-title")?.value.trim()) erreurs.push("Nom du Label manquant");
+            } else {
+                if (!document.getElementById("std-copyright")?.value.trim()) erreurs.push("Ligne de Copyright standard manquante");
+            }
+
+            if (!objetSortie.tracks || objetSortie.tracks.length === 0) {
                 erreurs.push("Aucune piste audio n'a été ajoutée");
             }
 
-            // Mise à jour de l'affichage dans la console HTML
             countElem.innerText = `(${erreurs.length} manquant${erreurs.length > 1 ? 's' : ''})`;
             listElem.innerHTML = erreurs.map(err => `<li>${err}</li>`).join("");
 
-            // Activation / Désactivation du bouton Publier
             const btnPub = document.getElementById("btn-publier");
             if (btnPub) {
                 btnPub.disabled = erreurs.length > 0;
             }
         };
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
-            measurementId: "G-FKSSXYEZF0"
+        window.validerStructuresDates = function () {
+            const today = new Date().toISOString().split('T')[0];
+            const dateRelInput = document.getElementById("date-release");
+            const dateRelPastille = document.getElementById("date-release-pastille");
+            const dateRelError = document.getElementById("date-release-error");
+
+            const dateRel = dateRelInput?.value;
+
+            if (dateRel) {
+                if (dateRel < today) {
+                    dateRelError.style.display = "inline-flex";
+                    dateRelPastille.style.display = "none";
+                } else {
+                    dateRelError.style.display = "none";
+                    const targetDate = new Date(dateRel);
+                    const now = new Date();
+                    const diffTime = targetDate - now;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays < 14) {
+                        dateRelPastille.style.display = "inline-flex";
+                    } else {
+                        dateRelPastille.style.display = "none";
+                    }
+                }
+            } else {
+                dateRelPastille.style.display = "none";
+                dateRelError.style.display = "none";
+            }
+
+            const datePreInput = document.getElementById("date-preorder");
+            const datePreError = document.getElementById("date-preorder-error");
+            if (datePreInput && datePreInput.value) {
+                if (datePreInput.value <= today || (dateRel && datePreInput.value >= dateRel)) {
+                    datePreError.style.display = "inline-flex";
+                } else {
+                    datePreError.style.display = "none";
+                }
+            }
+
+            const dateOriInput = document.getElementById("date-original");
+            const dateOriError = document.getElementById("date-original-error");
+            if (dateOriInput && dateOriInput.value) {
+                if (dateOriInput.value >= today) {
+                    dateOriError.style.display = "inline-flex";
+                } else {
+                    dateOriError.style.display = "none";
+                }
+            }
         };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-
-        let currentReleaseId = new URLSearchParams(window.location.search).get("sortie");
-        let uidConnecte = null;
-        let userPlan = "starter";
-        let indexPisteEnCoursEdition = null;
-
-        let objetSortie = {
-            title: "", type: "Single", artistName: "", coverUrl: "", status: "brouillon",
-            spotifyUrl: "", appleUrl: "", releaseDate: "", originalReleaseDate: "", preorderDate: "",
-            timezone: "", exactTime: "", primaryGenre: "", secondaryGenre: "", language: "", isInstrumental: false,
-            labelName: "", copyrightLineC: "", copyrightLineP: "", stdCopyright: "", manualPlatforms: false,
-            selectedPlatforms: [], additionalDeliveries: [], versionLine: "", licenceType: "Copyright",
-            upc: "", territories: "FR,CA,US,BE,CH,GB,DE,JP", tracks: []
-        };
-
-        const listeGenres = ["Alternative", "Alternative/Experimental", "Ambient/New Age", "Blues", "Classical", "Country", "Dance", "Electronic", "Electronic/Deep House", "Electronic/Techno", "Hip-Hop/Rap", "House", "Jazz", "Latin", "Pop", "Pop/J-Pop", "Pop/K-Pop"];
-        const listeLangues = ["Français", "Anglais", "Espagnol", "Allemand", "Italien", "Portugais", "Japonais", "Coréen", "Chinois", "Arabe", "Russe"];
-        const listePlateformesToutes = ["Spotify", "Apple Music", "Deezer", "Amazon Music", "YouTube Music", "TIDAL", "Qobuz", "Napster", "Pandora", "TikTok", "Instagram/Facebook", "Beatport", "Traxsource"];
-        const livraisonsAdditionnellesRefs = ["Beatport", "YouTube Content ID", "Meta Rights Manager", "SoundCloud Monetization", "SoundExchange", "Tracklib", "Hook", "LyricFind", "EVEN", "Roblox"];
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                uidConnecte = user.uid;
-                await determinerPlanUtilisateur();
-                remplirSelecteursFormulaires();
-                await chargerDonneesSortieFirestore();
-                analyserConsole();
+                try {
+                    await determinerPlanUtilisateur();
+                    remplirSelecteursFormulaires();
+                    await chargerDonneesSortieWorker();
+                    window.analyserConsole();
+                } catch (err) {
+                    console.error("Erreur d'initialisation :", err);
+                }
             } else {
                 window.location.href = "/login.html";
             }
         });
 
         async function determinerPlanUtilisateur() {
-            const userDoc = await getDoc(doc(db, "users", uidConnecte));
-            if (userDoc.exists()) {
-                userPlan = (userDoc.data().plan || "starter").toLowerCase();
-                if (userPlan === "label" || userPlan === "white-label") {
-                    document.getElementById("wl-sub-menu").style.display = "flex";
-                    if (userPlan === "white-label") document.getElementById("box-wl-label-name").style.display = "flex";
+            try {
+                const user = auth.currentUser;
+                if (!user) return;
+                const profil = await api.get(`/api/users/${user.uid}`);
+                if (profil) {
+                    userPlan = (profil.planName || "starter").toLowerCase();
+                    if (profil.displayName || profil.artistName) {
+                        document.getElementById("rel-artist").value = profil.artistName || profil.displayName || "Artiste Principal";
+                    }
+                    if (userPlan === "label" || userPlan === "white-label") {
+                        document.getElementById("wl-sub-menu").style.display = "flex";
+                        if (userPlan === "white-label") document.getElementById("box-wl-label-name").style.display = "flex";
+                    }
                 }
+            } catch (e) {
+                console.warn("Utilisation du plan par défaut");
             }
         }
 
         function remplirSelecteursFormulaires() {
-            const g1 = document.getElementById("genre-1"); const g2 = document.getElementById("genre-2");
+            const g1 = document.getElementById("genre-1");
+            const g2 = document.getElementById("genre-2");
+            g1.innerHTML = ""; g2.innerHTML = "";
             listeGenres.forEach(g => {
                 g1.innerHTML += `<option value="${g}">${g}</option>`;
                 g2.innerHTML += `<option value="${g}">${g}</option>`;
             });
 
-            const l1 = document.getElementById("rel-lang"); const l2 = document.getElementById("t-edit-lang");
+            const l1 = document.getElementById("rel-lang");
+            const l2 = document.getElementById("t-edit-lang");
+            l1.innerHTML = ""; l2.innerHTML = "";
             listeLangues.forEach(l => {
                 l1.innerHTML += `<option value="${l}">${l}</option>`;
                 l2.innerHTML += `<option value="${l}">${l}</option>`;
             });
 
-            const pGrid = document.getElementById("platform-checkbox-list");
-            listePlateformesToutes.forEach(p => {
-                pGrid.innerHTML += `<label><input type="checkbox" class="cb-platform" value="${p}" onchange="enregistrerPlateformesSelectionnees()"> ${p}</label>`;
-            });
+            remplirGrillePlateformes(listePlateformesToutes);
+            remplirGrillePays(listeTousLesPays);
 
             const delContainer = document.getElementById("additional-deliveries-list");
+            delContainer.innerHTML = "";
             livraisonsAdditionnellesRefs.forEach(d => {
                 let restrictionHtml = (d === "LyricFind" && ["starter"].includes(userPlan)) ? 'disabled style="opacity:0.5;"' : '';
-                delContainer.innerHTML += `<label class="checkbox-label" ${restrictionHtml}><input type="checkbox" class="cb-delivery" value="${d}" onchange="enregistrerLivraisonsAdditionnelles()"> ${d} ${d === 'LyricFind' ? '(Plan Pro requis)' : ''}</label>`;
+                const isChecked = (objetSortie.additionalDeliveries || []).includes(d) ? "checked" : "";
+                delContainer.innerHTML += `<label class="checkbox-label" ${restrictionHtml}><input type="checkbox" class="cb-delivery" value="${d}" ${isChecked} onchange="enregistrerLivraisonsAdditionnelles()"> ${d} ${d === 'LyricFind' ? '(Plan Pro requis)' : ''}</label>`;
             });
         }
 
-        async function chargerDonneesSortieFirestore() {
+        function remplirGrillePlateformes(liste) {
+            const pGrid = document.getElementById("platform-checkbox-list");
+            pGrid.innerHTML = "";
+            liste.forEach(p => {
+                const checked = (objetSortie.selectedPlatforms || []).includes(p) ? "checked" : "";
+                pGrid.innerHTML += `<label class="checkbox-label" style="margin:0;"><input type="checkbox" class="cb-platform" value="${p}" ${checked} onchange="enregistrerPlateformesSelectionnees()"> ${p}</label>`;
+            });
+            mettreAJourCompteurPlateformes();
+        }
+
+        window.filtrerPlateformes = function () {
+            const query = document.getElementById("search-platforms-input").value.toLowerCase();
+            const filtrees = listePlateformesToutes.filter(p => p.toLowerCase().includes(query));
+            remplirGrillePlateformes(filtrees);
+        };
+
+        window.toutSelectionnerPlateformes = function (cocher) {
+            document.querySelectorAll(".cb-platform").forEach(cb => cb.checked = cocher);
+            enregistrerPlateformesSelectionnees();
+        };
+
+        window.enregistrerPlateformesSelectionnees = function () {
+            const checked = Array.from(document.querySelectorAll(".cb-platform:checked")).map(cb => cb.value);
+            objetSortie.selectedPlatforms = checked;
+            mettreAJourCompteurPlateformes();
+        };
+
+        window.enregistrerLivraisonsAdditionnelles = function () {
+            const checked = Array.from(document.querySelectorAll(".cb-delivery:checked")).map(cb => cb.value);
+            objetSortie.additionalDeliveries = checked;
+        };
+
+        function mettreAJourCompteurPlateformes() {
+            const elem = document.getElementById("count-selected-platforms");
+            if (elem) elem.innerText = `${(objetSortie.selectedPlatforms || []).length} sélectionnée(s)`;
+        }
+
+        function remplirGrillePays(liste) {
+            const cGrid = document.getElementById("country-checkbox-list");
+            cGrid.innerHTML = "";
+            liste.forEach(c => {
+                const isChecked = paysSelectionnes.includes(c) ? "checked" : "";
+                cGrid.innerHTML += `<label class="checkbox-label" style="margin:0;"><input type="checkbox" class="cb-country" value="${c}" ${isChecked} onchange="mettreAJourCompteurPays()"> ${c}</label>`;
+            });
+            mettreAJourCompteurPays();
+        }
+
+        window.ouvrirModalPays = function () {
+            remplirGrillePays(listeTousLesPays);
+            document.getElementById("modal-pays").style.display = "flex";
+        };
+
+        window.filtrerPays = function () {
+            const query = document.getElementById("search-country-input").value.toLowerCase();
+            const filtres = listeTousLesPays.filter(c => c.toLowerCase().includes(query));
+            remplirGrillePays(filtres);
+        };
+
+        window.toutSelectionnerPays = function (cocher) {
+            document.querySelectorAll(".cb-country").forEach(cb => cb.checked = cocher);
+            mettreAJourCompteurPays();
+        };
+
+        function mettreAJourCompteurPays() {
+            const checkedCount = document.querySelectorAll(".cb-country:checked").length;
+            const countElem = document.getElementById("count-selected-countries");
+            if (countElem) countElem.innerText = `${checkedCount} sélectionné(s)`;
+        }
+
+        window.validerSelectionPays = function () {
+            const selected = Array.from(document.querySelectorAll(".cb-country:checked")).map(cb => cb.value);
+            paysSelectionnes = selected;
+            objetSortie.territories = paysSelectionnes;
+            const inputField = document.getElementById("opt-territories");
+
+            if (selected.length === listeTousLesPays.length) {
+                inputField.value = "Tous les pays (Monde entier)";
+            } else if (selected.length === 0) {
+                inputField.value = "Aucun pays sélectionné";
+            } else {
+                inputField.value = `${selected.length} pays autorisés`;
+            }
+
+            document.getElementById("modal-pays").style.display = "none";
+        };
+
+        async function chargerDonneesSortieWorker() {
             if (!currentReleaseId) return;
-            const snapshot = await getDoc(doc(db, "users", uidConnecte, "releases", currentReleaseId));
-            if (snapshot.exists()) {
-                const data = snapshot.data();
+            try {
+                const user = auth.currentUser;
+                if (!user) return;
+
+                const data = await api.get(`/api/users/${user.uid}/releases/${currentReleaseId}`);
+                if (!data) return;
+
+                // Sérialisations JSON depuis la base D1
+                if (typeof data.tracks === 'string') {
+                    try { data.tracks = JSON.parse(data.tracks); } catch (e) { data.tracks = []; }
+                }
+                if (typeof data.selectedPlatforms === 'string') {
+                    try { data.selectedPlatforms = JSON.parse(data.selectedPlatforms); } catch (e) { data.selectedPlatforms = []; }
+                }
+                if (typeof data.additionalDeliveries === 'string') {
+                    try { data.additionalDeliveries = JSON.parse(data.additionalDeliveries); } catch (e) { data.additionalDeliveries = []; }
+                }
+                if (typeof data.feats === 'string') {
+                    try { data.feats = JSON.parse(data.feats); } catch (e) { data.feats = []; }
+                }
+                if (typeof data.territories === 'string') {
+                    try { data.territories = JSON.parse(data.territories); } catch (e) { }
+                }
+
                 objetSortie = { ...objetSortie, ...data };
-                const statutReel = (data.status || "").toLowerCase();
+                if (!Array.isArray(objetSortie.tracks)) objetSortie.tracks = [];
+                if (!Array.isArray(objetSortie.selectedPlatforms)) objetSortie.selectedPlatforms = [];
+                if (!Array.isArray(objetSortie.additionalDeliveries)) objetSortie.additionalDeliveries = [];
+                if (!Array.isArray(objetSortie.feats)) objetSortie.feats = [];
 
-                // Blocage total pour les statuts non-modifiables
-                const statutsInterdits = ["verification mmcp", "verification plate-formes", "retrait"];
-                if (statutsInterdits.includes(statutReel)) {
-                    showToast("Cette sortie est en cours de traitement et ne peut pas être modifiée.", "error");
-                    setTimeout(() => { window.location.href = `sortie.html?id=${currentReleaseId}`; }, 2000);
-                    return;
-                }
-
-                // Restrictions partielles pour livrée / direct
-                const statutsRestreints = ["livrée", "direct", "livree"];
-                if (statutsRestreints.includes(statutReel)) {
-                    // Masquer le bouton Enregistrer et quitter, ne garder que Publier
-                    const btnSave = document.getElementById("btn-enregistrer");
-                    if (btnSave) btnSave.style.display = "none";
-
-                    // Désactiver les dates
-                    const champsDate = ["date-release", "date-original", "date-preorder", "time-exact", "time-zone"];
-                    champsDate.forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) { el.disabled = true; el.style.opacity = '0.5'; }
-                    });
-                    const champsCheckDate = ["chk-original-date", "chk-preorder-date", "chk-timezone"];
-                    champsCheckDate.forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) { el.disabled = true; el.style.opacity = '0.5'; }
-                    });
-                    // Désactiver l'import audio principal
-                    const btnImportAudio = document.querySelector('#sec-pistes .btn-add-track');
-                    if (btnImportAudio) {
-                        btnImportAudio.disabled = true;
-                        btnImportAudio.style.opacity = '0.5';
-                        btnImportAudio.style.pointerEvents = 'none';
-                    }
-                    const inputAudioMain = document.getElementById('file-audio-main');
-                    if (inputAudioMain) inputAudioMain.disabled = true;
-                    showToast("Sortie livrée/direct : le bouton d'enregistrement est masqué et la publication est seule autorisée.", "info");
-                }
-
-                if (!statutReel || statutReel === "brouillon") objetSortie.status = "brouillon";
-
-                document.getElementById("rel-type").value = objetSortie.type;
-                document.getElementById("rel-title").value = objetSortie.title;
-                document.getElementById("rel-artist").value = objetSortie.artistName;
-                if (document.getElementById("artist-spotify")) {
-                    document.getElementById("artist-spotify").value = objetSortie.spotifyUrl || "";
-                }
-                if (document.getElementById("artist-apple")) {
-                    document.getElementById("artist-apple").value = objetSortie.appleUrl || "";
+                document.getElementById("rel-type").value = objetSortie.type || "Single";
+                document.getElementById("rel-title").value = objetSortie.title || "";
+                if (objetSortie.artistName) {
+                    document.getElementById("rel-artist").value = objetSortie.artistName;
                 }
                 document.getElementById("date-release").value = objetSortie.releaseDate || "";
 
@@ -1254,775 +1547,357 @@
                 if (objetSortie.timezone || objetSortie.exactTime) {
                     document.getElementById("chk-timezone").checked = true;
                     document.getElementById("box-timezone-fields").style.display = "flex";
-                    document.getElementById("time-zone").value = objetSortie.timezone || "Europe/Paris";
-                    document.getElementById("time-exact").value = objetSortie.exactTime || "00:00";
+                    if (objetSortie.timezone) document.getElementById("time-zone").value = objetSortie.timezone;
+                    if (objetSortie.exactTime) document.getElementById("time-exact").value = objetSortie.exactTime;
                 }
 
                 document.getElementById("genre-1").value = objetSortie.primaryGenre || listeGenres[0];
                 document.getElementById("genre-2").value = objetSortie.secondaryGenre || "";
-
                 document.getElementById("rel-lang").value = objetSortie.language || listeLangues[0];
-                document.getElementById("chk-instrumental").checked = objetSortie.isInstrumental;
+                document.getElementById("chk-instrumental").checked = !!objetSortie.isInstrumental;
 
-                document.getElementById("wl-label-title").value = objetSortie.labelName || "";
-                document.getElementById("line-c").value = objetSortie.copyrightLineC || "";
-                document.getElementById("line-p").value = objetSortie.copyrightLineP || "";
-                document.getElementById("std-copyright").value = objetSortie.stdCopyright || "";
-
-                if (objetSortie.manualPlatforms) {
-                    document.getElementById("chk-manual-platforms").checked = true;
-                    document.getElementById("box-platform-selection").style.display = "block";
+                if (userPlan === "label" || userPlan === "white-label") {
+                    document.getElementById("line-c").value = objetSortie.copyrightLineC || "";
+                    document.getElementById("line-p").value = objetSortie.copyrightLineP || "";
+                    if (userPlan === "white-label") document.getElementById("wl-label-title").value = objetSortie.labelName || "";
+                } else {
+                    document.getElementById("std-copyright").value = objetSortie.stdCopyright || "";
                 }
-                const checkboxesPlat = document.querySelectorAll(".cb-platform");
-                checkboxesPlat.forEach(cb => {
-                    if (objetSortie.selectedPlatforms && objetSortie.selectedPlatforms.includes(cb.value)) cb.checked = true;
-                });
 
-                const checkboxesDel = document.querySelectorAll(".cb-delivery");
-                checkboxesDel.forEach(cb => {
-                    if (objetSortie.additionalDeliveries && objetSortie.additionalDeliveries.includes(cb.value)) cb.checked = true;
+                document.getElementById("chk-manual-platforms").checked = !!objetSortie.manualPlatforms;
+                document.getElementById("box-platform-selection").style.display = objetSortie.manualPlatforms ? "block" : "none";
+                remplirGrillePlateformes(listePlateformesToutes);
+
+                // Re-cocher les livraisons additionnelles
+                document.querySelectorAll(".cb-delivery").forEach(cb => {
+                    cb.checked = objetSortie.additionalDeliveries.includes(cb.value);
                 });
 
                 document.getElementById("opt-version").value = objetSortie.versionLine || "";
                 document.getElementById("opt-licencetype").value = objetSortie.licenceType || "Copyright";
                 document.getElementById("opt-upc").value = objetSortie.upc || "";
-                document.getElementById("opt-territories").value = objetSortie.territories || "FR,CA,US,BE,CH,GB,DE,JP";
+
+                if (Array.isArray(objetSortie.territories)) {
+                    paysSelectionnes = objetSortie.territories;
+                    validerSelectionPays();
+                } else if (typeof objetSortie.territories === 'string' && objetSortie.territories) {
+                    document.getElementById("opt-territories").value = objetSortie.territories;
+                }
+
+                if (objetSortie.feats) {
+                    featsSelectionnes = objetSortie.feats;
+                    mettreAJourVueFeats();
+                }
 
                 if (objetSortie.coverUrl) {
-                    afficherPochetteEnPlace(objetSortie.coverUrl);
+                    afficherPochetteEnPlace(api.fileUrl(objetSortie.coverUrl));
                 }
 
+                if (objetSortie.appleMotion11) {
+                    document.getElementById("status-motion-11").innerText = "Fichier chargé ✓";
+                    document.getElementById("status-motion-11").style.color = "green";
+                }
+                if (objetSortie.appleMotion34) {
+                    document.getElementById("status-motion-34").innerText = "Fichier chargé ✓";
+                    document.getElementById("status-motion-34").style.color = "green";
+                }
+
+                window.validerStructuresDates();
                 renouvelerAffichageListePistes();
-            }
-
-            if (objetSortie.feats && Array.isArray(objetSortie.feats)) {
-                fetsSelectionnes = objetSortie.feats;
-                setTimeout(() => {
-                    mettreAJourVueFeats();
-                }, 1000);
-            }
-
-            if (objetSortie.feats && Array.isArray(objetSortie.feats)) {
-                fetsSelectionnes = objetSortie.feats;
-
-                setTimeout(() => {
-                    mettreAJourVueFeats();
-                }, 500);
-            } else {
-                fetsSelectionnes = [];
-                setTimeout(() => {
-                    mettreAJourVueFeats();
-                }, 500);
+            } catch (err) {
+                console.error("Erreur de chargement :", err);
             }
         }
 
-        window.basculerSection = function (idSection) {
-            document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-            document.querySelectorAll(".section-panel").forEach(p => p.classList.remove("active"));
-            document.getElementById("sub-sidebar").style.display = (idSection === "sortie") ? "flex" : "none";
-
-            event.target.classList.add("active");
-            document.getElementById(`sec-${idSection}`).classList.add("active");
-        };
-
-        window.basculerSousSection = function (idSousSection) {
-            document.querySelectorAll(".sub-btn").forEach(b => b.classList.remove("active"));
-            document.querySelectorAll(".sub-section-panel").forEach(p => p.classList.remove("active"));
-            event.target.classList.add("active");
-            document.getElementById(`subsec-${idSousSection}`).classList.add("active");
-        };
-
-        window.toggleDateVisuelle = function (idTarget, element) {
-            document.getElementById(idTarget).style.display = element.checked ? "flex" : "none";
-        };
-
-        window.validerStructuresDates = function () {
-            const today = new Date().toISOString().split("T")[0];
-
-            const inputSortie = document.getElementById("date-release");
-            inputSortie.min = today;
-            if (inputSortie.value && inputSortie.value < today) {
-                inputSortie.value = today;
-            }
-
-            const rDate = inputSortie.value;
-
-            const alertD = document.getElementById("date-alert");
-            if (rDate) {
-                const dateRecommandee = new Date();
-                dateRecommandee.setDate(dateRecommandee.getDate() + 14);
-                alertD.style.display = (new Date(rDate) < dateRecommandee) ? "block" : "none";
-            }
-
-            const inputOriginal = document.getElementById("date-original");
-            inputOriginal.max = today;
-            if (inputOriginal.value && inputOriginal.value > today) {
-                inputOriginal.value = today;
-            }
-
-            const inputPreorder = document.getElementById("date-preorder");
-            inputPreorder.min = today;
-            if (rDate) {
-                inputPreorder.max = rDate;
-                if (inputPreorder.value && inputPreorder.value > rDate) {
-                    inputPreorder.value = rDate;
-                }
-            } else {
-                inputPreorder.removeAttribute("max");
-            }
-            if (inputPreorder.value && inputPreorder.value < today) {
-                inputPreorder.value = today;
-            }
-
-            analyserConsole();
-        };
-
-        window.traiterFichierPochette = function () {
-            const file = document.getElementById("file-cover").files[0];
-            if (!file) return;
-
-            if (file.size > 35 * 1024 * 1024) {
-                showToast("Erreur de format de fichier : Le fichier dépasse la limite physique de 35MB.", "error");
-                return;
-            }
-
-            const imgReader = new FileReader();
-            imgReader.onload = function (e) {
-                const imageObject = new Image();
-                imageObject.onload = async function () {
-                    const width = imageObject.width;
-                    const height = imageObject.height;
-
-                    if (width < 3000 || height < 3000 || width > 5000 || height > 5000) {
-                        showToast(`Dimensions invalides (${width}x${height}px). La pochette doit mesurer entre 3000x3000px et 5000x5000px.`, "error");
-                        return;
-                    }
-                    if (width !== height) {
-                        showToast(`Ratio invalide. La pochette doit obligatoirement former un carré parfait (Actuel : ${width}x${height}px).`, "error");
-                        return;
-                    }
-
-                    await executerUploadPochetteR2(file);
-                };
-                imageObject.src = e.target.result;
-            };
-            imgReader.readAsDataURL(file);
-        };
-
-        function uploadFileWithProgress(url, file, headers, onProgress) {
-            return new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open("POST", url);
-                for (const [key, value] of Object.entries(headers)) {
-                    xhr.setRequestHeader(key, value);
-                }
-                if (xhr.upload && onProgress) {
-                    xhr.upload.addEventListener("progress", (event) => {
-                        if (event.lengthComputable) {
-                            const percentComplete = (event.loaded / event.total) * 100;
-                            onProgress(percentComplete);
-                        }
-                    });
-                }
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            const response = JSON.parse(xhr.responseText);
-                            resolve(response);
-                        } catch (e) {
-                            resolve(xhr.responseText);
-                        }
-                    } else {
-                        reject(new Error(`Status ${xhr.status}`));
-                    }
-                };
-                xhr.onerror = () => {
-                    reject(new Error("Erreur réseau"));
-                };
-                xhr.send(file);
-            });
-        }
-
-        let fetsSelectionnes = [];
-
-        window.ouvrirPopupNouveauFeat = function () {
-            document.getElementById('modal-nouveau-feat').style.display = 'flex';
-        };
+        window.ouvrirPopupNouveauFeat = () => document.getElementById('modal-nouveau-feat').style.display = 'flex';
 
         window.ouvrirPopupFeatExistant = async function () {
             document.getElementById('modal-existant-feat').style.display = 'flex';
             const container = document.getElementById('liste-feat-existants');
             container.innerHTML = "Chargement...";
 
-            if (!uidConnecte) return;
-
             try {
-                const qArtists = collection(db, "users", uidConnecte, "artists");
-                const snapArtists = await getDocs(qArtists);
+                let artistes = [];
+                const mainArtist = document.getElementById("rel-artist").value;
+                if (mainArtist) artistes.push({ name: mainArtist, type: "Compte principal" });
 
-                const qFeats = collection(db, "users", uidConnecte, "feats");
-                const snapFeats = await getDocs(qFeats);
-
-                container.innerHTML = "";
-                let globalList = [];
-
-                snapArtists.forEach(docSnap => {
-                    if (docSnap.data().name) {
-                        globalList.push({ id: docSnap.id, name: docSnap.data().name, source: 'principal' });
+                try {
+                    const featsData = await api.get("/api/feats");
+                    if (featsData && Array.isArray(featsData)) {
+                        featsData.forEach(f => artistes.push({ name: f.name || f, type: "Artiste Feat" }));
                     }
-                });
-                snapFeats.forEach(docSnap => {
-                    if (docSnap.data().name && !globalList.some(a => a.name.toLowerCase() === docSnap.data().name.toLowerCase())) {
-                        globalList.push({ id: docSnap.id, name: docSnap.data().name, source: 'feat' });
-                    }
-                });
-
-                if (globalList.length === 0) {
-                    container.innerHTML = "<p style='color:#777; font-size:13px;'>Aucun artiste enregistré trouvé.</p>";
-                    return;
+                } catch (e) {
+                    console.log("Aucun feat supplémentaire trouvé en base");
                 }
 
-                globalList.forEach(artist => {
-                    const row = document.createElement('div');
-                    row.style = "padding:8px; border-bottom:1px solid #f9f9f9; display:flex; justify-content:space-between; align-items:center; cursor:pointer;";
-                    row.innerHTML = `
-                <div style="flex:1;"><strong>${artist.name}</strong> <small style="color:#aaa;">(${artist.source})</small></div>
-                <button type="button" class="btn btn-sm btn-primary">Sélectionner</button>
-            `;
-                    row.addEventListener('click', () => {
-                        ajouterFeatALaSortie(artist.name);
-                        fermerPopupFeat('existant');
-                    });
-                    container.appendChild(row);
-                });
-
+                tousLesArtistesDisponibles = artistes;
+                afficherArtistesExistants(artistes);
             } catch (err) {
-                console.error("Erreur chargement artistes existants:", err);
-                container.innerHTML = "Erreur au chargement.";
+                container.innerHTML = "Erreur de chargement des artistes.";
             }
+        };
+
+        function afficherArtistesExistants(liste) {
+            const container = document.getElementById('liste-feat-existants');
+            container.innerHTML = "";
+            if (liste.length === 0) {
+                container.innerHTML = "<p style='color:#777; font-size:13px;'>Aucun artiste disponible.</p>";
+                return;
+            }
+
+            liste.forEach(artist => {
+                const row = document.createElement('div');
+                row.style = "padding:8px; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center;";
+                row.innerHTML = `
+                    <div>
+                        <strong>${artist.name}</strong> 
+                        <span style="font-size:11px; color:#888;">(${artist.type})</span>
+                    </div>
+                    <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;">Sélectionner</button>`;
+                row.querySelector("button").onclick = () => {
+                    if (!featsSelectionnes.includes(artist.name)) {
+                        featsSelectionnes.push(artist.name);
+                        mettreAJourVueFeats();
+                    }
+                    document.getElementById('modal-existant-feat').style.display = 'none';
+                };
+                container.appendChild(row);
+            });
+        }
+
+        window.filtrerArtistesExistants = function () {
+            const query = document.getElementById('search-feat-input').value.toLowerCase();
+            const filtres = tousLesArtistesDisponibles.filter(a => a.name.toLowerCase().includes(query));
+            afficherArtistesExistants(filtres);
         };
 
         window.sauvegarderNouveauFeat = async function () {
             const name = document.getElementById('feat-new-name').value.trim();
-            if (!name) {
-                alert("Le nom de l'artiste est obligatoire.");
-                return;
-            }
-
-            const urlApple = document.getElementById('url-feat-apple').value.trim();
-            const urlSpotify = document.getElementById('url-feat-spotify').value.trim();
-            const urlAmazon = document.getElementById('url-feat-amazon').value.trim();
-            const urlSoundcloud = document.getElementById('url-feat-soundcloud').value.trim();
-            const urlMeta = document.getElementById('url-feat-meta').value.trim();
-
-            let aUneErreur = false;
-            ['apple', 'spotify', 'amazon', 'soundcloud', 'meta'].forEach(p => {
-                document.getElementById(`err-feat-${p}`).style.display = 'none';
-            });
-
-            if (urlApple && !urlApple.includes('music.apple.com')) {
-                document.getElementById('err-feat-apple').style.display = 'block';
-                aUneErreur = true;
-            }
-            if (urlSpotify && !urlSpotify.includes('open.spotify.uk')) {
-                document.getElementById('err-feat-spotify').style.display = 'block';
-                aUneErreur = true;
-            }
-            if (urlAmazon && !urlAmazon.includes('music.amazon')) {
-                document.getElementById('err-feat-amazon').style.display = 'block';
-                aUneErreur = true;
-            }
-            if (urlSoundcloud && !urlSoundcloud.includes('soundcloud.com')) {
-                document.getElementById('err-feat-soundcloud').style.display = 'block';
-                aUneErreur = true;
-            }
-            if (urlMeta && !urlMeta.includes('instagram.com') && !urlMeta.includes('facebook.com')) {
-                document.getElementById('err-feat-meta').style.display = 'block';
-                aUneErreur = true;
-            }
-
-            if (aUneErreur) return;
+            if (!name) return alert("Le nom de l'artiste est obligatoire");
 
             const payload = {
                 name: name,
                 links: {
-                    apple: urlApple,
-                    spotify: urlSpotify,
-                    amazon: urlAmazon,
-                    soundcloud: urlSoundcloud,
-                    meta: urlMeta
-                },
-                createdAt: new Date().toISOString()
+                    apple: document.getElementById('url-feat-apple').value.trim(),
+                    spotify: document.getElementById('url-feat-spotify').value.trim(),
+                    amazon: document.getElementById('url-feat-amazon').value.trim()
+                }
             };
 
             try {
-                if (uidConnecte) {
-                    await addDoc(collection(db, "users", uidConnecte, "feats"), payload);
-                    ajouterFeatALaSortie(name);
-                    fermerPopupFeat('nouveau');
-                } else {
-                    alert("Erreur: Vous devez être connecté.");
-                }
+                await api.post("/api/feats", payload);
+                if (!featsSelectionnes.includes(name)) featsSelectionnes.push(name);
+                mettreAJourVueFeats();
+                window.fermerPopupFeat('nouveau');
             } catch (err) {
-                console.error("Erreur lors de l'enregistrement de l'artiste feat:", err);
-                alert("Erreur durant la sauvegarde en base.");
+                if (!featsSelectionnes.includes(name)) featsSelectionnes.push(name);
+                mettreAJourVueFeats();
+                window.fermerPopupFeat('nouveau');
             }
         };
 
-        function ajouterFeatALaSortie(artistName) {
-            if (!fetsSelectionnes.includes(artistName)) {
-                fetsSelectionnes.push(artistName);
-                mettreAJourVueFeats();
-            }
-        }
-
         window.fermerPopupFeat = function (type) {
-            if (type === 'nouveau') {
-                document.getElementById('modal-nouveau-feat').style.display = 'none';
-                document.getElementById('feat-new-name').value = "";
-                ['apple', 'spotify', 'amazon', 'soundcloud', 'meta'].forEach(p => {
-                    document.getElementById(`div-feat-${p}`).style.display = 'none';
-                    document.getElementById(`url-feat-${p}`).value = "";
-                    document.getElementById(`err-feat-${p}`).style.display = 'none';
-                });
-            } else {
-                document.getElementById('modal-existant-feat').style.display = 'none';
-            }
+            document.getElementById(type === 'nouveau' ? 'modal-nouveau-feat' : 'modal-existant-feat').style.display = 'none';
         };
 
         function mettreAJourVueFeats() {
             const container = document.getElementById('selected-feats-list');
             container.innerHTML = "";
-
-            fetsSelectionnes.forEach(name => {
+            featsSelectionnes.forEach(name => {
                 const pill = document.createElement('div');
-                pill.style = "background:#eee; color:#333; padding:5px 10px; border-radius:15px; font-size:13px; display:flex; align-items:center; gap:8px;";
-                pill.innerHTML = `
-            <span>${name}</span>
-            <span style="cursor:pointer; font-weight:bold; color:red;" onclick="retirerFeatDeLaSortie('${name}')">×</span>
-        `;
+                pill.style = "background:#eee; color:#333; padding:6px 12px; border-radius:20px; font-size:13px; display:flex; align-items:center; gap:8px;";
+                pill.innerHTML = `<span>${name}</span> <span style="cursor:pointer; font-weight:bold; color:red;" onclick="retirerFeat('${name}')">×</span>`;
                 container.appendChild(pill);
             });
         }
 
-        window.retirerFeatDeLaSortie = function (name) {
-            fetsSelectionnes = fetsSelectionnes.filter(a => a !== name);
+        window.retirerFeat = (name) => {
+            featsSelectionnes = featsSelectionnes.filter(a => a !== name);
             mettreAJourVueFeats();
         };
 
-        async function executerUploadPochetteR2(file) {
-            window.ouvrirModalUpload("Téléversement de la pochette", "Préparation en cours...");
+        window.ouvrirModalMotion = () => document.getElementById('modal-motion').style.display = 'flex';
+
+        window.traiterUploadMotion = async function (type) {
+            const fileInput = document.getElementById(type === 1 ? 'file-motion-1-1' : 'file-motion-3-4');
+            const file = fileInput?.files[0];
+            if (!file) return;
+
+            afficherProgressUpload(true, `Téléversement Apple Motion Art (${type === 1 ? '1:1' : '3:4'})...`, 0);
 
             try {
-                const data = await uploadFileWithProgress(
-                    `https://pochettes.api.mm-cp.uk?releaseId=${currentReleaseId}`,
-                    file,
-                    { "Content-Type": file.type, "X-File-Type": "cover" },
-                    (pct) => {
-                        window.majModalUpload(pct);
-                    }
-                );
+                const res = await api.uploadFile("motion", file, (percent) => {
+                    afficherProgressUpload(true, `Téléversement Apple Motion Art (${type === 1 ? '1:1' : '3:4'})...`, percent);
+                });
+                const fileRef = res?.key || res?.url;
 
-                objetSortie.coverUrl = data.url;
-                afficherPochetteEnPlace(data.url);
-                analyserConsole();
-                window.fermerModalUpload(true, "Pochette téléversée avec succès.");
+                if (type === 1) {
+                    objetSortie.appleMotion11 = fileRef;
+                    document.getElementById("motion-1-1-preview").innerText = `Chargé: ${file.name}`;
+                    document.getElementById("status-motion-11").innerText = "Fichier chargé ✓";
+                    document.getElementById("status-motion-11").style.color = "green";
+                } else {
+                    objetSortie.appleMotion34 = fileRef;
+                    document.getElementById("motion-3-4-preview").innerText = `Chargé: ${file.name}`;
+                    document.getElementById("status-motion-34").innerText = "Fichier chargé ✓";
+                    document.getElementById("status-motion-34").style.color = "green";
+                }
             } catch (err) {
-                showToast("Échec du téléversement sur MMCP R2 : " + err.message, "error");
-                window.fermerModalUpload(false, "Échec du téléversement.");
+                console.error("Upload Motion error:", err);
+                alert("Erreur lors de l'upload de la Motion Art : " + err.message);
+            } finally {
+                afficherProgressUpload(false);
             }
-        }
-
-        function afficherPochetteEnPlace(url) {
-            document.getElementById("txt-preview-cover").style.display = "none";
-            const img = document.getElementById("img-cover-element");
-            img.src = url;
-            img.style.display = "block";
-        }
-
-        window.ouvrirModalMotion = function () {
-            document.getElementById("modal-motion").style.display = "flex";
         };
 
+        window.ouvrirLancementFichierAudio = () => document.getElementById("file-audio-main").click();
 
-        window.ouvrirLancementFichierAudio = function () {
-            // Vérification du badge
-            const badge = objetSortie.badge ? objetSortie.badge.trim() : "";
-            if (badge && badge !== "Verification MMCP" && badge !== "Vérification MMCP") {
-                showToast("Impossible d'ajouter des pistes : le statut/badge de cette sortie ne le permet pas.", "error");
-                return;
-            }
-            document.getElementById("file-audio-main").click();
-        };
-
-        if (typeof window.analyserConsole !== 'function') {
-            window.analyserConsole = function () {
-            };
-        }
-        // Initialisation forcée en Single-Thread (Ne requiert PAS SharedArrayBuffer)
-        const { createFFmpeg, fetchFile } = FFmpeg;
-
-        const ffmpeg = createFFmpeg({
-            log: false,
-            corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js'
-        });
-
-        // Conversion universelle MP3 via FFmpeg Single-Thread (ALAC / Lossless / WAV / FLAC / etc.)
-        async function convertirAudioEnMp3Universel(file) {
-            if (file.type.includes("mpeg") || file.name.toLowerCase().endsWith(".mp3")) {
-                return file;
-            }
-
-            // Chargement du noyau Single-Thread
-            if (!ffmpeg.isLoaded()) {
-                await ffmpeg.load();
-            }
-
-            const extension = file.name.split('.').pop() || 'bin';
-            const inputFileName = `input_${Date.now()}.${extension}`;
-            const outputFileName = `output_${Date.now()}.mp3`;
-
-            // Écriture du fichier dans le système de fichiers virtuel WASM
-            ffmpeg.FS('writeFile', inputFileName, await fetchFile(file));
-
-            // Exécution du décodage ALAC/Lossless et ré-encodage MP3
-            await ffmpeg.run(
-                '-i', inputFileName,
-                '-vn',
-                '-ar', '44100',
-                '-ac', '2',
-                '-b:a', '192k',
-                outputFileName
-            );
-
-            // Récupération du fichier converti
-            const data = ffmpeg.FS('readFile', outputFileName);
-
-            // Nettoyage de la mémoire virtuelle
-            try {
-                ffmpeg.FS('unlink', inputFileName);
-                ffmpeg.FS('unlink', outputFileName);
-            } catch (e) {
-                console.warn("Nettoyage mémoire FFmpeg :", e);
-            }
-
-            const blob = new Blob([data.buffer], { type: 'audio/mp3' });
-            const originalNameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-            return new File([blob], `${originalNameWithoutExt}.mp3`, { type: 'audio/mp3' });
-        }
-
-        // Fonction d'upload principale
         window.traiterUploadFichierAudio = async function () {
             const input = document.getElementById("file-audio-main");
-            const files = input ? input.files : null;
+            const files = input?.files;
             if (!files || files.length === 0) return;
 
-            window.ouvrirModalUpload("Téléversement audio en cours", "Préparation des fichiers...");
+            try {
+                if (!Array.isArray(objetSortie.tracks)) objetSortie.tracks = [];
 
-            for (let i = 0; i < files.length; i++) {
-                const originalFile = files[i];
-                if (!originalFile.name.toLowerCase().endsWith('.wav')) {
-                    if (typeof showToast === "function") showToast(`Le fichier "${originalFile.name}" n'est pas au format .wav.`, "error");
-                    continue;
-                }
-                const timestamp = Date.now();
-                const baseName = originalFile.name.replace(/\.[^/.]+$/, "");
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    afficherProgressUpload(true, `Téléversement de la piste audio... (${i + 1}/${files.length})`, 0);
 
-                let mp3File = originalFile;
+                    try {
+                        const res = await api.uploadFile("track", file, (percent) => {
+                            afficherProgressUpload(true, `Téléversement de la piste audio... (${i + 1}/${files.length})`, percent);
+                        });
+                        const newTrack = {
+                            id: "track_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+                            title: file.name.replace(/\.[^/.]+$/, ""),
+                            fileUrl: res?.key || res?.url,
+                            version: "",
+                            isAiGenerated: false,
+                            language: objetSortie.language || "Français",
+                            isrc: "",
+                            iswc: "",
+                            writers: "",
+                            appleCredits: "",
+                            lyricsText: "",
+                            lyricType: "Clean",
+                            atmosUrl: null,
+                            instUrl: null
+                        };
 
-                try {
-                    if (typeof showToast === "function") {
-                        showToast(`Conversion de "${originalFile.name}" en MMAC...`, "info");
+                        objetSortie.tracks.push(newTrack);
+                        sauvegarderDansBibliothequePistes(newTrack);
+
+                    } catch (err) {
+                        console.error(`Erreur d'upload pour ${file.name}:`, err);
+                        alert(`Erreur d'upload pour ${file.name} : ` + err.message);
                     }
-                    mp3File = await convertirAudioEnMp3Universel(originalFile);
-                } catch (err) {
-                    if (typeof showToast === "function") {
-                    }
                 }
-
-                // 1. Upload Fichier Original
-                const originalRef = ref(storage, `releases/${currentReleaseId}/tracks/original/${timestamp}_${originalFile.name}`);
-                const uploadOriginalTask = uploadBytesResumable(originalRef, originalFile);
-
-                const originalUrl = await new Promise((resolve, reject) => {
-                    uploadOriginalTask.on('state_changed',
-                        (snapshot) => {
-                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 50;
-                            window.majModalUpload(progress);
-                        },
-                        (error) => reject(error),
-                        async () => resolve(await getDownloadURL(uploadOriginalTask.snapshot.ref))
-                    );
-                });
-
-                // 2. Upload Fichier MP3 Converti
-                const mp3Ref = ref(storage, `releases/${currentReleaseId}/tracks/mp3/${timestamp}_${mp3File.name}`);
-                const uploadMp3Task = uploadBytesResumable(mp3Ref, mp3File);
-
-                const mp3Url = await new Promise((resolve, reject) => {
-                    uploadMp3Task.on('state_changed',
-                        (snapshot) => {
-                            const progress = 50 + ((snapshot.bytesTransferred / snapshot.totalBytes) * 50);
-                            window.majModalUpload(progress);
-                        },
-                        (error) => reject(error),
-                        async () => resolve(await getDownloadURL(uploadMp3Task.snapshot.ref))
-                    );
-                });
-
-                // 3. Objet Piste
-                const nouvellePiste = {
-                    id: timestamp + "_" + i,
-                    title: baseName,
-                    fileUrl: originalUrl,
-                    mp3Url: mp3Url,
-                    originalUrl: originalUrl,
-                    version: "",
-                    isAi: false,
-                    tiktokStartM: null,
-                    tiktokStartS: null,
-                    language: (typeof objetSortie !== 'undefined' && objetSortie.language) ? objetSortie.language : "Français",
-                    isrc: "",
-                    iswc: "",
-                    artists: [],
-                    writers: [],
-                    appleCredits: "",
-                    lyrics: "",
-                    isExplicit: false,
-                    isClean: false,
-                    atmosUrl: "",
-                    instUrl: "",
-                    admUrl: ""
-                };
-
-                if (typeof objetSortie !== 'undefined' && objetSortie.tracks) {
-                    objetSortie.tracks.push(nouvellePiste);
-                }
-            }
-
-            if (fillProgress) fillProgress.style.width = '0%';
-            if (containerProgress) containerProgress.style.display = "none";
-            if (input) input.value = "";
-
-            if (typeof renouvelerAffichageListePistes === "function") {
+            } finally {
+                afficherProgressUpload(false);
+                if (input) input.value = "";
                 renouvelerAffichageListePistes();
-            }
-            if (typeof window.analyserConsole === "function") {
-                window.analyserConsole();
-            }
-
-            if (typeof showToast === "function") {
-                showToast("Pistes et conversions .mmlc envoyées avec succès !", "success");
+                if (typeof window.analyserConsole === "function") {
+                    window.analyserConsole();
+                }
             }
         };
 
+        function sauvegarderDansBibliothequePistes(piste) {
+            let lib = JSON.parse(localStorage.getItem("mmcp_track_library") || "[]");
+            const existsIndex = lib.findIndex(t => t.id === piste.id || (t.title === piste.title && t.isrc === piste.isrc && piste.isrc !== ""));
+            if (existsIndex >= 0) {
+                lib[existsIndex] = piste;
+            } else {
+                lib.push(piste);
+            }
+            localStorage.setItem("mmcp_track_library", JSON.stringify(lib));
+        }
 
-        window.traiterUploadAtmos = function () {
-            const file = document.getElementById("file-audio-atmos").files[0];
-            if (!file || indexPisteEnCoursEdition === null) return;
+        window.ouvrirModalCataloguePistes = function () {
+            const container = document.getElementById("container-catalogue-pistes");
+            const lib = JSON.parse(localStorage.getItem("mmcp_track_library") || "[]");
+            container.innerHTML = "";
 
-            const fileRef = ref(storage, `releases/${currentReleaseId}/tracks/atmos/${Date.now()}_${file.name}`);
-            const uploadTask = uploadBytesResumable(fileRef, file);
+            if (lib.length === 0) {
+                container.innerHTML = "<p style='color:#777; font-size:13px;'>Aucune piste dans la bibliothèque sonore pour le moment.</p>";
+            } else {
+                lib.forEach(track => {
+                    const item = document.createElement("div");
+                    item.className = "track-item";
+                    item.innerHTML = `
+                        <div>
+                            <strong>${track.title}</strong> 
+                            <span style="font-size:11px; color:#666;">(ISRC: ${track.isrc || 'N/A'})</span>
+                        </div>
+                        <button type="button" class="btn-side btn-pub" style="width:auto; padding:4px 12px;">Ajouter</button>
+                    `;
+                    item.querySelector("button").onclick = () => {
+                        if (!Array.isArray(objetSortie.tracks)) objetSortie.tracks = [];
+                        objetSortie.tracks.push({ ...track, id: "track_" + Date.now() });
+                        renouvelerAffichageListePistes();
+                        fermerModalCataloguePistes();
+                        window.analyserConsole();
+                    };
+                    container.appendChild(item);
+                });
+            }
 
-            const status = document.getElementById("status-atmos");
-            window.ouvrirModalUpload("Téléversement Atmos", "Préparation du fichier Dolby Atmos...");
-
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    if (fill) fill.style.width = progress + '%';
-                },
-                (error) => {
-                    showToast("Erreur de téléversement Atmos", "error");
-                },
-                async () => {
-                    const url = await getDownloadURL(uploadTask.snapshot.ref);
-                    objetSortie.tracks[indexPisteEnCoursEdition].atmosUrl = url;
-                    if (fill) fill.style.width = '0%';
-                    if (container) container.style.display = "none";
-                    if (status) {
-                        status.innerText = "Fichier Dolby Atmos configuré";
-                        status.style.display = "block";
-                    }
-                    showToast("Fichier Atmos associé à la piste", "success");
-                }
-            );
+            document.getElementById("modal-catalogue-pistes").style.display = "flex";
         };
 
-        window.traiterUploadInstrumental = function () {
-            const file = document.getElementById("file-audio-inst").files[0];
-            if (!file || indexPisteEnCoursEdition === null) return;
+        window.fermerModalCataloguePistes = () => document.getElementById("modal-catalogue-pistes").style.display = "none";
 
-            const fileRef = ref(storage, `releases/${currentReleaseId}/tracks/instrumentals/${Date.now()}_${file.name}`);
-            const uploadTask = uploadBytesResumable(fileRef, file);
-
-            const status = document.getElementById("status-inst");
-            window.ouvrirModalUpload("Téléversement Instrumental", "Préparation de la version instrumentale...");
-
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    if (fill) fill.style.width = progress + '%';
-                },
-                (error) => {
-                    showToast("Erreur de téléversement Instrumentale", "error");
-                },
-                async () => {
-                    const url = await getDownloadURL(uploadTask.snapshot.ref);
-                    objetSortie.tracks[indexPisteEnCoursEdition].instUrl = url;
-                    if (fill) fill.style.width = '0%';
-                    if (container) container.style.display = "none";
-                    if (status) {
-                        status.innerText = "Version instrumentale configurée";
-                        status.style.display = "block";
-                    }
-                    showToast("Version Instrumentale associée", "success");
-                }
-            );
-        };
-
-        window.traiterUploadADM = function () {
-            const file = document.getElementById("file-audio-adm").files[0];
-            if (!file || indexPisteEnCoursEdition === null) return;
-
-            const fileRef = ref(storage, `releases/${currentReleaseId}/tracks/adm/${Date.now()}_${file.name}`);
-            const uploadTask = uploadBytesResumable(fileRef, file);
-
-            const status = document.getElementById("status-adm");
-            window.ouvrirModalUpload("Téléversement ADM", "Préparation du fichier Apple Digital Master...");
-
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    if (fill) fill.style.width = progress + '%';
-                },
-                (error) => {
-                    showToast("Erreur de téléversement Apple Digital Master", "error");
-                },
-                async () => {
-                    const url = await getDownloadURL(uploadTask.snapshot.ref);
-                    objetSortie.tracks[indexPisteEnCoursEdition].admUrl = url;
-                    if (fill) fill.style.width = '0%';
-                    if (container) container.style.display = "none";
-                    if (status) {
-                        status.innerText = "Apple Digital Master configuré";
-                        status.style.display = "block";
-                    }
-                    showToast("Apple Digital Master associé", "success");
-                }
-            );
-        };
         function renouvelerAffichageListePistes() {
             const container = document.getElementById("ui-track-list");
             container.innerHTML = "";
+            if (!Array.isArray(objetSortie.tracks)) objetSortie.tracks = [];
             objetSortie.tracks.forEach((track, index) => {
-                container.innerHTML += `
-                <div class="track-item">
+                const item = document.createElement("div");
+                item.className = "track-item";
+                item.innerHTML = `
                     <div>
                         <strong>#${index + 1} ${track.title}</strong> 
-                        <span style="font-size:11px; color:#777; margin-left:10px;">(${track.version || 'Original Mix'})</span>
+                        <span style="font-size:11px; color:#777;">(${track.version || 'Original'})</span>
+                        ${track.isrc ? `<span style="font-size:10px; background:#eee; padding:2px 6px; border-radius:10px; margin-left:6px;">ISRC: ${track.isrc}</span>` : ''}
                     </div>
-                    <button type="button" class="btn-nav-exit" style="padding:4px 10px; font-size:12px;" onclick="ouvrirEditeurPiste(${index})">Modifier la piste</button>
-                </div>
-            `;
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;" onclick="ouvrirEditeurPiste(${index})">Modifier</button>
+                        <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 8px; color:red;" onclick="supprimerPiste(${index})">✕</button>
+                    </div>
+                `;
+                container.appendChild(item);
             });
         }
+
+        window.supprimerPiste = function (index) {
+            objetSortie.tracks.splice(index, 1);
+            renouvelerAffichageListePistes();
+            window.analyserConsole();
+        };
 
         window.ouvrirEditeurPiste = function (index) {
             indexPisteEnCoursEdition = index;
             const track = objetSortie.tracks[index];
-
             document.getElementById("modal-track-title").innerText = `Édition : ${track.title}`;
-            const inputTitle = document.getElementById("t-edit-title");
-            inputTitle.value = track.title;
-
-            inputTitle.disabled = (objetSortie.tracks.length === 1);
-
+            document.getElementById("t-edit-title").value = track.title;
             document.getElementById("t-edit-version").value = track.version || "";
-            document.getElementById("t-edit-ai").checked = track.isAiGenerated;
-            document.getElementById("t-edit-lang").value = track.language;
+            document.getElementById("t-edit-ai").checked = !!track.isAiGenerated;
+            document.getElementById("t-edit-lang").value = track.language || "Français";
             document.getElementById("t-edit-isrc").value = track.isrc || "";
             document.getElementById("t-edit-iswc").value = track.iswc || "";
             document.getElementById("t-writer-name").value = track.writers || "";
             document.getElementById("t-apple-credit").value = track.appleCredits || "";
             document.getElementById("t-lyrics-text").value = track.lyricsText || "";
 
-            const statusAtmos = document.getElementById("status-atmos");
-            const statusInst = document.getElementById("status-inst");
-            const statusAdm = document.getElementById("status-adm");
+            document.getElementById("status-atmos").innerText = track.atmosUrl ? "Dolby Atmos disponible ✓" : "";
+            document.getElementById("status-inst").innerText = track.instUrl ? "Instrumental disponible ✓" : "";
 
-            if (track.atmosAudioUrl) {
-                statusAtmos.style.display = "block";
-                statusAtmos.innerText = "✓ Dolby Atmos lié";
-                statusAtmos.style.color = "#28a745";
-            } else {
-                statusAtmos.style.display = "none";
-            }
-
-            if (track.instrumentalAudioUrl) {
-                statusInst.style.display = "block";
-                statusInst.innerText = "✓ Version Instrumentale liée";
-                statusInst.style.color = "#28a745";
-            } else {
-                statusInst.style.display = "none";
-            }
-
-            if (track.admAudioUrl) {
-                statusAdm.style.display = "block";
-                statusAdm.innerText = "✓ Apple Digital Master lié";
-                statusAdm.style.color = "#28a745";
-                document.getElementById("t-apple-master-email").value = track.appleMasteringEmail || "";
-                document.getElementById("btn-apple-digital-master").disabled = false;
-                document.getElementById("btn-apple-digital-master").style.background = "var(--dark)";
-                document.getElementById("btn-apple-digital-master").style.color = "white";
-            } else {
-                statusAdm.style.display = "none";
-                document.getElementById("t-apple-master-email").value = "";
-                document.getElementById("btn-apple-digital-master").disabled = true;
-                document.getElementById("btn-apple-digital-master").style.background = "#eee";
-                document.getElementById("btn-apple-digital-master").style.color = "#aaa";
-            }
-
-            if (track.lyricType === "Explicit") document.getElementById("rad-exp").checked = true;
-            else document.getElementById("rad-clean").checked = true;
-
-            rechargerListeArtistesPisteModal(track);
             document.getElementById("modal-track-editor").style.display = "flex";
         };
 
-        function rechargerListeArtistesPisteModal(track) {
-            const list = document.getElementById("t-list-artists");
-            list.innerHTML = "";
-            track.artists.forEach(art => {
-                list.innerHTML += `<li>${art.name} - <span style="color:var(--primary); font-weight:bold;">${art.role}</span></li>`;
-            });
-        }
-
-        window.ajouterArtistePiste = function () {
-            const name = document.getElementById("t-new-art-name").value.trim();
-            const role = document.getElementById("t-new-art-role").value;
-            if (!name) return;
-
-            objetSortie.tracks[indexPisteEnCoursEdition].artists.push({ name, role });
-            rechargerListeArtistesPisteModal(objetSortie.tracks[indexPisteEnCoursEdition]);
-            document.getElementById("t-new-art-name").value = "";
-        };
-
-        window.verifierEmailAppleMastering = function () {
-            const email = document.getElementById("t-apple-master-email").value;
-            const btn = document.getElementById("btn-apple-digital-master");
-            if (email.includes("@") && email.includes(".")) {
-                btn.disabled = false;
-                btn.style.background = "var(--dark)";
-                btn.style.color = "white";
-            } else {
-                btn.disabled = true;
-                btn.style.background = "#eee";
-                btn.style.color = "#aaa";
-            }
-        };
-
         window.sauvegarderMetaDonneesPiste = function () {
+            if (indexPisteEnCoursEdition === null) return;
             const track = objetSortie.tracks[indexPisteEnCoursEdition];
             track.title = document.getElementById("t-edit-title").value.trim();
             track.version = document.getElementById("t-edit-version").value.trim();
@@ -2035,47 +1910,135 @@
             track.lyricsText = document.getElementById("t-lyrics-text").value.trim();
             track.lyricType = document.getElementById("rad-exp").checked ? "Explicit" : "Clean";
 
+            sauvegarderDansBibliothequePistes(track);
+
             document.getElementById("modal-track-editor").style.display = "none";
             renouvelerAffichageListePistes();
-            analyserConsole();
+            window.analyserConsole();
         };
 
-        window.switchTabTrack = function (paneId, button) {
+        window.traiterUploadAtmos = async function () {
+            const file = document.getElementById("file-audio-atmos").files[0];
+            if (!file) return;
+            try {
+                const res = await api.uploadFile("atmos", file);
+                objetSortie.tracks[indexPisteEnCoursEdition].atmosUrl = res.key || res.url;
+                document.getElementById("status-atmos").innerText = "Dolby Atmos téléversé ✓";
+            } catch (err) {
+                alert("Erreur upload Atmos: " + err.message);
+            }
+        };
+
+        window.traiterUploadInstrumental = async function () {
+            const file = document.getElementById("file-audio-inst").files[0];
+            if (!file) return;
+            try {
+                const res = await api.uploadFile("inst", file);
+                objetSortie.tracks[indexPisteEnCoursEdition].instUrl = res.key || res.url;
+                document.getElementById("status-inst").innerText = "Instrumental téléversé ✓";
+            } catch (err) {
+                alert("Erreur upload Instrumental: " + err.message);
+            }
+        };
+
+        function afficherProgressUpload(show, text = "", percent = 0) {
+            const modal = document.getElementById("modal-upload-progress");
+            const fill = document.getElementById("modal-upload-fill");
+            const percentLabel = document.getElementById("modal-upload-percent");
+            const textNode = document.getElementById("modal-upload-text");
+
+            if (show) {
+                textNode.innerText = text;
+                const safePercent = Math.min(100, Math.max(0, Number(percent) || 0));
+                fill.style.width = `${safePercent}%`;
+                percentLabel.innerText = `${safePercent}%`;
+                modal.style.display = "flex";
+                return;
+            }
+
+            fill.style.width = "100%";
+            percentLabel.innerText = "100%";
+            setTimeout(() => modal.style.display = "none", 400);
+        }
+
+        window.traiterFichierPochette = async function () {
+            const file = document.getElementById("file-cover").files[0];
+            if (!file) return;
+
+            afficherProgressUpload(true, "Téléversement de la pochette...");
+            try {
+                const res = await api.uploadFile("pochette", file);
+                if (res && (res.key || res.url)) {
+                    objetSortie.coverUrl = res.key || res.url;
+                    afficherPochetteEnPlace(api.fileUrl(objetSortie.coverUrl));
+                    window.analyserConsole();
+                }
+                afficherProgressUpload(false);
+            } catch (err) {
+                afficherProgressUpload(false);
+                alert("Erreur d'upload pochette : " + err.message);
+            }
+        };
+
+        function afficherPochetteEnPlace(url) {
+            document.getElementById("txt-preview-cover").style.display = "none";
+            const img = document.getElementById("img-cover-element");
+            img.src = url;
+            img.style.display = "block";
+        }
+
+        window.basculerSection = function (idSection, evt) {
+            document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".section-panel").forEach(p => p.classList.remove("active"));
+            document.getElementById("sub-sidebar").style.display = (idSection === "sortie") ? "flex" : "none";
+            if (evt && evt.target) evt.target.classList.add("active");
+            document.getElementById(`sec-${idSection}`).classList.add("active");
+        };
+
+        window.basculerSousSection = function (idSousSection, evt) {
+            document.querySelectorAll(".sub-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".sub-section-panel").forEach(p => p.classList.remove("active"));
+            if (evt && evt.target) evt.target.classList.add("active");
+            document.getElementById(`subsec-${idSousSection}`).classList.add("active");
+        };
+
+        window.toggleDateVisuelle = function (idTarget, element) {
+            document.getElementById(idTarget).style.display = element.checked ? "flex" : "none";
+        };
+
+        window.switchTabTrack = function (paneId, tabElem) {
             document.querySelectorAll(".modal-tab").forEach(t => t.classList.remove("active"));
             document.querySelectorAll(".modal-pane").forEach(p => p.classList.remove("active"));
-            button.classList.add("active");
+            tabElem.classList.add("active");
             document.getElementById(paneId).classList.add("active");
         };
 
-        window.enregistrerPlateformesSelectionnees = function () {
-            objetSortie.selectedPlatforms = [];
-            document.querySelectorAll(".cb-platform:checked").forEach(cb => {
-                objetSortie.selectedPlatforms.push(cb.value);
-            });
-        };
-
-        window.enregistrerLivraisonsAdditionnelles = function () {
-            objetSortie.additionalDeliveries = [];
-            document.querySelectorAll(".cb-delivery:checked").forEach(cb => {
-                objetSortie.additionalDeliveries.push(cb.value);
-            });
-        };
-
-        window.analyserConsole = function analyserConsole() {
-            const erreurs = [];
-
-            objetSortie.title = document.getElementById("rel-title").value.trim();
-            objetSortie.type = document.getElementById("rel-type").value;
-            objetSortie.releaseDate = document.getElementById("date-release").value;
-            objetSortie.primaryGenre = document.getElementById("genre-1").value;
-            objetSortie.language = document.getElementById("rel-lang").value;
-
-            if (objetSortie.tracks && objetSortie.tracks.length === 1 && objetSortie.title) {
-                if (objetSortie.tracks[0].title !== objetSortie.title) {
-                    objetSortie.tracks[0].title = objetSortie.title;
-                    renouvelerAffichageListePistes();
-                }
+        window.toggleFeatInput = function (plateforme) {
+            const div = document.getElementById(`div-feat-${plateforme}`);
+            if (div) {
+                div.style.display = div.style.display === "none" ? "block" : "none";
             }
+        };
+
+        window.quitterEditeur = () => document.getElementById("popup-quitter").style.display = "flex";
+        window.fermerPopupQuitter = () => document.getElementById("popup-quitter").style.display = "none";
+        window.confirmerQuitter = () => window.location.href = "sorties.html";
+
+        async function collecterDonneesFormulaire(statut = null) {
+            objetSortie.type = document.getElementById("rel-type").value;
+            objetSortie.title = document.getElementById("rel-title").value.trim();
+            objetSortie.releaseDate = document.getElementById("date-release").value;
+            objetSortie.originalReleaseDate = document.getElementById("chk-original-date").checked ? document.getElementById("date-original").value : "";
+            objetSortie.preorderDate = document.getElementById("chk-preorder-date").checked ? document.getElementById("date-preorder").value : "";
+
+            objetSortie.timezone = document.getElementById("chk-timezone").checked ? document.getElementById("time-zone").value : "";
+            objetSortie.exactTime = document.getElementById("chk-timezone").checked ? document.getElementById("time-exact").value : "";
+
+            objetSortie.primaryGenre = document.getElementById("genre-1").value;
+            objetSortie.secondaryGenre = document.getElementById("genre-2").value;
+            objetSortie.language = document.getElementById("rel-lang").value;
+            objetSortie.isInstrumental = document.getElementById("chk-instrumental").checked;
+            objetSortie.feats = featsSelectionnes;
 
             if (userPlan === "label" || userPlan === "white-label") {
                 objetSortie.copyrightLineC = document.getElementById("line-c").value.trim();
@@ -2085,291 +2048,51 @@
                 objetSortie.stdCopyright = document.getElementById("std-copyright").value.trim();
             }
 
-            if (!objetSortie.title) erreurs.push("Nom de la sortie obligatoire.");
-            if (!objetSortie.coverUrl) erreurs.push("Pochette d'art manquante ou non téléversée sur MMCP R2.");
-            if (!objetSortie.releaseDate) erreurs.push("Date de libération principale non spécifiée.");
-
-            if (userPlan === "label" || userPlan === "white-label") {
-                if (!objetSortie.copyrightLineC) erreurs.push("Ligne de Copyright (©) requise.");
-                if (!objetSortie.copyrightLineP) erreurs.push("Ligne de Phonogramme (℗) requise.");
-                if (userPlan === "white-label" && !objetSortie.labelName) erreurs.push("Nom du Label manquant.");
-            } else {
-                if (!objetSortie.stdCopyright) erreurs.push("Ligne de Copyright standard manquante.");
-            }
-
-            if (objetSortie.tracks.length === 0) {
-                erreurs.push("Le catalogue sonore exige au moins 1 piste audio binaire.");
-            }
-
-            const uiList = document.getElementById("console-items");
-            uiList.innerHTML = "";
-
-            erreurs.slice(0, 2).forEach(err => {
-                uiList.innerHTML += `<li>${err}</li>`;
-            });
-
-            document.getElementById("console-count").innerText = `(${erreurs.length} manquant)`;
-
-            const btnPub = document.getElementById("btn-publier");
-            btnPub.disabled = (erreurs.length > 0);
-        }
-
-        async function collecterEtPousserDonneesFirestore(statutForce = null) {
-            objetSortie.type = document.getElementById("rel-type").value;
-            objetSortie.title = document.getElementById("rel-title").value.trim();
-            objetSortie.artistName = document.getElementById("rel-artist").value.trim();
-            const inputSpotify = document.getElementById("artist-spotify");
-            objetSortie.spotifyUrl = inputSpotify ? inputSpotify.value : "";
-
-            const inputApple = document.getElementById("artist-apple");
-            objetSortie.appleUrl = inputApple ? inputApple.value : "";
-            objetSortie.releaseDate = document.getElementById("date-release").value;
-
-            const chkOriginal = document.getElementById("chk-original-date").checked;
-            objetSortie.originalReleaseDate = chkOriginal
-                ? document.getElementById("date-original").value
-                : "";
-
-            const chkPreorder = document.getElementById("chk-preorder-date").checked;
-            objetSortie.preorderDate = chkPreorder
-                ? document.getElementById("date-preorder").value
-                : "";
-
-            const chkTimezone = document.getElementById("chk-timezone").checked;
-            objetSortie.timezone = chkTimezone ? document.getElementById("time-zone").value : "";
-            objetSortie.exactTime = chkTimezone ? document.getElementById("time-exact").value : "";
-
-            objetSortie.primaryGenre = document.getElementById("genre-1").value;
-            objetSortie.secondaryGenre = document.getElementById("genre-2").value;
-
-            objetSortie.language = document.getElementById("rel-lang").value;
-            objetSortie.isInstrumental = document.getElementById("chk-instrumental").checked;
-
-            if (userPlan === "label" || userPlan === "white-label") {
-                objetSortie.copyrightLineC = document.getElementById("line-c").value.trim();
-                objetSortie.copyrightLineP = document.getElementById("line-p").value.trim();
-                if (userPlan === "white-label") {
-                    objetSortie.labelName = document.getElementById("wl-label-title").value.trim();
-                }
-            } else {
-                objetSortie.stdCopyright = document.getElementById("std-copyright").value.trim();
-            }
-
             objetSortie.manualPlatforms = document.getElementById("chk-manual-platforms").checked;
-            objetSortie.selectedPlatforms = [];
-            document.querySelectorAll(".cb-platform:checked").forEach(cb => {
-                objetSortie.selectedPlatforms.push(cb.value);
-            });
-
-            objetSortie.additionalDeliveries = [];
-            document.querySelectorAll(".cb-delivery:checked").forEach(cb => {
-                objetSortie.additionalDeliveries.push(cb.value);
-            });
+            objetSortie.selectedPlatforms = Array.from(document.querySelectorAll(".cb-platform:checked")).map(cb => cb.value);
+            objetSortie.additionalDeliveries = Array.from(document.querySelectorAll(".cb-delivery:checked")).map(cb => cb.value);
 
             objetSortie.versionLine = document.getElementById("opt-version").value.trim();
             objetSortie.licenceType = document.getElementById("opt-licencetype").value;
             objetSortie.upc = document.getElementById("opt-upc").value.trim();
-            objetSortie.territories = document.getElementById("opt-territories").value.trim();
+            objetSortie.territories = paysSelectionnes;
 
-            if (statutForce) objetSortie.status = statutForce;
-
-            const ref = doc(db, "users", uidConnecte, "releases", currentReleaseId);
-            await updateDoc(ref, objetSortie);
-
-            objetSortie.feats = fetsSelectionnes || [];
-
-            const docRef = doc(db, "users", uidConnecte, "releases", currentReleaseId);
-            await updateDoc(docRef, objetSortie);
+            if (statut) objetSortie.status = statut;
+            return objetSortie;
         }
 
         window.sauvegarderEtQuitter = async function () {
-            await collecterEtPousserDonneesFirestore();
-            window.location.href = `sortie.html?id=${currentReleaseId}`;
+            try {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Utilisateur non connecté");
+                const payload = await collecterDonneesFormulaire();
+                if (currentReleaseId) {
+                    await api.patch(`/api/users/${user.uid}/releases/${currentReleaseId}`, payload);
+                } else {
+                    await api.post(`/api/users/${user.uid}/releases`, payload);
+                }
+                window.location.href = "sorties.html";
+            } catch (err) {
+                alert("Erreur de sauvegarde : " + err.message);
+            }
         };
 
         window.publierSortie = async function () {
-            await collecterEtPousserDonneesFirestore("verification mmcp");
-            showToast("Projet soumis avec succès au contrôle qualité Morgann Music CP !", "success");
-            setTimeout(() => { window.location.href = "sorties.html"; }, 1500);
-        };
-
-        window.quitterEditeur = function () {
-            showConfirm("Quitter l'éditeur ?", "Êtes-vous sûr de vouloir quitter sans enregistrer les modifications en cours ?", () => {
-                window.location.href = "sorties.html";
-            });
-        };
-
-        window.showToast = function (message, type = "info") {
-            const container = document.getElementById("toast-box");
-            const toast = document.createElement("div");
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `<span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = "slideIn 0.3s ease reverse forwards";
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        };
-
-        window.showConfirm = function (title, text, onConfirm) {
-            const box = document.getElementById("confirm-box");
-            document.getElementById("confirm-title").innerText = title;
-            document.getElementById("confirm-text").innerText = text;
-
-            box.style.display = "flex";
-
-            const cancelBtn = document.getElementById("confirm-cancel-btn");
-            const okBtn = document.getElementById("confirm-ok-btn");
-
-            const closeConfirm = () => {
-                box.style.display = "none";
-                cancelBtn.onclick = null;
-                okBtn.onclick = null;
-            };
-
-            cancelBtn.onclick = closeConfirm;
-            okBtn.onclick = () => {
-                onConfirm();
-                closeConfirm();
-            };
-
-
-        };
-
-        window.toggleConsoleDetail = function () {
-            let modalErreur = document.getElementById('modal-details-erreurs');
-
-            if (!modalErreur) {
-                modalErreur = document.createElement('div');
-                modalErreur.id = 'modal-details-erreurs';
-                modalErreur.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99999; justify-content:center; align-items:center;";
-                modalErreur.innerHTML = `
-            <div style="background:#fff; color:#333; padding:25px; border-radius:8px; width:90%; max-width:500px;">
-                <h3>Détails des validations de la sortie</h3>
-                <div id="contenu-details-erreurs" style="margin: 15px 0; max-height: 300px; overflow-y: auto; font-size: 14px; line-height: 1.5;">
-                    </div>
-                <div style="display:flex; justify-content:flex-end;">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-details-erreurs').style.display='none'">Fermer</button>
-                </div>
-            </div>
-        `;
-                document.body.appendChild(modalErreur);
-            }
-
-            if (modalErreur.style.display === 'none' || modalErreur.style.display === '') {
-                const zoneContenu = document.getElementById('contenu-details-erreurs');
-                zoneContenu.innerHTML = genererRapportErreursHtml();
-
-                modalErreur.style.display = 'flex';
-            } else {
-                modalErreur.style.display = 'none';
-            }
-        };
-
-        function genererRapportErreursHtml() {
-            let html = "";
-            let listErreurs = [];
-
-            if (!objetSortie.title) listErreurs.push("Le <strong>Nom de la sortie</strong> est obligatoire.");
-            if (!objetSortie.artistName) listErreurs.push("L'<strong>Artiste principal</strong> est manquant.");
-            if (!objetSortie.releaseDate) listErreurs.push("La <strong>Date de sortie</strong> n'a pas été définie.");
-            if (!objetSortie.coverUrl) listErreurs.push("La <strong>Pochette (Cover)</strong> de la sortie est obligatoire.");
-            if (!objetSortie.tracks || objetSortie.tracks.length === 0) listErreurs.push("Votre sortie doit contenir au moins <strong>1 piste audio</strong>.");
-
-            if (listErreurs.length === 0) {
-                return "<p style='color:green; font-weight:bold;'>✓ Tout est en ordre ! Votre sortie est prête à être envoyée.</p>";
-            }
-
-            html += "<ul style='color:#c0392b; padding-left:20px;'>";
-            listErreurs.forEach(err => {
-                html += `<li style='margin-bottom:8px;'>${err}</li>`;
-            });
-            html += "</ul>";
-
-            return html;
-        }
-
-        window.toggleFeatInput = function () {
-            const conteneurFeat = document.getElementById("formulaire-ajout-feat");
-
-            if (conteneurFeat) {
-                if (conteneurFeat.style.display === "none" || conteneurFeat.style.display === "") {
-                    conteneurFeat.style.display = "block";
+            try {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Utilisateur non connecté");
+                const payload = await collecterDonneesFormulaire("verification mmcp");
+                let releaseId = currentReleaseId;
+                if (releaseId) {
+                    await api.patch(`/api/users/${user.uid}/releases/${releaseId}`, payload);
                 } else {
-                    conteneurFeat.style.display = "none";
+                    const result = await api.post(`/api/users/${user.uid}/releases`, payload);
+                    releaseId = result?.id;
                 }
-            } else {
-                console.error("Impossible de trouver l'élément HTML pour ajouter un feat.");
+                window.location.href = `/sortie.html?id=${releaseId}`;
+            } catch (err) {
+                alert("Erreur de publication : " + err.message);
             }
-        };
-
-        window.quitterEditeur = function () {
-            const popup = document.getElementById("popup-quitter");
-            if (popup) {
-                popup.style.display = "flex";
-            }
-        };
-
-        window.fermerPopupQuitter = function () {
-            const popup = document.getElementById("popup-quitter");
-            if (popup) {
-                popup.style.display = "none";
-            }
-        };
-
-        window.confirmerQuitter = function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            const idSortie = urlParams.get('sortie') || (typeof currentReleaseId !== 'undefined' ? currentReleaseId : releaseId);
-
-            if (idSortie) {
-                window.location.href = `sortie.html?id=${idSortie}`;
-            } else {
-                window.location.href = "index.html";
-            }
-        };
-
-        window.fermerEditeurPiste = function () {
-            const modal = document.getElementById("modal-track-editor");
-            if (modal) {
-                modal.style.display = "none";
-            }
-        };
-
-        window.sauvegarderSuperEditeurPiste = function () {
-            if (indexPisteEnCoursEdition !== null && objetSortie.tracks[indexPisteEnCoursEdition]) {
-                const track = objetSortie.tracks[indexPisteEnCoursEdition];
-                track.title = document.getElementById("t-edit-title").value.trim();
-                track.isrc = document.getElementById("t-edit-isrc").value.trim();
-                track.iswc = document.getElementById("t-edit-iswc").value.trim();
-                track.version = document.getElementById("t-edit-version").value.trim();
-                track.appleMasteringEmail = document.getElementById("t-apple-master-email").value.trim();
-                track.lyricType = document.querySelector('input[name="explicit-type"]:checked')?.value || "Clean";
-            }
-            renouvelerAffichageListePistes();
-            fermerEditeurPiste();
-            showToast("Piste sauvegardée avec succès", "success");
-        };
-
-        window.supprimerPiste = function (index) {
-            // Vérification du badge
-            const badge = objetSortie.badge ? objetSortie.badge.trim() : "";
-            if (badge && badge !== "Verification MMCP" && badge !== "Vérification MMCP") {
-                showToast("Impossible de supprimer une piste : le statut/badge de cette sortie ne le permet pas.", "error");
-                return;
-            }
-
-            showConfirm("Supprimer la piste", "Voulez-vous vraiment supprimer cette piste ?", () => {
-                objetSortie.tracks.splice(index, 1);
-                renouvelerAffichageListePistes();
-                analyserConsole();
-                showToast("Piste supprimée", "info");
-            });
-        };
-
-        window.traiterUploadMotion = async function (type) {
-            const inputId = type === 1 ? "file-motion-1-1" : "file-motion-3-4";
-            const previewId = type === 1 ? "motion-1-1-preview" : "motion-3-4-preview";
-            const input = document.getElementById(inputId);
         };
     </script>
 </body>

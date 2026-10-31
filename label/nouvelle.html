@@ -219,23 +219,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
-            measurementId: "G-FKSSXYEZF0"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
 
         let uidConnecte = null;
         let donneesSortie = {
@@ -254,10 +240,10 @@
             }
         });
 
+        // Attachement explicite à l'objet window pour le HTML
         window.selectionnerType = function (type, element) {
             document.querySelectorAll('.type-card').forEach(card => card.classList.remove('selected'));
             element.classList.add('selected');
-
             donneesSortie.type = type;
             document.getElementById('btn-next-1').disabled = false;
         };
@@ -276,23 +262,23 @@
         async function chargerListeArtistes() {
             try {
                 const selectArtist = document.getElementById("release-artist");
-                const q = query(collection(db, "users", uidConnecte, "artists"), orderBy("name", "asc"));
-                const querySnapshot = await getDocs(q);
+                const artistes = await api.get(`/api/users/${uidConnecte}/artists`); // Route sécurisée correcte
 
                 selectArtist.innerHTML = '<option value="">-- Choisir un artiste --</option>';
 
-                querySnapshot.forEach((doc) => {
-                    const artist = doc.data();
-                    selectArtist.innerHTML += `<option value="${artist.name}">${artist.name}</option>`;
-                });
-
-                if (querySnapshot.empty) {
-                    selectArtist.innerHTML = '<option value="">Aucun artiste trouvé. Créez-en un d\'abord.</option>';
+                if (artistes && artistes.length > 0) {
+                    artistes.forEach((artist) => {
+                        selectArtist.innerHTML += `<option value="${artist.name}">${artist.name}</option>`;
+                    });
+                } else {
+                    selectArtist.innerHTML = '<option value="">Aucun artiste trouvé.</option>';
                 }
             } catch (error) {
-                console.error("Erreur de récupération des artistes : ", error);
+                console.error("Erreur API :", error);
             }
         }
+        // Rendre la fonction accessible si appelée depuis le HTML (optionnel mais propre)
+        window.chargerListeArtistes = chargerListeArtistes;
 
         window.validerEtape3 = function () {
             const artisteSelectionne = document.getElementById('release-artist').value;
@@ -301,6 +287,11 @@
         };
 
         window.creerNouvelleSortie = async function () {
+            if (!uidConnecte) {
+                alert("Erreur: Utilisateur non identifié. Recharge la page.");
+                return;
+            }
+
             const btnSubmit = document.getElementById('btn-submit');
             btnSubmit.disabled = true;
             btnSubmit.innerText = "Création en cours...";
@@ -309,10 +300,16 @@
             donneesSortie.coverUrl = "";
 
             try {
-                const docRef = await addDoc(collection(db, "users", uidConnecte, "releases"), donneesSortie);
-                window.location.href = `edition.html?sortie=${docRef.id}`;
+                const result = await api.post(`/api/users/${uidConnecte}/releases`, donneesSortie);
+
+                if (result && result.id) {
+                    window.location.href = `edition.html?sortie=${result.id}`;
+                } else {
+                    throw new Error("ID de sortie non reçu par le serveur");
+                }
             } catch (error) {
-                alert("Erreur lors de la création de la sortie : " + error.message);
+                console.error(error);
+                alert("Erreur lors de la création : " + error.message);
                 btnSubmit.disabled = false;
                 btnSubmit.innerText = "Créer la sortie";
             }

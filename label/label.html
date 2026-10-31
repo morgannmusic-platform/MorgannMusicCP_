@@ -4,193 +4,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion du Label | Morgann Music CP</title>
+    <title>Paramètres du Label | Morgann Music CP</title>
+
+    <!-- Import Google Font Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="js/reponsive.css">
+    <script src="js/responsive.js"></script>
+
     <style>
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            color: #1e293b;
+        * {
             box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+            color: #1e293b;
             padding: 20px;
+            background-color: #f8fafc;
+            margin: 0;
         }
 
         .main-content {
-            max-width: 800px;
-            display: flex;
-            margin-top: 3rem;
-            flex-direction: column;
-            gap: 2rem;
+            max-width: 900px;
+            margin: 2rem auto 4rem auto;
         }
 
+        .page-header {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .page-header h1 {
+            color: #3e2837;
+            font-size: 30px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 15px;
+            margin: 0;
+        }
+
+        /* Formulaire & Sections Style Settings */
         .settings-card {
-            background-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgb(255, 255, 255);
-            border-radius: 34px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            padding: 30px;
-            margin: 50px 0;
-            box-sizing: border-box;
+            border: 1px solid #ffffff;
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
         }
 
-        .settings-card h2 {
-            margin-top: 0;
+        .settings-card-title {
+            font-size: 18px;
+            font-weight: 700;
             color: #3e2837;
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 20px;
+            margin: 0 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(252, 143, 176, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 16px;
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
         }
 
         .form-group label {
-            font-size: 14px;
-            font-weight: 700;
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
             color: #3e2837;
         }
 
-        .form-group input,
-        .form-group textarea {
-            padding: 14px 16px;
-            border-radius: 16px;
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 11px 16px;
             border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            background-color: #ffffff;
             outline: none;
-            font-family: inherit;
-            font-size: 15px;
-            background: #f8fafc;
-            transition: border-color 0.2s;
+            transition: all 0.2s ease;
         }
 
-        .form-group input:focus,
-        .form-group textarea:focus {
+        .form-input:focus,
+        .form-select:focus {
             border-color: #FC8FB0;
+            box-shadow: 0 0 0 3px rgba(252, 143, 176, 0.25);
+        }
+
+        /* Options type Choix / Toggle */
+        .choice-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .choice-btn {
+            flex: 1;
+            padding: 11px;
+            border: 2px solid #cbd5e1;
             background: #ffffff;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            color: #475569;
+        }
+
+        .choice-btn.selected {
+            border-color: #FC8FB0;
+            background: rgba(252, 143, 176, 0.12);
+            color: #d01159;
+        }
+
+        /* Zone d'import de fichiers */
+        .file-hint {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .file-preview {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #16a34a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-preview img {
+            max-height: 36px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Color inputs */
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .color-picker-wrapper input[type="color"] {
+            -webkit-appearance: none;
+            border: 1px solid #cbd5e1;
+            width: 48px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 2px;
+            background: #fff;
+        }
+
+        /* Actions Bottom Bar */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 14px;
+            margin-top: 1rem;
         }
 
         .btn-save {
             background-color: #FC8FB0;
             color: #ffffff;
             border: none;
-            padding: 14px 24px;
+            padding: 14px 32px;
             border-radius: 40px;
             font-weight: 700;
             font-size: 16px;
+            font-family: 'Poppins', sans-serif;
             cursor: pointer;
-            transition: background 0.2s;
-            display: inline-block;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(252, 143, 176, 0.4);
         }
 
         .btn-save:hover {
             background-color: #d01159;
+            box-shadow: 0 6px 18px rgba(208, 17, 89, 0.4);
+            transform: translateY(-1px);
         }
 
         .btn-save:disabled {
-            background-color: #cbd5e1;
+            opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
-        /* Toggle Switch pour le Portail */
-        .portal-section {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
-        }
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
 
-        .portal-info h3 {
-            margin: 0 0 5px 0;
-            font-size: 18px;
-            color: #1e293b;
-        }
-
-        .portal-info p {
-            margin: 0;
-            font-size: 13px;
-            color: #64748b;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 28px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #cbd5e1;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: #FC8FB0;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(22px);
-        }
-
-        .btn-portal-manage {
-            display: none;
-            /* Masqué par défaut */
-            background-color: #1e293b;
-            color: #ffffff;
-            text-align: center;
-            text-decoration: none;
-            padding: 14px 24px;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 16px;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-
-        .btn-portal-manage:hover {
-            background-color: #0f172a;
-        }
-
-        .btn-portal-manage.show {
-            display: block;
-        }
-
-        #loading-msg {
-            text-align: center;
-            font-weight: 600;
-            color: #64748b;
+            .form-group.full-width {
+                grid-column: span 1;
+            }
         }
     </style>
 </head>
@@ -203,83 +234,275 @@
     <script src="js/sidebar.js"></script>
 
     <div class="main-content">
-        <div id="loading-msg">Chargement des données du label...</div>
-
-        <div id="label-content" style="display: none;">
-
-            <!-- SECTION PORTAIL MARQUE BLANCHE -->
-            <div class="settings-card">
-                <h2>Portail Marque Blanche</h2>
-
-                <div class="portal-section">
-                    <div class="portal-info">
-                        <h3>Activer mon Portail</h3>
-                        <p>Permet à tes artistes de se connecter sur ton propre espace.</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="portal-toggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <a href="portail.html" id="btn-manage-portal" class="btn-portal-manage">Gérer mon portail</a>
-            </div>
-
-            <!-- SECTION INFOS LABEL -->
-            <div class="settings-card">
-                <h2>Informations du Label</h2>
-                <form id="update-label-form">
-                    <div class="form-group">
-                        <label for="label-name">Nom du Label</label>
-                        <input type="text" id="label-name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="label-manager">Nom de la gérante / du gérant</label>
-                        <input type="text" id="label-manager" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="label-email">Email de contact professionnel</label>
-                        <input type="email" id="label-email" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="label-description">Présentation courte / Bio</label>
-                        <textarea id="label-description" rows="4"></textarea>
-                    </div>
-
-                    <button type="submit" id="btn-save-info" class="btn-save">Enregistrer les modifications</button>
-                </form>
-            </div>
-
+        <div class="page-header">
+            <h1>Paramètres du Label</h1>
+            <p>Configurez l'ensemble des informations légales, techniques et visuelles de votre structure.</p>
         </div>
+
+        <form id="label-settings-form">
+
+            <!-- SECTION 1 : INFORMATIONS GÉNÉRALES -->
+            <div class="settings-card">
+                <div class="settings-card-title">
+                    <span>🏢</span> Informations Générales & Légal
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Nom du label</label>
+                        <input type="text" id="label-nom" class="form-input" placeholder="Ex: Morgann Music CP">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ligne C (Copyright Phonographique)</label>
+                        <div class="choice-group">
+                            <button type="button" class="choice-btn selected" id="line-c-label">Nom du Label</button>
+                            <button type="button" class="choice-btn" id="line-c-artist">Nom de l'Artiste</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ligne P (Production/Publishing)</label>
+                        <input type="text" id="label-line-p" class="form-input" placeholder="Ex: ℗ 2026 MMCP Records">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Lien vers les Conditions Générales d'Utilisation (CGU)</label>
+                        <input type="url" id="label-cgu-url" class="form-input"
+                            placeholder="https://votre-label.com/cgu">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2 : COORDONNÉES & ADRESSE -->
+            <div class="settings-card">
+                <div class="settings-card-title">
+                    <span>📍</span> Coordonnées & Adresse
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Adresse postale</label>
+                        <input type="text" id="label-address" class="form-input" placeholder="Ex: 6 chemin de zonas">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Numéro SIRET</label>
+                        <input type="text" id="label-siret" class="form-input" placeholder="Ex: 123 456 789 00012">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ville</label>
+                        <input type="text" id="label-city" class="form-input" placeholder="Ex: Condrieu">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Code Postal / ZIP</label>
+                        <input type="text" id="label-zip" class="form-input" placeholder="Ex: 69420">
+                    </div>
+
+                    <div class="form-group">
+                        <label>État / Région</label>
+                        <input type="text" id="label-state" class="form-input" placeholder="Ex: Auvergne-Rhône-Alpes">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Pays</label>
+                        <input type="text" id="label-country" class="form-input" placeholder="Ex: France">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Adresse e-mail d'assistance</label>
+                        <input type="email" id="label-support-email" class="form-input"
+                            placeholder="Ex: support@mm-cp.uk">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3 : PARAMÈTRES MMCP -->
+            <div class="settings-card">
+                <div class="settings-card-title">
+                    <span>⚙️</span> Options & Commission MMCP
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Support MMCP</label>
+                        <div class="choice-group">
+                            <button type="button" class="choice-btn selected" id="support-mmcp-yes">Oui</button>
+                            <button type="button" class="choice-btn" id="support-mmcp-no">Non</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Commission sur les artistes</label>
+                        <select id="label-commission" class="form-select">
+                            <option value="0">0 %</option>
+                            <option value="5">5 %</option>
+                            <option value="10">10 %</option>
+                            <option value="20">20 %</option>
+                            <option value="30">30 %</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4 : THÈME & BRANDING -->
+            <div class="settings-card">
+                <div class="settings-card-title">
+                    <span>🎨</span> Thème & Identité Visuelle
+                </div>
+                <div class="form-grid">
+
+                    <!-- Logo -->
+                    <div class="form-group full-width">
+                        <label>Logo du Label</label>
+                        <input type="file" id="file-logo" class="form-input"
+                            accept=".png, .svg, image/png, image/svg+xml">
+                        <div class="file-hint">Format PNG ou SVG. Max 5 Mo.</div>
+                        <div id="preview-logo" class="file-preview"></div>
+                    </div>
+
+                    <!-- Favicon -->
+                    <div class="form-group">
+                        <label>Favicon (.ico)</label>
+                        <input type="file" id="file-favicon" class="form-input" accept=".ico, image/x-icon">
+                        <div class="file-hint">Format .ico. Max 4 Mo.</div>
+                        <div id="preview-favicon" class="file-preview"></div>
+                    </div>
+
+                    <!-- Apple Touch Icon -->
+                    <div class="form-group">
+                        <label>Apple Touch Icon (.png)</label>
+                        <input type="file" id="file-apple-icon" class="form-input" accept=".png, image/png">
+                        <div class="file-hint">Format PNG. Max 7 Mo.</div>
+                        <div id="preview-apple-icon" class="file-preview"></div>
+                    </div>
+
+                    <!-- Couleurs -->
+                    <div class="form-group">
+                        <label>Couleur du fond</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="color-bg" value="#ffffff">
+                            <input type="text" id="color-bg-hex" class="form-input" value="#ffffff"
+                                placeholder="#ffffff">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Couleur d'accentuation</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="color-accent" value="#FC8FB0">
+                            <input type="text" id="color-accent-hex" class="form-input" value="#FC8FB0"
+                                placeholder="#FC8FB0">
+                        </div>
+                    </div>
+
+                    <!-- Police -->
+                    <div class="form-group full-width">
+                        <label>Police typographique principale</label>
+                        <input type="text" class="form-input" value="Poppins (Google Fonts)" disabled
+                            style="background-color: #f1f5f9; color: #64748b;">
+                        <div class="file-hint">Import Google Fonts Poppins intégré automatiquement par défaut.</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- BOUTON D'ENREGISTREMENT -->
+            <div class="form-actions">
+                <button type="submit" id="btn-submit-label" class="btn-save">Enregistrer les modifications</button>
+            </div>
+
+        </form>
     </div>
 
     <script type="module">
-        import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "js/api.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSPUArpApBuK0Cn9VbeMtqk4JC-gqruJc",
-            authDomain: "morgann-music-cp.firebaseapp.com",
-            projectId: "morgann-music-cp",
-            storageBucket: "morgann-music-cp.firebasestorage.app",
-            messagingSenderId: "666812685196",
-            appId: "1:666812685196:web:fe3df6749ae768d68494a9",
-            measurementId: "G-FKSSXYEZF0"
-        };
+        // Variables d'état
+        let labelId = null;
+        let selectedLineC = "label";
+        let selectedSupportMmcp = true;
 
-        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        const form = document.getElementById("label-settings-form");
+        const btnSave = document.getElementById("btn-submit-label");
 
-        let currentUser = null;
-        let activeLabelId = null;
+        // Choix Ligne C
+        const btnLineCLabel = document.getElementById("line-c-label");
+        const btnLineCArtist = document.getElementById("line-c-artist");
 
-        const portalToggle = document.getElementById('portal-toggle');
-        const btnManagePortal = document.getElementById('btn-manage-portal');
+        btnLineCLabel.addEventListener("click", () => {
+            btnLineCLabel.classList.add("selected");
+            btnLineCArtist.classList.remove("selected");
+            selectedLineC = "label";
+        });
+
+        btnLineCArtist.addEventListener("click", () => {
+            btnLineCArtist.classList.add("selected");
+            btnLineCLabel.classList.remove("selected");
+            selectedLineC = "artist";
+        });
+
+        // Choix Support MMCP
+        const btnSupportYes = document.getElementById("support-mmcp-yes");
+        const btnSupportNo = document.getElementById("support-mmcp-no");
+
+        btnSupportYes.addEventListener("click", () => {
+            btnSupportYes.classList.add("selected");
+            btnSupportNo.classList.remove("selected");
+            selectedSupportMmcp = true;
+        });
+
+        btnSupportNo.addEventListener("click", () => {
+            btnSupportNo.classList.add("selected");
+            btnSupportYes.classList.remove("selected");
+            selectedSupportMmcp = false;
+        });
+
+        // Liaison Sélecteur de couleurs
+        const colorBg = document.getElementById("color-bg");
+        const colorBgHex = document.getElementById("color-bg-hex");
+        const colorAccent = document.getElementById("color-accent");
+        const colorAccentHex = document.getElementById("color-accent-hex");
+
+        colorBg.addEventListener("input", (e) => colorBgHex.value = e.target.value);
+        colorBgHex.addEventListener("input", (e) => colorBg.value = e.target.value);
+        colorAccent.addEventListener("input", (e) => colorAccentHex.value = e.target.value);
+        colorAccentHex.addEventListener("input", (e) => colorAccent.value = e.target.value);
+
+        async function convertImageToWebP(file) {
+            if (file.type === "image/svg+xml") return file;
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0);
+
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            resolve(file);
+                            return;
+                        }
+                        const webpFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                            type: "image/webp"
+                        });
+                        resolve(webpFile);
+                    }, "image/webp", 0.9);
+                };
+                img.onerror = () => resolve(file);
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            const res = await api.post("/api/upload", formData);
+            return res.url || res.key || "";
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -287,102 +510,155 @@
                 return;
             }
 
-            currentUser = user;
-
             try {
-                // On tape dans users/{uid}/labels
-                const labelsSnapshot = await getDocs(collection(db, "users", user.uid, "labels"));
+                const response = await api.get(`/api/users/${user.uid}/labels`);
+                let existing = Array.isArray(response) ? response[0] : response;
 
-                if (labelsSnapshot.empty) {
-                    document.getElementById('loading-msg').innerText = "Aucun label trouvé. Crée-le d'abord sur l'accueil.";
-                    return;
+                if (existing && existing.nom) {
+                    labelId = existing.id;
+                    document.getElementById("label-nom").value = existing.nom || "";
+
+                    if (existing.line_c === "artist") {
+                        btnLineCArtist.click();
+                    } else {
+                        btnLineCLabel.click();
+                    }
+                    document.getElementById("label-line-p").value = existing.line_p || "";
+                    document.getElementById("label-cgu-url").value = existing.cgu_url || "";
+
+                    document.getElementById("label-address").value = existing.address || "";
+                    document.getElementById("label-siret").value = existing.siret || "";
+                    document.getElementById("label-city").value = existing.city || "";
+                    document.getElementById("label-zip").value = existing.zip_code || "";
+                    document.getElementById("label-state").value = existing.state || "";
+                    document.getElementById("label-country").value = existing.country || "";
+                    document.getElementById("label-support-email").value = existing.support_email || "";
+
+                    if (existing.mmcp_support === false || existing.mmcp_support === 0) {
+                        btnSupportNo.click();
+                    } else {
+                        btnSupportYes.click();
+                    }
+                    if (existing.commission) {
+                        document.getElementById("label-commission").value = existing.commission;
+                    }
+
+                    if (existing.bg_color) {
+                        colorBg.value = existing.bg_color;
+                        colorBgHex.value = existing.bg_color;
+                    }
+                    if (existing.accent_color) {
+                        colorAccent.value = existing.accent_color;
+                        colorAccentHex.value = existing.accent_color;
+                    }
+
+                    if (existing.logo_url) {
+                        document.getElementById("preview-logo").innerHTML = `
+                            <span>Logo enregistré :</span>
+                            <img src="${existing.logo_url.startsWith('http') ? existing.logo_url : 'https://api.label.worker.mm-cp.uk/api/files/' + existing.logo_url}" alt="Logo">
+                        `;
+                    }
+                    if (existing.favicon_url) {
+                        document.getElementById("preview-favicon").innerText = "Favicon enregistré";
+                    }
+                    if (existing.icon_url) {
+                        document.getElementById("preview-apple-icon").innerText = "Apple Touch Icon enregistré";
+                    }
                 }
-
-                // On prend le premier label trouvé
-                const labelDoc = labelsSnapshot.docs[0];
-                activeLabelId = labelDoc.id;
-                const data = labelDoc.data();
-
-                // Remplir le form
-                document.getElementById('label-name').value = data.name || "";
-                document.getElementById('label-manager').value = data.managerName || "";
-                document.getElementById('label-email').value = data.contactEmail || "";
-                document.getElementById('label-description').value = data.description || "";
-
-                // Gérer l'état du portail
-                const isPortalActive = data.portalActive || false;
-                portalToggle.checked = isPortalActive;
-                if (isPortalActive) {
-                    btnManagePortal.classList.add('show');
-                }
-
-                document.getElementById('loading-msg').style.display = 'none';
-                document.getElementById('label-content').style.display = 'block';
-
-            } catch (error) {
-                console.error("Erreur récupération du label:", error);
-                document.getElementById('loading-msg').innerText = "Erreur de chargement. Check la console.";
+            } catch (err) {
+                console.error("Erreur récupération paramètres label:", err);
             }
-        });
 
-        // Gestion de l'activation du portail en direct
-        portalToggle.addEventListener('change', async (e) => {
-            if (!activeLabelId || !currentUser) return;
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
 
-            const isActive = e.target.checked;
-            portalToggle.disabled = true; // On bloque le temps de la requête
+                btnSave.disabled = true;
+                btnSave.innerText = "Enregistrement en cours...";
 
-            try {
-                const labelRef = doc(db, "users", currentUser.uid, "labels", activeLabelId);
-                await updateDoc(labelRef, {
-                    portalActive: isActive
-                });
+                try {
+                    const fileLogoInput = document.getElementById("file-logo").files[0];
+                    const fileFaviconInput = document.getElementById("file-favicon").files[0];
+                    const fileAppleInput = document.getElementById("file-apple-icon").files[0];
 
-                if (isActive) {
-                    btnManagePortal.classList.add('show');
-                } else {
-                    btnManagePortal.classList.remove('show');
-                }
-            } catch (error) {
-                console.error("Erreur update portail:", error);
-                alert("Erreur réseau. Impossible de mettre à jour le statut du portail.");
-                e.target.checked = !isActive; // rollback
-            } finally {
-                portalToggle.disabled = false;
-            }
-        });
+                    let logoUrl = null;
+                    let faviconUrl = null;
+                    let iconUrl = null;
 
-        // Mise à jour des infos du label
-        document.getElementById('update-label-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!activeLabelId || !currentUser) return;
+                    if (fileLogoInput) {
+                        if (fileLogoInput.size > 5 * 1024 * 1024) {
+                            alert("Le logo dépasse la taille maximale autorisée (5 Mo).");
+                            btnSave.disabled = false;
+                            btnSave.innerText = "Enregistrer les modifications";
+                            return;
+                        }
+                        const webpLogo = await convertImageToWebP(fileLogoInput);
+                        logoUrl = await uploadFile(webpLogo);
+                    }
 
-            const btnSave = document.getElementById('btn-save-info');
-            btnSave.disabled = true;
-            btnSave.innerText = "Sauvegarde...";
+                    if (fileFaviconInput) {
+                        if (fileFaviconInput.size > 4 * 1024 * 1024) {
+                            alert("Le favicon dépasse la taille maximale autorisée (4 Mo).");
+                            btnSave.disabled = false;
+                            btnSave.innerText = "Enregistrer les modifications";
+                            return;
+                        }
+                        faviconUrl = await uploadFile(fileFaviconInput);
+                    }
 
-            try {
-                const labelRef = doc(db, "users", currentUser.uid, "labels", activeLabelId);
-                await updateDoc(labelRef, {
-                    name: document.getElementById('label-name').value.trim(),
-                    managerName: document.getElementById('label-manager').value.trim(),
-                    contactEmail: document.getElementById('label-email').value.trim(),
-                    description: document.getElementById('label-description').value.trim()
-                });
+                    if (fileAppleInput) {
+                        if (fileAppleInput.size > 7 * 1024 * 1024) {
+                            alert("L'Apple Touch Icon dépasse la taille maximale autorisée (7 Mo).");
+                            btnSave.disabled = false;
+                            btnSave.innerText = "Enregistrer les modifications";
+                            return;
+                        }
+                        iconUrl = await uploadFile(fileAppleInput);
+                    }
 
-                btnSave.innerText = "Modifications enregistrées !";
-                setTimeout(() => {
-                    btnSave.innerText = "Enregistrer les modifications";
+                    const payload = {
+                        id: labelId,
+                        nom: document.getElementById("label-nom").value.trim(),
+                        lineC: selectedLineC,
+                        lineP: document.getElementById("label-line-p").value.trim(),
+                        cguUrl: document.getElementById("label-cgu-url").value.trim(),
+
+                        address: document.getElementById("label-address").value.trim(),
+                        siret: document.getElementById("label-siret").value.trim(),
+                        city: document.getElementById("label-city").value.trim(),
+                        zipCode: document.getElementById("label-zip").value.trim(),
+                        state: document.getElementById("label-state").value.trim(),
+                        country: document.getElementById("label-country").value.trim(),
+                        supportEmail: document.getElementById("label-support-email").value.trim(),
+
+                        mmcpSupport: selectedSupportMmcp,
+                        commission: document.getElementById("label-commission").value,
+
+                        bgColor: colorBgHex.value.trim(),
+                        accentColor: colorAccentHex.value.trim(),
+                        fontFamily: "Poppins"
+                    };
+
+                    if (logoUrl) payload.logoUrl = logoUrl;
+                    if (faviconUrl) payload.faviconUrl = faviconUrl;
+                    if (iconUrl) payload.iconUrl = iconUrl;
+
+                    const res = await api.post(`/api/users/${user.uid}/labels`, payload);
+
+                    if (res && res.success) {
+                        alert("Paramètres enregistrés !");
+                        window.location.reload();
+                    } else {
+                        alert("Erreur lors de l'enregistrement.");
+                    }
+                } catch (err) {
+                    console.error("Erreur enregistrement label:", err);
+                    alert("Une erreur est survenue lors de l'enregistrement.");
+                } finally {
                     btnSave.disabled = false;
-                }, 2000);
-            } catch (error) {
-                console.error("Erreur sauvegarde infos label:", error);
-                alert("Impossible de sauvegarder tes modifications.");
-                btnSave.innerText = "Enregistrer les modifications";
-                btnSave.disabled = false;
-            }
+                    btnSave.innerText = "Enregistrer les modifications";
+                }
+            });
         });
-
     </script>
 </body>
 
