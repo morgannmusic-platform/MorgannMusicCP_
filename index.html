@@ -53,34 +53,64 @@
     <script type="module" src="/assets/js/navbar.js" defer></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
 
-    <!-- Schema.org -->
+    <!-- Schema.org Hiérarchie d'Entreprise & Entités -->
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "Organization",
+      "@id": "https://mm-cp.uk/#parent-organization",
+      "name": "Morgann Music Platforms",
+      "legalName": "Morgann Music Platforms",
+      "url": "https://mm-cp.uk/",
+      "logo": "https://mm-cp.uk/assets/img/logo/logo-rose.svg",
+      "description": "Structure parente regroupant les branches de distribution musicale (Morgann Music CP), développement web (Morgann Dev CP), intelligence artificielle (Morgann AI CP) et jeux vidéo (Morgann Music Games).",
+      "subOrganization": [
+        { "@id": "https://mm-cp.uk/#organization" },
+        { "@id": "https://dev.mm-cp.uk/#organization" },
+        { "@id": "https://litual.ai.mm-cp.uk/#organization" }
+      ]
+    },
+    {
+      "@type": "RecordLabel",
       "@id": "https://mm-cp.uk/#organization",
       "name": "Morgann Music CP",
       "legalName": "Morgann Music CP",
       "url": "https://mm-cp.uk/",
+      "parentOrganization": {
+        "@id": "https://mm-cp.uk/#parent-organization"
+      },
       "logo": {
         "@type": "ImageObject",
         "url": "https://mm-cp.uk/assets/img/logo/logo-rose.svg"
       },
       "image": "https://mm-cp.uk/assets/img/Banières/accueil.png",
-      "description": "Morgann Music CP est un label et distributeur musical indépendant français proposant la distribution sur plus de 478 plateformes, la qualité Dolby Atmos et l'optimisation par Litual AI.",
+      "description": "Branche de distribution musicale et label indépendant de Morgann Music Platforms.",
       "foundingLocation": {
         "@type": "Place",
         "address": {
           "@type": "PostalAddress",
-          "addressLocality": "Vienne",
+          "addressLocality": "Condrieu",
+          "addressRegion": "Rhône",
           "addressCountry": "FR"
         }
       },
       "sameAs": [
         "https://x.com/morgann_music?s=21"
       ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://litual.ai.mm-cp.uk/#software",
+      "name": "Litual AI",
+      "url": "https://litual.ai.mm-cp.uk/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "Assistant d'analyse de données et d'optimisation de stratégie musicale développé par la branche Morgann AI CP.",
+      "author": {
+        "@id": "https://mm-cp.uk/#parent-organization"
+      }
     },
     {
       "@type": "WebSite",
