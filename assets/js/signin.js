@@ -30,6 +30,7 @@ let addressFeatures = [];
 let addressSearchTimer = null;
 let addressAbortController = null;
 const addressCache = new Map();
+
 let isCreatingAccount = false;
 let isGoogleRegistration = false;
 let googleUserCredential = null;
@@ -197,7 +198,7 @@ addressInput?.addEventListener("focus", () => {
     }
 });
 
-// Connexion Google
+// Connexion / Initialisation Google
 googleSigninBtn?.addEventListener("click", async () => {
     setFeedback();
     const provider = new GoogleAuthProvider();
@@ -224,7 +225,7 @@ googleSigninBtn?.addEventListener("click", async () => {
         const passwordInputs = passwordAuthFields?.querySelectorAll("input");
         passwordInputs?.forEach(i => i.removeAttribute("required"));
 
-        setFeedback("Compte Google vérifié. Complète tes informations de profil.", "success");
+        setFeedback("Compte Google associé ! Complète le reste des informations.", "success");
 
         currentStep = 1;
         updateStepUI();
@@ -235,6 +236,7 @@ googleSigninBtn?.addEventListener("click", async () => {
     }
 });
 
+// Bloquer la redirection automatique pendant l'inscription
 onAuthStateChanged(auth, (user) => {
     if (user && !isCreatingAccount && !isGoogleRegistration) {
         window.location.href = "/account.html";
@@ -258,7 +260,7 @@ prevButton?.addEventListener("click", () => {
     }
 });
 
-// Soumission du formulaire
+// Enregistrement final dans D1
 form?.addEventListener("submit", async (event) => {
     event.preventDefault();
     setFeedback();
@@ -277,7 +279,7 @@ form?.addEventListener("submit", async (event) => {
     const roleCode = document.getElementById("role-code").value.trim();
     const role = roleCodeMap[roleCode] || "user";
 
-    let user = googleUserCredential;
+    let user = googleUserCredential || auth.currentUser;
 
     const originalSubmitText = submitButton.textContent;
     isCreatingAccount = true;
@@ -302,38 +304,23 @@ form?.addEventListener("submit", async (event) => {
             }
         }
 
-        // Récupération impérative du jeton d'authentification Bearer
-        const token = await user.getIdToken(true);
-
-        // Envoi direct de la requête HTTP PUT vers la base D1 avec le jeton Bearer
-        const response = await fetch(`https://api.worker.mm-cp.uk/api/users/${user.uid}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                firstName,
-                lastName,
-                fullName: `${firstName} ${lastName}`.trim(),
-                artistName,
-                email,
-                address,
-                city,
-                postalCode,
-                iban,
-                role,
-                authMethod,
-                photoURL: user.photoURL || null
-            })
+        // Envoi direct vers Cloudflare D1 via le client api.js centralisé
+        await api.put(`/api/users/${user.uid}`, {
+            firstName,
+            lastName,
+            fullName: `${firstName} ${lastName}`.trim(),
+            artistName,
+            email,
+            address,
+            city,
+            postalCode,
+            iban,
+            role,
+            authMethod,
+            photoURL: user.photoURL || null
         });
 
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || `Erreur serveur HTTP ${response.status}`);
-        }
-
-        // Notification e-mail de bienvenue
+        // E-mail de bienvenue via la fonction Cloudflare Pages
         try {
             const welcomeHtml = `<!DOCTYPE html>
 <html lang="fr">
@@ -360,23 +347,19 @@ form?.addEventListener("submit", async (event) => {
 </body>
 </html>`;
 
-            await fetch("/api/send-email", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    toEmail: email,
-                    subject: "Bienvenue chez Morgann Music CP !",
-                    htmlContent: welcomeHtml
-                })
+            await api.post("/api/send-email", {
+                toEmail: email,
+                subject: "Bienvenue chez Morgann Music CP !",
+                htmlContent: welcomeHtml
             });
         } catch (emailError) {
-            console.error("Erreur e-mail bienvenue:", emailError);
+            console.error("Erreur e-mail de bienvenue:", emailError);
         }
 
-        setFeedback("Compte enregistré dans D1 avec succès ! Redirection...", "success");
+        setFeedback("Profil enregistré dans D1 avec succès !", "success");
         setTimeout(() => {
             window.location.href = "/account.html";
-        }, 1500);
+        }, 1200);
 
     } catch (error) {
         console.error("Erreur création profil D1:", error);
