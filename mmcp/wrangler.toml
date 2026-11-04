@@ -24,6 +24,10 @@ bucket_name = "morgann-music-files"
 [vars]
 FIREBASE_PROJECT_ID = "morgann-music-cp"
 CORS_ORIGIN = "*"
+SENDER_EMAIL = "notifications@mm-cp.uk"
+SENDER_NAME = "Morgann Music CP"
+ADMIN_EMAILS = "morgannrachedi@admin.mm-cp.uk"
+SUPPORT_EMAIL = "support@mm-cp.uk"
 
 [[services]]
 binding = "NOTIF_SERVICE"

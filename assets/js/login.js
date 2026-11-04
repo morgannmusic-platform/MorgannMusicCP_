@@ -19,8 +19,9 @@ let awaitingTotp = false;
 let cachedEmail = "";
 let cachedPassword = "";
 
-// Fonction pour envoyer l'e-mail d'alerte de sécurité
-const sendSecurityAlertEmail = async (email, firstName = "Artiste") => {
+const getSessionSecurityKey = (uid) => `mmcp_security_login_${uid || "unknown"}`;
+
+const sendSecurityAlertEmail = async (email, firstName = "Artiste", reason = "connexion") => {
     try {
         const securityHtml = `<!DOCTYPE html>
 <html lang="fr">
@@ -79,18 +80,43 @@ const sendSecurityAlertEmail = async (email, firstName = "Artiste") => {
 </body>
 </html>`;
 
-        await api.post("/api/send-email", {
+        const result = await api.post("/api/send-email", {
             toEmail: email,
             subject: "Alerte de sécurité : Nouvelle connexion détectée",
-            htmlContent: securityHtml
+            htmlContent: securityHtml,
+            senderEmail: "notifications@mm-cp.uk",
+            replyToEmail: "support@mm-cp.uk"
         });
+
+        console.log(`Sécurité ${reason} envoyée`, { email, result });
     } catch (error) {
         console.error("Échec de l'envoi de l'e-mail d'alerte de sécurité :", error);
     }
 };
 
-onAuthStateChanged(auth, (user) => {
+const maybeSendLoginSecurityAlert = async (user, reason = "connexion") => {
+    if (!user || !user.email) return;
+
+    const key = getSessionSecurityKey(user.uid);
+    if (sessionStorage.getItem(key)) {
+        return;
+    }
+
+    let firstName = "Artiste";
+    try {
+        const userData = await api.get(`/api/users/${user.uid}`);
+        if (userData?.firstName) firstName = userData.firstName;
+    } catch (err) {
+        console.warn("Impossible de récupérer le prénom pour l'alerte sécurité:", err);
+    }
+
+    sessionStorage.setItem(key, "1");
+    await sendSecurityAlertEmail(user.email, firstName, reason);
+};
+
+onAuthStateChanged(auth, async (user) => {
     if (user && !awaitingTotp) {
+        await maybeSendLoginSecurityAlert(user, "connexion");
         window.location.href = "/account.html";
     }
 });
@@ -145,7 +171,7 @@ form?.addEventListener("submit", async (event) => {
             }
 
             // Envoi de l'alerte de sécurité (connexion directe validée)
-            await sendSecurityAlertEmail(email, firstName);
+            await maybeSendLoginSecurityAlert(user, "connexion");
 
             feedback.textContent = "Connexion réussie. Redirection...";
             feedback.classList.add("success");
@@ -170,7 +196,11 @@ form?.addEventListener("submit", async (event) => {
             // Envoi de l'alerte de sécurité après validation TOTP
             const targetEmail = auth.currentUser?.email || cachedEmail;
             if (targetEmail) {
-                await sendSecurityAlertEmail(targetEmail, firstName);
+                const key = getSessionSecurityKey(auth.currentUser?.uid || "unknown");
+                if (!sessionStorage.getItem(key)) {
+                    sessionStorage.setItem(key, "1");
+                    await sendSecurityAlertEmail(targetEmail, firstName, "connexion");
+                }
             }
 
             feedback.textContent = "Connexion réussie. Redirection...";
@@ -206,7 +236,7 @@ googleBtn?.addEventListener("click", async () => {
         }
 
         if (user.email) {
-            await sendSecurityAlertEmail(user.email, firstName);
+            await maybeSendLoginSecurityAlert(user, "connexion-google");
         }
 
         feedback.textContent = "Connexion Google réussie. Redirection...";

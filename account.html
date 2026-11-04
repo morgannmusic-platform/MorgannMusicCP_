@@ -162,9 +162,52 @@
                 <form id="email-change-form" style="margin-top: 1rem;">
                     <div class="info-card" style="margin-bottom: 1rem;">
                         <label class="label" for="email">Nouvelle adresse e-mail</label>
-                        <input id="email" name="email" class="value-input" type="email" required>
+                        <input id="email" name="email" class="value-input" type="email" autocomplete="username"
+                            required>
                     </div>
-                    <button type="submit" class="save-btn">Mettre à jour l'e-mail</button>
+                    <div class="info-card" style="margin-bottom: 1rem;">
+                        <label class="label" for="email-current-password">Mot de passe actuel</label>
+                        <input id="email-current-password" name="email_current_password" class="value-input"
+                            type="password" autocomplete="current-password" required>
+                    </div>
+
+                    <button id="email-submit-btn" type="submit" class="save-btn">Envoyer le code</button>
+
+                    <div id="email-verification-block" class="is-hidden" style="margin-top: 1rem; display: none;">
+                        <div class="info-card" style="margin-bottom: 1rem;">
+                            <label class="label">Code de vérification</label>
+                            <input id="email-code-hidden" type="text" inputmode="numeric" autocomplete="one-time-code"
+                                pattern="[0-9]*" aria-label="Code complet" name="one-time-code"
+                                style="position: absolute; left: -9999px; opacity: 0; width: 1px; height: 1px; pointer-events: none;">
+                            <div
+                                style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 0.75rem;">
+                                <input class="email-code-digit value-input" type="text" inputmode="numeric"
+                                    autocomplete="one-time-code" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 1"
+                                    name="digit-1"
+                                    style="width: 42px; height: 52px; border-radius: 12px; text-align: center; padding: 0; font-size: 1.2rem; font-weight: 700;">
+                                <input class="email-code-digit value-input" type="text" inputmode="numeric"
+                                    autocomplete="one-time-code" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 2"
+                                    name="digit-2"
+                                    style="width: 42px; height: 52px; border-radius: 12px; text-align: center; padding: 0; font-size: 1.2rem; font-weight: 700;">
+                                <input class="email-code-digit value-input" type="text" inputmode="numeric"
+                                    autocomplete="one-time-code" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 3"
+                                    name="digit-3"
+                                    style="width: 42px; height: 52px; border-radius: 12px; text-align: center; padding: 0; font-size: 1.2rem; font-weight: 700;">
+                                <input class="email-code-digit value-input" type="text" inputmode="numeric"
+                                    autocomplete="one-time-code" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 4"
+                                    name="digit-4"
+                                    style="width: 42px; height: 52px; border-radius: 12px; text-align: center; padding: 0; font-size: 1.2rem; font-weight: 700;">
+                                <input class="email-code-digit value-input" type="text" inputmode="numeric"
+                                    autocomplete="one-time-code" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 5"
+                                    name="digit-5"
+                                    style="width: 42px; height: 52px; border-radius: 12px; text-align: center; padding: 0; font-size: 1.2rem; font-weight: 700;">
+                                <input class="email-code-digit value-input" type="text" inputmode="numeric"
+                                    autocomplete="one-time-code" pattern="[0-9]*" maxlength="1" aria-label="Chiffre 6"
+                                    name="digit-6"
+                                    style="width: 42px; height: 52px; border-radius: 12px; text-align: center; padding: 0; font-size: 1.2rem; font-weight: 700;">
+                            </div>
+                        </div>
+                    </div>
                 </form>
 
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 2rem 0;">
@@ -176,21 +219,23 @@
                         <article class="info-card">
                             <label class="label" for="current-password">Mot de passe actuel</label>
                             <input id="current-password" name="current_password" class="value-input" type="password"
-                                required>
+                                autocomplete="current-password" required>
                         </article>
                         <article class="info-card">
                             <label class="label" for="new-password">Nouveau mot de passe</label>
-                            <input id="new-password" name="new_password" class="value-input" type="password" required>
+                            <input id="new-password" name="new_password" class="value-input" type="password"
+                                autocomplete="new-password" required>
                         </article>
                         <article class="info-card">
                             <label class="label" for="confirm-password">Confirmer le nouveau mot de passe</label>
                             <input id="confirm-password" name="confirm_password" class="value-input" type="password"
-                                required>
+                                autocomplete="new-password" required>
                         </article>
                     </div>
                     <button type="submit" class="save-btn">Modifier le mot de passe</button>
+                    <p id="password-feedback" class="account-feedback feedback" role="status" aria-live="polite"
+                        style="margin-top: 10px;"></p>
                 </form>
-
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 2rem 0;">
 
                 <h3>Application d'authentification (2FA)</h3>

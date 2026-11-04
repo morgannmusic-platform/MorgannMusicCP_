@@ -518,6 +518,10 @@ export default {
         return await handlePublicNewsletterSubscribe(env, request, ctx);
       }
 
+      if (method === "POST" && path === "/api/send-email") {
+        return await handleSendTransactionalEmail(env, request);
+      }
+
       if (method === "POST" && path === "/api/admin/send-email") {
         return await handleAdminSendEmail(env, request);
       }
@@ -583,7 +587,7 @@ export default {
       }
 
       if (method === "POST" && (path === "/api/messages" || path === "/api/admin/messages")) {
-        return await createMessage(env, request);
+        return await createMessage(env, request, ctx);
       }
 
       if (path === "/api/support/tickets") {
@@ -1238,6 +1242,48 @@ async function handlePublicNewsletterSubscribe(env, request, ctx) {
   }
 }
 
+async function handleSendTransactionalEmail(env, request) {
+  try {
+    let data = {};
+    try {
+      const rawText = await request.text();
+      if (rawText) {
+        data = JSON.parse(rawText);
+      }
+    } catch (jsonErr) {
+      return corsJson({ success: false, error: `JSON invalide: ${jsonErr.message}` }, 400);
+    }
+
+    const toEmail = String(data.toEmail || data.email || "").trim().toLowerCase();
+    const subject = String(data.subject || "").trim();
+    const htmlContent = data.htmlContent || data.html || "";
+    const senderEmail = data.senderEmail || env.SENDER_EMAIL || "notifications@mm-cp.uk";
+    const replyToEmail = data.replyToEmail || "support@mm-cp.uk";
+
+    if (!toEmail || !subject || !htmlContent) {
+      return corsJson({ success: false, error: "toEmail, subject ou htmlContent manquants" }, 400);
+    }
+
+    const sent = await sendBrevoEmail(env, {
+      toEmail,
+      toName: toEmail,
+      subject,
+      htmlContent,
+      senderEmail: senderEmail || env.SENDER_EMAIL || "notifications@mm-cp.uk",
+      replyToEmail: replyToEmail || "support@mm-cp.uk"
+    });
+
+    if (!sent) {
+      return corsJson({ success: false, error: "Échec de l'envoi Brevo, vérifie la configuration de l'email" }, 500);
+    }
+
+    return corsJson({ success: true, message: "E-mail transactionnel envoyé." }, 200);
+  } catch (err) {
+    console.error("Erreur handleSendTransactionalEmail:", err);
+    return corsJson({ success: false, error: err.message }, 500);
+  }
+}
+
 async function handleAdminSendEmail(env, request) {
   try {
     const data = await request.json();
@@ -1546,6 +1592,77 @@ async function deleteUserBlacklist(env, uid, itemId, isAdminUser) {
   }
 }
 
+function isMmcpVerificationStatus(status) {
+  const value = String(status || "").trim().toLowerCase();
+  return value.includes("verification") && (value.includes("mmcp") || value.includes("mm-cp"));
+}
+
+async function getAdminRecipientEmails(env) {
+  const adminEmails = new Set();
+
+  try {
+    const { results } = await env.DB.prepare(`
+      SELECT email
+      FROM users
+      WHERE role = 'admin' AND email IS NOT NULL AND email != ''
+    `).all();
+
+    for (const row of results || []) {
+      const email = String(row.email || "").trim();
+      if (email && email.includes("@")) adminEmails.add(email.toLowerCase());
+    }
+  } catch (err) {
+    console.error("Erreur getAdminRecipientEmails:", err);
+  }
+
+  const configured = String(env.ADMIN_EMAILS || env.ADMIN_EMAIL || "").split(/[;,]/);
+  for (const item of configured) {
+    const email = String(item || "").trim();
+    if (email && email.includes("@")) adminEmails.add(email.toLowerCase());
+  }
+
+  const supportEmail = String(env.SUPPORT_EMAIL || "support@mm-cp.uk").trim();
+  if (supportEmail && supportEmail.includes("@")) adminEmails.add(supportEmail.toLowerCase());
+
+  return Array.from(adminEmails);
+}
+
+async function notifyAdmins(env, ctx, { title, message, type = "system", link = null }) {
+  const emails = await getAdminRecipientEmails(env);
+  if (!emails.length) return 0;
+
+  for (const email of emails) {
+    const htmlContent = buildHtmlEmail({
+      firstName: "Admin",
+      title,
+      message,
+      actionUrl: link ? (link.startsWith("http") ? link : `https://mm-cp.uk${link}`) : "https://mm-cp.uk/portail/"
+    });
+
+    if (ctx && typeof ctx.waitUntil === "function") {
+      ctx.waitUntil(sendBrevoEmail(env, {
+        toEmail: email,
+        toName: "Admin MMCP",
+        subject: title,
+        htmlContent,
+        senderEmail: env.SENDER_EMAIL || "notifications@mm-cp.uk",
+        replyToEmail: env.SUPPORT_EMAIL || "support@mm-cp.uk"
+      }));
+    } else {
+      await sendBrevoEmail(env, {
+        toEmail: email,
+        toName: "Admin MMCP",
+        subject: title,
+        htmlContent,
+        senderEmail: env.SENDER_EMAIL || "notifications@mm-cp.uk",
+        replyToEmail: env.SUPPORT_EMAIL || "support@mm-cp.uk"
+      });
+    }
+  }
+
+  return emails.length;
+}
+
 async function triggerReleaseStatusNotification(env, ctx, userUid, releaseTitle, releaseId, oldStatus, newStatus) {
   if (!userUid || !newStatus || oldStatus === newStatus) return;
 
@@ -1554,6 +1671,15 @@ async function triggerReleaseStatusNotification(env, ctx, userUid, releaseTitle,
   const notifLink = `/portail/sortie.html?id=${releaseId}`;
 
   await sendNotification(env, ctx, userUid, notifTitle, notifMessage, "release", notifLink);
+
+  if (isMmcpVerificationStatus(newStatus)) {
+    await notifyAdmins(env, ctx, {
+      title: `Nouvelle sortie en vérification MMCP`,
+      message: `La sortie "${releaseTitle}" est maintenant en statut "${newStatus}" et nécessite une vérification côté MMCP.`,
+      type: "release",
+      link: `/portail/admin/sorties.html?release=${releaseId}`
+    });
+  }
 }
 
 async function sendNotification(env, ctx, uid, title, message, type = "info", link = null) {
@@ -1721,13 +1847,16 @@ async function broadcastNotification(env, request, isAdminUser, ctx) {
     const type = data.type || "system";
     const link = data.link || null;
 
-    const { results } = await env.DB.prepare("SELECT uid FROM users").all();
+    const { results } = await env.DB.prepare("SELECT uid FROM users WHERE role != 'admin'").all();
     if (results && results.length > 0) {
       for (const u of results) {
         await sendNotification(env, ctx, u.uid, title, message, type, link);
       }
     }
-    return corsJson({ success: true, count: results ? results.length : 0 });
+
+    await notifyAdmins(env, ctx, { title, message, type, link });
+
+    return corsJson({ success: true, count: results ? results.length : 0, adminCount: await getAdminUsers(env).then(admins => admins.length) });
   } catch (err) {
     return corsJson({ error: err.message }, 500);
   }
@@ -2357,17 +2486,26 @@ async function createSupportTicket(env, request, ctx) {
       VALUES (?, ?, ?, ?, ?, 'ouvert', ?)
     `).bind(uid, userName, section, payload, initialMessages, now).run();
 
+    const ticketId = res.meta.last_row_id;
+
     await sendNotification(
       env,
       ctx,
       uid,
       "Ticket de support créé",
-      `Votre ticket #${res.meta.last_row_id} (${section}) a bien été ouvert.`,
+      `Votre ticket #${ticketId} (${section}) a bien été ouvert.`,
       "support",
       "/support.html"
     );
 
-    return corsJson({ id: res.meta.last_row_id, success: true }, 201);
+    await notifyAdmins(env, ctx, {
+      title: `Nouveau ticket de support #${ticketId}`,
+      message: `${userName} a ouvert un nouveau ticket dans la section "${section}".`,
+      type: "support",
+      link: `/portail/admin/support.html?ticket=${ticketId}`
+    });
+
+    return corsJson({ id: ticketId, success: true }, 201);
   } catch (err) {
     return corsJson({ error: err.message }, 500);
   }
@@ -2393,7 +2531,7 @@ async function addTicketMessage(env, ticketId, request, ctx) {
     const sender = data.sender || "user";
     const createdAt = data.createdAt || new Date().toISOString();
 
-    const row = await env.DB.prepare("SELECT uid, messages FROM support_tickets WHERE id = ?").bind(ticketId).first();
+    const row = await env.DB.prepare("SELECT uid, user_name, messages FROM support_tickets WHERE id = ?").bind(ticketId).first();
     if (!row) return corsJson({ error: "Ticket non trouvé" }, 404);
 
     let messages = [];
@@ -2419,6 +2557,15 @@ async function addTicketMessage(env, ticketId, request, ctx) {
       );
     }
 
+    if (row.uid && sender === "user") {
+      await notifyAdmins(env, ctx, {
+        title: `Nouveau message sur le ticket #${ticketId}`,
+        message: `${row.user_name || "Un artiste"} a ajouté un nouveau message sur le ticket de support #${ticketId}.`,
+        type: "support",
+        link: `/portail/admin/support.html?ticket=${ticketId}`
+      });
+    }
+
     return corsJson({ success: true, messages });
   } catch (err) {
     return corsJson({ error: err.message }, 500);
@@ -2431,7 +2578,7 @@ async function updateTicketStatus(env, ticketId, request, ctx) {
     const status = data.status;
     if (!status) return corsJson({ error: "Statut manquant" }, 400);
 
-    const ticketRow = await env.DB.prepare("SELECT uid FROM support_tickets WHERE id = ?").bind(ticketId).first();
+    const ticketRow = await env.DB.prepare("SELECT uid, user_name FROM support_tickets WHERE id = ?").bind(ticketId).first();
 
     await env.DB.prepare("UPDATE support_tickets SET status = ? WHERE id = ?").bind(status, ticketId).run();
 
@@ -2446,6 +2593,13 @@ async function updateTicketStatus(env, ticketId, request, ctx) {
         "/support.html"
       );
     }
+
+    await notifyAdmins(env, ctx, {
+      title: `Ticket support #${ticketId} mis à jour`,
+      message: `${ticketRow?.user_name || "Un artiste"} a mis à jour le statut du ticket #${ticketId} : ${status}.`,
+      type: "support",
+      link: `/portail/admin/support.html?ticket=${ticketId}`
+    });
 
     return corsJson({ success: true });
   } catch (err) {
@@ -3208,6 +3362,15 @@ async function createRelease(env, uid, request, ctx) {
     `/sortie.html?id=${res.meta.last_row_id}`
   );
 
+  if (isMmcpVerificationStatus(data.status || "brouillon")) {
+    await notifyAdmins(env, ctx, {
+      title: `Nouvelle sortie en vérification MMCP`,
+      message: `La sortie "${data.title || 'Sans titre'}" a été soumise au statut "${data.status || 'verification mmcp'}" et doit être vérifiée par MMCP.`,
+      type: "release",
+      link: `/portail/admin/sorties.html?release=${res.meta.last_row_id}`
+    });
+  }
+
   // Déclenchement conditionnel de la migration
   triggerCoverMigration(ctx, coverUrl, pochetteHd);
 
@@ -3832,7 +3995,7 @@ async function patchVersionSafe(env, versionId, request) {
   }
 }
 
-async function createMessage(env, request) {
+async function createMessage(env, request, ctx) {
   const data = await request.json();
   try {
     await env.DB.prepare(`INSERT INTO messages (name, email, subject, message, created_at) VALUES (?, ?, ?, ?, ?)`).bind(
@@ -3842,6 +4005,18 @@ async function createMessage(env, request) {
       data.message,
       new Date().toISOString()
     ).run();
+
+    const messageText = String(data.message || "").trim();
+    const senderName = String(data.name || "Un visiteur").trim();
+    const senderEmail = String(data.email || "").trim();
+    const subject = String(data.subject || "Contact direct").trim();
+
+    await notifyAdmins(env, ctx, {
+      title: `Nouveau message de contact – ${subject}`,
+      message: `${senderName} (${senderEmail || "email non renseigné"}) a envoyé un nouveau message : ${messageText ? messageText.slice(0, 180) + (messageText.length > 180 ? "..." : "") : "(vide)"}`,
+      type: "support",
+      link: "/portail/admin/messages.html"
+    });
   } catch (e) {
     console.error("Erreur insertion message D1:", e);
     return corsJson({ error: e.message }, 500);

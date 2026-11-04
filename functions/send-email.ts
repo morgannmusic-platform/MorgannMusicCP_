@@ -52,7 +52,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 "api-key": context.env.BREVO_API_KEY,
             },
             body: JSON.stringify({
-                sender: { name: "Morgann Music CP", email: "noreply@mm-cp.uk" },
+                sender: { name: "Morgann Music CP", email: "notifications@mm-cp.uk" },
                 to: [{ email: toEmail }],
                 subject: subject,
                 htmlContent: htmlContent,

@@ -4,14 +4,15 @@ import {
     GoogleAuthProvider,
     linkWithPopup,
     updatePassword,
-    updateEmail,
+    verifyBeforeUpdateEmail,
     EmailAuthProvider,
-    reauthenticateWithCredential
+    reauthenticateWithCredential,
+    sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { auth } from "/assets/js/firebase.js";
 import { api } from "/assets/js/api.js";
 
-// Formulaires distincts dans l'interface
+// Formulaires et boutons
 const profileForm = document.getElementById("account-form");
 const emailForm = document.getElementById("email-change-form");
 const passwordForm = document.getElementById("password-change-form");
@@ -33,9 +34,12 @@ const totpSecretText = document.getElementById("totp-secret-text");
 const totpCodeInput = document.getElementById("totp-code-input");
 const qrcodeContainer = document.getElementById("qrcode");
 
+// Infos utilisateur
 const roleBadge = document.getElementById("role-badge");
 const userUid = document.getElementById("user-uid");
 const userArtist = document.getElementById("user-artist");
+const userPlanEl = document.getElementById("user-plan");
+const subscriptionStatusEl = document.getElementById("subscription-status");
 
 const firstNameInput = document.getElementById("first-name");
 const lastNameInput = document.getElementById("last-name");
@@ -46,10 +50,20 @@ const ibanInput = document.getElementById("iban");
 const avatarInput = document.getElementById("avatar-input");
 const avatarPreviewImg = document.getElementById("avatar-preview-img");
 
+// Éléments du changement d'e-mail
 const securityEmailInput = document.getElementById("email");
+const emailCurrentPasswordInput = document.getElementById("email-current-password");
+const emailVerificationBlock = document.getElementById("email-verification-block");
+const emailSubmitBtn = document.getElementById("email-submit-btn");
+const emailCodeInputs = Array.from(document.querySelectorAll(".email-code-digit"));
+const emailCodeHiddenInput = document.getElementById("email-code-hidden");
+
+// Mot de passe
 const currentPasswordInput = document.getElementById("current-password");
 const newPasswordInput = document.getElementById("new-password");
 const confirmPasswordInput = document.getElementById("confirm-password");
+
+const isStrongPassword = (value) => Boolean(value && value.length >= 6);
 
 const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
@@ -57,6 +71,7 @@ const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
 const roleLabelMap = { admin: "Admin", testeur: "Testeur", vip: "V.I.P", artiste: "Artiste", user: "User" };
 const roleClassMap = { admin: "role-admin", testeur: "role-testeur", vip: "role-vip", artiste: "role-artiste", user: "role-user" };
 
+// Affichage des messages dans l'onglet actif
 const setFeedback = (message = "", type = "") => {
     const activePanel = document.querySelector(".tab-panel.is-active");
     if (!activePanel) return;
@@ -69,35 +84,178 @@ const setFeedback = (message = "", type = "") => {
     if (type) feedbackEl.classList.add(type);
 };
 
-const selectTab = (tabId) => {
-    tabButtons.forEach((button) => {
-        const active = button.dataset.tab === tabId;
-        button.classList.toggle("is-active", active);
-        button.setAttribute("aria-selected", String(active));
-    });
-    tabPanels.forEach((panel) => panel.classList.toggle("is-active", panel.dataset.panel === tabId));
+const getUserFriendlyError = (error) => {
+    const code = error?.code || "";
+
+    if (code === "auth/wrong-password") return "Votre mot de passe est erroné.";
+    if (code === "auth/invalid-email") return "Adresse e-mail invalide.";
+    if (code === "auth/email-already-in-use") return "Cette adresse e-mail est déjà utilisée.";
+    if (code === "auth/requires-recent-login") return "Votre session a expiré. Reconnectez-vous puis réessayez.";
+    if (code === "auth/weak-password") return "Votre nouveau mot de passe est trop faible.";
+    if (code === "auth/too-many-requests") return "Trop de tentatives. Réessayez dans quelques minutes.";
+    return error?.message || "Une erreur est survenue. Vérifiez vos informations et réessayez.";
 };
 
-tabButtons.forEach((button) => button.addEventListener("click", () => selectTab(button.dataset.tab)));
+// Stockage de l'état de la demande
+const emailChangeStorageKey = "mmcp_email_change_request";
 
-// Fonction qui passe UNIQUEMENT par le dossier functions via la route relative /api/send-email
-const sendSecurityEmailViaFunctions = async (toEmail, subject, htmlContent) => {
+const readPendingEmailChange = () => {
     try {
-        const res = await fetch("/api/send-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ toEmail, subject, htmlContent })
-        });
-        const result = await res.json();
-        if (!res.ok || !result.success) {
-            console.error("Erreur envoi email via functions:", result);
-        }
-    } catch (err) {
-        console.error("Échec requête /api/send-email:", err);
+        const raw = sessionStorage.getItem(emailChangeStorageKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && parsed.stage ? parsed : null;
+    } catch {
+        return null;
     }
 };
 
-// Modèle HTML aux couleurs de Morgann Music CP
+const persistPendingEmailChange = (payload) => {
+    sessionStorage.setItem(emailChangeStorageKey, JSON.stringify(payload));
+};
+
+const clearPendingEmailChange = () => {
+    sessionStorage.removeItem(emailChangeStorageKey);
+};
+
+// -------------------------------------------------------------
+// GESTION DE L'INTERFACE UTILISATEUR POUR LE CHANGEMENT D'EMAIL
+// -------------------------------------------------------------
+const setEmailVerificationUI = () => {
+    const pending = readPendingEmailChange();
+    const stage = pending?.stage || "idle";
+
+    // Injection ou récupération de la bannière d'information de confirmation
+    let noticeEl = document.getElementById("email-awaiting-notice");
+    if (!noticeEl && emailForm) {
+        noticeEl = document.createElement("div");
+        noticeEl.id = "email-awaiting-notice";
+        noticeEl.style.cssText = "display: none; background: #e1f5be; border: 1px solid #c3e88d; padding: 18px; border-radius: 16px; margin-top: 1rem; text-align: center;";
+        emailForm.appendChild(noticeEl);
+    }
+
+    if (stage === "idle") {
+        if (noticeEl) noticeEl.style.display = "none";
+        if (emailVerificationBlock) {
+            emailVerificationBlock.classList.add("is-hidden");
+            emailVerificationBlock.style.display = "none";
+        }
+        if (emailSubmitBtn) {
+            emailSubmitBtn.textContent = "Envoyer le code";
+            emailSubmitBtn.style.display = "inline-flex";
+            emailSubmitBtn.disabled = false;
+        }
+        if (securityEmailInput) securityEmailInput.disabled = false;
+        if (emailCurrentPasswordInput) emailCurrentPasswordInput.disabled = false;
+
+        emailCodeInputs.forEach((input) => {
+            input.value = "";
+            input.disabled = true;
+        });
+
+    } else if (stage === "code-verification") {
+        if (noticeEl) noticeEl.style.display = "none";
+        if (emailVerificationBlock) {
+            emailVerificationBlock.classList.remove("is-hidden");
+            emailVerificationBlock.style.display = "block";
+        }
+        if (emailSubmitBtn) {
+            emailSubmitBtn.textContent = "Valider le code";
+            emailSubmitBtn.style.display = "inline-flex";
+            emailSubmitBtn.disabled = false;
+        }
+        if (securityEmailInput) securityEmailInput.disabled = true;
+        if (emailCurrentPasswordInput) emailCurrentPasswordInput.disabled = true;
+
+        emailCodeInputs.forEach((input) => {
+            input.disabled = false;
+        });
+
+    } else if (stage === "awaiting-firebase-confirmation") {
+        if (emailVerificationBlock) {
+            emailVerificationBlock.classList.add("is-hidden");
+            emailVerificationBlock.style.display = "none";
+        }
+        if (emailSubmitBtn) {
+            emailSubmitBtn.style.display = "none";
+        }
+        if (securityEmailInput) {
+            securityEmailInput.value = pending.newEmail;
+            securityEmailInput.disabled = true;
+        }
+        if (emailCurrentPasswordInput) {
+            emailCurrentPasswordInput.value = "";
+            emailCurrentPasswordInput.disabled = true;
+        }
+
+        if (noticeEl) {
+            noticeEl.style.display = "block";
+            noticeEl.innerHTML = `
+                <p style="margin: 0 0 8px 0; font-weight: 800; color: #2c3e10; font-size: 16px;">📧 Validez votre nouvelle adresse e-mail</p>
+                <p style="margin: 0; font-size: 14px; color: #3e2837; line-height: 1.6;">
+                    Un e-mail de confirmation Firebase a été envoyé à <strong>${pending.newEmail}</strong>.<br>
+                    <strong>Veuillez ouvrir cet e-mail et cliquer sur le lien de confirmation</strong> pour finaliser la modification sur votre compte.
+                </p>
+            `;
+        }
+
+        setFeedback("Un e-mail de confirmation a été envoyé à votre nouvelle adresse. Veuillez suivre le lien qu'il contient.", "info");
+    }
+};
+
+const getEnteredEmailCode = () => emailCodeInputs.map((input) => (input.value || "").trim()).join("");
+
+const reauthenticateCurrentUser = async (password) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !currentUser.email) {
+        throw new Error("Aucune session Firebase active.");
+    }
+
+    const credential = EmailAuthProvider.credential(currentUser.email, password);
+    await reauthenticateWithCredential(currentUser, credential);
+    return currentUser;
+};
+
+const generateVerificationCode = () => String(Math.floor(100000 + Math.random() * 900000));
+
+const sendVerificationCodeEmail = async (toEmail, code) => {
+    const htmlContent = generateEmailTemplate("Code de vérification", `
+        <p style="font-size: 15px; line-height: 1.7; color: #3e2837; margin: 0 0 18px 0;">Vous avez demandé une modification de votre adresse e-mail sur Morgann Music CP.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #3e2837; margin: 0 0 14px 0;">Votre code de vérification est :</p>
+        <div role="text" aria-label="Code de vérification ${code}" style="display: inline-block; padding: 18px 22px; border-radius: 16px; background: #EAFFC6; border: 1px solid #D8EFB5; margin: 8px 0 18px 0; text-align: center;">
+            <span style="font-size: 34px; letter-spacing: 0.55em; font-weight: 800; color: #2c3e10; font-family: 'Segoe UI', Arial, sans-serif;">${code}</span>
+        </div>
+        <p style="font-size: 15px; line-height: 1.7; color: #3e2837; margin: 0 0 12px 0;">Entrez ce code dans votre espace compte pour valider le changement.</p>
+    `);
+
+    await api.post("/api/send-email", {
+        toEmail,
+        subject: "Code de vérification pour votre changement d'e-mail",
+        htmlContent,
+        senderEmail: "notifications@mm-cp.uk",
+        replyToEmail: "support@mm-cp.uk"
+    });
+};
+
+const sendEmailChangeConfirmationEmails = async (oldEmail, newEmail) => {
+    const confirmationHtml = generateEmailTemplate("Confirmation du changement d'adresse e-mail", `
+        <p style="font-size: 15px; line-height: 1.7; color: #3e2837; margin: 0 0 15px 0;">Votre adresse e-mail a bien été mise à jour pour votre compte Morgann Music CP.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #3e2837; margin: 0 0 10px 0;"><strong>Ancienne adresse :</strong> ${oldEmail}</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #3e2837; margin: 0 0 20px 0;"><strong>Nouvelle adresse :</strong> ${newEmail}</p>
+    `);
+
+    await sendSecurityEmailViaFunctions(oldEmail, "Confirmation du changement d'adresse e-mail", confirmationHtml);
+    await sendSecurityEmailViaFunctions(newEmail, "Votre adresse e-mail a été modifiée", confirmationHtml);
+};
+
+const sendSecurityEmailViaFunctions = async (toEmail, subject, htmlContent) => {
+    try {
+        await api.post("/api/send-email", { toEmail, subject, htmlContent });
+    } catch (err) {
+        console.error("Échec requête worker /api/send-email:", err);
+    }
+};
+
 const generateEmailTemplate = (title, message) => {
     return `<!DOCTYPE html>
 <html lang="fr">
@@ -137,16 +295,350 @@ const generateEmailTemplate = (title, message) => {
 </html>`;
 };
 
+// -------------------------------------------------------------
+// VALIDATION DU CODE A 6 CHIFFRES ET ENVOI MAIL FIREBASE
+// -------------------------------------------------------------
+const validatePendingEmailCode = async (currentUser, password, pending) => {
+    const code = getEnteredEmailCode();
+    if (!code || code.length !== 6) {
+        setFeedback("Veuillez saisir le code complet à 6 chiffres.", "error");
+        return false;
+    }
+
+    if (Date.now() > pending.expiresAt) {
+        clearPendingEmailChange();
+        setEmailVerificationUI();
+        setFeedback("Le code de vérification a expiré. Veuillez recommencer la procédure.", "error");
+        return true;
+    }
+
+    if (String(code) !== String(pending.code)) {
+        setFeedback("Le code de vérification est incorrect.", "error");
+        return true;
+    }
+
+    try {
+        setFeedback("Validation du code en cours...", "info");
+        await reauthenticateCurrentUser(password || pending.password);
+
+        // Firebase envoie l'email de confirmation
+        await verifyBeforeUpdateEmail(currentUser, pending.newEmail);
+
+        const updatedPending = {
+            ...pending,
+            stage: "awaiting-firebase-confirmation",
+            password: password || pending.password
+        };
+
+        persistPendingEmailChange(updatedPending);
+        setEmailVerificationUI();
+        return true;
+    } catch (error) {
+        console.error("Erreur validation code d'e-mail :", error);
+        setFeedback(getUserFriendlyError(error), "error");
+        return true;
+    }
+};
+
+const attemptValidatePendingEmailCode = async () => {
+    const currentUser = auth.currentUser;
+    const pending = readPendingEmailChange();
+    if (!currentUser || !pending || pending.stage !== "code-verification") return;
+
+    const filled = emailCodeInputs.every((input) => input.value.trim() !== "");
+    if (!filled) return;
+
+    const password = emailCurrentPasswordInput.value.trim() || pending.password;
+    await validatePendingEmailCode(currentUser, password, pending);
+};
+
+const fillCodeInputsFromPaste = (value) => {
+    const digits = String(value || "").replace(/\D/g, "").slice(0, emailCodeInputs.length);
+    if (!digits) return;
+
+    emailCodeInputs.forEach((input, index) => {
+        input.value = digits[index] || "";
+    });
+
+    if (emailCodeHiddenInput) {
+        emailCodeHiddenInput.value = digits;
+    }
+
+    const nextIndex = Math.min(digits.length, emailCodeInputs.length - 1);
+    emailCodeInputs[nextIndex]?.focus();
+
+    const filled = emailCodeInputs.every((input) => input.value.trim() !== "");
+    if (filled) {
+        setTimeout(() => attemptValidatePendingEmailCode(), 0);
+    }
+};
+
+emailCodeInputs.forEach((input, index) => {
+    input.addEventListener("paste", (event) => {
+        event.preventDefault();
+        const pasted = (event.clipboardData?.getData("text") || "").replace(/\s+/g, "");
+        fillCodeInputsFromPaste(pasted);
+    });
+
+    input.addEventListener("input", async (event) => {
+        const value = event.target.value.replace(/\D/g, "").slice(0, 1);
+        event.target.value = value;
+
+        if (emailCodeHiddenInput) {
+            emailCodeHiddenInput.value = getEnteredEmailCode();
+        }
+
+        if (value && index < emailCodeInputs.length - 1) {
+            emailCodeInputs[index + 1].focus();
+        }
+
+        if (emailCodeInputs.every((digitInput) => digitInput.value.trim() !== "")) {
+            await attemptValidatePendingEmailCode();
+        }
+    });
+
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Backspace" && !input.value && index > 0) {
+            emailCodeInputs[index - 1].focus();
+        }
+        if (event.key.length === 1 && /\d/.test(event.key) && index < emailCodeInputs.length - 1) {
+            event.preventDefault();
+            input.value = event.key;
+            if (emailCodeHiddenInput) {
+                emailCodeHiddenInput.value = getEnteredEmailCode();
+            }
+            emailCodeInputs[index + 1].focus();
+        }
+    });
+});
+
+// -------------------------------------------------------------
+// SOUMISSION DES FORMULAIRES
+// -------------------------------------------------------------
+const selectTab = (tabId) => {
+    tabButtons.forEach((button) => {
+        const active = button.dataset.tab === tabId;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-selected", String(active));
+    });
+    tabPanels.forEach((panel) => panel.classList.toggle("is-active", panel.dataset.panel === tabId));
+};
+
+tabButtons.forEach((button) => button.addEventListener("click", () => selectTab(button.dataset.tab)));
+
+profileForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        setFeedback("Aucune session active. Veuillez vous reconnecter.", "error");
+        return;
+    }
+
+    setFeedback("Enregistrement en cours...", "info");
+
+    try {
+        let photoURL = null;
+
+        if (avatarInput && avatarInput.files[0]) {
+            const uploadResult = await api.uploadFile("avatar", avatarInput.files[0]);
+            photoURL = uploadResult.key;
+        }
+
+        await api.patch(`/api/users/${currentUser.uid}`, {
+            firstName: firstNameInput.value.trim(),
+            lastName: lastNameInput.value.trim(),
+            fullName: `${firstNameInput.value.trim()} ${lastNameInput.value.trim()}`.trim(),
+            address: addressInput.value.trim(),
+            city: cityInput.value.trim(),
+            postalCode: postalInput.value.trim(),
+            iban: ibanInput.value.trim() || null,
+            ...(photoURL && { photoURL })
+        });
+
+        setFeedback("Profil enregistré avec succès !", "success");
+        setTimeout(() => setFeedback("", ""), 4000);
+    } catch (error) {
+        console.error("Erreur sauvegarde profil :", error);
+        setFeedback("Erreur lors de l'enregistrement du profil.", "error");
+    }
+});
+
+emailForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        setFeedback("Aucune session active. Veuillez vous reconnecter.", "error");
+        return;
+    }
+
+    const pending = readPendingEmailChange();
+
+    if (pending && pending.stage === "code-verification") {
+        const password = emailCurrentPasswordInput.value.trim() || pending.password;
+        await validatePendingEmailCode(currentUser, password, pending);
+        return;
+    }
+
+    if (pending && pending.stage === "awaiting-firebase-confirmation") {
+        setFeedback("Un e-mail de confirmation a déjà été envoyé. Veuillez suivre le lien reçu par e-mail.", "info");
+        return;
+    }
+
+    const newEmail = securityEmailInput.value.trim();
+    const oldEmail = currentUser.email || "";
+    const password = emailCurrentPasswordInput.value.trim();
+
+    if (!newEmail || !newEmail.includes("@")) {
+        setFeedback("Veuillez saisir une adresse e-mail valide.", "error");
+        return;
+    }
+
+    if (newEmail.toLowerCase() === oldEmail.toLowerCase()) {
+        setFeedback("L'adresse e-mail est identique à l'adresse actuelle.", "error");
+        return;
+    }
+
+    if (!password) {
+        setFeedback("Veuillez saisir votre mot de passe actuel pour valider la modification.", "error");
+        return;
+    }
+
+    try {
+        setFeedback("Vérification et envoi du code...", "info");
+
+        await reauthenticateCurrentUser(password);
+        const verificationCode = generateVerificationCode();
+
+        persistPendingEmailChange({
+            uid: currentUser.uid,
+            oldEmail,
+            newEmail,
+            code: verificationCode,
+            password,
+            stage: "code-verification",
+            expiresAt: Date.now() + 10 * 60 * 1000
+        });
+
+        await sendVerificationCodeEmail(newEmail, verificationCode);
+        setEmailVerificationUI();
+
+        setFeedback("Un code de vérification a été envoyé à votre nouvelle adresse e-mail. Saisissez-le ci-dessous.", "success");
+    } catch (error) {
+        console.error("Erreur modification e-mail :", error);
+        clearPendingEmailChange();
+        setEmailVerificationUI();
+        setFeedback(getUserFriendlyError(error), "error");
+    }
+});
+
+const passwordFeedbackEl = document.getElementById("password-feedback");
+
+const setPasswordFeedback = (message = "", type = "") => {
+    if (!passwordFeedbackEl) return;
+    passwordFeedbackEl.textContent = message;
+    passwordFeedbackEl.className = "account-feedback feedback";
+    if (type) passwordFeedbackEl.classList.add(type);
+};
+
+passwordForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const currentUser = auth.currentUser;
+    if (!currentUser || !currentUser.email) {
+        setPasswordFeedback("Aucune session active. Veuillez vous reconnecter.", "error");
+        return;
+    }
+
+    const currentPassword = currentPasswordInput.value.trim();
+    const newPassword = newPasswordInput.value.trim();
+    const confirmPassword = confirmPasswordInput.value.trim();
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        setPasswordFeedback("Veuillez remplir tous les champs de mot de passe.", "error");
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        setPasswordFeedback("Les nouveaux mots de passe ne correspondent pas.", "error");
+        return;
+    }
+
+    if (!isStrongPassword(newPassword)) {
+        setPasswordFeedback("Le mot de passe doit contenir au moins 6 caractères.", "error");
+        return;
+    }
+
+    try {
+        setPasswordFeedback("Modification du mot de passe en cours...", "info");
+
+        // 1. Re-authentification Firebase
+        await reauthenticateCurrentUser(currentPassword);
+
+        // 2. Mise à jour dans Firebase Auth
+        await updatePassword(currentUser, newPassword);
+
+        // 3. Alerte de sécurité par email via Worker MMCP
+        const passwordMessage = `Le mot de passe de ton compte Morgann Music CP (<strong>${currentUser.email}</strong>) a été modifié avec succès.<br><br>Si tu n'es pas à l'origine de ce changement, réinitialise ton mot de passe immédiatement.`;
+        const htmlContent = generateEmailTemplate("Alerte de sécurité : Mot de passe modifié", passwordMessage);
+
+        await sendSecurityEmailViaFunctions(currentUser.email, "Modification de votre mot de passe", htmlContent);
+
+        // Vider les champs
+        currentPasswordInput.value = "";
+        newPasswordInput.value = "";
+        confirmPasswordInput.value = "";
+
+        setPasswordFeedback("Mot de passe modifié avec succès ! Un e-mail d'alerte vous a été envoyé.", "success");
+        setTimeout(() => setPasswordFeedback("", ""), 6000);
+    } catch (error) {
+        console.error("Erreur modification mot de passe :", error);
+        setPasswordFeedback(getUserFriendlyError(error), "error");
+    }
+});
+
+// -------------------------------------------------------------
+// LISTENER D'AUTHENTIFICATION FIREBASE & SYNCHRO D1
+// -------------------------------------------------------------
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = "/login.html";
         return;
     }
 
-    if (userUid) userUid.textContent = user.uid || "Non disponible";
-    if (securityEmailInput) securityEmailInput.value = user.email || "";
+    const pendingEmailChange = readPendingEmailChange();
+    if (pendingEmailChange && pendingEmailChange.uid !== user.uid) {
+        clearPendingEmailChange();
+    }
 
-    // Chargement profil D1
+    if (userUid) userUid.textContent = user.uid || "Non disponible";
+
+    const currentPending = readPendingEmailChange();
+
+    // Vérification du retour de validation du mail Firebase
+    if (currentPending && currentPending.stage === "awaiting-firebase-confirmation") {
+        if (user.email && user.email.toLowerCase() === currentPending.newEmail.toLowerCase()) {
+            try {
+                // Maj de la base D1 + envoi des emails de confirmation
+                await api.patch(`/api/users/${user.uid}`, { email: currentPending.newEmail });
+                await sendEmailChangeConfirmationEmails(currentPending.oldEmail, currentPending.newEmail);
+                clearPendingEmailChange();
+
+                if (securityEmailInput) securityEmailInput.value = user.email;
+                setEmailVerificationUI();
+                setFeedback("Votre adresse e-mail a été modifiée avec succès !", "success");
+            } catch (err) {
+                console.error("Erreur de synchronisation D1 après confirmation email Firebase :", err);
+                setFeedback("Adresse e-mail modifiée dans Firebase, mais la synchronisation D1 a échoué.", "error");
+            }
+        } else {
+            if (securityEmailInput) securityEmailInput.value = user.email || "";
+            setEmailVerificationUI();
+        }
+    } else {
+        if (securityEmailInput) securityEmailInput.value = user.email || "";
+        setEmailVerificationUI();
+    }
+
+    // Chargement des données utilisateur depuis D1
     try {
         const data = await api.get(`/api/users/${user.uid}`);
         if (data && !data.error) {
@@ -157,6 +649,24 @@ onAuthStateChanged(auth, async (user) => {
             if (postalInput) postalInput.value = data.postalCode || "";
             if (ibanInput) ibanInput.value = data.iban || "";
             if (userArtist) userArtist.textContent = data.artistName || "Non renseigné";
+
+            // Affichage du plan d'abonnement D1
+            if (userPlanEl) {
+                const rawPlan = data.plan_name || data.planName || "Gratuit";
+                userPlanEl.textContent = rawPlan.charAt(0).toUpperCase() + rawPlan.slice(1);
+            }
+
+            // Affichage du statut d'abonnement D1
+            if (subscriptionStatusEl) {
+                const status = data.subscription_status || data.subscriptionStatus;
+                if (status === "active") {
+                    subscriptionStatusEl.textContent = "Actif 🟢";
+                } else if (!status || status === "NULL" || status === "canceled") {
+                    subscriptionStatusEl.textContent = "Inactif 🔴";
+                } else {
+                    subscriptionStatusEl.textContent = status;
+                }
+            }
 
             if (data.photoURL && avatarPreviewImg) {
                 avatarPreviewImg.src = api.fileUrl(data.photoURL);
@@ -172,139 +682,6 @@ onAuthStateChanged(auth, async (user) => {
     } catch (err) {
         console.error("Erreur lors de la récupération des infos D1 :", err);
     }
-
-    // 1. Sauvegarde des informations du profil principal
-    profileForm?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        setFeedback("Enregistrement en cours...", "info");
-
-        try {
-            let photoURL = null;
-
-            if (avatarInput && avatarInput.files[0]) {
-                const uploadResult = await api.uploadFile("avatar", avatarInput.files[0]);
-                photoURL = uploadResult.key;
-            }
-
-            await api.patch(`/api/users/${user.uid}`, {
-                firstName: firstNameInput.value.trim(),
-                lastName: lastNameInput.value.trim(),
-                fullName: `${firstNameInput.value.trim()} ${lastNameInput.value.trim()}`.trim(),
-                address: addressInput.value.trim(),
-                city: cityInput.value.trim(),
-                postalCode: postalInput.value.trim(),
-                iban: ibanInput.value.trim() || null,
-                ...(photoURL && { photoURL })
-            });
-
-            setFeedback("Profil enregistré avec succès !", "success");
-            setTimeout(() => setFeedback("", ""), 4000);
-        } catch (error) {
-            console.error("Erreur sauvegarde profil :", error);
-            setFeedback("Erreur lors de l'enregistrement du profil.", "error");
-        }
-    });
-
-    // 2. MODIFICATION EFFECTIVE DE L'ADRESSE E-MAIL
-    emailForm?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const newEmail = securityEmailInput.value.trim();
-        const oldEmail = user.email;
-
-        if (!newEmail || !newEmail.includes("@")) {
-            setFeedback("Veuillez saisir une adresse e-mail valide.", "error");
-            return;
-        }
-
-        if (newEmail === oldEmail) {
-            setFeedback("L'adresse e-mail est identique à l'adresse actuelle.", "error");
-            return;
-        }
-
-        const password = prompt("Entre ton mot de passe actuel pour valider le changement d'adresse e-mail :");
-        if (!password) {
-            setFeedback("Changement annulé.", "error");
-            return;
-        }
-
-        try {
-            setFeedback("Mise à jour de l'adresse e-mail...", "info");
-
-            // Ré-authentification Firebase Auth
-            const credential = EmailAuthProvider.credential(oldEmail, password);
-            await reauthenticateWithCredential(user, credential);
-
-            // Modification réelle sur Firebase Auth
-            await updateEmail(user, newEmail);
-
-            // Synchronisation sur la BDD D1
-            await api.patch(`/api/users/${user.uid}`, { email: newEmail });
-
-            // Notification e-mail aux deux adresses via le dossier functions (/api/send-email)
-            const emailMessage = `L'adresse e-mail de ton compte Morgann Music CP a été modifiée avec succès.<br><br><strong>Ancienne adresse :</strong> ${oldEmail}<br><strong>Nouvelle adresse :</strong> ${newEmail}<br><br>Si tu n'es pas à l'origine de ce changement, sécurise ton compte immédiatement.`;
-            const htmlContent = generateEmailTemplate("Alerte de sécurité : E-mail modifié", emailMessage);
-
-            await sendSecurityEmailViaFunctions(oldEmail, "Modification de votre adresse e-mail", htmlContent);
-            await sendSecurityEmailViaFunctions(newEmail, "Modification de votre adresse e-mail", htmlContent);
-
-            setFeedback("Adresse e-mail modifiée avec succès ! E-mails de confirmation envoyés.", "success");
-            setTimeout(() => setFeedback("", ""), 4000);
-        } catch (error) {
-            console.error("Erreur modification e-mail :", error);
-            setFeedback(`Échec : ${error.message || "Mot de passe incorrect."}`, "error");
-        }
-    });
-
-    // 3. MODIFICATION EFFECTIVE DU MOT DE PASSE
-    passwordForm?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const currentPassword = currentPasswordInput.value;
-        const newPassword = newPasswordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            setFeedback("Veuillez remplir tous les champs de mot de passe.", "error");
-            return;
-        }
-
-        if (newPassword !== confirmPassword) {
-            setFeedback("Les nouveaux mots de passe ne correspondent pas.", "error");
-            return;
-        }
-
-        if (newPassword.length < 6) {
-            setFeedback("Le nouveau mot de passe doit contenir au moins 6 caractères.", "error");
-            return;
-        }
-
-        try {
-            setFeedback("Modification du mot de passe...", "info");
-
-            // Ré-authentification Firebase Auth
-            const credential = EmailAuthProvider.credential(user.email, currentPassword);
-            await reauthenticateWithCredential(user, credential);
-
-            // Modification réelle sur Firebase Auth
-            await updatePassword(user, newPassword);
-
-            // Notification e-mail à l'utilisateur via /api/send-email (functions)
-            const passwordMessage = `Le mot de passe de ton compte Morgann Music CP (<strong>${user.email}</strong>) a été modifié avec succès.<br><br>Si tu n'es pas à l'origine de ce changement, réinitialise ton mot de passe immédiatement.`;
-            const htmlContent = generateEmailTemplate("Alerte de sécurité : Mot de passe modifié", passwordMessage);
-
-            await sendSecurityEmailViaFunctions(user.email, "Modification de votre mot de passe", htmlContent);
-
-            currentPasswordInput.value = "";
-            newPasswordInput.value = "";
-            confirmPasswordInput.value = "";
-
-            setFeedback("Mot de passe modifié avec succès ! E-mail de confirmation envoyé.", "success");
-            setTimeout(() => setFeedback("", ""), 4000);
-        } catch (error) {
-            console.error("Erreur modification mot de passe :", error);
-            setFeedback("Erreur : Ancien mot de passe incorrect.", "error");
-        }
-    });
 });
 
 logoutBtn?.addEventListener("click", async () => {
