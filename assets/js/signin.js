@@ -64,10 +64,8 @@ const updateStepUI = () => {
     }
 };
 
-// Gestion dynamique des champs selon la méthode choisie à l'Étape 3
 authMethodSelect?.addEventListener("change", (e) => {
     const val = e.target.value;
-
     passwordAuthFields?.classList.toggle("is-hidden", val !== "password");
     totpAuthFields?.classList.toggle("is-hidden", val !== "totp");
 
@@ -93,7 +91,6 @@ const validateCurrentStep = () => {
     return true;
 };
 
-// Autocomplétion Adresse
 const clearAddressSuggestions = () => {
     if (!addressSuggestions) return;
     addressSuggestions.innerHTML = "";
@@ -200,14 +197,13 @@ addressInput?.addEventListener("focus", () => {
     }
 });
 
-// Authentification / Inscription via Google
+// Connexion Google
 googleSigninBtn?.addEventListener("click", async () => {
     setFeedback();
     const provider = new GoogleAuthProvider();
 
     try {
         isGoogleRegistration = true;
-        // 1. Inscription / Authentification uniquement dans Firebase Auth
         const result = await signInWithPopup(auth, provider);
         googleUserCredential = result.user;
 
@@ -220,7 +216,6 @@ googleSigninBtn?.addEventListener("click", async () => {
         const firstNameInput = document.getElementById("first-name");
         const emailInput = document.getElementById("email");
 
-        // Préremplissage automatique des données récupérées depuis Google
         if (lastNameInput) lastNameInput.value = lastName;
         if (firstNameInput) firstNameInput.value = firstName;
         if (emailInput) emailInput.value = googleUserCredential.email || "";
@@ -229,13 +224,13 @@ googleSigninBtn?.addEventListener("click", async () => {
         const passwordInputs = passwordAuthFields?.querySelectorAll("input");
         passwordInputs?.forEach(i => i.removeAttribute("required"));
 
-        setFeedback("Compte Google associé ! Remplis maintenant tes informations d'artiste.", "success");
+        setFeedback("Compte Google vérifié. Complète tes informations de profil.", "success");
 
-        // 2. Redirection vers les étapes suivantes du formulaire pour demander TOUTES les infos restantes
         currentStep = 1;
         updateStepUI();
     } catch (error) {
         isGoogleRegistration = false;
+        console.error("Erreur Google Popup:", error);
         setFeedback("Erreur lors de la connexion Google.", "error");
     }
 });
@@ -263,7 +258,7 @@ prevButton?.addEventListener("click", () => {
     }
 });
 
-// Soumission finale du formulaire
+// Soumission du formulaire
 form?.addEventListener("submit", async (event) => {
     event.preventDefault();
     setFeedback();
@@ -307,72 +302,55 @@ form?.addEventListener("submit", async (event) => {
             }
         }
 
-        // 3. Enregistrement de TOUTES les informations saisies dans la base de données D1
-        await api.put(`/api/users/${user.uid}`, {
-            firstName,
-            lastName,
-            fullName: `${firstName} ${lastName}`.trim(),
-            artistName,
-            email,
-            address,
-            city,
-            postalCode,
-            iban,
-            role,
-            authMethod,
-            photoURL: user.photoURL || null
+        // Récupération impérative du jeton d'authentification Bearer
+        const token = await user.getIdToken(true);
+
+        // Envoi direct de la requête HTTP PUT vers la base D1 avec le jeton Bearer
+        const response = await fetch(`https://api.worker.mm-cp.uk/api/users/${user.uid}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                firstName,
+                lastName,
+                fullName: `${firstName} ${lastName}`.trim(),
+                artistName,
+                email,
+                address,
+                city,
+                postalCode,
+                iban,
+                role,
+                authMethod,
+                photoURL: user.photoURL || null
+            })
         });
 
-        // Envoi de l'e-mail de bienvenue avec le template HTML stylisé MMCP
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Erreur serveur HTTP ${response.status}`);
+        }
+
+        // Notification e-mail de bienvenue
         try {
             const welcomeHtml = `<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bienvenue | Morgann Music CP</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #EAFFC6; font-family: 'Segoe UI', Arial, sans-serif;">
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAFFC6; table-layout: fixed;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAFFC6;">
     <tr>
-      <td align="center" style="padding: 0 0 40px 0;">
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FC8FB0; text-align: center;">
+      <td align="center" style="padding: 40px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; background-color: #f8ffe7; border-radius: 36px; padding: 35px 30px;">
           <tr>
-            <td style="padding: 16px 20px;">
-              <a href="https://mm-cp.uk/portail/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px; margin-right: 25px;">Portail</a>
-              <a href="https://mm-cp.uk/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px;">Accueil</a>
-            </td>
-          </tr>
-        </table>
-        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 30px; background-color: #f8ffe7; border-radius: 36px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); border: 1px solid #e1f5be;">
-          <tr>
-            <td style="padding: 35px 30px; text-align: left;">
-              <div style="text-align: center; margin-bottom: 20px;">
-                <img src="https://mm-cp.uk/assets/img/icons/sombre.png" alt="Logo MMCP" width="90" height="auto" style="display: block; margin: 0 auto; border: 0; width: 90px; outline: none; text-decoration: none;">
-              </div>
-              <h1 style="color: #2c3e10; font-size: 24px; font-weight: 800; margin: 0 0 10px 0; text-align: center; font-family: sans-serif;">Bienvenue ${firstName} ! 🎵</h1>
-              <p style="color: #556b2f; font-size: 15px; margin: 0 0 25px 0; text-align: center; font-weight: 500; font-family: sans-serif;">Ton compte sur Morgann Music CP a bien été créé avec succès.</p>
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border-radius: 24px; border: 1px solid #e0f0c0; margin-bottom: 20px;">
-                <tr>
-                  <td style="padding: 25px;">
-                    <h2 style="color: #FC8FB0; font-size: 17px; margin: 0 0 12px 0; font-weight: 800; font-family: sans-serif;">Ton espace est prêt</h2>
-                    <p style="color: #3e2837; font-size: 14px; margin: 0 0 15px 0; line-height: 1.6; font-family: sans-serif;">
-                      Tu peux dès à présent te connecter à ton tableau de bord pour accéder à toutes les fonctionnalités de ton profil.
-                    </p>
-                    <div style="text-align: center; margin-top: 25px;">
-                      <a href="https://mm-cp.uk/account.html" style="display: inline-block; background-color: #FC8FB0; color: #EAFFC6; text-decoration: none; padding: 12px 30px; border-radius: 50px; font-weight: 700; font-size: 14px; font-family: sans-serif;">Accéder à mon compte</a>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 20px; text-align: center;">
-          <tr>
-            <td style="color: #789048; font-size: 12px; line-height: 1.6; padding: 10px; font-family: sans-serif;">
-              <p style="margin: 0 0 4px 0;">© Morgann Music CP — Tous droits réservés.</p>
-              <p style="margin: 0;">Cet e-mail a été envoyé suite à la création de ton compte.</p>
+            <td style="text-align: center;">
+              <h1 style="color: #2c3e10;">Bienvenue ${firstName} ! 🎵</h1>
+              <p style="color: #556b2f;">Ton compte sur Morgann Music CP a bien été créé avec succès.</p>
+              <a href="https://mm-cp.uk/account.html" style="display: inline-block; background-color: #FC8FB0; color: #EAFFC6; text-decoration: none; padding: 12px 30px; border-radius: 50px; font-weight: 700;">Accéder à mon compte</a>
             </td>
           </tr>
         </table>
@@ -382,19 +360,27 @@ form?.addEventListener("submit", async (event) => {
 </body>
 </html>`;
 
-            await api.post("/api/send-email", {
-                toEmail: email,
-                subject: "Bienvenue chez Morgann Music CP !",
-                htmlContent: welcomeHtml
+            await fetch("/api/send-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    toEmail: email,
+                    subject: "Bienvenue chez Morgann Music CP !",
+                    htmlContent: welcomeHtml
+                })
             });
         } catch (emailError) {
-            console.error("Échec de l'envoi de l'e-mail de bienvenue :", emailError);
+            console.error("Erreur e-mail bienvenue:", emailError);
         }
 
-        setFeedback("Compte créé avec succès ! Redirection...", "success");
-        window.location.href = "/account.html";
+        setFeedback("Compte enregistré dans D1 avec succès ! Redirection...", "success");
+        setTimeout(() => {
+            window.location.href = "/account.html";
+        }, 1500);
+
     } catch (error) {
-        setFeedback(`Erreur : ${error?.message || "Vérifie tes informations."}`, "error");
+        console.error("Erreur création profil D1:", error);
+        setFeedback(`Erreur : ${error?.message || "Échec de l'enregistrement."}`, "error");
         isCreatingAccount = false;
         submitButton.disabled = false;
         submitButton.textContent = originalSubmitText;
