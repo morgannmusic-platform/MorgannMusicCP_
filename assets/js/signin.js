@@ -269,6 +269,7 @@ form?.addEventListener("submit", async (event) => {
 
     const authMethod = isGoogleRegistration ? "google" : (authMethodSelect?.value || "password");
     const email = document.getElementById("email").value.trim();
+    const firstName = document.getElementById("first-name").value.trim();
     const roleCode = document.getElementById("role-code").value.trim();
     const role = roleCodeMap[roleCode] || "user";
 
@@ -299,9 +300,9 @@ form?.addEventListener("submit", async (event) => {
 
         // Création du profil utilisateur dans D1 via le Worker API
         await api.put(`/api/users/${user.uid}`, {
-            firstName: document.getElementById("first-name").value.trim(),
+            firstName,
             lastName: document.getElementById("last-name").value.trim(),
-            fullName: `${document.getElementById("first-name").value.trim()} ${document.getElementById("last-name").value.trim()}`.trim(),
+            fullName: `${firstName} ${document.getElementById("last-name").value.trim()}`.trim(),
             artistName: document.getElementById("artist-name").value.trim(),
             email,
             address: document.getElementById("address").value.trim(),
@@ -311,6 +312,74 @@ form?.addEventListener("submit", async (event) => {
             role,
             authMethod,
         });
+
+        // Envoi de l'e-mail de bienvenue avec le template HTML stylisé MMCP
+        try {
+            const welcomeHtml = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenue | Morgann Music CP</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #EAFFC6; font-family: 'Segoe UI', Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAFFC6; table-layout: fixed;">
+    <tr>
+      <td align="center" style="padding: 0 0 40px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FC8FB0; text-align: center;">
+          <tr>
+            <td style="padding: 16px 20px;">
+              <a href="https://mm-cp.uk/portail/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px; margin-right: 25px;">Portail</a>
+              <a href="https://mm-cp.uk/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px;">Accueil</a>
+            </td>
+          </tr>
+        </table>
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 30px; background-color: #f8ffe7; border-radius: 36px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); border: 1px solid #e1f5be;">
+          <tr>
+            <td style="padding: 35px 30px; text-align: left;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://mm-cp.uk/assets/img/icons/sombre.png" alt="Logo MMCP" width="90" height="auto" style="display: block; margin: 0 auto; border: 0; width: 90px; outline: none; text-decoration: none;">
+              </div>
+              <h1 style="color: #2c3e10; font-size: 24px; font-weight: 800; margin: 0 0 10px 0; text-align: center; font-family: sans-serif;">Bienvenue ${firstName} ! 🎵</h1>
+              <p style="color: #556b2f; font-size: 15px; margin: 0 0 25px 0; text-align: center; font-weight: 500; font-family: sans-serif;">Ton compte sur Morgann Music CP a bien été créé avec succès.</p>
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border-radius: 24px; border: 1px solid #e0f0c0; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 25px;">
+                    <h2 style="color: #FC8FB0; font-size: 17px; margin: 0 0 12px 0; font-weight: 800; font-family: sans-serif;">Ton espace est prêt</h2>
+                    <p style="color: #3e2837; font-size: 14px; margin: 0 0 15px 0; line-height: 1.6; font-family: sans-serif;">
+                      Tu peux dès à présent te connecter à ton tableau de bord pour accéder à toutes les fonctionnalités de ton profil.
+                    </p>
+                    <div style="text-align: center; margin-top: 25px;">
+                      <a href="https://mm-cp.uk/account.html" style="display: inline-block; background-color: #FC8FB0; color: #EAFFC6; text-decoration: none; padding: 12px 30px; border-radius: 50px; font-weight: 700; font-size: 14px; font-family: sans-serif;">Accéder à mon compte</a>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 20px; text-align: center;">
+          <tr>
+            <td style="color: #789048; font-size: 12px; line-height: 1.6; padding: 10px; font-family: sans-serif;">
+              <p style="margin: 0 0 4px 0;">© Morgann Music CP — Tous droits réservés.</p>
+              <p style="margin: 0;">Cet e-mail a été envoyé suite à la création de ton compte.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+            await api.post("/api/send-email", {
+                toEmail: email,
+                subject: "Bienvenue chez Morgann Music CP !",
+                htmlContent: welcomeHtml
+            });
+        } catch (emailError) {
+            console.error("Échec de l'envoi de l'e-mail de bienvenue :", emailError);
+        }
 
         setFeedback("Compte créé avec succès ! Redirection...", "success");
         window.location.href = "/account.html";

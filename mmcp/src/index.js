@@ -3092,9 +3092,13 @@ async function createRelease(env, uid, request, ctx) {
 
   const artistName = data.artistName || "";
   const labelName = (data.labelName || data.label || "Morgann Music CP").trim();
-  const copyrightLineC = data.copyrightLineC?.trim() ? data.copyrightLineC : artistName;
-  const copyrightLineP = data.copyrightLineP?.trim() ? data.copyrightLineP : "Morgann Music CP";
-  const schemaJson = typeof data.schemaJson === "object" ? JSON.stringify(data.schemaJson) : (data.schemaJson || data.schema_json || null);
+
+  // Récupération de la saisie utilisateur ou application du format par défaut
+  const customC = data.copyrightLineC?.trim() || artistName;
+  const copyrightLineC = `${customC} | Distribué par Morgann Music CP. Tous les droits sont réservés à ${artistName}.`;
+
+  const customP = data.copyrightLineP?.trim() || "Morgann Music CP";
+  const copyrightLineP = `${customP} | Distribué par Morgann Music CP. Tous les droits sont réservés à ${artistName}.`;
 
   const coverUrl = data.coverUrl || "";
   const pochetteHd = data.pochetteHauteDefinition || data.pochette_haute_definition || "";

@@ -1,8 +1,9 @@
-import { onAuthStateChanged, signOut, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { onAuthStateChanged, signOut, GoogleAuthProvider, linkWithPopup, updatePassword, updateEmail, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { auth } from "/assets/js/firebase.js";
 import { api } from "/assets/js/api.js";
 
 const form = document.getElementById("account-form");
+const passwordForm = document.getElementById("password-change-form");
 const logoutBtn = document.getElementById("logout-btn");
 const linkGoogleBtn = document.getElementById("link-google-btn");
 
@@ -37,6 +38,10 @@ const ibanInput = document.getElementById("iban");
 const avatarInput = document.getElementById("avatar-input");
 const avatarPreviewImg = document.getElementById("avatar-preview-img");
 const newsletterCheckbox = document.getElementById("newsletter-enabled");
+
+const currentPasswordInput = document.getElementById("current-password");
+const newPasswordInput = document.getElementById("new-password");
+const confirmPasswordInput = document.getElementById("confirm-password");
 
 const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
 const tabPanels = Array.from(document.querySelectorAll(".tab-panel"));
@@ -82,6 +87,75 @@ const generateRandomSecret = () => {
         secret += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return secret;
+};
+
+// Modèle d'e-mail stylisé MMCP
+const sendNotificationEmail = async (toEmail, subject, title, message) => {
+    try {
+        const htmlContent = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} | Morgann Music CP</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #EAFFC6; font-family: 'Segoe UI', Arial, sans-serif;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #EAFFC6; table-layout: fixed;">
+    <tr>
+      <td align="center" style="padding: 0 0 40px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FC8FB0; text-align: center;">
+          <tr>
+            <td style="padding: 16px 20px;">
+              <a href="https://mm-cp.uk/portail/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px; margin-right: 25px;">Portail</a>
+              <a href="https://mm-cp.uk/" style="color: #EAFFC6; text-decoration: none; font-weight: 700; font-size: 15px;">Accueil</a>
+            </td>
+          </tr>
+        </table>
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 30px; background-color: #f8ffe7; border-radius: 36px; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); border: 1px solid #e1f5be;">
+          <tr>
+            <td style="padding: 35px 30px; text-align: left;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <img src="https://mm-cp.uk/assets/img/icons/sombre.png" alt="Logo MMCP" width="90" height="auto" style="display: block; margin: 0 auto; border: 0; width: 90px; outline: none; text-decoration: none;">
+              </div>
+              <h1 style="color: #2c3e10; font-size: 24px; font-weight: 800; margin: 0 0 10px 0; text-align: center; font-family: sans-serif;">${title} 🔒</h1>
+              <p style="color: #556b2f; font-size: 15px; margin: 0 0 25px 0; text-align: center; font-weight: 500; font-family: sans-serif;">Mise à jour importante concernant ton compte.</p>
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; border-radius: 24px; border: 1px solid #e0f0c0; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 25px;">
+                    <p style="color: #3e2837; font-size: 14px; margin: 0 0 15px 0; line-height: 1.6; font-family: sans-serif;">
+                      ${message}
+                    </p>
+                    <div style="text-align: center; margin-top: 25px;">
+                      <a href="https://mm-cp.uk/account.html" style="display: inline-block; background-color: #FC8FB0; color: #EAFFC6; text-decoration: none; padding: 12px 30px; border-radius: 50px; font-weight: 700; font-size: 14px; font-family: sans-serif;">Gérer mon compte</a>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        <table border="0" cellpadding="0" cellspacing="0" width="90%" style="max-width: 580px; margin-top: 20px; text-align: center;">
+          <tr>
+            <td style="color: #789048; font-size: 12px; line-height: 1.6; padding: 10px; font-family: sans-serif;">
+              <p style="margin: 0 0 4px 0;">© Morgann Music CP — Tous droits réservés.</p>
+              <p style="margin: 0;">Ceci est un message automatique de sécurité.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+        await api.post("/api/send-email", {
+            toEmail,
+            subject,
+            htmlContent
+        });
+    } catch (error) {
+        console.error("Échec de l'envoi de l'e-mail de notification :", error);
+    }
 };
 
 onAuthStateChanged(auth, async (user) => {
@@ -225,6 +299,7 @@ onAuthStateChanged(auth, async (user) => {
         const safe = roleClassMap[role] ? role : "user";
         roleBadge.textContent = roleLabelMap[safe];
         roleBadge.className = `role-badge ${roleClassMap[safe]}`;
+
         // Chargement des documents de l'utilisateur
         const userDocumentsList = document.getElementById("user-documents-list");
         async function chargerDocumentsClient() {
@@ -233,15 +308,11 @@ onAuthStateChanged(auth, async (user) => {
                 const res = await api.get(`/api/users/${user.uid}/documents`);
                 const docs = Array.isArray(res) ? res : (res.documents || res.data || []);
 
-                if (!docs || docs.length === 0) {
-                    // Conserve le bloc SVG de l'état vide (cactus) si aucun document
-                    return;
-                }
+                if (!docs || docs.length === 0) return;
 
                 userDocumentsList.innerHTML = docs.map(doc => {
                     const title = doc.title || doc.name || "Document sans titre";
                     const desc = doc.description || "Aucune description";
-                    // Utilisation de api.fileUrl pour gérer correctement le lien de téléchargement/affichage
                     const fileUrl = api.fileUrl(doc.file_url || doc.fileUrl || doc.url || doc.path);
 
                     return `
@@ -266,18 +337,19 @@ onAuthStateChanged(auth, async (user) => {
             }
         }
 
-        // Appeler la fonction lors du chargement de la page
         chargerDocumentsClient();
 
+        // Gestion de la modification du profil (y compris l'e-mail avec notification aux deux adresses)
         form?.addEventListener("submit", async (event) => {
             event.preventDefault();
             setFeedback("Enregistrement en cours...", "info");
 
             const firstName = firstNameInput.value.trim();
             const lastName = lastNameInput.value.trim();
-            const email = emailInput.value.trim();
+            const newEmail = emailInput.value.trim();
+            const oldEmail = user.email;
 
-            if (!firstName || !lastName || !email) {
+            if (!firstName || !lastName || !newEmail) {
                 setFeedback("Prénom, nom et email sont obligatoires.", "error");
                 return;
             }
@@ -290,11 +362,22 @@ onAuthStateChanged(auth, async (user) => {
                     photoURL = uploadResult.key;
                 }
 
+                // Si l'e-mail a changé dans le champ, on le met à jour aussi sur Firebase Auth
+                if (newEmail !== oldEmail) {
+                    await updateEmail(user, newEmail);
+
+                    // Envoi des notifications à l'ancienne et à la nouvelle adresse
+                    const emailMessage = `L'adresse e-mail de ton compte Morgann Music CP a été modifiée.<br><br><strong>Ancienne adresse :</strong> ${oldEmail}<br><strong>Nouvelle adresse :</strong> ${newEmail}<br><br>Si tu n'es pas à l'origine de ce changement, contacte-nous immédiatement.`;
+
+                    await sendNotificationEmail(oldEmail, "Modification de votre adresse e-mail", "Sécurité : E-mail modifié", emailMessage);
+                    await sendNotificationEmail(newEmail, "Modification de votre adresse e-mail", "Sécurité : E-mail modifié", emailMessage);
+                }
+
                 await api.patch(`/api/users/${user.uid}`, {
                     firstName,
                     lastName,
                     fullName: `${firstName} ${lastName}`.trim(),
-                    email,
+                    email: newEmail,
                     address: addressInput.value.trim(),
                     city: cityInput.value.trim(),
                     postalCode: postalInput.value.trim(),
@@ -309,7 +392,55 @@ onAuthStateChanged(auth, async (user) => {
 
             } catch (error) {
                 console.error("Erreur lors de la sauvegarde :", error);
-                setFeedback("Une erreur est survenue lors de l'enregistrement.", "error");
+                setFeedback(`Erreur : ${error.message || "Une erreur est survenue."}`, "error");
+            }
+        });
+
+        // Gestion de la modification du mot de passe
+        passwordForm?.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            setFeedback("Modification du mot de passe...", "info");
+
+            const currentPassword = currentPasswordInput.value;
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                setFeedback("Veuillez remplir tous les champs de mot de passe.", "error");
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                setFeedback("Les nouveaux mots de passe ne correspondent pas.", "error");
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                setFeedback("Le nouveau mot de passe doit contenir au moins 6 caractères.", "error");
+                return;
+            }
+
+            try {
+                // Ré-authentification nécessaire pour modifier le mot de passe sur Firebase
+                const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                await reauthenticateWithCredential(user, credential);
+
+                // Mise à jour du mot de passe
+                await updatePassword(user, newPassword);
+
+                // Envoi de l'e-mail de notification
+                const passwordMessage = `Ton mot de passe de compte Morgann Music CP a été modifié avec succès.<br><br><strong>Email du compte :</strong> ${user.email}<br><br>Si tu n'es pas à l'origine de cette action, sécurise ton compte immédiatement.`;
+                await sendNotificationEmail(user.email, "Modification de votre mot de passe", "Sécurité : Mot de passe modifié", passwordMessage);
+
+                currentPasswordInput.value = "";
+                newPasswordInput.value = "";
+                confirmPasswordInput.value = "";
+
+                setFeedback("Mot de passe modifié avec succès ! Un e-mail de confirmation vous a été envoyé.", "success");
+                setTimeout(() => setFeedback("", ""), 4000);
+            } catch (error) {
+                console.error("Erreur modification mot de passe :", error);
+                setFeedback("Erreur : Ancien mot de passe incorrect ou échec de la mise à jour.", "error");
             }
         });
 
@@ -319,10 +450,9 @@ onAuthStateChanged(auth, async (user) => {
                 const provider = new GoogleAuthProvider();
 
                 await linkWithPopup(user, provider);
-
                 updateGoogleUI();
 
-                setFeedback("Compte Google associé avec succès ! Vous pouvez désormais l'utiliser pour vous connecter.", "success");
+                setFeedback("Compte Google associé avec succès !", "success");
             } catch (err) {
                 console.error("Erreur liaison Google :", err);
                 if (err.code === 'auth/credential-already-in-use') {
