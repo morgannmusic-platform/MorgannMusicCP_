@@ -207,6 +207,7 @@ googleSigninBtn?.addEventListener("click", async () => {
 
     try {
         isGoogleRegistration = true;
+        // 1. Inscription / Authentification uniquement dans Firebase Auth
         const result = await signInWithPopup(auth, provider);
         googleUserCredential = result.user;
 
@@ -219,6 +220,7 @@ googleSigninBtn?.addEventListener("click", async () => {
         const firstNameInput = document.getElementById("first-name");
         const emailInput = document.getElementById("email");
 
+        // Préremplissage automatique des données récupérées depuis Google
         if (lastNameInput) lastNameInput.value = lastName;
         if (firstNameInput) firstNameInput.value = firstName;
         if (emailInput) emailInput.value = googleUserCredential.email || "";
@@ -229,6 +231,7 @@ googleSigninBtn?.addEventListener("click", async () => {
 
         setFeedback("Compte Google associé ! Remplis maintenant tes informations d'artiste.", "success");
 
+        // 2. Redirection vers les étapes suivantes du formulaire pour demander TOUTES les infos restantes
         currentStep = 1;
         updateStepUI();
     } catch (error) {
@@ -270,6 +273,12 @@ form?.addEventListener("submit", async (event) => {
     const authMethod = isGoogleRegistration ? "google" : (authMethodSelect?.value || "password");
     const email = document.getElementById("email").value.trim();
     const firstName = document.getElementById("first-name").value.trim();
+    const lastName = document.getElementById("last-name").value.trim();
+    const artistName = document.getElementById("artist-name").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const postalCode = document.getElementById("postal-code").value.trim();
+    const iban = document.getElementById("iban").value.trim() || null;
     const roleCode = document.getElementById("role-code").value.trim();
     const role = roleCodeMap[roleCode] || "user";
 
@@ -298,19 +307,20 @@ form?.addEventListener("submit", async (event) => {
             }
         }
 
-        // Création du profil utilisateur dans D1 via le Worker API
+        // 3. Enregistrement de TOUTES les informations saisies dans la base de données D1
         await api.put(`/api/users/${user.uid}`, {
             firstName,
-            lastName: document.getElementById("last-name").value.trim(),
-            fullName: `${firstName} ${document.getElementById("last-name").value.trim()}`.trim(),
-            artistName: document.getElementById("artist-name").value.trim(),
+            lastName,
+            fullName: `${firstName} ${lastName}`.trim(),
+            artistName,
             email,
-            address: document.getElementById("address").value.trim(),
-            city: document.getElementById("city").value.trim(),
-            postalCode: document.getElementById("postal-code").value.trim(),
-            iban: document.getElementById("iban").value.trim() || null,
+            address,
+            city,
+            postalCode,
+            iban,
             role,
             authMethod,
+            photoURL: user.photoURL || null
         });
 
         // Envoi de l'e-mail de bienvenue avec le template HTML stylisé MMCP
