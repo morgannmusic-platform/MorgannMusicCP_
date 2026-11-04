@@ -1,7 +1,5 @@
 import {
     createUserWithEmailAndPassword,
-    signInWithPopup,
-    GoogleAuthProvider,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { auth } from "/assets/js/firebase.js";
@@ -14,7 +12,6 @@ const stepIndicator = document.getElementById("step-indicator");
 const prevButton = document.getElementById("prev-step");
 const nextButton = document.getElementById("next-step");
 const submitButton = document.getElementById("submit-step");
-const googleSigninBtn = document.getElementById("google-signin-btn");
 
 const addressInput = document.getElementById("address");
 const cityInput = document.getElementById("city");
@@ -32,8 +29,6 @@ let addressAbortController = null;
 const addressCache = new Map();
 
 let isCreatingAccount = false;
-let isGoogleRegistration = false;
-let googleUserCredential = null;
 
 const roleCodeMap = {
     "1301": "admin",
@@ -72,7 +67,7 @@ authMethodSelect?.addEventListener("change", (e) => {
 
     const passwordInputs = passwordAuthFields?.querySelectorAll("input");
     passwordInputs?.forEach(input => {
-        if (val === "password" && !isGoogleRegistration) {
+        if (val === "password") {
             input.setAttribute("required", "required");
         } else {
             input.removeAttribute("required");
@@ -198,85 +193,9 @@ addressInput?.addEventListener("focus", () => {
     }
 });
 
-// Force le remplissage du reste du formulaire après la connexion Google
-const forceProfileCompletion = (user) => {
-    googleUserCredential = user;
-    isGoogleRegistration = true;
-
-    const displayName = user.displayName || "";
-    const parts = displayName.split(" ");
-    const firstName = parts[0] || "";
-    const lastName = parts.slice(1).join(" ") || "";
-
-    const lastNameInput = document.getElementById("last-name");
-    const firstNameInput = document.getElementById("first-name");
-    const emailInput = document.getElementById("email");
-
-    if (lastNameInput && !lastNameInput.value) lastNameInput.value = lastName;
-    if (firstNameInput && !firstNameInput.value) firstNameInput.value = firstName;
-    if (emailInput) {
-        emailInput.value = user.email || "";
-        emailInput.setAttribute("readonly", "readonly"); // On bloque l'email pour éviter qu'il soit modifié
-    }
-
-    // On cache les champs de mot de passe et on retire le "required"
-    passwordAuthFields?.classList.add("is-hidden");
-    const passwordInputs = passwordAuthFields?.querySelectorAll("input");
-    passwordInputs?.forEach(i => i.removeAttribute("required"));
-
-    setFeedback("Compte Google associé ! Merci de remplir les informations manquantes.", "success");
-
-    // On garde l'utilisateur à l'étape 0 pour remplir le nom d'artiste / etc.
-    currentStep = 0;
-    updateStepUI();
-};
-
-// Connexion / Initialisation Google
-googleSigninBtn?.addEventListener("click", async () => {
-    setFeedback();
-    const provider = new GoogleAuthProvider();
-
-    try {
-        isGoogleRegistration = true;
-        const result = await signInWithPopup(auth, provider);
-        googleUserCredential = result.user;
-
-        // On vérifie immédiatement si le compte D1 existe déjà
-        try {
-            const existingProfile = await api.get(`/api/users/${googleUserCredential.uid}`);
-            if (existingProfile && existingProfile.uid) {
-                // Le compte D1 existe, c'est juste un login
-                setFeedback("Connexion réussie, redirection...", "success");
-                window.location.href = "/account.html";
-                return;
-            }
-        } catch (err) {
-            // Le profil D1 n'existe pas encore
-        }
-
-        // Le profil n'est pas dans D1, on pré-remplit les infos et on bloque l'utilisateur
-        forceProfileCompletion(googleUserCredential);
-
-    } catch (error) {
-        isGoogleRegistration = false;
-        console.error("Erreur Google Popup:", error);
-        setFeedback("Erreur lors de la connexion Google.", "error");
-    }
-});
-
-// Bloquer la redirection automatique s'il manque le profil D1
-onAuthStateChanged(auth, async (user) => {
-    if (user && !isCreatingAccount && !isGoogleRegistration) {
-        try {
-            const existingProfile = await api.get(`/api/users/${user.uid}`);
-            if (existingProfile && existingProfile.uid) {
-                window.location.href = "/account.html";
-            } else {
-                forceProfileCompletion(user);
-            }
-        } catch (error) {
-            forceProfileCompletion(user);
-        }
+onAuthStateChanged(auth, (user) => {
+    if (user && !isCreatingAccount) {
+        window.location.href = "/account.html";
     }
 });
 
@@ -304,7 +223,7 @@ form?.addEventListener("submit", async (event) => {
 
     if (!validateCurrentStep()) return;
 
-    const authMethod = isGoogleRegistration ? "google" : (authMethodSelect?.value || "password");
+    const authMethod = authMethodSelect?.value || "password";
     const email = document.getElementById("email").value.trim();
     const firstName = document.getElementById("first-name").value.trim();
     const lastName = document.getElementById("last-name").value.trim();
@@ -316,11 +235,12 @@ form?.addEventListener("submit", async (event) => {
     const roleCode = document.getElementById("role-code").value.trim();
     const role = roleCodeMap[roleCode] || "user";
 
-    let user = googleUserCredential || auth.currentUser;
+    let user = auth.currentUser;
 
     const originalSubmitText = submitButton.textContent;
     isCreatingAccount = true;
     submitButton.disabled = true;
+    submitButton.textContent = "Création du compte...";
 
     try {
         if (!user) {
@@ -335,38 +255,8 @@ form?.addEventListener("submit", async (event) => {
                     throw new Error("Le mot de passe doit faire au moins 6 caractères.");
                 }
 
-                submitButton.textContent = "Création du compte...";
                 const credential = await createUserWithEmailAndPassword(auth, email, password);
                 user = credential.user;
-            }
-        }
-
-        let finalPhotoUrl = user?.photoURL || null;
-
-        // IMPORT DE L'AVATAR GOOGLE DANS CLOUDFLARE R2
-        if (isGoogleRegistration && user.photoURL) {
-            submitButton.textContent = "Import de l'avatar...";
-            try {
-                const token = await user.getIdToken();
-                // On passe par la route proxy du Worker pour télécharger l'image sans bloquage CORS
-                const imgResponse = await fetch(`https://api.worker.mm-cp.uk/api/proxy-download?url=${encodeURIComponent(user.photoURL)}`, {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-
-                if (imgResponse.ok) {
-                    const blob = await imgResponse.blob();
-                    // On convertit le blob en File avec le type correct (image/jpeg)
-                    const file = new File([blob], `avatar_${user.uid}.jpg`, { type: blob.type || "image/jpeg" });
-
-                    // On l'upload sur R2 avec le service centralisé de api.js
-                    const uploadResult = await api.uploadFile("avatar", file);
-                    if (uploadResult && uploadResult.success) {
-                        finalPhotoUrl = uploadResult.url; // L'URL retournée par R2 remplace l'URL Google
-                    }
-                }
-            } catch (imgErr) {
-                console.error("Échec de la copie de la photo Google vers R2:", imgErr);
-                // En cas d'erreur de transfert, finalPhotoUrl reste égal à user.photoURL en sécurité
             }
         }
 
@@ -385,7 +275,7 @@ form?.addEventListener("submit", async (event) => {
             iban,
             role,
             authMethod,
-            photoURL: finalPhotoUrl
+            photoURL: user.photoURL || null
         });
 
         // E-mail de bienvenue via la fonction Cloudflare Pages
