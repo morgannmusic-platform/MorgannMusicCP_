@@ -198,6 +198,7 @@ addressInput?.addEventListener("focus", () => {
     }
 });
 
+// Force le remplissage du reste du formulaire après la connexion Google
 const forceProfileCompletion = (user) => {
     googleUserCredential = user;
     isGoogleRegistration = true;
@@ -213,15 +214,19 @@ const forceProfileCompletion = (user) => {
 
     if (lastNameInput && !lastNameInput.value) lastNameInput.value = lastName;
     if (firstNameInput && !firstNameInput.value) firstNameInput.value = firstName;
-    if (emailInput && !emailInput.value) emailInput.value = user.email || "";
+    if (emailInput) {
+        emailInput.value = user.email || "";
+        emailInput.setAttribute("readonly", "readonly"); // On bloque l'email pour éviter qu'il soit modifié
+    }
 
+    // On cache les champs de mot de passe et on retire le "required"
     passwordAuthFields?.classList.add("is-hidden");
     const passwordInputs = passwordAuthFields?.querySelectorAll("input");
     passwordInputs?.forEach(i => i.removeAttribute("required"));
 
-    setFeedback("Compte Google associé ! Merci de compléter les informations manquantes pour finaliser ton profil D1.", "success");
+    setFeedback("Compte Google associé ! Merci de remplir les informations manquantes.", "success");
 
-    // On reste à l'étape 0 exprès pour ne pas sauter le nom d'artiste / le rôle
+    // On garde l'utilisateur à l'étape 0 pour remplir le nom d'artiste / etc.
     currentStep = 0;
     updateStepUI();
 };
@@ -236,21 +241,20 @@ googleSigninBtn?.addEventListener("click", async () => {
         const result = await signInWithPopup(auth, provider);
         googleUserCredential = result.user;
 
-        // On vérifie tout de suite si le mec a déjà un profil complet dans D1
+        // On vérifie immédiatement si le compte D1 existe déjà
         try {
             const existingProfile = await api.get(`/api/users/${googleUserCredential.uid}`);
             if (existingProfile && existingProfile.uid) {
-                // Le compte D1 existe déjà, c'est un simple login, on redirige
+                // Le compte D1 existe, c'est juste un login
                 setFeedback("Connexion réussie, redirection...", "success");
                 window.location.href = "/account.html";
                 return;
             }
         } catch (err) {
-            // Le compte Firebase existe (créé à l'instant), mais D1 renvoie une 404
-            console.log("Nouveau compte détecté, on demande le reste des infos pour D1.");
+            // Le profil D1 n'existe pas encore
         }
 
-        // Sinon on pré-remplit et on bloque l'utilisateur sur le formulaire
+        // Le profil n'est pas dans D1, on pré-remplit les infos et on bloque l'utilisateur
         forceProfileCompletion(googleUserCredential);
 
     } catch (error) {
@@ -268,8 +272,6 @@ onAuthStateChanged(auth, async (user) => {
             if (existingProfile && existingProfile.uid) {
                 window.location.href = "/account.html";
             } else {
-                // S'il recharge la page en plein milieu de l'inscription, Firebase se souvient de lui, 
-                // mais son profil D1 est vide. On force la complétion.
                 forceProfileCompletion(user);
             }
         } catch (error) {
@@ -319,7 +321,6 @@ form?.addEventListener("submit", async (event) => {
     const originalSubmitText = submitButton.textContent;
     isCreatingAccount = true;
     submitButton.disabled = true;
-    submitButton.textContent = "Création...";
 
     try {
         if (!user) {
@@ -334,12 +335,44 @@ form?.addEventListener("submit", async (event) => {
                     throw new Error("Le mot de passe doit faire au moins 6 caractères.");
                 }
 
+                submitButton.textContent = "Création du compte...";
                 const credential = await createUserWithEmailAndPassword(auth, email, password);
                 user = credential.user;
             }
         }
 
-        // Envoi direct vers Cloudflare D1 via le client api.js centralisé (ça écrase toutes les colonnes)
+        let finalPhotoUrl = user?.photoURL || null;
+
+        // IMPORT DE L'AVATAR GOOGLE DANS CLOUDFLARE R2
+        if (isGoogleRegistration && user.photoURL) {
+            submitButton.textContent = "Import de l'avatar...";
+            try {
+                const token = await user.getIdToken();
+                // On passe par la route proxy du Worker pour télécharger l'image sans bloquage CORS
+                const imgResponse = await fetch(`https://api.worker.mm-cp.uk/api/proxy-download?url=${encodeURIComponent(user.photoURL)}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (imgResponse.ok) {
+                    const blob = await imgResponse.blob();
+                    // On convertit le blob en File avec le type correct (image/jpeg)
+                    const file = new File([blob], `avatar_${user.uid}.jpg`, { type: blob.type || "image/jpeg" });
+
+                    // On l'upload sur R2 avec le service centralisé de api.js
+                    const uploadResult = await api.uploadFile("avatar", file);
+                    if (uploadResult && uploadResult.success) {
+                        finalPhotoUrl = uploadResult.url; // L'URL retournée par R2 remplace l'URL Google
+                    }
+                }
+            } catch (imgErr) {
+                console.error("Échec de la copie de la photo Google vers R2:", imgErr);
+                // En cas d'erreur de transfert, finalPhotoUrl reste égal à user.photoURL en sécurité
+            }
+        }
+
+        submitButton.textContent = "Enregistrement du profil...";
+
+        // Envoi direct vers Cloudflare D1 via le client api.js centralisé
         await api.put(`/api/users/${user.uid}`, {
             firstName,
             lastName,
@@ -352,7 +385,7 @@ form?.addEventListener("submit", async (event) => {
             iban,
             role,
             authMethod,
-            photoURL: user.photoURL || null
+            photoURL: finalPhotoUrl
         });
 
         // E-mail de bienvenue via la fonction Cloudflare Pages
