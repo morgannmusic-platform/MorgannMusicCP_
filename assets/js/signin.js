@@ -198,6 +198,34 @@ addressInput?.addEventListener("focus", () => {
     }
 });
 
+const forceProfileCompletion = (user) => {
+    googleUserCredential = user;
+    isGoogleRegistration = true;
+
+    const displayName = user.displayName || "";
+    const parts = displayName.split(" ");
+    const firstName = parts[0] || "";
+    const lastName = parts.slice(1).join(" ") || "";
+
+    const lastNameInput = document.getElementById("last-name");
+    const firstNameInput = document.getElementById("first-name");
+    const emailInput = document.getElementById("email");
+
+    if (lastNameInput && !lastNameInput.value) lastNameInput.value = lastName;
+    if (firstNameInput && !firstNameInput.value) firstNameInput.value = firstName;
+    if (emailInput && !emailInput.value) emailInput.value = user.email || "";
+
+    passwordAuthFields?.classList.add("is-hidden");
+    const passwordInputs = passwordAuthFields?.querySelectorAll("input");
+    passwordInputs?.forEach(i => i.removeAttribute("required"));
+
+    setFeedback("Compte Google associé ! Merci de compléter les informations manquantes pour finaliser ton profil D1.", "success");
+
+    // On reste à l'étape 0 exprès pour ne pas sauter le nom d'artiste / le rôle
+    currentStep = 0;
+    updateStepUI();
+};
+
 // Connexion / Initialisation Google
 googleSigninBtn?.addEventListener("click", async () => {
     setFeedback();
@@ -208,27 +236,23 @@ googleSigninBtn?.addEventListener("click", async () => {
         const result = await signInWithPopup(auth, provider);
         googleUserCredential = result.user;
 
-        const displayName = googleUserCredential.displayName || "";
-        const parts = displayName.split(" ");
-        const firstName = parts[0] || "";
-        const lastName = parts.slice(1).join(" ") || "";
+        // On vérifie tout de suite si le mec a déjà un profil complet dans D1
+        try {
+            const existingProfile = await api.get(`/api/users/${googleUserCredential.uid}`);
+            if (existingProfile && existingProfile.uid) {
+                // Le compte D1 existe déjà, c'est un simple login, on redirige
+                setFeedback("Connexion réussie, redirection...", "success");
+                window.location.href = "/account.html";
+                return;
+            }
+        } catch (err) {
+            // Le compte Firebase existe (créé à l'instant), mais D1 renvoie une 404
+            console.log("Nouveau compte détecté, on demande le reste des infos pour D1.");
+        }
 
-        const lastNameInput = document.getElementById("last-name");
-        const firstNameInput = document.getElementById("first-name");
-        const emailInput = document.getElementById("email");
+        // Sinon on pré-remplit et on bloque l'utilisateur sur le formulaire
+        forceProfileCompletion(googleUserCredential);
 
-        if (lastNameInput) lastNameInput.value = lastName;
-        if (firstNameInput) firstNameInput.value = firstName;
-        if (emailInput) emailInput.value = googleUserCredential.email || "";
-
-        passwordAuthFields?.classList.add("is-hidden");
-        const passwordInputs = passwordAuthFields?.querySelectorAll("input");
-        passwordInputs?.forEach(i => i.removeAttribute("required"));
-
-        setFeedback("Compte Google associé ! Complète le reste des informations.", "success");
-
-        currentStep = 1;
-        updateStepUI();
     } catch (error) {
         isGoogleRegistration = false;
         console.error("Erreur Google Popup:", error);
@@ -236,10 +260,21 @@ googleSigninBtn?.addEventListener("click", async () => {
     }
 });
 
-// Bloquer la redirection automatique pendant l'inscription
-onAuthStateChanged(auth, (user) => {
+// Bloquer la redirection automatique s'il manque le profil D1
+onAuthStateChanged(auth, async (user) => {
     if (user && !isCreatingAccount && !isGoogleRegistration) {
-        window.location.href = "/account.html";
+        try {
+            const existingProfile = await api.get(`/api/users/${user.uid}`);
+            if (existingProfile && existingProfile.uid) {
+                window.location.href = "/account.html";
+            } else {
+                // S'il recharge la page en plein milieu de l'inscription, Firebase se souvient de lui, 
+                // mais son profil D1 est vide. On force la complétion.
+                forceProfileCompletion(user);
+            }
+        } catch (error) {
+            forceProfileCompletion(user);
+        }
     }
 });
 
@@ -304,7 +339,7 @@ form?.addEventListener("submit", async (event) => {
             }
         }
 
-        // Envoi direct vers Cloudflare D1 via le client api.js centralisé
+        // Envoi direct vers Cloudflare D1 via le client api.js centralisé (ça écrase toutes les colonnes)
         await api.put(`/api/users/${user.uid}`, {
             firstName,
             lastName,
