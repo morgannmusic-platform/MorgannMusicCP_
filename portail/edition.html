@@ -1676,10 +1676,44 @@
             }
         };
 
+        function normalizePlanName(value) {
+            return String(value || "starter").trim().toLowerCase();
+        }
+
+        function hasDriveAccess(planName) {
+            const normalized = normalizePlanName(planName);
+            return ["pro", "future legende", "future légende", "future-legende"].includes(normalized);
+        }
+
+        async function updateDriveButtonsVisibility() {
+            const buttons = [
+                ...document.querySelectorAll('[onclick*="ouvrirDrivePickerPochette"]'),
+                ...document.querySelectorAll('[onclick*="ouvrirDrivePickerPiste"]')
+            ];
+            const user = auth.currentUser;
+            if (!user) {
+                buttons.forEach((button) => button.style.display = "none");
+                return false;
+            }
+
+            try {
+                const profile = await api.get(`/api/users/${user.uid}`);
+                const allowed = hasDriveAccess(profile?.planName || profile?.plan_name || "starter");
+                buttons.forEach((button) => {
+                    button.style.display = allowed ? "inline-flex" : "none";
+                });
+                return allowed;
+            } catch (error) {
+                buttons.forEach((button) => button.style.display = "none");
+                return false;
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
                     await determinerPlanUtilisateur();
+                    await updateDriveButtonsVisibility();
                     remplirSelecteursFormulaires();
                     await chargerDonneesSortieWorker();
                     window.analyserConsole();

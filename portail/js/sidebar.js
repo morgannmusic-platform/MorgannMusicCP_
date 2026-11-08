@@ -17,9 +17,41 @@ document.addEventListener("DOMContentLoaded", () => {
             initNavbarMoreMenu();
             initCopyrightYear();
             initSiteVersion();
+            updateDriveMenuAccess();
         })
         .catch(error => console.error("Détails de l'erreur sidebar :", error));
 });
+
+async function updateDriveMenuAccess() {
+    const driveLinks = [...document.querySelectorAll('a[href="/portail/drive.html"], a[href="drive.html"]')];
+    if (!driveLinks.length) return;
+
+    try {
+        const { auth } = await import("/assets/js/firebase.js");
+        const { onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
+        const { api } = await import("/assets/js/api.js");
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                driveLinks.forEach(link => link.style.display = "none");
+                return;
+            }
+
+            try {
+                const profile = await api.get(`/api/users/${user.uid}`);
+                const rawPlan = String(profile?.planName || profile?.plan_name || "starter").trim().toLowerCase();
+                const hasAccess = ["pro", "future legende", "future légende", "future-legende"].includes(rawPlan);
+                driveLinks.forEach(link => {
+                    link.style.display = hasAccess ? "flex" : "none";
+                });
+            } catch (error) {
+                driveLinks.forEach(link => link.style.display = "none");
+            }
+        });
+    } catch (error) {
+        driveLinks.forEach(link => link.style.display = "none");
+    }
+}
 
 async function checkAccompagnementAccess() {
     const lienAccompagnement = document.getElementById("link-accompagnement");

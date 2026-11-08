@@ -477,6 +477,22 @@
 
             currentUser = user;
 
+            try {
+                const profile = await api.get(`/api/users/${user.uid}`);
+                const planName = profile?.planName || profile?.plan_name || "starter";
+                if (!hasDriveAccess(planName)) {
+                    document.querySelectorAll('[onclick*="ouvrirDrivePickerMedia"]').forEach((button) => {
+                        button.style.display = "none";
+                    });
+                } else {
+                    await updateDriveMediaButtonsVisibility();
+                }
+            } catch (error) {
+                document.querySelectorAll('[onclick*="ouvrirDrivePickerMedia"]').forEach((button) => {
+                    button.style.display = "none";
+                });
+            }
+
             if (!artistId) {
                 afficherPopupSelection(user.uid);
             } else {
@@ -489,6 +505,36 @@
             logo: null,
             banner: null
         };
+
+        function normalizePlanName(value) {
+            return String(value || "starter").trim().toLowerCase();
+        }
+
+        function hasDriveAccess(planName) {
+            const normalized = normalizePlanName(planName);
+            return ["pro", "future legende", "future légende", "future-legende"].includes(normalized);
+        }
+
+        async function updateDriveMediaButtonsVisibility() {
+            const buttons = [...document.querySelectorAll('[onclick*="ouvrirDrivePickerMedia"]')];
+            const user = auth.currentUser;
+            if (!user) {
+                buttons.forEach((button) => button.style.display = "none");
+                return false;
+            }
+
+            try {
+                const profile = await api.get(`/api/users/${user.uid}`);
+                const allowed = hasDriveAccess(profile?.planName || profile?.plan_name || "starter");
+                buttons.forEach((button) => {
+                    button.style.display = allowed ? "inline-flex" : "none";
+                });
+                return allowed;
+            } catch (error) {
+                buttons.forEach((button) => button.style.display = "none");
+                return false;
+            }
+        }
 
         function normalizeDrivePath(value) {
             return String(value || '').split('/').map(part => part.trim()).filter(Boolean);

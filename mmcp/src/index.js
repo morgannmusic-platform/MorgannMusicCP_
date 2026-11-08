@@ -608,6 +608,7 @@ export default {
         const uid = userDriveRootMatch[1];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (!(await userHasDriveAccess(env, uid))) return corsJson({ error: "Le Drive est réservé aux abonnés Pro et Future Légende." }, 403);
         if (method === "GET") return await listUserDrive(env, uid);
       }
 
@@ -616,6 +617,7 @@ export default {
         const uid = userDriveFolderCreateMatch[1];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (!(await userHasDriveAccess(env, uid))) return corsJson({ error: "Le Drive est réservé aux abonnés Pro et Future Légende." }, 403);
         if (method === "POST") return await createUserDriveFolder(env, uid, request);
       }
 
@@ -624,6 +626,7 @@ export default {
         const uid = userDriveUploadMatch[1];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (!(await userHasDriveAccess(env, uid))) return corsJson({ error: "Le Drive est réservé aux abonnés Pro et Future Légende." }, 403);
         if (method === "POST") return await uploadUserDriveFile(env, uid, request);
       }
 
@@ -633,6 +636,7 @@ export default {
         const itemId = userDriveItemMatch[2];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (!(await userHasDriveAccess(env, uid))) return corsJson({ error: "Le Drive est réservé aux abonnés Pro et Future Légende." }, 403);
         if (method === "PATCH" || method === "PUT") return await updateUserDriveItem(env, uid, itemId, request);
         if (method === "DELETE") return await deleteUserDriveItem(env, uid, itemId);
       }
@@ -2605,6 +2609,17 @@ async function isAdmin(env, uid) {
   await env.DB.prepare(`INSERT INTO users (uid, role, plan_name, created_at, updated_at) VALUES (?, 'admin', 'pro', ?, ?) ON CONFLICT(uid) DO UPDATE SET role = 'admin'`).bind(uid, now, now).run();
 
   return true;
+}
+
+async function userHasDriveAccess(env, uid) {
+  if (!uid) return false;
+  const row = await env.DB.prepare("SELECT role, plan_name FROM users WHERE uid = ?").bind(uid).first();
+  if (!row) return false;
+
+  if (row.role === "admin") return true;
+
+  const normalizedPlan = String(row.plan_name || "starter").trim().toLowerCase();
+  return ["pro", "future legende", "future légende", "future-legende"].includes(normalizedPlan);
 }
 
 async function getUserDocuments(env, uid) {
