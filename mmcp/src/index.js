@@ -345,24 +345,179 @@ function triggerCoverMigration(ctx, coverUrl = "", hdCoverUrl = "") {
   }
 }
 
-export default {
-  async fetch(request, env, ctx) {
-    if (request.method === "OPTIONS") {
-      return corsResponse(null, 204);
+function parseYoutubeState(rawState) {
+  if (!rawState) return { artistId: null, returnUrl: null };
+
+  try {
+    const parsed = JSON.parse(rawState);
+    if (parsed && typeof parsed === "object") {
+      return {
+        artistId: parsed.artistId || parsed.artist_id || null,
+        returnUrl: parsed.returnUrl || parsed.return_url || null
+      };
+    }
+  } catch (e) {
+    // Legacy simple state value: numeric artist ID or user UID
+  }
+
+  const stateValue = String(rawState).trim();
+  return {
+    artistId: /^\d+$/.test(stateValue) ? Number(stateValue) : null,
+    returnUrl: null
+  };
+}
+
+async function handleYoutubeOAuthCallback(request, env, url) {
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  const parsedState = parseYoutubeState(state);
+
+  const fallbackBase = parsedState.returnUrl ? new URL(parsedState.returnUrl, "https://mm-cp.uk") : new URL("/portail/artiste.html", "https://mm-cp.uk");
+  const redirectError = new URL(fallbackBase);
+  redirectError.searchParams.set("youtube", "error");
+
+  if (!code) {
+    console.error("Code d'autorisation YouTube absent dans les paramètres.");
+    return Response.redirect(redirectError.toString(), 302);
+  }
+
+  const clientId = "666812685196-hgqruqvtlfgb5b5ac8c8fma96aag5trr.apps.googleusercontent.com";
+  const redirectUri = "https://api.worker.mm-cp.uk/auth/youtube/callback";
+  const clientSecret = env.YOUTUBE_CLIENT_SECRET;
+
+  if (!clientSecret) {
+    console.error("YOUTUBE_CLIENT_SECRET manquant dans les secrets du Worker.");
+    return Response.redirect(redirectError.toString(), 302);
+  }
+
+  try {
+    // 1. Échange du code contre les tokens OAuth Google
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code"
+      }).toString()
+    });
+
+    const tokenData = await tokenResponse.json().catch(() => ({}));
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      console.error("Erreur réponse Google Token:", tokenData);
+      return Response.redirect(redirectError.toString(), 302);
     }
 
-    if (env.DB) {
-      try {
-        await ensureTables(env.DB);
-      } catch (e) {
-        console.error("Initialisation D1:", e);
+    // 2. Récupération des informations de la chaîne YouTube
+    const channelResponse = await fetch(
+      "https://www.googleapis.com/youtube/v3/channels?mine=true&part=snippet,id",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`
+        }
+      }
+    );
+
+    const channelData = await channelResponse.json().catch(() => ({}));
+    if (!channelResponse.ok || !channelData.items || !channelData.items.length) {
+      console.error("Erreur récupération chaîne YouTube:", channelData);
+      return Response.redirect(redirectError.toString(), 302);
+    }
+
+    const channelId = channelData.items[0].id;
+    const channelName = channelData.items[0].snippet?.title || "Chaîne YouTube";
+    const channelUrl = channelId ? `https://www.youtube.com/channel/${channelId}` : null;
+    const refreshToken = tokenData.refresh_token || null;
+    const now = new Date().toISOString();
+
+    let connectedArtist = null;
+
+    // 3. Recherche de l'artiste dans D1
+    if (state) {
+      const stateValue = String(state).trim();
+      // Recherche par ID numérique d'artiste
+      if (/^\d+$/.test(stateValue)) {
+        connectedArtist = await env.DB.prepare("SELECT * FROM artists WHERE id = ?").bind(Number(stateValue)).first();
+      }
+      // Recherche par UID utilisateur si non trouvé par ID
+      if (!connectedArtist) {
+        connectedArtist = await env.DB.prepare("SELECT * FROM artists WHERE user_uid = ? ORDER BY id ASC LIMIT 1").bind(stateValue).first();
       }
     }
 
+    // Si aucun artiste n'a été trouvé avec state, prendre le premier artiste de la base en secours
+    if (!connectedArtist) {
+      connectedArtist = await env.DB.prepare("SELECT * FROM artists ORDER BY id ASC LIMIT 1").first();
+    }
+
+    if (connectedArtist) {
+      // 4. Mise à jour de l'artiste existant
+      const finalRefreshToken = refreshToken || connectedArtist.youtube_refresh_token || null;
+
+      await env.DB.prepare(`
+        UPDATE artists
+        SET youtube_refresh_token = ?,
+            youtube_channel_id = ?,
+            youtube_channel_name = ?,
+            youtube_url = COALESCE(?, youtube_url),
+            youtube_connected_at = ?
+        WHERE id = ?
+      `).bind(
+        finalRefreshToken,
+        channelId,
+        channelName,
+        channelUrl,
+        now,
+        connectedArtist.id
+      ).run();
+
+      const successUrl = parsedState.returnUrl ? new URL(parsedState.returnUrl, "https://mm-cp.uk") : new URL("/portail/artiste.html", "https://mm-cp.uk");
+      successUrl.searchParams.set("id", String(connectedArtist.id));
+      successUrl.searchParams.set("youtube", "success");
+
+      return Response.redirect(successUrl.toString(), 302);
+    } else {
+      // 5. Création d'une fiche artiste minimale si aucune n'existe du tout
+      const insertRes = await env.DB.prepare(`
+        INSERT INTO artists (user_uid, name, youtube_refresh_token, youtube_channel_id, youtube_channel_name, youtube_url, youtube_connected_at, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        state || "anonymous",
+        channelName,
+        refreshToken,
+        channelId,
+        channelName,
+        channelUrl,
+        now,
+        now
+      ).run();
+
+      const newId = insertRes.meta.last_row_id;
+      const successUrl = parsedState.returnUrl ? new URL(parsedState.returnUrl, "https://mm-cp.uk") : new URL("/portail/artiste.html", "https://mm-cp.uk");
+      successUrl.searchParams.set("id", String(newId));
+      successUrl.searchParams.set("youtube", "success");
+      return Response.redirect(successUrl.toString(), 302);
+    }
+
+  } catch (error) {
+    console.error("Exception callback YouTube:", error);
+    return Response.redirect(redirectError.toString(), 302);
+  }
+}
+
+export default {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\.html$/i, "").replace(/\/$/, "");
     const hostname = url.hostname.toLowerCase();
     const method = request.method;
+
+    if (method === "GET" && path === "/auth/youtube/callback") {
+      return await handleYoutubeOAuthCallback(request, env, url);
+    }
 
     const isLinkDomain = hostname === "link.morgannmusic.uk";
     const isPlayDomain = hostname === "play.morgannmusic.uk";
@@ -2334,6 +2489,10 @@ async function ensureTables(db) {
         facebook_url TEXT,
         instagram_url TEXT,
         youtube_url TEXT,
+        youtube_refresh_token TEXT,
+        youtube_channel_id TEXT,
+        youtube_channel_name TEXT,
+        youtube_connected_at TEXT,
         tiktok_url TEXT,
         threads_url TEXT,
         photo TEXT,
@@ -2544,6 +2703,10 @@ async function ensureTables(db) {
   try { await db.prepare("ALTER TABLE releases ADD COLUMN vk_url TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE releases ADD COLUMN yandex_url TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE artists ADD COLUMN schema_json TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN youtube_refresh_token TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN youtube_channel_id TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN youtube_channel_name TEXT").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE artists ADD COLUMN youtube_connected_at TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE users ADD COLUMN newsletter_enabled INTEGER DEFAULT 1").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE artists ADD COLUMN logo_url TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE artists ADD COLUMN tiktok_url TEXT").run(); } catch (e) { }
@@ -3684,6 +3847,9 @@ function formatArtistRow(row) {
     facebookUrl: row.facebook_url,
     instagramUrl: row.instagram_url,
     youtubeUrl: row.youtube_url,
+    youtubeChannelId: row.youtube_channel_id || null,
+    youtubeChannelName: row.youtube_channel_name || null,
+    youtubeConnectedAt: row.youtube_connected_at || null,
     tiktokUrl: row.tiktok_url,
     threadsUrl: row.threads_url,
     photo: row.photo,

@@ -8,11 +8,18 @@ const allDeliveries = ["YouTube Content ID", "Meta Rights Manager", "SoundCloud 
 const urlParams = new URLSearchParams(window.location.search);
 const artistId = urlParams.get('id');
 
+if (urlParams.get('youtube') === 'success') {
+    setTimeout(() => {
+        alert('Chaîne YouTube connectée avec succès !');
+    }, 200);
+}
+
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         uidConnecte = user.uid;
         await verifierPlanUtilisateur(user.uid);
         injecterStructureSelonPlan();
+        bindYoutubeConnectButton();
         if (artistId) {
             chargerDetailsArtiste(user.uid, artistId);
         } else {
@@ -38,6 +45,29 @@ async function verifierPlanUtilisateur(uid) {
     } catch (err) {
         console.error("Erreur récupération plan:", err);
     }
+}
+
+function bindYoutubeConnectButton() {
+    const youtubeButton = document.getElementById("youtube-connect-btn");
+    if (!youtubeButton) return;
+
+    youtubeButton.onclick = () => {
+        const returnUrl = `${window.location.origin}${window.location.pathname}${window.location.search || ""}`;
+        const stateValue = JSON.stringify({
+            artistId: artistId || "",
+            returnUrl
+        });
+
+        const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+        authUrl.searchParams.set("client_id", "666812685196-hgqruqvtlfgb5b5ac8c8fma96aag5trr.apps.googleusercontent.com");
+        authUrl.searchParams.set("redirect_uri", "https://api.worker.mm-cp.uk/auth/youtube/callback");
+        authUrl.searchParams.set("response_type", "code");
+        authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly");
+        authUrl.searchParams.set("access_type", "offline");
+        authUrl.searchParams.set("prompt", "consent");
+        authUrl.searchParams.set("state", stateValue);
+        window.location.href = authUrl.toString();
+    };
 }
 
 function injecterStructureSelonPlan() {
@@ -82,6 +112,28 @@ async function chargerDetailsArtiste(uid, id) {
             document.getElementById("artist-id").value = id;
             document.getElementById("artist-name").value = artistData.name || "";
             document.getElementById("artist-desc").value = artistData.biographie || artistData.description || "";
+
+            const youtubeStatusPill = document.getElementById("youtube-status-pill");
+            const youtubeStatusBlock = document.getElementById("youtube-connect-status");
+            const youtubeConnected = Boolean(artistData.youtubeChannelId || artistData.youtubeChannelName);
+
+            if (youtubeConnected && youtubeStatusPill && youtubeStatusBlock) {
+                youtubeStatusPill.style.display = "inline-flex";
+                const channelName = artistData.youtubeChannelName || artistData.name || "Chaîne YouTube";
+                const channelId = artistData.youtubeChannelId || "ID indisponible";
+                youtubeStatusBlock.innerHTML = `
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <strong style="font-size:14px; color:#1f2937;">${channelName}</strong>
+                        <span style="font-size:12px; color:#475569;">${channelId}</span>
+                    </div>
+                `;
+            } else if (youtubeStatusPill && youtubeStatusBlock) {
+                youtubeStatusPill.style.display = "none";
+                youtubeStatusBlock.innerHTML = `
+                    <button type="button" id="youtube-connect-btn" class="btn btn-primary" style="padding:10px 18px; border-radius:999px;">Connecter ma chaîne YouTube</button>
+                `;
+                bindYoutubeConnectButton();
+            }
 
             // Réseaux & Plateformes (Mappage corrigé avec les champs de la BDD)
             document.getElementById("link-apple").value = artistData.linkApple || artistData.appleMusicId || artistData.apple_music_id || "";
