@@ -918,8 +918,12 @@
                         </div>
                         <input type="file" id="file-cover" accept="image/*" style="display:none;"
                             onchange="traiterFichierPochette()">
-                        <button type="button" class="btn-side btn-save" style="margin-top:10px;"
-                            onclick="document.getElementById('file-cover').click()">Importer la pochette</button>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                            <button type="button" class="btn-side btn-save"
+                                onclick="document.getElementById('file-cover').click()">Importer la pochette</button>
+                            <button type="button" class="btn-side btn-pub" onclick="ouvrirDrivePickerPochette()">Depuis
+                                mon Drive</button>
+                        </div>
                         <div class="progress-bar" id="progress-cover-container">
                             <div class="progress-fill" id="progress-cover-fill"></div>
                         </div>
@@ -943,222 +947,226 @@
                             <button type="button" class="btn-side btn-save" onclick="ouvrirModalMotion()">Importer des
                                 Apple Motion Art</button>
                         </div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                            <button type="button" class="btn-side btn-pub" onclick="ouvrirDrivePickerPiste()">Depuis mon
+                                Drive</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION INFORMATION SORTIE -->
+        <div id="sec-sortie" class="section-panel">
+            <!-- SUBSEC DATE -->
+            <div id="subsec-date" class="sub-section-panel active">
+                <h2>Date de sortie</h2>
+                <div class="form-group">
+                    <label>Date de Sortie Principale *</label>
+                    <input type="date" id="date-release" class="form-control"
+                        onchange="validerStructuresDates(); analyserConsole();">
+                    <div id="date-release-pastille" class="badge-pastille badge-warning" style="display:none;">⚠️
+                        Délai &lt; 14 jours : Les plateformes n'auront pas toutes reçu la sortie à temps.</div>
+                    <div id="date-release-error" class="badge-pastille badge-danger" style="display:none;">❌ La date
+                        de sortie ne peut pas être dans le passé.</div>
+                </div>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chk-original-date" onchange="toggleDateVisuelle('box-date-ori', this)">
+                    Ajouter une date de sortie originale
+                </label>
+                <div class="form-group" id="box-date-ori" style="display:none;">
+                    <label>Date de sortie originale (doit être antérieure à aujourd'hui)</label>
+                    <input type="date" id="date-original" class="form-control"
+                        onchange="validerStructuresDates(); analyserConsole();">
+                    <div id="date-original-error" class="badge-pastille badge-danger" style="display:none;">❌ La
+                        date originale doit être avant la date du jour.</div>
+                </div>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chk-preorder-date" onchange="toggleDateVisuelle('box-date-pre', this)">
+                    Configurer une date de précommande
+                </label>
+                <div class="form-group" id="box-date-pre" style="display:none;">
+                    <label>Date de précommande (doit être après aujourd'hui et avant la date de sortie)</label>
+                    <input type="date" id="date-preorder" class="form-control"
+                        onchange="validerStructuresDates(); analyserConsole();">
+                    <div id="date-preorder-error" class="badge-pastille badge-danger" style="display:none;">❌ La
+                        date de précommande doit être après aujourd'hui et avant la date de sortie.</div>
+                </div>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chk-timezone" onchange="toggleDateVisuelle('box-timezone-fields', this)">
+                    Définir la zone géographique et
+                    l'heure H-24
+                </label>
+                <div class="form-row" id="box-timezone-fields" style="display:none;">
+                    <div class="form-group">
+                        <label>Fuseau Horaire</label>
+                        <select id="time-zone" class="form-control">
+                            <option value="Europe/Paris">Paris (CET / 00h00 par défaut)</option>
+                            <option value="GMT">Greenwich (GMT)</option>
+                            <option value="America/New_York">New York (EST)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Heure exacte de libération</label>
+                        <input type="time" id="time-exact" class="form-control" value="00:00">
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION INFORMATION SORTIE -->
-            <div id="sec-sortie" class="section-panel">
-                <!-- SUBSEC DATE -->
-                <div id="subsec-date" class="sub-section-panel active">
-                    <h2>Date de sortie</h2>
+            <!-- SUBSEC GENRE -->
+            <div id="subsec-genre" class="sub-section-panel">
+                <h2>Sélection des Genres Musicaux</h2>
+                <div class="form-row">
                     <div class="form-group">
-                        <label>Date de Sortie Principale *</label>
-                        <input type="date" id="date-release" class="form-control"
-                            onchange="validerStructuresDates(); analyserConsole();">
-                        <div id="date-release-pastille" class="badge-pastille badge-warning" style="display:none;">⚠️
-                            Délai &lt; 14 jours : Les plateformes n'auront pas toutes reçu la sortie à temps.</div>
-                        <div id="date-release-error" class="badge-pastille badge-danger" style="display:none;">❌ La date
-                            de sortie ne peut pas être dans le passé.</div>
+                        <label>Genre Primaire *</label>
+                        <select id="genre-1" class="form-control" onchange="analyserConsole()"></select>
                     </div>
-
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="chk-original-date"
-                            onchange="toggleDateVisuelle('box-date-ori', this)"> Ajouter une date de sortie originale
-                    </label>
-                    <div class="form-group" id="box-date-ori" style="display:none;">
-                        <label>Date de sortie originale (doit être antérieure à aujourd'hui)</label>
-                        <input type="date" id="date-original" class="form-control"
-                            onchange="validerStructuresDates(); analyserConsole();">
-                        <div id="date-original-error" class="badge-pastille badge-danger" style="display:none;">❌ La
-                            date originale doit être avant la date du jour.</div>
-                    </div>
-
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="chk-preorder-date"
-                            onchange="toggleDateVisuelle('box-date-pre', this)"> Configurer une date de précommande
-                    </label>
-                    <div class="form-group" id="box-date-pre" style="display:none;">
-                        <label>Date de précommande (doit être après aujourd'hui et avant la date de sortie)</label>
-                        <input type="date" id="date-preorder" class="form-control"
-                            onchange="validerStructuresDates(); analyserConsole();">
-                        <div id="date-preorder-error" class="badge-pastille badge-danger" style="display:none;">❌ La
-                            date de précommande doit être après aujourd'hui et avant la date de sortie.</div>
-                    </div>
-
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="chk-timezone"
-                            onchange="toggleDateVisuelle('box-timezone-fields', this)"> Définir la zone géographique et
-                        l'heure H-24
-                    </label>
-                    <div class="form-row" id="box-timezone-fields" style="display:none;">
-                        <div class="form-group">
-                            <label>Fuseau Horaire</label>
-                            <select id="time-zone" class="form-control">
-                                <option value="Europe/Paris">Paris (CET / 00h00 par défaut)</option>
-                                <option value="GMT">Greenwich (GMT)</option>
-                                <option value="America/New_York">New York (EST)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Heure exacte de libération</label>
-                            <input type="time" id="time-exact" class="form-control" value="00:00">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUBSEC GENRE -->
-                <div id="subsec-genre" class="sub-section-panel">
-                    <h2>Sélection des Genres Musicaux</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Genre Primaire *</label>
-                            <select id="genre-1" class="form-control" onchange="analyserConsole()"></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Genre Secondaire</label>
-                            <select id="genre-2" class="form-control"></select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUBSEC LANGUE -->
-                <div id="subsec-langue" class="sub-section-panel">
-                    <h2>Langue & Propriétés Vocales</h2>
                     <div class="form-group">
-                        <label>Langue de la sortie *</label>
-                        <select id="rel-lang" class="form-control" onchange="analyserConsole()"></select>
-                    </div>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="chk-instrumental"> Il s'agit d'une sortie exclusivement instrumentale
-                        (aucune voix)
-                    </label>
-                </div>
-
-                <!-- SUBSEC IDENTITE -->
-                <div id="subsec-identite" class="sub-section-panel">
-                    <h2>Identité & Marques de Distribution</h2>
-                    <div class="form-group" id="box-wl-label-name" style="display:none;">
-                        <label>Nom du Label Distributeur *</label>
-                        <input type="text" id="wl-label-title" class="form-control" oninput="analyserConsole()">
+                        <label>Genre Secondaire</label>
+                        <select id="genre-2" class="form-control"></select>
                     </div>
                 </div>
+            </div>
 
-                <!-- SUBSEC COPYRIGHT -->
-                <div id="subsec-copyright" class="sub-section-panel">
-                    <h2>Mentions Légales & Copyright</h2>
-                    <!-- Starter / Compte type artist -->
-                    <div class="form-group" id="group-copyright-c">
+            <!-- SUBSEC LANGUE -->
+            <div id="subsec-langue" class="sub-section-panel">
+                <h2>Langue & Propriétés Vocales</h2>
+                <div class="form-group">
+                    <label>Langue de la sortie *</label>
+                    <select id="rel-lang" class="form-control" onchange="analyserConsole()"></select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chk-instrumental"> Il s'agit d'une sortie exclusivement instrumentale
+                    (aucune voix)
+                </label>
+            </div>
+
+            <!-- SUBSEC IDENTITE -->
+            <div id="subsec-identite" class="sub-section-panel">
+                <h2>Identité & Marques de Distribution</h2>
+                <div class="form-group" id="box-wl-label-name" style="display:none;">
+                    <label>Nom du Label Distributeur *</label>
+                    <input type="text" id="wl-label-title" class="form-control" oninput="analyserConsole()">
+                </div>
+            </div>
+
+            <!-- SUBSEC COPYRIGHT -->
+            <div id="subsec-copyright" class="sub-section-panel">
+                <h2>Mentions Légales & Copyright</h2>
+                <!-- Starter / Compte type artist -->
+                <div class="form-group" id="group-copyright-c">
+                    <label>Ligne de Copyright (C) *</label>
+                    <input type="text" id="line-c" class="form-control" placeholder="Ex: 2026 Morgann Music"
+                        oninput="analyserConsole()">
+                </div>
+                <!-- Plan Pro / Compte type admin -->
+                <div class="form-row" id="group-copyright-cp" style="display:none;">
+                    <div class="form-group">
                         <label>Ligne de Copyright (C) *</label>
-                        <input type="text" id="line-c" class="form-control" placeholder="Ex: 2026 Morgann Music"
+                        <input type="text" id="line-c-pro" class="form-control" placeholder="Ex: 2026 Morgann Music"
                             oninput="analyserConsole()">
                     </div>
-                    <!-- Plan Pro / Compte type admin -->
-                    <div class="form-row" id="group-copyright-cp" style="display:none;">
-                        <div class="form-group">
-                            <label>Ligne de Copyright (C) *</label>
-                            <input type="text" id="line-c-pro" class="form-control" placeholder="Ex: 2026 Morgann Music"
-                                oninput="analyserConsole()">
-                        </div>
-                        <div class="form-group">
-                            <label>Ligne de Phonogramme (P) *</label>
-                            <input type="text" id="line-p" class="form-control" placeholder="Ex: 2026 Records Corp"
-                                oninput="analyserConsole()">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUBSEC PLATEFORMES -->
-                <div id="subsec-plateformes" class="sub-section-panel">
-                    <h2>Canaux de Vente & Canaux de Streaming</h2>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="chk-manual-platforms"
-                            onchange="toggleDateVisuelle('box-platform-selection', this)"> Sélectionner manuellement les
-                        plateformes de distribution
-                    </label>
-                    <div id="box-platform-selection" style="display:none; margin-top:15px;">
-                        <div class="action-bar-small">
-                            <span class="badge-count" id="count-selected-platforms">0 sélectionnée(s)</span>
-                            <div style="display:flex; gap:8px;">
-                                <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
-                                    onclick="toutSelectionnerPlateformes(true)">Tout cocher</button>
-                                <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
-                                    onclick="toutSelectionnerPlateformes(false)">Tout décocher</button>
-                            </div>
-                        </div>
-                        <div class="search-box">
-                            <input type="text" id="search-platforms-input" class="form-control"
-                                placeholder="Filtrer les plateformes (ex: Spotify, TikTok...)"
-                                oninput="filtrerPlateformes()">
-                        </div>
-                        <div id="platform-checkbox-list" class="platform-grid"></div>
-                    </div>
-                </div>
-
-                <!-- SUBSEC LIVRAISON -->
-                <div id="subsec-livraison" class="sub-section-panel">
-                    <h2>Réseaux & Monétisations Additionnels</h2>
-                    <div id="additional-deliveries-list" style="display:flex; flex-direction:column; gap:10px;"></div>
-                </div>
-
-                <!-- SUBSEC OPTIONNEL -->
-                <div id="subsec-optionnel" class="sub-section-panel">
-                    <h2>Informations Optionnelles Référencées</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Ligne d'identification de version</label>
-                            <input type="text" id="opt-version" class="form-control"
-                                placeholder="Ex: Remastered 2026 / Radio Edit">
-                        </div>
-                        <div class="form-group">
-                            <label>Type de contrat de Licence</label>
-                            <select id="opt-licencetype" class="form-control">
-                                <option value="Copyright">Tous droits réservés (Standard)</option>
-                                <option value="CreativeCommons">Creative Commons (Partage libre)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Code UPC Existant (Laisser vide si création auto)</label>
-                            <input type="text" id="opt-upc" class="form-control"
-                                placeholder="Entrez les 12 ou 13 chiffres">
-                        </div>
-                        <div class="form-group">
-                            <label>Restriction Territoriale (Pays inclus/exclus)</label>
-                            <div style="display:flex; gap:10px; align-items:center;">
-                                <input type="text" id="opt-territories" class="form-control"
-                                    value="Tous les pays (Monde entier)" readonly style="flex:1;">
-                                <button type="button" class="btn-side btn-save"
-                                    style="width:auto; padding:8px 16px; white-space:nowrap;"
-                                    onclick="ouvrirModalPays()">Gérer la liste des pays</button>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label>Ligne de Phonogramme (P) *</label>
+                        <input type="text" id="line-p" class="form-control" placeholder="Ex: 2026 Records Corp"
+                            oninput="analyserConsole()">
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION PISTES -->
-            <div id="sec-pistes" class="section-panel">
-                <h2>Pistes & Catalogue Sonore</h2>
-                <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap: wrap;" id="track-action-buttons">
-                    <button type="button" class="btn-add-track" onclick="ouvrirLancementFichierAudio()">+ Importer des
-                        fichiers audio</button>
-                    <button type="button" class="btn-add-track" style="background:#555;"
-                        onclick="ouvrirPopupLienAudio()">+ Importer depuis un lien</button>
-                    <button type="button" class="btn-nav-exit" onclick="ouvrirModalCataloguePistes()">Sélectionner des
-                        pistes (Bibliothèque)</button>
+            <!-- SUBSEC PLATEFORMES -->
+            <div id="subsec-plateformes" class="sub-section-panel">
+                <h2>Canaux de Vente & Canaux de Streaming</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chk-manual-platforms"
+                        onchange="toggleDateVisuelle('box-platform-selection', this)"> Sélectionner manuellement les
+                    plateformes de distribution
+                </label>
+                <div id="box-platform-selection" style="display:none; margin-top:15px;">
+                    <div class="action-bar-small">
+                        <span class="badge-count" id="count-selected-platforms">0 sélectionnée(s)</span>
+                        <div style="display:flex; gap:8px;">
+                            <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                                onclick="toutSelectionnerPlateformes(true)">Tout cocher</button>
+                            <button type="button" class="btn-side btn-save" style="width:auto; padding:4px 12px;"
+                                onclick="toutSelectionnerPlateformes(false)">Tout décocher</button>
+                        </div>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="search-platforms-input" class="form-control"
+                            placeholder="Filtrer les plateformes (ex: Spotify, TikTok...)"
+                            oninput="filtrerPlateformes()">
+                    </div>
+                    <div id="platform-checkbox-list" class="platform-grid"></div>
                 </div>
-
-                <input type="file" id="file-audio-main" accept="audio/*, .wav, .mp3, .flac, .aac, .m4a, .alac"
-                    style="display:none;" multiple onchange="traiterUploadFichierAudio()">
-                <div class="progress-bar" id="progress-main-container">
-                    <div class="progress-fill" id="progress-main-fill"></div>
-                </div>
-                <div class="track-list" id="ui-track-list"></div>
             </div>
 
+            <!-- SUBSEC LIVRAISON -->
+            <div id="subsec-livraison" class="sub-section-panel">
+                <h2>Réseaux & Monétisations Additionnels</h2>
+                <div id="additional-deliveries-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
+
+            <!-- SUBSEC OPTIONNEL -->
+            <div id="subsec-optionnel" class="sub-section-panel">
+                <h2>Informations Optionnelles Référencées</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ligne d'identification de version</label>
+                        <input type="text" id="opt-version" class="form-control"
+                            placeholder="Ex: Remastered 2026 / Radio Edit">
+                    </div>
+                    <div class="form-group">
+                        <label>Type de contrat de Licence</label>
+                        <select id="opt-licencetype" class="form-control">
+                            <option value="Copyright">Tous droits réservés (Standard)</option>
+                            <option value="CreativeCommons">Creative Commons (Partage libre)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Code UPC Existant (Laisser vide si création auto)</label>
+                        <input type="text" id="opt-upc" class="form-control" placeholder="Entrez les 12 ou 13 chiffres">
+                    </div>
+                    <div class="form-group">
+                        <label>Restriction Territoriale (Pays inclus/exclus)</label>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="text" id="opt-territories" class="form-control"
+                                value="Tous les pays (Monde entier)" readonly style="flex:1;">
+                            <button type="button" class="btn-side btn-save"
+                                style="width:auto; padding:8px 16px; white-space:nowrap;"
+                                onclick="ouvrirModalPays()">Gérer la liste des pays</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- SECTION PISTES -->
+        <div id="sec-pistes" class="section-panel">
+            <h2>Pistes & Catalogue Sonore</h2>
+            <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap: wrap;" id="track-action-buttons">
+                <button type="button" class="btn-add-track" onclick="ouvrirLancementFichierAudio()">+ Importer des
+                    fichiers audio</button>
+                <button type="button" class="btn-add-track" style="background:#555;" onclick="ouvrirPopupLienAudio()">+
+                    Importer depuis un lien</button>
+                <button type="button" class="btn-nav-exit" onclick="ouvrirModalCataloguePistes()">Sélectionner des
+                    pistes (Bibliothèque)</button>
+            </div>
+
+            <input type="file" id="file-audio-main" accept="audio/*, .wav, .mp3, .flac, .aac, .m4a, .alac"
+                style="display:none;" multiple onchange="traiterUploadFichierAudio()">
+            <div class="progress-bar" id="progress-main-container">
+                <div class="progress-fill" id="progress-main-fill"></div>
+            </div>
+            <div class="track-list" id="ui-track-list"></div>
+        </div>
+
+    </div>
     </div>
 
 
@@ -2045,6 +2053,181 @@
         window.ouvrirLancementFichierAudio = () => document.getElementById("file-audio-main").click();
         window.ouvrirPopupLienAudio = () => document.getElementById("modal-import-link").style.display = "flex";
 
+        function normalizeDrivePath(value) {
+            return String(value || '').split('/').map(part => part.trim()).filter(Boolean);
+        }
+
+        function matchesCurrentDrivePath(item, currentPath) {
+            const itemPath = normalizeDrivePath(item.path || item.folder_path || item.folderPath || '');
+            if (itemPath.length === 0 && currentPath.length === 0) return true;
+            if (itemPath.length === 0) return false;
+            return itemPath.length === currentPath.length && currentPath.every((segment, index) => itemPath[index] === segment);
+        }
+
+        async function chargerDrivePourSelection(type) {
+            const user = auth.currentUser;
+            if (!user) return [];
+            try {
+                const res = await api.get(`/api/users/${user.uid}/drive`);
+                const items = Array.isArray(res) ? res : [];
+
+                const allowedExt = type === 'image'
+                    ? ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'bmp']
+                    : ['mp3', 'wav', 'flac', 'aac', 'm4a', 'ogg', 'aiff', 'mp4', 'm4b', 'wma'];
+
+                return items.filter(item => {
+                    const source = String(item.source || '').toLowerCase();
+                    const isFolder = source === 'user_drive_folders' || item.type === 'folder' || !((item.file_url || item.url) || item.ext || item.name?.includes('.'));
+                    const isFile = source === 'user_drive_files' || item.type === 'file' || !!(item.file_url || item.url) || !!item.ext;
+                    if (isFolder) return true;
+                    if (!isFile) return false;
+                    const ext = String(item.ext || (item.name ? item.name.split('.').pop() : '') || '').toLowerCase();
+                    return allowedExt.includes(ext);
+                });
+            } catch (err) {
+                console.error('Erreur drive selection:', err);
+                return [];
+            }
+        }
+
+        function renderDrivePickerList(state) {
+            const modal = document.getElementById('drive-picker-modal');
+            const list = document.getElementById('drive-picker-list');
+            if (!list || !modal) return;
+
+            const currentPath = state.currentPath || [];
+            const visibleItems = state.items.filter(item => matchesCurrentDrivePath(item, currentPath));
+            const folders = visibleItems.filter(item => {
+                const source = String(item.source || '').toLowerCase();
+                return source === 'user_drive_folders' || item.type === 'folder' || !((item.file_url || item.url) || item.ext || item.name?.includes('.'));
+            });
+            const files = visibleItems.filter(item => !folders.includes(item));
+
+            let html = '';
+            if (currentPath.length > 0) {
+                const previousPath = currentPath.slice(0, -1);
+                html += `
+                    <button type="button" class="drive-picker-item" data-kind="back" data-path="${previousPath.join('/')}" style="background:#f8fafc; border-style:dashed;">
+                        <span class="drive-picker-emoji">📁</span>
+                        <span><strong>Retour</strong><br><small>${previousPath.join(' / ') || 'Racine'}</small></span>
+                    </button>
+                `;
+            }
+
+            html += `<div style="margin:10px 0 14px; color:#475569; font-size:12px; font-weight:600;">${currentPath.length ? currentPath.join(' / ') : 'Racine'}</div>`;
+
+            folders.forEach(item => {
+                const folderPath = normalizeDrivePath(item.path || item.folder_path || item.folderPath || item.name);
+                const targetPath = folderPath.length ? folderPath : [item.name || 'Nouveau dossier'];
+                html += `
+                    <button type="button" class="drive-picker-item" data-kind="folder" data-path="${targetPath.join('/')}" data-name="${item.name || 'Dossier'}">
+                        <span class="drive-picker-emoji">📁</span>
+                        <span>
+                            <strong>${item.name || 'Dossier'}</strong><br>
+                            <small>Dossier</small>
+                        </span>
+                    </button>
+                `;
+            });
+
+            files.forEach(item => {
+                const url = item.file_url || item.url || '#';
+                const ext = String(item.ext || (item.name ? item.name.split('.').pop() : '') || '').toUpperCase();
+                html += `
+                    <button type="button" class="drive-picker-item" data-kind="file" data-url="${url}" data-name="${item.name || 'Fichier'}">
+                        <span class="drive-picker-emoji">${state.type === 'image' ? '🖼️' : '🎵'}</span>
+                        <span>
+                            <strong>${item.name || 'Sans nom'}</strong><br>
+                            <small>${ext || 'Fichier'} • ${item.size || '—'}</small>
+                        </span>
+                    </button>
+                `;
+            });
+
+            if (!folders.length && !files.length) {
+                html = '<p style="color:#666; margin:0;">Aucun fichier ou dossier dans ce dossier.</p>';
+            }
+
+            list.innerHTML = html;
+
+            list.querySelectorAll('[data-kind="folder"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    state.currentPath = normalizeDrivePath(button.dataset.path || button.dataset.name || '');
+                    renderDrivePickerList(state);
+                });
+            });
+
+            list.querySelectorAll('[data-kind="back"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    state.currentPath = normalizeDrivePath(button.dataset.path || '');
+                    renderDrivePickerList(state);
+                });
+            });
+
+            list.querySelectorAll('[data-kind="file"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    modal.style.display = 'none';
+                    state.onSelect({
+                        url: button.dataset.url,
+                        name: button.dataset.name
+                    });
+                });
+            });
+        }
+
+        function ouvrirDrivePicker({ title, type, onSelect }) {
+            const modal = document.getElementById('drive-picker-modal');
+            const list = document.getElementById('drive-picker-list');
+            if (!modal || !list) return;
+
+            list.innerHTML = '<p style="color:#666; margin:0;">Chargement du Drive...</p>';
+            modal.style.display = 'flex';
+            modal.querySelector('.drive-picker-title').textContent = title;
+
+            const state = { type, currentPath: [], onSelect, items: [] };
+            chargerDrivePourSelection(type).then((items) => {
+                state.items = items;
+                renderDrivePickerList(state);
+            });
+        }
+
+        window.ouvrirDrivePickerPochette = function () {
+            ouvrirDrivePicker({
+                title: 'Choisir une pochette depuis le Drive',
+                type: 'image',
+                onSelect: ({ url, name }) => {
+                    objetSortie.coverUrl = url;
+                    afficherPochetteEnPlace(api.fileUrl(url));
+                    window.analyserConsole();
+                }
+            });
+        };
+
+        window.ouvrirDrivePickerPiste = function () {
+            ouvrirDrivePicker({
+                title: 'Choisir une piste depuis le Drive',
+                type: 'audio',
+                onSelect: ({ url, name }) => {
+                    const trackName = name || 'Piste drive';
+                    if (!Array.isArray(objetSortie.tracks)) objetSortie.tracks = [];
+                    objetSortie.tracks.push({
+                        id: 'track_drive_' + Date.now(),
+                        title: trackName.replace(/\.[^/.]+$/, ''),
+                        fileUrl: url,
+                        version: '',
+                        isAiGenerated: false,
+                        language: objetSortie.language || 'Français',
+                        isrc: '', iswc: '',
+                        writers: '', appleCredits: '',
+                        lyricsText: '', lyricType: 'Clean', syncPlatforms: false,
+                        atmosUrl: null, instUrl: null, feats: []
+                    });
+                    renouvelerAffichageListePistes();
+                    window.analyserConsole();
+                }
+            });
+        };
+
         async function processAndUploadAudio(fileOrBlob, originalName, currentIndex = 1, totalFiles = 1) {
             try {
                 afficherProgressUpload(true, `Encodage haute qualité (.mmac) en cours... (${currentIndex}/${totalFiles})`, 0);
@@ -2136,6 +2319,26 @@
         };
 
         window.fermerModalCataloguePistes = () => document.getElementById("modal-catalogue-pistes").style.display = "none";
+
+        const drivePickerModal = document.createElement('div');
+        drivePickerModal.id = 'drive-picker-modal';
+        drivePickerModal.style.display = 'none';
+        drivePickerModal.style.position = 'fixed';
+        drivePickerModal.style.inset = '0';
+        drivePickerModal.style.background = 'rgba(15,23,42,0.45)';
+        drivePickerModal.style.zIndex = '2000';
+        drivePickerModal.style.justifyContent = 'center';
+        drivePickerModal.style.alignItems = 'center';
+        drivePickerModal.innerHTML = `
+            <div style="background:#fff; width:min(620px, 92vw); max-height:75vh; overflow:auto; border-radius:26px; padding:22px; box-shadow:0 25px 60px rgba(15,23,42,0.22);">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px;">
+                    <h3 class="drive-picker-title" style="margin:0; font-size:20px; color:#111827;">Sélectionner depuis le Drive</h3>
+                    <button type="button" onclick="document.getElementById('drive-picker-modal').style.display='none';" style="border:none; background:#f1f5f9; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:20px;">×</button>
+                </div>
+                <div id="drive-picker-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
+        `;
+        document.body.appendChild(drivePickerModal);
 
         window.handleDragStart = (e, index) => { draggedTrackIndex = index; e.target.style.opacity = '0.5'; };
         window.handleDragOver = (e) => e.preventDefault();

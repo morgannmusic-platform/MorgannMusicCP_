@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drive | Portail utilisateur</title>
+    <link rel="stylesheet" href="js/reponsive.css">
+    <style>
+        :root {
+            --bg: #f4e9ee;
+            --panel: rgba(255, 255, 255, 0.28);
+            --panel-strong: rgba(255, 255, 255, 0.42);
+            --border: rgba(120, 117, 134, 0.18);
+            --text: #1f2937;
+            --muted: #6b7280;
+            --pink: #fc8fb0;
+            --pink-dark: #e86690;
+            --primary: #111827;
+            --shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        #navbar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        #sidebar-container {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 90;
+        }
+
+        .main-content {
+            padding-top: 80px;
+            padding-left: 0;
+            min-height: 100vh;
+        }
+
+        .drive-shell {
+            width: min(1180px, calc(100vw - 320px));
+            margin: 28px auto 80px auto;
+            padding: 0 12px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: clamp(2rem, 2vw + 1rem, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.06em;
+            color: #111827;
+        }
+
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .action-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-mmcp,
+        .btn-secondary-mmcp,
+        .action-icon-btn,
+        .page-btn,
+        .btn-ghost {
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font: inherit;
+        }
+
+        .btn-mmcp {
+            background: #111827;
+            color: white;
+            padding: 14px 18px;
+            font-weight: 700;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary-mmcp {
+            background: rgba(255, 255, 255, 0.34);
+            color: #111827;
+            border: 1px solid rgba(17, 24, 39, 0.08);
+            padding: 14px 18px;
+            font-weight: 700;
+        }
+
+        .btn-mmcp:hover,
+        .btn-secondary-mmcp:hover,
+        .page-btn:hover,
+        .action-icon-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .search-input {
+            width: min(480px, 100%);
+            background: rgba(255, 255, 255, 0.38);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 999px;
+            padding: 14px 18px;
+            color: var(--text);
+            font-size: 16px;
+            outline: none;
+        }
+
+        .finder-box {
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .finder-breadcrumb {
+            padding: 16px 20px 12px;
+            font-size: 17px;
+            color: #0f172a;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        .finder-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .finder-table th,
+        .finder-table td {
+            padding: 18px 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .finder-table th {
+            color: #334155;
+            font-size: 14px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .finder-table tbody tr {
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .finder-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .item-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .item-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #0f172a;
+            flex-shrink: 0;
+        }
+
+        .item-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .action-icon-btn {
+            width: 34px;
+            height: 34px;
+            background: rgba(15, 23, 42, 0.05);
+            color: #0f172a;
+            font-size: 16px;
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #475569;
+            flex-wrap: wrap;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            background: rgba(255, 255, 255, 0.24);
+            color: #111827;
+            padding: 9px 12px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            min-width: 42px;
+        }
+
+        .page-btn.active {
+            background: #111827;
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.28);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-card {
+            width: min(560px, 100%);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 28px;
+            padding: 20px 22px;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+            color: #111827;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            border: none;
+            background: transparent;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #475569;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 12px 0;
+            color: #0f172a;
+        }
+
+        .modal-info-label {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .modal-info-value {
+            font-weight: 700;
+            word-break: break-all;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 700;
+            color: #334155;
+            font-size: 13px;
+        }
+
+        .form-input {
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: 14px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.75);
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .color-dot.selected {
+            border-color: #111827;
+            transform: scale(1.12);
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                margin-left: 210px;
+                margin-right: 20px;
+                padding-bottom: 30px;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .drive-shell {
+                width: min(100vw - 24px, 980px);
+                margin-top: 24px;
+            }
+
+            .page-header {
+                margin-top: 18px;
+            }
+
+            .main-content {
+                padding-top: 30px;
+                padding-bottom: 110px;
+            }
+
+            .finder-table th:nth-child(3),
+            .finder-table td:nth-child(3),
+            .finder-table th:nth-child(4),
+            .finder-table td:nth-child(4) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .drive-shell {
+                width: min(100vw - 18px, 640px);
+            }
+
+            .action-bar {
+                align-items: stretch;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .finder-table th:nth-child(2),
+            .finder-table td:nth-child(2) {
+                display: none;
+            }
+
+            .modal-info-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .modal-info-value {
+                max-width: 100%;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-container"></div>
+    <script type="module" src="js/navbar.js"></script>
+    <div id="sidebar-container"></div>
+    <script src="js/sidebar.js"></script>
+
+    <main class="main-content">
+        <div class="drive-shell">
+            <div class="page-header">
+                <h1>Mon Drive</h1>
+            </div>
+
+            <div class="action-bar">
+                <div class="action-bar-left">
+                    <button class="btn-mmcp" id="btn-create-folder">📁 Nouveau Dossier</button>
+                    <button class="btn-secondary-mmcp" id="btn-upload-file">⬆️ Importer Fichier</button>
+                    <input type="file" id="file-input-hidden" style="display:none;" multiple>
+                </div>
+                <div>
+                    <input type="text" id="search-input" class="search-input"
+                        placeholder="🔍 Rechercher un fichier ou dossier...">
+                </div>
+            </div>
+
+            <div class="finder-box">
+                <div class="finder-breadcrumb" id="breadcrumb">
+                    <span class="breadcrumb-item" onclick="navigateTo(-1)">Root</span>
+                </div>
+
+                <div style="overflow-x:auto;">
+                    <table class="finder-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Type</th>
+                                <th>Taille</th>
+                                <th>Date de modification</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finder-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container">
+                    <span id="pagination-info">Affichage 0-0 sur 0 éléments</span>
+                    <div class="pagination-buttons" id="pagination-buttons"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="modal-file-info">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span>Informations du fichier</span>
+                <button class="modal-close" onclick="closeModal('modal-file-info')">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-file-body"></div>
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:10px; flex-wrap: wrap;">
+                <button class="btn-secondary-mmcp" id="btn-rename-file">✏️ Renommer</button>
+                <div style="display:flex; gap:10px; flex-wrap: wrap;">
+                    <button class="btn-secondary-mmcp" onclick="closeModal('modal-file-info')">Fermer</button>
+                    <button id="btn-download-direct" class="btn-mmcp">📥 Télécharger</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-folder-form">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span id="folder-modal-title">Créer un dossier</span>
+                <button class="modal-close" onclick="closeModal('modal-folder-form')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label id="folder-input-label">Nom du dossier</label>
+                    <input type="text" id="folder-name-input" class="form-input" placeholder="Ex: Documents 2026">
+                </div>
+                <div class="form-group" id="color-picker-group">
+                    <label>Couleur du dossier</label>
+                    <div class="color-picker-wrapper" id="color-picker">
+                        <div class="color-dot selected" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
+                        <div class="color-dot" style="background-color: #10b981;" data-color="#10b981"></div>
+                        <div class="color-dot" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
+                        <div class="color-dot" style="background-color: #ef4444;" data-color="#ef4444"></div>
+                        <div class="color-dot" style="background-color: #8b5cf6;" data-color="#8b5cf6"></div>
+                        <div class="color-dot" style="background-color: #ec4899;" data-color="#ec4899"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px; flex-wrap: wrap;">
+                <button class="btn-secondary-mmcp" onclick="closeModal('modal-folder-form')">Annuler</button>
+                <button class="btn-mmcp" id="btn-save-folder">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+
+        let currentPath = [];
+        let itemsList = [];
+        let searchQuery = '';
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let editingFolderId = null;
+        let editingFileId = null;
+        let selectedColor = '#3b82f6';
+        let currentUserUid = null;
+        let viewingFileId = null;
+
+        function parsePath(pathValue) {
+            if (!pathValue) return [];
+            if (Array.isArray(pathValue)) return pathValue;
+            if (typeof pathValue === 'string') {
+                try {
+                    const parsed = JSON.parse(pathValue);
+                    if (Array.isArray(parsed)) return parsed;
+                } catch (e) { }
+                return pathValue.split('/').filter(Boolean);
+            }
+            return [];
+        }
+
+        function getWorkerFileUrl(value) {
+            if (!value) return '#';
+            const raw = String(value).trim();
+            if (!raw) return '#';
+            if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+            if (raw.startsWith('/')) return `https://api.worker.mm-cp.uk${raw}`;
+            return `https://api.worker.mm-cp.uk/api/files/${encodeURIComponent(raw)}`;
+        }
+
+        function isFolderItem(item) {
+            if (!item) return false;
+            const type = String(item.type || '').toLowerCase();
+            if (type === 'folder' || type === 'dossier') return true;
+            if (type === 'file' || type === 'fichier') return false;
+            const hasFileUrl = Boolean(item.file_url || item.url);
+            const hasFileExtension = Boolean(item.ext) || (typeof item.name === 'string' && item.name.includes('.'));
+            const hasSize = typeof item.size === 'string' && item.size.trim() !== '';
+            return !hasFileUrl && !hasFileExtension && !hasSize;
+        }
+
+        function isFileItem(item) {
+            if (!item) return false;
+            const type = String(item.type || '').toLowerCase();
+            if (type === 'file' || type === 'fichier') return true;
+            if (type === 'folder' || type === 'dossier') return false;
+            const hasFileUrl = Boolean(item.file_url || item.url);
+            const hasFileExtension = Boolean(item.ext) || (typeof item.name === 'string' && item.name.includes('.'));
+            const hasSize = typeof item.size === 'string' && item.size.trim() !== '';
+            return hasFileUrl || hasFileExtension || hasSize;
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        window.closeModal = function (modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        };
+
+        function buildRowKey(item, index) {
+            const source = String(item.source || '').toLowerCase();
+            const kind = source === 'user_drive_files' ? 'file' : (source === 'user_drive_folders' ? 'folder' : (isFileItem(item) ? 'file' : 'folder'));
+            const dbId = item.id !== undefined && item.id !== null ? String(item.id) : `generated-${index}-${Date.now()}`;
+            return `${kind}:${dbId}`;
+        }
+
+        async function chargerDrive() {
+            if (!currentUserUid) return;
+
+            try {
+                const res = await api.get(`/api/users/${currentUserUid}/drive`);
+                const rawList = Array.isArray(res) ? res : (res && res.items ? res.items : []);
+
+                itemsList = rawList.map((item, index) => {
+                    const source = String(item.source || '').toLowerCase();
+                    const isFile = source === 'user_drive_files' || isFileItem(item);
+                    const normalizedType = source === 'user_drive_folders' || (!isFile && isFolderItem(item)) ? 'folder' : 'file';
+                    const rowKey = buildRowKey(item, index);
+
+                    return {
+                        id: item.id !== undefined && item.id !== null ? String(item.id) : `generated-${index}-${Date.now()}`,
+                        rowKey,
+                        name: item.name || 'Sans nom',
+                        type: normalizedType,
+                        source: source === 'user_drive_files' ? 'user_drive_files' : (source === 'user_drive_folders' ? 'user_drive_folders' : (isFile ? 'user_drive_files' : 'user_drive_folders')),
+                        color: item.color || '#3b82f6',
+                        ext: item.ext || (normalizedType === 'folder' ? '' : (item.name ? item.name.split('.').pop() : '')),
+                        size: item.size || '-',
+                        file_url: getWorkerFileUrl(item.file_url || item.url || ''),
+                        path: parsePath(item.path || item.folder_path),
+                        date: item.date || (item.created_at ? item.created_at.split('T')[0] : '-')
+                    };
+                });
+            } catch (e) {
+                console.error('Erreur chargement drive:', e);
+                itemsList = [];
+            }
+
+            renderFinder();
+        }
+
+        function renderFinder() {
+            const tbody = document.getElementById('finder-tbody');
+            const breadcrumb = document.getElementById('breadcrumb');
+
+            let filteredItems = [];
+
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase();
+                filteredItems = itemsList.filter(item => item.name && item.name.toLowerCase().includes(q));
+                breadcrumb.innerHTML = `<span class="breadcrumb-item">Recherche : "${searchQuery}"</span>`;
+            } else {
+                const currentPathString = JSON.stringify(currentPath);
+                filteredItems = itemsList.filter(item => {
+                    const itemPathString = JSON.stringify(item.path || []);
+                    return itemPathString === currentPathString;
+                });
+
+                let breadcrumbHtml = '<span class="breadcrumb-item" onclick="navigateTo(-1)">Root</span>';
+                currentPath.forEach((folder, idx) => {
+                    breadcrumbHtml += ` / <span class="breadcrumb-item" onclick="navigateTo(${idx + 1})">${folder}</span>`;
+                });
+                breadcrumb.innerHTML = breadcrumbHtml;
+            }
+
+            const totalItems = filteredItems.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedItems = filteredItems.slice(startIndex, endIndex);
+
+            if (paginatedItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:30px;">Aucun élément trouvé</td></tr>`;
+            } else {
+                tbody.innerHTML = paginatedItems.map(item => {
+                    let icon = '📄';
+                    let iconBg = 'rgba(0,0,0,0.05)';
+                    const ext = (item.ext || '').toLowerCase();
+                    if (item.type === 'folder') {
+                        icon = '📁';
+                        iconBg = item.color || '#3b82f6';
+                    } else if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
+                        icon = '🖼️';
+                    } else if (['mp3', 'wav', 'flac', 'm4a'].includes(ext)) {
+                        icon = '🎵';
+                    } else if (['zip', 'rar', 'tar', 'gz'].includes(ext)) {
+                        icon = '📦';
+                    } else if (ext === 'pdf') {
+                        icon = '📑';
+                    }
+
+                    return `
+                        <tr class="finder-row" data-row-key="${item.rowKey}" data-type="${item.type}" draggable="true">
+                            <td>
+                                <div class="item-name-cell">
+                                    <span class="item-icon" style="background: ${item.type === 'folder' ? iconBg : 'rgba(0,0,0,0.05)'};">${icon}</span>
+                                    ${item.name}
+                                </div>
+                            </td>
+                            <td>${item.type === 'folder' ? 'Dossier' : 'Fichier ' + (item.ext || '').toUpperCase()}</td>
+                            <td>${item.size || '-'}</td>
+                            <td>${item.date || '-'}</td>
+                            <td style="text-align:right;">
+                                <div class="item-actions">
+                                    <button class="action-icon-btn" data-action="edit" data-row-key="${item.rowKey}" title="Renommer">✏️</button>
+                                    <button class="action-icon-btn" data-action="delete" data-row-key="${item.rowKey}" title="Supprimer">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const startDisplay = totalItems > 0 ? startIndex + 1 : 0;
+            const endDisplay = Math.min(endIndex, totalItems);
+            document.getElementById('pagination-info').innerText = `Affichage ${startDisplay}-${endDisplay} sur ${totalItems} éléments`;
+
+            const paginationButtons = document.getElementById('pagination-buttons');
+            let buttonsHtml = `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Précédent</button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                buttonsHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+            buttonsHtml += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}>Suivant</button>`;
+            paginationButtons.innerHTML = buttonsHtml;
+        }
+
+        window.changePage = function (page) {
+            currentPage = page;
+            renderFinder();
+        };
+
+        window.navigateTo = function (targetIndex) {
+            searchQuery = '';
+            document.getElementById('search-input').value = '';
+            if (targetIndex === -1) {
+                currentPath = [];
+            } else {
+                currentPath = currentPath.slice(0, targetIndex);
+            }
+            currentPage = 1;
+            renderFinder();
+        };
+
+        window.handleRowClick = function (event, rowKey) {
+            const item = itemsList.find(i => i.rowKey === rowKey);
+            if (!item) return;
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const source = String(item.source || '').toLowerCase();
+            const isFileFromTable = source === 'user_drive_files';
+            const isFile = isFileFromTable || isFileItem(item);
+            const isFolder = !isFileFromTable && isFolderItem(item);
+
+            if (isFileFromTable) {
+                viewingFileId = item.id;
+                const body = document.getElementById('modal-file-body');
+                const fileUrl = getWorkerFileUrl(item.file_url || item.url || '#');
+                body.innerHTML = `
+                    <div class="modal-info-row"><span class="modal-info-label">Nom du fichier</span><span class="modal-info-value">${item.name}</span></div>
+                    <div class="modal-info-row"><span class="modal-info-label">Type / Format</span><span class="modal-info-value">${(item.ext || '').toUpperCase()}</span></div>
+                    <div class="modal-info-row"><span class="modal-info-label">Taille</span><span class="modal-info-value">${item.size || '-'}</span></div>
+                    <div class="modal-info-row"><span class="modal-info-label">Date d'import</span><span class="modal-info-value">${item.date || '-'}</span></div>
+                    <div class="modal-info-row"><span class="modal-info-label">Lien direct</span><span class="modal-info-value"><a href="${fileUrl}" target="_blank" style="color:#3b82f6;">${fileUrl}</a></span></div>
+                `;
+
+                const downloadBtn = document.getElementById('btn-download-direct');
+                downloadBtn.onclick = async () => {
+                    try {
+                        const response = await fetch(fileUrl);
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = blobUrl;
+                        a.download = item.name;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(blobUrl);
+                        a.remove();
+                    } catch (e) {
+                        window.open(fileUrl, '_blank');
+                    }
+                };
+
+                document.getElementById('btn-rename-file').onclick = () => {
+                    closeModal('modal-file-info');
+                    openEditItem(item.rowKey);
+                };
+                openModal('modal-file-info');
+                return;
+            }
+
+            if (isFolder) {
+                if (searchQuery) {
+                    currentPath = [...(item.path || []), item.name];
+                    searchQuery = '';
+                    document.getElementById('search-input').value = '';
+                } else {
+                    currentPath.push(item.name);
+                }
+                currentPage = 1;
+                renderFinder();
+                return;
+            }
+
+            if (!isFile) {
+                console.warn('[Drive] Élément non classé, ouverture forcée en popup', item);
+            }
+
+            const body = document.getElementById('modal-file-body');
+            const fileUrl = getWorkerFileUrl(item.file_url || item.url || '#');
+            body.innerHTML = `
+                <div class="modal-info-row"><span class="modal-info-label">Nom du fichier</span><span class="modal-info-value">${item.name}</span></div>
+                <div class="modal-info-row"><span class="modal-info-label">Type / Format</span><span class="modal-info-value">${(item.ext || '').toUpperCase()}</span></div>
+                <div class="modal-info-row"><span class="modal-info-label">Taille</span><span class="modal-info-value">${item.size || '-'}</span></div>
+                <div class="modal-info-row"><span class="modal-info-label">Date d'import</span><span class="modal-info-value">${item.date || '-'}</span></div>
+                <div class="modal-info-row"><span class="modal-info-label">Lien direct</span><span class="modal-info-value"><a href="${fileUrl}" target="_blank" style="color:#3b82f6;">${fileUrl}</a></span></div>
+            `;
+
+            document.getElementById('btn-download-direct').onclick = async () => {
+                try {
+                    const response = await fetch(fileUrl);
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = blobUrl;
+                    a.download = item.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(blobUrl);
+                    a.remove();
+                } catch (e) {
+                    window.open(fileUrl, '_blank');
+                }
+            };
+
+            document.getElementById('btn-rename-file').onclick = () => {
+                closeModal('modal-file-info');
+                openEditItem(item.rowKey);
+            };
+            openModal('modal-file-info');
+        };
+
+        const finderTableBody = document.getElementById('finder-tbody');
+        if (finderTableBody) {
+            finderTableBody.addEventListener('click', (event) => {
+                const actionButton = event.target.closest('[data-action]');
+                if (actionButton) {
+                    const action = actionButton.getAttribute('data-action');
+                    const rowKey = actionButton.getAttribute('data-row-key');
+                    if (action === 'edit') {
+                        event.stopPropagation();
+                        openEditItem(rowKey);
+                        return;
+                    }
+                    if (action === 'delete') {
+                        event.stopPropagation();
+                        deleteItem(rowKey);
+                        return;
+                    }
+                }
+
+                const row = event.target.closest('.finder-row');
+                if (row && row.dataset.rowKey) {
+                    const rowKey = row.dataset.rowKey;
+                    window.handleRowClick(event, rowKey);
+                }
+            });
+        }
+
+        window.openEditItem = function (rowKey) {
+            const item = itemsList.find(i => i.rowKey === rowKey);
+            if (!item) return;
+
+            if (item.type === 'folder') {
+                editingFolderId = item.id;
+                editingFileId = null;
+                document.getElementById('folder-modal-title').innerText = 'Modifier le dossier';
+                document.getElementById('folder-input-label').innerText = 'Nom du dossier';
+                document.getElementById('folder-name-input').value = item.name;
+                document.getElementById('color-picker-group').style.display = 'flex';
+                selectedColor = item.color || '#3b82f6';
+                updateColorPickerUI();
+            } else {
+                editingFileId = item.id;
+                editingFolderId = null;
+                document.getElementById('folder-modal-title').innerText = 'Renommer le fichier';
+                document.getElementById('folder-input-label').innerText = 'Nouveau nom du fichier';
+                document.getElementById('folder-name-input').value = item.name;
+                document.getElementById('color-picker-group').style.display = 'none';
+            }
+            openModal('modal-folder-form');
+        };
+
+        function updateColorPickerUI() {
+            document.querySelectorAll('.color-dot').forEach(dot => {
+                dot.classList.toggle('selected', dot.getAttribute('data-color') === selectedColor);
+            });
+        }
+
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                selectedColor = dot.getAttribute('data-color');
+                updateColorPickerUI();
+            });
+        });
+
+        window.deleteItem = async function (rowKey) {
+            const item = itemsList.find(i => i.rowKey === rowKey);
+            if (!item) return;
+
+            if (confirm('Voulez-vous vraiment supprimer cet élément ?')) {
+                try {
+                    const res = await api.delete(`/api/users/${currentUserUid}/drive/${item.id}`);
+                    if (res && res.success) {
+                        itemsList = itemsList.filter(i => i.rowKey !== rowKey);
+                        renderFinder();
+                    } else {
+                        alert('Erreur lors de la suppression.');
+                    }
+                } catch (e) {
+                    console.error('Erreur suppression drive:', e);
+                }
+            }
+        };
+
+        document.getElementById('btn-create-folder').addEventListener('click', () => {
+            editingFolderId = null;
+            editingFileId = null;
+            document.getElementById('folder-modal-title').innerText = 'Créer un dossier';
+            document.getElementById('folder-input-label').innerText = 'Nom du dossier';
+            document.getElementById('folder-name-input').value = '';
+            document.getElementById('color-picker-group').style.display = 'flex';
+            selectedColor = '#3b82f6';
+            updateColorPickerUI();
+            openModal('modal-folder-form');
+        });
+
+        document.getElementById('btn-save-folder').addEventListener('click', async () => {
+            const name = document.getElementById('folder-name-input').value.trim();
+            if (!name) {
+                alert('Veuillez entrer un nom valide.');
+                return;
+            }
+
+            try {
+                if (editingFolderId) {
+                    await api.patch(`/api/users/${currentUserUid}/drive/${editingFolderId}`, { name, color: selectedColor });
+                } else if (editingFileId) {
+                    await api.patch(`/api/users/${currentUserUid}/drive/${editingFileId}`, { name });
+                } else {
+                    await api.post(`/api/users/${currentUserUid}/drive/folder`, {
+                        name,
+                        color: selectedColor,
+                        path: currentPath.join('/')
+                    });
+                }
+
+                closeModal('modal-folder-form');
+                await chargerDrive();
+            } catch (e) {
+                console.error('Erreur enregistrement drive:', e);
+                alert('Erreur lors de l’enregistrement.');
+            }
+        });
+
+        document.getElementById('btn-upload-file').addEventListener('click', () => {
+            document.getElementById('file-input-hidden').click();
+        });
+
+        document.getElementById('file-input-hidden').addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files || []);
+            if (!files.length) return;
+
+            try {
+                for (const file of files) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('folderPath', currentPath.join('/'));
+                    await api.post(`/api/users/${currentUserUid}/drive/upload`, formData);
+                }
+                event.target.value = '';
+                await chargerDrive();
+            } catch (e) {
+                console.error('Erreur upload drive:', e);
+                alert('Erreur lors de l’import du fichier.');
+            }
+        });
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            currentPage = 1;
+            renderFinder();
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = '/login.html';
+                return;
+            }
+            currentUserUid = user.uid;
+            await chargerDrive();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stockage & Fichiers | MMCP</title>
+    <link rel="apple-touch-icon" href="/assets/img/icons/icon-portailadmin.png">
+
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .page-title {
+            margin-top: 40px;
+            margin-bottom: 24px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-bar-left {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            padding: 10px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(189, 189, 189, 0.6);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+            outline: none;
+            width: 260px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: #000000;
+            background: #ffffff;
+            width: 300px;
+        }
+
+        .btn-mmcp {
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-mmcp:hover {
+            opacity: 0.85;
+        }
+
+        .btn-secondary-mmcp {
+            background: rgba(232, 232, 232, 0.6);
+            color: #000000;
+            border: 1px solid rgba(189, 189, 189, 0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary-mmcp:hover {
+            background: rgba(210, 210, 210, 0.8);
+        }
+
+        .finder-container {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.268);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 450px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .finder-container.drag-over {
+            border: 2px dashed #000000;
+            background-color: rgba(200, 230, 201, 0.3);
+        }
+
+        .finder-breadcrumb {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            color: #000000;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+
+        .breadcrumb-item:hover {
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        .finder-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .finder-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #64748b;
+            border-bottom: 1px solid rgba(189, 189, 189, 0.4);
+            font-weight: 600;
+        }
+
+        .finder-table td {
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #000000;
+            border-bottom: 1px solid rgba(189, 189, 189, 0.2);
+            vertical-align: middle;
+        }
+
+        .finder-row {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .finder-row:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .finder-row.folder-drop-target {
+            background-color: rgba(59, 130, 246, 0.2) !important;
+            outline: 2px dashed #3b82f6;
+        }
+
+        .item-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .item-name-cell {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #334155;
+            transition: background 0.2s;
+        }
+
+        .action-icon-btn:hover {
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 16px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(189, 189, 189, 0.5);
+            padding: 6px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #000000;
+            transition: all 0.2s;
+        }
+
+        .page-btn.active {
+            background: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 32px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .modal-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .modal-info-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .modal-info-value {
+            font-weight: 600;
+            color: #000000;
+            word-break: break-all;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #334155;
+        }
+
+        .form-input {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(189, 189, 189, 0.6);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #000000;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s;
+        }
+
+        .color-dot.selected {
+            border-color: #000000;
+            transform: scale(1.15);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <aside id="sidebar-injector" class="sidebar-container"></aside>
+
+        <main class="main-container">
+            <header id="navbar-injector" class="navbar-container"></header>
+
+            <div class="page-title">
+                <span>Gestionnaire de Stockage (Finder)</span>
+            </div>
+
+            <div class="action-bar">
+                <div class="action-bar-left">
+                    <button class="btn-mmcp" id="btn-create-folder">📁 Nouveau Dossier</button>
+                    <button class="btn-secondary-mmcp" id="btn-upload-file">⬆️ Importer Fichier</button>
+                    <input type="file" id="file-input-hidden" style="display: none;" multiple>
+                </div>
+                <div>
+                    <input type="text" id="search-input" class="search-input"
+                        placeholder="🔍 Rechercher un fichier/dossier...">
+                </div>
+            </div>
+
+            <div class="finder-container" id="finder-drop-zone">
+                <div class="finder-breadcrumb" id="breadcrumb" ondragover="event.preventDefault()"
+                    ondrop="dropToBreadcrumb(event)">
+                    <span class="breadcrumb-item" onclick="navigateTo(-1)">Root</span>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="finder-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Type</th>
+                                <th>Taille</th>
+                                <th>Date de modification</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finder-tbody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-container">
+                    <span id="pagination-info">Affichage 0-0 sur 0 éléments</span>
+                    <div class="pagination-buttons" id="pagination-buttons"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Infos Fichier avec Téléchargement Direct -->
+    <div class="modal-overlay" id="modal-file-info">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span id="modal-file-title-text">Informations du Fichier</span>
+                <button class="modal-close" onclick="closeModal('modal-file-info')">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-file-body"></div>
+            <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 10px;">
+                <button class="btn-secondary-mmcp" id="btn-rename-file"
+                    style="background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3);">✏️
+                    Renommer</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-secondary-mmcp" onclick="closeModal('modal-file-info')">Fermer</button>
+                    <button id="btn-download-direct" class="btn-mmcp">📥 Télécharger</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Créer / Renommer Dossier -->
+    <div class="modal-overlay" id="modal-folder-form">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span id="folder-modal-title">Créer un dossier</span>
+                <button class="modal-close" onclick="closeModal('modal-folder-form')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label id="folder-input-label">Nom du dossier</label>
+                    <input type="text" id="folder-name-input" class="form-input" placeholder="Ex: Masterings 2026">
+                </div>
+                <div class="form-group" id="color-picker-group">
+                    <label>Couleur du dossier</label>
+                    <div class="color-picker-wrapper" id="color-picker">
+                        <div class="color-dot selected" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
+                        <div class="color-dot" style="background-color: #10b981;" data-color="#10b981"></div>
+                        <div class="color-dot" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
+                        <div class="color-dot" style="background-color: #ef4444;" data-color="#ef4444"></div>
+                        <div class="color-dot" style="background-color: #8b5cf6;" data-color="#8b5cf6"></div>
+                        <div class="color-dot" style="background-color: #ec4899;" data-color="#ec4899"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                <button class="btn-secondary-mmcp" onclick="closeModal('modal-folder-form')">Annuler</button>
+                <button class="btn-mmcp" id="btn-save-folder">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+        import { initSidebar } from "./sidebar.js";
+        import { chargerProfilNavbar } from "./navbar.js";
+
+        async function injecterComposants() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) {
+                    document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+                    initSidebar(auth);
+                }
+
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) {
+                    document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
+                }
+            } catch (e) {
+                console.error("Erreur injection composants : ", e);
+            }
+        }
+
+        injecterComposants();
+
+        let currentPath = [];
+        let itemsList = [];
+        let searchQuery = '';
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let editingFolderId = null;
+        let editingFileId = null;
+        let viewingFileId = null;
+        let selectedColor = '#3b82f6';
+
+        function parsePath(pathValue) {
+            if (!pathValue) return [];
+            if (Array.isArray(pathValue)) return pathValue;
+            if (typeof pathValue === 'string') {
+                try {
+                    const parsed = JSON.parse(pathValue);
+                    if (Array.isArray(parsed)) return parsed;
+                } catch (e) { }
+                return pathValue.split('/').filter(Boolean);
+            }
+            return [];
+        }
+
+        function getWorkerFileUrl(rawValue) {
+            if (!rawValue) return '#';
+            const value = String(rawValue).trim();
+            if (!value) return '#';
+            if (value.startsWith('http://') || value.startsWith('https://')) return value;
+            if (value.startsWith('/')) return `https://api.worker.mm-cp.uk${value}`;
+            return `https://api.worker.mm-cp.uk/api/files/${encodeURIComponent(value)}`;
+        }
+
+        function isFileItem(item) {
+            if (!item) return false;
+            const type = String(item.type || '').toLowerCase();
+            if (type === 'file' || type === 'fichier') return true;
+            if (type === 'folder' || type === 'dossier') return false;
+
+            const hasFileUrl = Boolean(item.file_url || item.url);
+            const hasFileExtension = Boolean(item.ext) || (typeof item.name === 'string' && item.name.includes('.'));
+            const hasSize = typeof item.size === 'string' && item.size.trim() !== '';
+            return hasFileUrl || hasFileExtension || hasSize;
+        }
+
+        function isFolderItem(item) {
+            if (!item) return false;
+            const type = String(item.type || '').toLowerCase();
+            if (type === 'folder' || type === 'dossier') return true;
+            if (type === 'file' || type === 'fichier') return false;
+            return !isFileItem(item);
+        }
+
+        async function chargerStockage() {
+            try {
+                const res = await api.get("/api/admin/storage");
+                let rawList = [];
+                if (Array.isArray(res)) {
+                    rawList = res;
+                } else if (res && res.items) {
+                    rawList = res.items;
+                }
+
+                itemsList = rawList.map((item, index) => {
+                    const source = String(item.source || item.table || '').toLowerCase();
+                    const isFile = source === 'storage_files' || isFileItem(item);
+                    const normalizedType = source === 'storage_folders' || (!isFile && isFolderItem(item)) ? 'folder' : 'file';
+                    const dbId = item.id !== undefined && item.id !== null ? String(item.id) : `generated-${index}-${Date.now()}`;
+                    const rowKey = `${(source === 'storage_files' ? 'file' : (source === 'storage_folders' ? 'folder' : (isFile ? 'file' : 'folder')))}:${dbId}`;
+
+                    return {
+                        id: dbId,
+                        rowKey,
+                        name: item.name || "Sans nom",
+                        type: normalizedType,
+                        source: source === 'storage_files' ? 'storage_files' : (source === 'storage_folders' ? 'storage_folders' : (isFile ? 'storage_files' : 'storage_folders')),
+                        color: item.color || '#3b82f6',
+                        ext: item.ext || (normalizedType === 'folder' ? '' : (item.name ? item.name.split('.').pop() : '')),
+                        size: item.size || '-',
+                        file_url: getWorkerFileUrl(item.file_url || item.url || ''),
+                        path: parsePath(item.path || item.folder_path),
+                        date: item.date || (item.created_at ? item.created_at.split('T')[0] : '-')
+                    };
+                });
+            } catch (e) {
+                console.error("Erreur chargement stockage D1:", e);
+                itemsList = [];
+            }
+            renderFinder();
+        }
+
+
+        window.closeModal = function (modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function renderFinder() {
+            const tbody = document.getElementById('finder-tbody');
+            const breadcrumb = document.getElementById('breadcrumb');
+
+            let filteredItems = [];
+
+            if (searchQuery.trim() !== '') {
+                const query = searchQuery.toLowerCase();
+                filteredItems = itemsList.filter(item => item.name && item.name.toLowerCase().includes(query));
+                breadcrumb.innerHTML = `<span class="breadcrumb-item">Recherche : "${searchQuery}"</span>`;
+            } else {
+                const currentPathString = JSON.stringify(currentPath);
+                filteredItems = itemsList.filter(item => {
+                    const itemPathString = JSON.stringify(item.path || []);
+                    return itemPathString === currentPathString;
+                });
+
+                let breadcrumbHtml = `<span class="breadcrumb-item" onclick="navigateTo(-1)">Root</span>`;
+                currentPath.forEach((folder, idx) => {
+                    breadcrumbHtml += ` / <span class="breadcrumb-item" onclick="navigateTo(${idx + 1})">${folder}</span>`;
+                });
+                breadcrumb.innerHTML = breadcrumbHtml;
+            }
+
+            const totalItems = filteredItems.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedItems = filteredItems.slice(startIndex, endIndex);
+
+            if (paginatedItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 30px;">Aucun élément trouvé (Glissez des fichiers depuis votre ordinateur ici pour les importer)</td></tr>`;
+            } else {
+                tbody.innerHTML = paginatedItems.map(item => {
+                    let icon = '📄';
+                    let iconBg = 'rgba(0,0,0,0.05)';
+                    const ext = (item.ext || '').toLowerCase();
+                    if (item.type === 'folder') {
+                        icon = '📁';
+                        iconBg = item.color || '#3b82f6';
+                    } else if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
+                        icon = '🖼️';
+                    } else if (['mp3', 'wav', 'flac', 'm4a'].includes(ext)) {
+                        icon = '🎵';
+                    } else if (['zip', 'rar', 'tar', 'gz'].includes(ext)) {
+                        icon = '📦';
+                    } else if (ext === 'pdf') {
+                        icon = '📑';
+                    }
+
+                    const draggableAttr = `draggable="true" ondragstart="handleItemDragStart(event, '${item.rowKey}')"`;
+                    const dropAttr = item.type === 'folder' ? `ondragover="handleFolderDragOver(event)" ondragleave="handleFolderDragLeave(event)" ondrop="handleItemDropOnFolder(event, '${item.name}')"` : '';
+
+                    return `
+                        <tr class="finder-row" ${draggableAttr} ${dropAttr} onclick="handleRowClick(event, '${item.rowKey}')">
+                            <td class="item-name-cell">
+                                <span class="item-icon" style="background: ${item.type === 'folder' ? iconBg : 'rgba(0,0,0,0.05)'};">${icon}</span>
+                                ${item.name}
+                            </td>
+                            <td>${item.type === 'folder' ? 'Dossier' : 'Fichier ' + (item.ext || '').toUpperCase()}</td>
+                            <td>${item.size || '-'}</td>
+                            <td>${item.date || '-'}</td>
+                            <td style="text-align: right;" onclick="event.stopPropagation()">
+                                <div class="item-actions">
+                                    <button class="action-icon-btn" onclick="openEditItem('${item.rowKey}')" title="Renommer">✏️</button>
+                                    <button class="action-icon-btn" onclick="deleteItem('${item.rowKey}')" title="Supprimer">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const startDisplay = totalItems > 0 ? startIndex + 1 : 0;
+            const endDisplay = Math.min(endIndex, totalItems);
+            document.getElementById('pagination-info').innerText = `Affichage ${startDisplay}-${endDisplay} sur ${totalItems} éléments`;
+
+            const paginationButtons = document.getElementById('pagination-buttons');
+            let buttonsHtml = `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Précédent</button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                buttonsHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+            buttonsHtml += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}>Suivant</button>`;
+            paginationButtons.innerHTML = buttonsHtml;
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            currentPage = 1;
+            renderFinder();
+        });
+
+        window.navigateTo = function (targetIndex) {
+            searchQuery = '';
+            document.getElementById('search-input').value = '';
+            if (targetIndex === -1) {
+                currentPath = [];
+            } else {
+                currentPath = currentPath.slice(0, targetIndex);
+            }
+            currentPage = 1;
+            renderFinder();
+        }
+
+        window.handleRowClick = function (event, rowKey) {
+            const item = itemsList.find(i => i.rowKey === rowKey);
+            if (!item) return;
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const source = String(item.source || '').toLowerCase();
+            const isFileFromTable = source === 'storage_files';
+            const isFile = isFileFromTable || isFileItem(item);
+            const isFolder = !isFileFromTable && isFolderItem(item);
+
+            console.log('[Finder click]', {
+                rowKey,
+                source,
+                item,
+                type: item.type,
+                file_url: item.file_url,
+                ext: item.ext,
+                size: item.size,
+                isFileFromTable,
+                isFile,
+                isFolder
+            });
+
+            if (isFileFromTable) {
+                viewingFileId = item.id;
+                const body = document.getElementById('modal-file-body');
+                const fileUrl = getWorkerFileUrl(item.file_url || item.url || '#');
+                const workerDownloadUrl = fileUrl;
+                body.innerHTML = `
+        <div class="modal-info-row">
+            <span class="modal-info-label">Nom du fichier</span>
+            <span class="modal-info-value">${item.name}</span>
+        </div>
+        <div class="modal-info-row">
+            <span class="modal-info-label">Type / Format</span>
+            <span class="modal-info-value">${(item.ext || '').toUpperCase()}</span>
+        </div>
+        <div class="modal-info-row">
+            <span class="modal-info-label">Taille</span>
+            <span class="modal-info-value">${item.size || '-'}</span>
+        </div>
+        <div class="modal-info-row">
+            <span class="modal-info-label">Date d'import</span>
+            <span class="modal-info-value">${item.date || '-'}</span>
+        </div>
+        <div class="modal-info-row">
+            <span class="modal-info-label">Lien direct</span>
+            <span class="modal-info-value"><a href="${fileUrl}" target="_blank" style="color: #3b82f6;">${fileUrl}</a></span>
+        </div>
+    `;
+
+                const downloadBtn = document.getElementById('btn-download-direct');
+                downloadBtn.onclick = async () => {
+                    try {
+                        const response = await fetch(workerDownloadUrl);
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = blobUrl;
+                        a.download = item.name;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(blobUrl);
+                        a.remove();
+                    } catch (e) {
+                        window.open(workerDownloadUrl, '_blank');
+                    }
+                };
+
+                document.getElementById('btn-rename-file').onclick = () => {
+                    closeModal('modal-file-info');
+                    openEditItem(item.rowKey);
+                };
+                openModal('modal-file-info');
+                return;
+            }
+
+            if (isFolder) {
+                if (searchQuery) {
+                    currentPath = [...(item.path || []), item.name];
+                    searchQuery = '';
+                    document.getElementById('search-input').value = '';
+                } else {
+                    currentPath.push(item.name);
+                }
+                currentPage = 1;
+                renderFinder();
+                return;
+            }
+
+            if (!isFile) {
+                console.warn('[Finder] Élément non classé ni dossier ni fichier, ouverture forcée en popup par sécurité', item);
+            }
+
+            viewingFileId = item.id;
+            const body = document.getElementById('modal-file-body');
+            const fileUrl = getWorkerFileUrl(item.file_url || item.url || '#');
+            const workerDownloadUrl = fileUrl;
+            body.innerHTML = `
+        <div class="modal-info-row">
+            <span class="modal-info-label">Nom du fichier</span>
+            <span class="modal-info-value">${item.name}</span>
+        </div>
+        <div class="modal-info-row">
+            <span class="modal-info-label">Type / Format</span>
+            <span class="modal-info-value">${(item.ext || '').toUpperCase()}</span>
+        </div>
+        <div class="modal-info-row">
+            <span class="modal-info-label">Taille</span>
+            <span class="modal-info-value">${item.size || '-'}</span>
+        </div>
+        <div class="modal-info-row">
+            <span class="modal-info-label">Date d'import</span>
+            <span class="modal-info-value">${item.date || '-'}</span>
+        </div>
+        <div class="modal-info-row">
+            <span class="modal-info-label">Lien direct</span>
+            <span class="modal-info-value"><a href="${fileUrl}" target="_blank" style="color: #3b82f6;">${fileUrl}</a></span>
+        </div>
+    `;
+
+            const downloadBtn = document.getElementById('btn-download-direct');
+            downloadBtn.onclick = async () => {
+                try {
+                    const response = await fetch(workerDownloadUrl);
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = blobUrl;
+                    a.download = item.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(blobUrl);
+                    a.remove();
+                } catch (e) {
+                    window.open(workerDownloadUrl, '_blank');
+                }
+            };
+
+            document.getElementById('btn-rename-file').onclick = () => {
+                closeModal('modal-file-info');
+                openEditItem(item.rowKey);
+            };
+            openModal('modal-file-info');
+        }
+
+        window.changePage = function (page) {
+            currentPage = page;
+            renderFinder();
+        }
+
+        window.deleteItem = async function (rowKey) {
+            const item = itemsList.find(i => i.rowKey === rowKey);
+            if (!item) return;
+            if (confirm("Voulez-vous vraiment supprimer cet élément ?")) {
+                try {
+                    const res = await api.delete(`/api/admin/storage/${item.id}`);
+                    if (res && res.success) {
+                        itemsList = itemsList.filter(i => i.rowKey !== rowKey);
+                        renderFinder();
+                    } else {
+                        alert("Erreur lors de la suppression.");
+                    }
+                } catch (e) {
+                    console.error("Erreur suppression:", e);
+                }
+            }
+        }
+
+        document.getElementById('btn-create-folder').addEventListener('click', () => {
+            editingFolderId = null;
+            editingFileId = null;
+            document.getElementById('folder-modal-title').innerText = "Créer un dossier";
+            document.getElementById('folder-input-label').innerText = "Nom du dossier";
+            document.getElementById('folder-name-input').value = "";
+            document.getElementById('color-picker-group').style.display = 'flex';
+            selectedColor = '#3b82f6';
+            updateColorPickerUI();
+            openModal('modal-folder-form');
+        });
+
+        window.openEditItem = function (rowKey) {
+            const item = itemsList.find(i => i.rowKey === rowKey);
+            if (!item) return;
+
+            if (item.type === 'folder') {
+                editingFolderId = item.id;
+                editingFileId = null;
+                document.getElementById('folder-modal-title').innerText = "Modifier le dossier";
+                document.getElementById('folder-input-label').innerText = "Nom du dossier";
+                document.getElementById('folder-name-input').value = item.name;
+                document.getElementById('color-picker-group').style.display = 'flex';
+                selectedColor = item.color || '#3b82f6';
+                updateColorPickerUI();
+            } else {
+                editingFileId = item.id;
+                editingFolderId = null;
+                document.getElementById('folder-modal-title').innerText = "Renommer le fichier";
+                document.getElementById('folder-input-label').innerText = "Nouveau nom du fichier";
+                document.getElementById('folder-name-input').value = item.name;
+                document.getElementById('color-picker-group').style.display = 'none';
+            }
+            openModal('modal-folder-form');
+        }
+
+        const colorDots = document.querySelectorAll('.color-dot');
+        colorDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                selectedColor = dot.getAttribute('data-color');
+                updateColorPickerUI();
+            });
+        });
+
+        function updateColorPickerUI() {
+            colorDots.forEach(dot => {
+                if (dot.getAttribute('data-color') === selectedColor) {
+                    dot.classList.add('selected');
+                } else {
+                    dot.classList.remove('selected');
+                }
+            });
+        }
+
+        document.getElementById('btn-save-folder').addEventListener('click', async () => {
+            const name = document.getElementById('folder-name-input').value.trim();
+            if (!name) {
+                alert("Veuillez entrer un nom valide.");
+                return;
+            }
+
+            try {
+                if (editingFolderId) {
+                    const item = itemsList.find(i => String(i.id) === String(editingFolderId));
+                    if (item) {
+                        item.name = name;
+                        item.color = selectedColor;
+                        await api.patch(`/api/admin/storage/${editingFolderId}`, { name, color: selectedColor });
+                    }
+                } else if (editingFileId) {
+                    const item = itemsList.find(i => String(i.id) === String(editingFileId));
+                    if (item) {
+                        item.name = name;
+                        await api.patch(`/api/admin/storage/${editingFileId}`, { name });
+                    }
+                } else {
+                    const payload = {
+                        name: name,
+                        color: selectedColor,
+                        path: currentPath.join('/')
+                    };
+                    const res = await api.post("/api/admin/storage/folder", payload);
+                    if (res && res.success) {
+                        itemsList.push({
+                            id: String(res.id),
+                            name: name,
+                            type: 'folder',
+                            color: selectedColor,
+                            size: '-',
+                            date: new Date().toLocaleDateString('fr-FR'),
+                            path: [...currentPath]
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Erreur sauvegarde D1:", e);
+            }
+
+            closeModal('modal-folder-form');
+            renderFinder();
+        });
+
+        async function handleFilesUpload(files) {
+            if (!files || files.length === 0) return;
+
+            for (const file of Array.from(files)) {
+                const formData = new FormData();
+                formData.append("file", file);
+                formData.append("folderPath", currentPath.join('/'));
+
+                try {
+                    const res = await api.post("/api/admin/storage/upload", formData);
+                    if (res && res.success) {
+                        itemsList.push({
+                            id: String(res.id),
+                            name: res.name,
+                            type: 'file',
+                            ext: res.ext,
+                            size: res.size,
+                            file_url: res.url,
+                            path: [...currentPath],
+                            date: res.date || new Date().toLocaleDateString('fr-FR')
+                        });
+                    }
+                } catch (err) {
+                    console.error("Erreur upload fichier:", err);
+                }
+            }
+            renderFinder();
+        }
+
+        const fileInputHidden = document.getElementById('file-input-hidden');
+        document.getElementById('btn-upload-file').addEventListener('click', () => {
+            fileInputHidden.click();
+        });
+
+        fileInputHidden.addEventListener('change', async (e) => {
+            await handleFilesUpload(e.target.files);
+            fileInputHidden.value = '';
+        });
+
+        let draggedItemId = null;
+
+        window.handleItemDragStart = function (e, id) {
+            draggedItemId = id;
+            e.dataTransfer.setData('text/plain', id);
+        }
+
+        window.handleFolderDragOver = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.add('folder-drop-target');
+        }
+
+        window.handleFolderDragLeave = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove('folder-drop-target');
+        }
+
+        window.handleItemDropOnFolder = async function (e, targetFolderName) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove('folder-drop-target');
+
+            const itemId = draggedItemId || e.dataTransfer.getData('text/plain');
+            if (!itemId) return;
+
+            const item = itemsList.find(i => String(i.id) === String(itemId));
+            if (!item) return;
+
+            const newPath = [...currentPath, targetFolderName];
+            if (item.type === 'folder' && item.name === targetFolderName) return;
+
+            item.path = newPath;
+            draggedItemId = null;
+
+            try {
+                await api.patch(`/api/admin/storage/${item.id}`, { path: newPath.join('/') });
+            } catch (err) {
+                console.error("Erreur déplacement élément:", err);
+            }
+
+            renderFinder();
+        }
+
+        window.dropToBreadcrumb = async function (e) {
+            e.preventDefault();
+            const itemId = draggedItemId || e.dataTransfer.getData('text/plain');
+            if (!itemId) return;
+
+            const item = itemsList.find(i => String(i.id) === String(itemId));
+            if (!item) return;
+
+            item.path = [];
+            draggedItemId = null;
+
+            try {
+                await api.patch(`/api/admin/storage/${item.id}`, { path: '' });
+            } catch (err) {
+                console.error("Erreur déplacement vers la racine:", err);
+            }
+
+            renderFinder();
+        }
+
+        const dropZone = document.getElementById('finder-drop-zone');
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('drag-over');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (draggedItemId) return;
+
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0) {
+                await handleFilesUpload(files);
+            }
+        }, false);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                chargerStockage();
+                chargerProfilNavbar(null, user);
+            } else {
+                window.location.href = "/login.html";
+            }
+        });
+    </script>
+</body>
+
+</html>

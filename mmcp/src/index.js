@@ -26,11 +26,9 @@ function sanitizeSchemaJson(rawSchema) {
   let clean = String(rawSchema).trim();
   if (!clean) return "";
 
-  // Retrait des balises <script> englobantes si déjà présent dans la chaîne D1
   clean = clean.replace(/^<script[^>]*>/i, "").replace(/<\/script>$/i, "").trim();
 
   try {
-    // Si c'est un objet valide, on le reformate proprement
     const parsed = JSON.parse(clean);
     return JSON.stringify(parsed, null, 2);
   } catch (e) {
@@ -43,7 +41,6 @@ function generateReleaseOgHtml(release, currentUrl, domain, artistUser = null) {
   const releaseTitle = release?.title || 'Sortie musicale';
   const artistName = release?.artist_name || 'Artiste';
 
-  // Récupération du nom et prénom de l'artiste si disponible via les données utilisateur associées
   const firstName = artistUser?.first_name || '';
   const lastName = artistUser?.last_name || '';
   const fullName = (firstName || lastName) ? `${firstName} ${lastName}`.trim() : artistName;
@@ -56,7 +53,6 @@ function generateReleaseOgHtml(release, currentUrl, domain, artistUser = null) {
     coverUrl = "https://mm-cp.uk/assets/img/icons/sombre.png";
   }
 
-  // Génération / Récupération des données structurées Schema.org (JSON-LD)
   let schemaContent = sanitizeSchemaJson(release?.schema_json);
   if (!schemaContent) {
     const defaultSchema = {
@@ -81,7 +77,6 @@ function generateReleaseOgHtml(release, currentUrl, domain, artistUser = null) {
     <title>${title}</title>
     <meta name="description" content="${description}">
 
-    <!-- Open Graph / Facebook / LinkedIn / Discord -->
     <meta property="og:type" content="music.album">
     <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
@@ -91,13 +86,11 @@ function generateReleaseOgHtml(release, currentUrl, domain, artistUser = null) {
     <meta property="og:site_name" content="${siteName}">
     <meta property="og:locale" content="fr_FR">
 
-    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${title}">
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${coverUrl}">
 
-    <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
 ${schemaContent}
     </script>
@@ -135,7 +128,6 @@ function generateArtistOgHtml(artist, currentUrl, domain, latestRelease = null, 
   const latestReleaseTitle = latestRelease?.title || 'Aucune sortie récente';
   let latestReleaseCover = absoluteMediaUrl(latestRelease?.cover_url || latestRelease?.animated_cover_url, domain);
 
-  // Génération / Récupération des données structurées Schema.org (JSON-LD)
   let schemaContent = sanitizeSchemaJson(artist?.schema_json);
   if (!schemaContent) {
     const defaultSchema = {
@@ -156,7 +148,6 @@ function generateArtistOgHtml(artist, currentUrl, domain, latestRelease = null, 
     <title>${title}</title>
     <meta name="description" content="${description}">
 
-    <!-- Open Graph / Facebook / LinkedIn / Discord -->
     <meta property="og:type" content="profile">
     <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
@@ -166,13 +157,11 @@ function generateArtistOgHtml(artist, currentUrl, domain, latestRelease = null, 
     <meta property="og:site_name" content="${siteName}">
     <meta property="og:locale" content="fr_FR">
 
-    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${title}">
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${photoUrl}">
 
-    <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
 ${schemaContent}
     </script>
@@ -340,7 +329,6 @@ async function addUserLitualMessage(env, uid, conversationId, payload = {}) {
   }, 201);
 }
 
-// Fonction utilitaire pour déclencher le worker de migration de pochette uniquement si une pochette est renseignée
 function triggerCoverMigration(ctx, coverUrl = "", hdCoverUrl = "") {
   if (!coverUrl && !hdCoverUrl) return;
 
@@ -479,16 +467,19 @@ export default {
     }
 
     try {
+      const userId = await extractUserId(request);
+      const isAdminUser = userId ? await isAdmin(env, userId) : false;
+
       if (method === "POST" && (path === "/api/upload" || path.startsWith("/api/upload/"))) {
-        const userId = (await extractUserId(request)) || "anonymous";
+        const uploadUserId = userId || "anonymous";
         if (path === "/api/upload/chunk") {
-          return await uploadChunk(env, userId, request);
+          return await uploadChunk(env, uploadUserId, request);
         }
         if (path === "/api/upload/chunk/complete") {
-          return await completeChunkUpload(env, userId, request);
+          return await completeChunkUpload(env, uploadUserId, request);
         }
         const type = path.startsWith("/api/upload/") ? path.replace("/api/upload/", "") : "file";
-        return await uploadFile(env, userId, type, request);
+        return await uploadFile(env, uploadUserId, type, request);
       }
 
       if (method === "GET" && path === "/api/proxy-download") {
@@ -612,6 +603,40 @@ export default {
         return await serveFile(env, key);
       }
 
+      const userDriveRootMatch = path.match(/^\/api\/users\/([^/]+)\/drive$/);
+      if (userDriveRootMatch) {
+        const uid = userDriveRootMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "GET") return await listUserDrive(env, uid);
+      }
+
+      const userDriveFolderCreateMatch = path.match(/^\/api\/users\/([^/]+)\/drive\/folder$/);
+      if (userDriveFolderCreateMatch) {
+        const uid = userDriveFolderCreateMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "POST") return await createUserDriveFolder(env, uid, request);
+      }
+
+      const userDriveUploadMatch = path.match(/^\/api\/users\/([^/]+)\/drive\/upload$/);
+      if (userDriveUploadMatch) {
+        const uid = userDriveUploadMatch[1];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "POST") return await uploadUserDriveFile(env, uid, request);
+      }
+
+      const userDriveItemMatch = path.match(/^\/api\/users\/([^/]+)\/drive\/([^/]+)$/);
+      if (userDriveItemMatch) {
+        const uid = userDriveItemMatch[1];
+        const itemId = userDriveItemMatch[2];
+        const isSelf = uid === userId;
+        if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (method === "PATCH" || method === "PUT") return await updateUserDriveItem(env, uid, itemId, request);
+        if (method === "DELETE") return await deleteUserDriveItem(env, uid, itemId);
+      }
+
       if (method === "GET" && path.match(/^\/api\/releases\/\d+$/)) {
         const releaseId = path.split("/").pop();
         return await getPublicRelease(env, releaseId);
@@ -652,11 +677,50 @@ export default {
         }
       }
 
-      const userId = await extractUserId(request);
       if (!userId) {
         return corsJson({ error: "Authentification requise" }, 401);
       }
-      const isAdminUser = await isAdmin(env, userId);
+
+      // ROUTES ADMIN STOCKAGE & FINDER (Corrigées et unifiées)
+      if (path === "/api/admin/storage/folders") {
+        if (method === "GET") return await listStorageFolders(env);
+        if (method === "POST") return await createStorageFolder(env, request);
+      }
+
+      const adminFolderItemMatch = path.match(/^\/api\/admin\/storage\/folders\/([^/]+)$/);
+      if (adminFolderItemMatch) {
+        const folderId = adminFolderItemMatch[1];
+        if (method === "PATCH" || method === "PUT") return await updateStorageFolder(env, folderId, request);
+        if (method === "DELETE") return await deleteStorageFolder(env, folderId);
+      }
+
+      if (path === "/api/admin/storage/files") {
+        if (method === "GET") return await listStorageFiles(env, url);
+        if (method === "POST") return await uploadStorageFile(env, request);
+      }
+
+      const adminFileItemMatch = path.match(/^\/api\/admin\/storage\/files\/([^/]+)$/);
+      if (adminFileItemMatch) {
+        const fileId = adminFileItemMatch[1];
+        if (method === "DELETE") return await deleteStorageFile(env, fileId);
+      }
+
+      // Raccourcis complémentaires pour compatibilité totale avec le frontend stockage.html
+      if (path === "/api/admin/storage" && method === "GET") {
+        return await listAdminStorage(env);
+      }
+      if (path === "/api/admin/storage/folder" && method === "POST") {
+        return await createStorageFolder(env, request);
+      }
+      if (path === "/api/admin/storage/upload" && method === "POST") {
+        return await uploadStorageFile(env, request);
+      }
+      const storageItemMatch = path.match(/^\/api\/admin\/storage\/([^/]+)$/);
+      if (storageItemMatch) {
+        const itemId = storageItemMatch[1];
+        if (method === "PATCH" || method === "PUT") return await updateStorageItem(env, itemId, request);
+        if (method === "DELETE") return await deleteStorageItem(env, itemId);
+      }
 
       const userGreenlistMatch = path.match(/^\/api\/users\/([^/]+)\/greenlist$/);
       if (userGreenlistMatch) {
@@ -995,7 +1059,7 @@ function corsJson(data, status = 200) {
 }
 
 function getBucket(env, type = "file") {
-  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette", "lrics", "lyrics", "document", "logo"].includes(type);
+  const isMediaUpload = ["track", "atmos", "inst", "motion", "cover", "pochette", "lrics", "lyrics", "document", "logo", "storage"].includes(type);
   if (isMediaUpload) {
     return env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2 || null;
   }
@@ -1021,7 +1085,9 @@ function getContentType(ext) {
     txt: "text/plain",
     pdf: "application/pdf",
     doc: "application/msword",
-    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    zip: "application/zip",
+    json: "application/json"
   };
   return map[ext.toLowerCase()] || "application/octet-stream";
 }
@@ -1862,6 +1928,205 @@ async function broadcastNotification(env, request, isAdminUser, ctx) {
   }
 }
 
+// FONCTIONS DE GESTION STOCKAGE & FINDER (ADMIN)
+async function listStorageFolders(env) {
+  try {
+    const { results } = await env.DB.prepare("SELECT *, 'folder' AS type FROM storage_folders ORDER BY created_at ASC").all();
+    return corsJson(results || []);
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function listAdminStorage(env) {
+  try {
+    const [foldersResult, filesResult] = await Promise.all([
+      env.DB.prepare("SELECT *, 'folder' AS type FROM storage_folders ORDER BY created_at ASC").all(),
+      env.DB.prepare("SELECT *, 'file' AS type FROM storage_files ORDER BY created_at DESC").all()
+    ]);
+
+    const folders = (foldersResult.results || []).map(folder => ({
+      ...folder,
+      type: 'folder',
+      source: 'storage_folders',
+      path: folder.path || '',
+      color: folder.color || '#3b82f6',
+      url: null,
+      file_url: null
+    }));
+
+    const files = (filesResult.results || []).map(file => ({
+      ...file,
+      type: 'file',
+      source: 'storage_files',
+      folder_path: file.folder_path || '',
+      path: file.folder_path || '',
+      url: file.file_url || null,
+      file_url: file.file_url || null
+    }));
+
+    return corsJson([...folders, ...files]);
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function createStorageFolder(env, request) {
+  try {
+    const data = await request.json();
+    const name = String(data.name || "").trim();
+    const color = String(data.color || "#3b82f6").trim();
+    const path = String(data.path || "").trim();
+    const now = new Date().toISOString();
+
+    if (!name) return corsJson({ error: "Nom de dossier requis" }, 400);
+
+    const res = await env.DB.prepare(`
+      INSERT INTO storage_folders (name, color, path, created_at)
+      VALUES (?, ?, ?, ?)
+    `).bind(name, color, path, now).run();
+
+    return corsJson({ id: res.meta.last_row_id, name, color, path, success: true, type: 'folder' }, 201);
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function updateStorageFolder(env, folderId, request) {
+  try {
+    const data = await request.json();
+    const name = data.name !== undefined ? String(data.name).trim() : null;
+    const color = data.color !== undefined ? String(data.color).trim() : null;
+
+    await env.DB.prepare(`
+      UPDATE storage_folders 
+      SET name = COALESCE(?, name),
+          color = COALESCE(?, color)
+      WHERE id = ?
+    `).bind(name, color, folderId).run();
+
+    return corsJson({ success: true, type: 'folder' });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function deleteStorageFolder(env, folderId) {
+  try {
+    await env.DB.prepare("DELETE FROM storage_folders WHERE id = ?").bind(folderId).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function updateStorageFile(env, fileId, request) {
+  try {
+    const data = await request.json();
+    const name = data.name !== undefined ? String(data.name).trim() : null;
+    const folderPath = data.path !== undefined ? String(data.path).trim() : null;
+
+    await env.DB.prepare(`
+      UPDATE storage_files
+      SET name = COALESCE(?, name),
+          folder_path = COALESCE(?, folder_path)
+      WHERE id = ?
+    `).bind(name, folderPath, fileId).run();
+
+    return corsJson({ success: true, type: 'file' });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function updateStorageItem(env, itemId, request) {
+  const folder = await env.DB.prepare("SELECT id FROM storage_folders WHERE id = ?").bind(itemId).first();
+  if (folder) return await updateStorageFolder(env, itemId, request);
+
+  const file = await env.DB.prepare("SELECT id FROM storage_files WHERE id = ?").bind(itemId).first();
+  if (file) return await updateStorageFile(env, itemId, request);
+
+  return corsJson({ error: "Élément introuvable" }, 404);
+}
+
+async function deleteStorageFile(env, fileId) {
+  try {
+    await env.DB.prepare("DELETE FROM storage_files WHERE id = ?").bind(fileId).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function deleteStorageItem(env, itemId) {
+  const folder = await env.DB.prepare("SELECT id FROM storage_folders WHERE id = ?").bind(itemId).first();
+  if (folder) return await deleteStorageFolder(env, itemId);
+
+  const file = await env.DB.prepare("SELECT id FROM storage_files WHERE id = ?").bind(itemId).first();
+  if (file) return await deleteStorageFile(env, itemId);
+
+  return corsJson({ error: "Élément introuvable" }, 404);
+}
+
+async function listStorageFiles(env, url) {
+  try {
+    const { results } = await env.DB.prepare("SELECT *, 'file' AS type FROM storage_files ORDER BY created_at DESC").all();
+    return corsJson(results || []);
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function uploadStorageFile(env, request) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file");
+    const folderPath = String(formData.get("folderPath") || "").trim();
+
+    if (!file) return corsJson({ error: "Aucun fichier fourni" }, 400);
+
+    const filename = file.name || "fichier";
+    const ext = filename.split(".").pop().toLowerCase();
+    const key = `storage/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+    const sizeBytes = file.size || 0;
+    const sizeMo = sizeBytes > 1024 * 1024
+      ? (sizeBytes / (1024 * 1024)).toFixed(1) + ' Mo'
+      : (sizeBytes / 1024).toFixed(0) + ' Ko';
+
+    const bucket = getBucket(env, "storage");
+    if (bucket) {
+      await bucket.put(key, await file.arrayBuffer(), {
+        httpMetadata: { contentType: file.type || getContentType(ext) },
+      });
+    } else {
+      return corsJson({ error: "Stockage R2 non configuré" }, 500);
+    }
+
+    const fileUrl = `/api/files/${encodeURIComponent(key)}`;
+    const now = new Date().toISOString();
+    const formattedDate = new Date().toLocaleDateString('fr-FR');
+
+    const res = await env.DB.prepare(`
+      INSERT INTO storage_files (name, ext, size, file_url, folder_path, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(filename, ext, sizeMo, fileUrl, folderPath, now).run();
+
+    return corsJson({
+      id: res.meta.last_row_id,
+      name: filename,
+      type: 'file',
+      ext,
+      size: sizeMo,
+      url: fileUrl,
+      path: folderPath ? folderPath.split('/') : [],
+      date: formattedDate,
+      success: true
+    }, 201);
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
 async function ensureTables(db) {
   await db.batch([
     db.prepare(`
@@ -1933,6 +2198,26 @@ async function ensureTables(db) {
         schema_json TEXT,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS storage_folders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        color TEXT DEFAULT '#3b82f6',
+        path TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS storage_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        ext TEXT,
+        size TEXT,
+        file_url TEXT NOT NULL,
+        folder_path TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `),
     db.prepare(`
@@ -2197,6 +2482,28 @@ async function ensureTables(db) {
         file_url TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS user_drive_folders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        name TEXT NOT NULL,
+        color TEXT DEFAULT '#3b82f6',
+        path TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS user_drive_files (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT NOT NULL,
+        name TEXT NOT NULL,
+        ext TEXT DEFAULT '',
+        size TEXT DEFAULT '-',
+        file_url TEXT NOT NULL,
+        folder_path TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
     `)
   ]);
 
@@ -2309,6 +2616,198 @@ async function getUserDocuments(env, uid) {
   } catch (err) {
     return corsJson([], 200);
   }
+}
+
+async function listUserDrive(env, uid) {
+  try {
+    const [foldersResult, filesResult] = await Promise.all([
+      env.DB.prepare("SELECT *, 'folder' AS type FROM user_drive_folders WHERE user_uid = ? ORDER BY created_at ASC").bind(uid).all(),
+      env.DB.prepare("SELECT *, 'file' AS type FROM user_drive_files WHERE user_uid = ? ORDER BY created_at DESC").bind(uid).all()
+    ]);
+
+    const folders = (foldersResult.results || []).map(folder => ({
+      ...folder,
+      type: 'folder',
+      source: 'user_drive_folders',
+      path: folder.path || '',
+      color: folder.color || '#3b82f6',
+      url: null,
+      file_url: null
+    }));
+
+    const files = (filesResult.results || []).map(file => ({
+      ...file,
+      type: 'file',
+      source: 'user_drive_files',
+      folder_path: file.folder_path || '',
+      path: file.folder_path || '',
+      url: file.file_url || null,
+      file_url: file.file_url || null
+    }));
+
+    return corsJson([...folders, ...files]);
+  } catch (err) {
+    return corsJson([], 200);
+  }
+}
+
+async function createUserDriveFolder(env, uid, request) {
+  try {
+    const data = await request.json();
+    const name = String(data.name || "").trim();
+    const color = String(data.color || "#3b82f6").trim();
+    const path = String(data.path || "").trim();
+    const now = new Date().toISOString();
+
+    if (!name) return corsJson({ error: "Nom de dossier requis" }, 400);
+
+    const res = await env.DB.prepare(`
+      INSERT INTO user_drive_folders (user_uid, name, color, path, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(uid, name, color, path, now).run();
+
+    return corsJson({ id: res.meta.last_row_id, name, color, path, success: true, type: 'folder' }, 201);
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function updateUserDriveFolder(env, uid, folderId, request) {
+  try {
+    const data = await request.json();
+    const name = data.name !== undefined ? String(data.name).trim() : null;
+    const color = data.color !== undefined ? String(data.color).trim() : null;
+
+    const exists = await env.DB.prepare("SELECT id FROM user_drive_folders WHERE id = ? AND user_uid = ?").bind(folderId, uid).first();
+    if (!exists) return corsJson({ error: "Dossier introuvable" }, 404);
+
+    await env.DB.prepare(`
+      UPDATE user_drive_folders
+      SET name = COALESCE(?, name),
+          color = COALESCE(?, color)
+      WHERE id = ? AND user_uid = ?
+    `).bind(name, color, folderId, uid).run();
+
+    return corsJson({ success: true, type: 'folder' });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function deleteUserDriveFolder(env, uid, folderId) {
+  try {
+    const exists = await env.DB.prepare("SELECT id FROM user_drive_folders WHERE id = ? AND user_uid = ?").bind(folderId, uid).first();
+    if (!exists) return corsJson({ error: "Dossier introuvable" }, 404);
+
+    await env.DB.prepare("DELETE FROM user_drive_folders WHERE id = ? AND user_uid = ?").bind(folderId, uid).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function uploadUserDriveFile(env, uid, request) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file");
+    const folderPath = String(formData.get("folderPath") || "").trim();
+
+    if (!file) return corsJson({ error: "Aucun fichier fourni" }, 400);
+
+    const filename = file.name || "fichier";
+    const ext = filename.split(".").pop().toLowerCase();
+    const key = `drive/${uid}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+    const sizeBytes = file.size || 0;
+    const sizeText = sizeBytes > 1024 * 1024
+      ? (sizeBytes / (1024 * 1024)).toFixed(1) + ' Mo'
+      : (sizeBytes / 1024).toFixed(0) + ' Ko';
+
+    const bucket = getBucket(env, "storage");
+    if (bucket) {
+      await bucket.put(key, await file.arrayBuffer(), {
+        httpMetadata: { contentType: file.type || getContentType(ext) },
+      });
+    } else {
+      return corsJson({ error: "Stockage R2 non configuré" }, 500);
+    }
+
+    const fileUrl = `https://api.worker.mm-cp.uk/api/files/${encodeURIComponent(key)}`;
+    const now = new Date().toISOString();
+    const formattedDate = new Date().toLocaleDateString('fr-FR');
+
+    const res = await env.DB.prepare(`
+      INSERT INTO user_drive_files (user_uid, name, ext, size, file_url, folder_path, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(uid, filename, ext, sizeText, fileUrl, folderPath, now).run();
+
+    return corsJson({
+      id: res.meta.last_row_id,
+      name: filename,
+      type: 'file',
+      ext,
+      size: sizeText,
+      url: fileUrl,
+      path: folderPath ? folderPath.split('/') : [],
+      date: formattedDate,
+      success: true
+    }, 201);
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function updateUserDriveFile(env, uid, fileId, request) {
+  try {
+    const data = await request.json();
+    const name = data.name !== undefined ? String(data.name).trim() : null;
+    const folderPath = data.path !== undefined ? String(data.path).trim() : null;
+
+    const exists = await env.DB.prepare("SELECT id FROM user_drive_files WHERE id = ? AND user_uid = ?").bind(fileId, uid).first();
+    if (!exists) return corsJson({ error: "Fichier introuvable" }, 404);
+
+    await env.DB.prepare(`
+      UPDATE user_drive_files
+      SET name = COALESCE(?, name),
+          folder_path = COALESCE(?, folder_path)
+      WHERE id = ? AND user_uid = ?
+    `).bind(name, folderPath, fileId, uid).run();
+
+    return corsJson({ success: true, type: 'file' });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function deleteUserDriveFile(env, uid, fileId) {
+  try {
+    const exists = await env.DB.prepare("SELECT id FROM user_drive_files WHERE id = ? AND user_uid = ?").bind(fileId, uid).first();
+    if (!exists) return corsJson({ error: "Fichier introuvable" }, 404);
+
+    await env.DB.prepare("DELETE FROM user_drive_files WHERE id = ? AND user_uid = ?").bind(fileId, uid).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function updateUserDriveItem(env, uid, itemId, request) {
+  const folder = await env.DB.prepare("SELECT id FROM user_drive_folders WHERE id = ? AND user_uid = ?").bind(itemId, uid).first();
+  if (folder) return await updateUserDriveFolder(env, uid, itemId, request);
+
+  const file = await env.DB.prepare("SELECT id FROM user_drive_files WHERE id = ? AND user_uid = ?").bind(itemId, uid).first();
+  if (file) return await updateUserDriveFile(env, uid, itemId, request);
+
+  return corsJson({ error: "Élément introuvable" }, 404);
+}
+
+async function deleteUserDriveItem(env, uid, itemId) {
+  const folder = await env.DB.prepare("SELECT id FROM user_drive_folders WHERE id = ? AND user_uid = ?").bind(itemId, uid).first();
+  if (folder) return await deleteUserDriveFolder(env, uid, itemId);
+
+  const file = await env.DB.prepare("SELECT id FROM user_drive_files WHERE id = ? AND user_uid = ?").bind(itemId, uid).first();
+  if (file) return await deleteUserDriveFile(env, uid, itemId);
+
+  return corsJson({ error: "Élément introuvable" }, 404);
 }
 
 async function createUserDocument(env, uid, request, isAdminUser, ctx) {
@@ -3247,7 +3746,6 @@ async function createRelease(env, uid, request, ctx) {
   const artistName = data.artistName || "";
   const labelName = (data.labelName || data.label || "Morgann Music CP").trim();
 
-  // Récupération de la saisie utilisateur ou application du format par défaut
   const customC = data.copyrightLineC?.trim() || artistName;
   const copyrightLineC = `${customC} | Distribué par Morgann Music CP. Tous les droits sont réservés à ${artistName}.`;
 
@@ -3371,7 +3869,6 @@ async function createRelease(env, uid, request, ctx) {
     });
   }
 
-  // Déclenchement conditionnel de la migration
   triggerCoverMigration(ctx, coverUrl, pochetteHd);
 
   return corsJson({ id: res.meta.last_row_id, success: true }, 201);
@@ -3539,7 +4036,6 @@ async function patchRelease(env, uid, releaseId, request, ctx) {
       await triggerReleaseStatusNotification(env, ctx, rel.user_uid, rel.title, releaseId, rel.status, data.status);
     }
 
-    // Déclenchement conditionnel de la migration si une pochette existe
     const finalCover = data.coverUrl !== undefined ? data.coverUrl : rel?.cover_url;
     const finalHd = pochetteHd !== null ? pochetteHd : rel?.pochette_haute_definition;
     triggerCoverMigration(ctx, finalCover, finalHd);
@@ -3858,7 +4354,7 @@ async function serveFile(env, rawKey) {
       return new Response("Fichier non trouvé", { status: 404 });
     }
 
-    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette|lyrics|lrics|document|logo)\//.test(key);
+    const isMediaKey = /^(track|atmos|inst|motion|cover|pochette|lyrics|lrics|document|logo|storage)\//.test(key);
     const bucket = isMediaKey ? (env.STORAGE || env.BUCKET || env.MEDIA_BUCKET || env.R2) : (env.BUCKET || env.MEDIA_BUCKET || env.STORAGE || env.R2);
 
     if (bucket) {

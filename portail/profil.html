@@ -389,6 +389,17 @@
         </div>
     </div>
 
+    <div id="drive-media-modal" class="popup-overlay" style="display:none;">
+        <div class="popup-content" style="max-width:640px;">
+            <button class="popup-close"
+                onclick="document.getElementById('drive-media-modal').style.display='none'">✕</button>
+            <h2 style="margin-top:0;">Choisir dans mon Drive</h2>
+            <div id="drive-media-list"
+                style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; margin-top:20px;">
+            </div>
+        </div>
+    </div>
+
     <div id="edit-profile-popup" class="popup-overlay">
         <div class="popup-content">
             <button class="popup-close" onclick="fermerPopupEdition()">✕</button>
@@ -402,17 +413,29 @@
 
                 <div class="form-group">
                     <label>Importer la photo de profil</label>
-                    <input type="file" id="edit-avatar-file" accept="image/*">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <input type="file" id="edit-avatar-file" accept="image/*" style="flex:1; min-width:220px;">
+                        <button type="button" class="btmodif" style="margin:0; padding:10px 14px;"
+                            onclick="ouvrirDrivePickerMedia('avatar')">Depuis mon Drive</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Importer le logo de l'artiste</label>
-                    <input type="file" id="edit-logo-file" accept="image/*">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <input type="file" id="edit-logo-file" accept="image/*" style="flex:1; min-width:220px;">
+                        <button type="button" class="btmodif" style="margin:0; padding:10px 14px;"
+                            onclick="ouvrirDrivePickerMedia('logo')">Depuis mon Drive</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Importer la bannière</label>
-                    <input type="file" id="edit-banner-file" accept="image/*">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <input type="file" id="edit-banner-file" accept="image/*" style="flex:1; min-width:220px;">
+                        <button type="button" class="btmodif" style="margin:0; padding:10px 14px;"
+                            onclick="ouvrirDrivePickerMedia('banner')">Depuis mon Drive</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -460,6 +483,143 @@
                 chargerDonneesArtiste(user.uid, artistId);
             }
         });
+
+        const selectedDriveMedia = {
+            avatar: null,
+            logo: null,
+            banner: null
+        };
+
+        function normalizeDrivePath(value) {
+            return String(value || '').split('/').map(part => part.trim()).filter(Boolean);
+        }
+
+        function matchesCurrentDrivePath(item, currentPath) {
+            const itemPath = normalizeDrivePath(item.path || item.folder_path || item.folderPath || '');
+            if (itemPath.length === 0 && currentPath.length === 0) return true;
+            if (itemPath.length === 0) return false;
+            return itemPath.length === currentPath.length && currentPath.every((segment, index) => itemPath[index] === segment);
+        }
+
+        async function getUserDriveImages() {
+            const user = auth.currentUser;
+            if (!user) return [];
+            try {
+                const res = await api.get(`/api/users/${user.uid}/drive`);
+                const items = Array.isArray(res) ? res : [];
+                return items.filter(item => {
+                    const source = String(item.source || '').toLowerCase();
+                    const isFolder = source === 'user_drive_folders' || item.type === 'folder' || !((item.file_url || item.url) || item.ext || item.name?.includes('.'));
+                    if (isFolder) return true;
+                    const ext = String(item.ext || (item.name ? item.name.split('.').pop() : '') || '').toLowerCase();
+                    return ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'bmp'].includes(ext);
+                });
+            } catch (err) {
+                console.error('Erreur lecture Drive images:', err);
+                return [];
+            }
+        }
+
+        function renderDriveMediaList(kind, state) {
+            const modal = document.getElementById('drive-media-modal');
+            const list = document.getElementById('drive-media-list');
+            if (!modal || !list) return;
+
+            const currentPath = state.currentPath || [];
+            const visibleItems = state.items.filter(item => matchesCurrentDrivePath(item, currentPath));
+            const folders = visibleItems.filter(item => {
+                const source = String(item.source || '').toLowerCase();
+                return source === 'user_drive_folders' || item.type === 'folder' || !((item.file_url || item.url) || item.ext || item.name?.includes('.'));
+            });
+            const files = visibleItems.filter(item => !folders.includes(item));
+
+            let html = '';
+            if (currentPath.length > 0) {
+                const previousPath = currentPath.slice(0, -1);
+                html += `
+                    <button type="button" class="drive-media-item" data-kind="back" data-path="${previousPath.join('/')}" style="border-style:dashed; background:#f8fafc;">
+                        <span style="font-size:28px;">📁</span>
+                        <span>Retour</span>
+                    </button>
+                `;
+            }
+
+            folders.forEach(item => {
+                const targetPath = normalizeDrivePath(item.path || item.folder_path || item.folderPath || item.name).length ? normalizeDrivePath(item.path || item.folder_path || item.folderPath || item.name) : [item.name || 'Dossier'];
+                html += `
+                    <button type="button" class="drive-media-item" data-kind="folder" data-path="${targetPath.join('/')}" data-name="${item.name || 'Dossier'}">
+                        <span style="font-size:28px;">📁</span>
+                        <span>${item.name || 'Dossier'}</span>
+                    </button>
+                `;
+            });
+
+            files.forEach(file => {
+                const url = file.file_url || file.url || '#';
+                html += `
+                    <button type="button" class="drive-media-item" data-kind="file" data-url="${url}" data-name="${file.name || 'Image'}">
+                        <img src="${api.fileUrl(url)}" alt="${file.name || 'image'}" style="width:72px;height:72px; object-fit:cover; border-radius:12px;">
+                        <span>${file.name || 'Image'}</span>
+                    </button>
+                `;
+            });
+
+            if (!folders.length && !files.length) {
+                html = '<p>Aucun visuel dans ce dossier.</p>';
+            }
+
+            list.innerHTML = html;
+
+            list.querySelectorAll('[data-kind="folder"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    state.currentPath = normalizeDrivePath(button.dataset.path || button.dataset.name || '');
+                    renderDriveMediaList(kind, state);
+                });
+            });
+
+            list.querySelectorAll('[data-kind="back"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    state.currentPath = normalizeDrivePath(button.dataset.path || '');
+                    renderDriveMediaList(kind, state);
+                });
+            });
+
+            list.querySelectorAll('[data-kind="file"]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const url = button.dataset.url;
+                    selectedDriveMedia[kind] = url;
+                    modal.style.display = 'none';
+                    if (kind === 'avatar') {
+                        document.getElementById('artist-avatar').src = api.fileUrl(url);
+                    }
+                    if (kind === 'logo') {
+                        document.getElementById('artist-logo').src = api.fileUrl(url);
+                        document.getElementById('artist-logo-box').style.display = 'flex';
+                    }
+                    if (kind === 'banner') {
+                        document.getElementById('artist-banner').src = api.fileUrl(url);
+                    }
+                });
+            });
+        }
+
+        function openDriveMediaModal(kind) {
+            const modal = document.getElementById('drive-media-modal');
+            const list = document.getElementById('drive-media-list');
+            if (!modal || !list) return;
+            modal.style.display = 'flex';
+            list.innerHTML = '<p>Chargement...</p>';
+
+            const state = { currentPath: [], items: [] };
+            getUserDriveImages().then((items) => {
+                state.items = items;
+                renderDriveMediaList(kind, state);
+            });
+        }
+
+        window.ouvrirDrivePickerMedia = function (kind) {
+            openDriveMediaModal(kind);
+        };
 
         async function uploadFileToCloudflare(file, type = "cover") {
             const formData = new FormData();
@@ -618,15 +778,21 @@
                 let bannerUrl = currentArtistData.bannerUrl || currentArtistData.banUrl || "";
                 let logoUrl = currentArtistData.logoUrl || currentArtistData.logo_url || "";
 
-                if (avatarFileInput.files && avatarFileInput.files[0]) {
+                if (selectedDriveMedia.avatar) {
+                    photo = selectedDriveMedia.avatar;
+                } else if (avatarFileInput.files && avatarFileInput.files[0]) {
                     photo = await uploadFileToCloudflare(avatarFileInput.files[0], "cover");
                 }
 
-                if (logoFileInput.files && logoFileInput.files[0]) {
+                if (selectedDriveMedia.logo) {
+                    logoUrl = selectedDriveMedia.logo;
+                } else if (logoFileInput.files && logoFileInput.files[0]) {
                     logoUrl = await uploadFileToCloudflare(logoFileInput.files[0], "logo");
                 }
 
-                if (bannerFileInput.files && bannerFileInput.files[0]) {
+                if (selectedDriveMedia.banner) {
+                    bannerUrl = selectedDriveMedia.banner;
+                } else if (bannerFileInput.files && bannerFileInput.files[0]) {
                     bannerUrl = await uploadFileToCloudflare(bannerFileInput.files[0], "cover");
                 }
 

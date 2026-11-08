@@ -209,6 +209,15 @@ export const api = {
   },
 
   /**
+   * DELETE request
+   * @param {string} path
+   * @param {Object} [data]
+   */
+  async delete(path, data) {
+    return apiFetch(path, { method: "DELETE", body: data });
+  },
+
+  /**
    * Upload un fichier vers R2 via le Worker.
    * @param {string} type - "avatar", "pochette", "banner"
    * @param {File} file - L'objet File à uploader
