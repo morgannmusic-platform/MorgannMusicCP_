@@ -106,7 +106,42 @@
 
 <body>
     <div id="navbar"></div>
+    <!-- MODAL ANNONCE FERMETURE TEMPORAIRE SUR LA PAGE TARIFS -->
+    <div id="closed-notice-overlay"
+        style="position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div
+            style="background: linear-gradient(140deg, var(--container1), var(--container3)); border: 2px solid var(--beige); border-radius: 36px; padding: 2.5rem 2rem; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; align-items: center; gap: 1.2rem; animation: popupAnim 0.3s ease-out forwards;">
+            <span style="font-size: 3rem; line-height: 1;">🔒</span>
+            <h2 style="color: var(--beige); font-size: 1.7rem; font-weight: 800; margin: 0;">Service temporairement
+                fermé</h2>
+            <p style="color: var(--muted); font-size: 0.98rem; line-height: 1.6; margin: 0;">
+                Morgann Music CP est actuellement fermé et réouvrira le <strong>1er Janvier</strong>.
+            </p>
+            <div
+                style="background: rgba(217, 56, 56, 0.1); border: 1px solid rgba(217, 56, 56, 0.3); padding: 14px 18px; border-radius: 18px; text-align: center;">
+                <p style="color: #d93838; font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1.5;">
+                    ⚠️ N'effectuez aucun paiement ! En aucun cas un abonnement ne doit être souscrit, même si les
+                    formulaires de paiement Stripe restent fonctionnels.
+                </p>
+            </div>
+            <button id="close-notice-btn" class="plan-button"
+                style="width: 100%; max-width: 200px; margin-top: 0.3rem; cursor: pointer; border: none; font-size: 1rem; background: var(--beige); color: white;">
+                OK
+            </button>
+        </div>
+    </div>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const overlay = document.getElementById("closed-notice-overlay");
+            const closeBtn = document.getElementById("close-notice-btn");
+            if (closeBtn && overlay) {
+                closeBtn.addEventListener("click", () => {
+                    overlay.style.display = "none";
+                });
+            }
+        });
+    </script>
     <main class="tarifs-page">
         <header class="tarifs-hero">
             <p class="tarifs-kicker">Transparence totale</p>

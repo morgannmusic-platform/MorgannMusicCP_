@@ -515,6 +515,17 @@ export default {
     const hostname = url.hostname.toLowerCase();
     const method = request.method;
 
+    if (method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          ...corsHeaders(),
+          "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Requested-With, X-HTTP-Method-Override",
+          "Access-Control-Max-Age": "86400",
+        },
+      });
+    }
+
     if (method === "GET" && path === "/auth/youtube/callback") {
       return await handleYoutubeOAuthCallback(request, env, url);
     }
@@ -3471,6 +3482,7 @@ async function upsertUser(env, uid, request) {
   return corsJson({ success: true });
 }
 
+// À mettre à jour dans patchUser dans index.js
 async function patchUser(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
@@ -3514,6 +3526,7 @@ async function patchUser(env, uid, request) {
   await env.DB.prepare(`UPDATE users SET ${sets.join(", ")} WHERE uid = ?`).bind(...values).run();
   return corsJson({ success: true });
 }
+
 
 function formatUserRow(row) {
   if (!row) return null;

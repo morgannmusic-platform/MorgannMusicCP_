@@ -29,13 +29,42 @@
             </div>
             <p class="account-subtitle">Gérez vos informations, vos coordonnées et la sécurité de votre compte.</p>
         </header>
+        <!-- Dans la barre des onglets -->
         <nav class="tabs" role="tablist" aria-label="Sections du compte">
             <button class="tab-btn is-active" data-tab="profile" role="tab" aria-selected="true">Compte</button>
             <button class="tab-btn" data-tab="contact" role="tab" aria-selected="false">Coordonnées</button>
             <button class="tab-btn" data-tab="subscription" role="tab" aria-selected="false">Abonnement</button>
+            <button class="tab-btn" data-tab="emails" role="tab" aria-selected="false">Emails</button>
             <button class="tab-btn" data-tab="documents" role="tab" aria-selected="false">Documents</button>
             <button class="tab-btn" data-tab="security" role="tab" aria-selected="false">Sécurité</button>
         </nav>
+
+        <!-- Nouvel onglet Emails -->
+        <section class="tab-panel" data-panel="emails" role="tabpanel">
+            <div class="security-box">
+                <h3>Préférences de communication</h3>
+                <p>Gérez la réception de nos e-mails d'actualités et d'informations.</p>
+
+                <div
+                    style="display: flex; align-items: center; gap: 12px; margin-top: 1.5rem; background: #ffffff; padding: 16px; border-radius: 12px; border: 1px solid #e0e0e0;">
+                    <input type="checkbox" id="newsletter-checkbox"
+                        style="width: 22px; height: 22px; cursor: pointer; accent-color: #d0a75a;">
+                    <label for="newsletter-checkbox"
+                        style="font-weight: 600; cursor: pointer; color: #2c3e10; font-size: 15px;">
+                        Newsletter Morgann Music CP
+                    </label>
+                </div>
+                <p style="font-size: 13px; color: #666; margin-top: 8px; margin-left: 4px;">
+                    Recevez les dernières actualités, conseils exclusifs et annonce de sorties directement dans votre
+                    boîte mail.
+                </p>
+            </div>
+
+            <div class="section-actions" style="margin-top: 1.5rem;">
+                <button id="save-emails-btn" type="button" class="save-btn">Enregistrer les préférences</button>
+                <p class="account-feedback feedback" role="status" aria-live="polite"></p>
+            </div>
+        </section>
         <form id="account-form">
             <section class="tab-panel is-active" data-panel="profile" role="tabpanel">
                 <div class="info-grid">

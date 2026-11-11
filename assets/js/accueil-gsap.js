@@ -33,3 +33,14 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('section').forEach(sec => observer.observe(sec));
     }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const overlay = document.getElementById("closed-notice-overlay");
+    const closeBtn = document.getElementById("close-notice-btn");
+
+    if (closeBtn && overlay) {
+        closeBtn.addEventListener("click", () => {
+            overlay.style.display = "none";
+        });
+    }
+});

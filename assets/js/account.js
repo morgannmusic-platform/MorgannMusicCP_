@@ -34,6 +34,11 @@ const totpSecretText = document.getElementById("totp-secret-text");
 const totpCodeInput = document.getElementById("totp-code-input");
 const qrcodeContainer = document.getElementById("qrcode");
 
+// Onglet Emails & Documents
+const newsletterCheckbox = document.getElementById("newsletter-checkbox");
+const saveEmailsBtn = document.getElementById("save-emails-btn");
+const userDocumentsList = document.getElementById("user-documents-list");
+
 // Infos utilisateur
 const roleBadge = document.getElementById("role-badge");
 const userUid = document.getElementById("user-uid");
@@ -96,7 +101,7 @@ const getUserFriendlyError = (error) => {
     return error?.message || "Une erreur est survenue. Vérifiez vos informations et réessayez.";
 };
 
-// Stockage de l'état de la demande
+// Stockage de l'état de la demande de changement d'e-mail
 const emailChangeStorageKey = "mmcp_email_change_request";
 
 const readPendingEmailChange = () => {
@@ -119,13 +124,47 @@ const clearPendingEmailChange = () => {
 };
 
 // -------------------------------------------------------------
+// CHARGEMENT DES DOCUMENTS DE L'UTILISATEUR (RÉPARATION)
+// -------------------------------------------------------------
+const loadUserDocuments = async (uid) => {
+    if (!userDocumentsList) return;
+    try {
+        const docs = await api.get(`/api/users/${uid}/documents`);
+
+        if (Array.isArray(docs) && docs.length > 0) {
+            userDocumentsList.innerHTML = docs.map(doc => `
+                <div class="info-card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; margin-bottom: 10px; background: #ffffff; border-radius: 14px; border: 1px solid #eee;">
+                    <div>
+                        <h4 style="margin: 0 0 6px 0; color: #2c3e10; font-weight: 700;">${doc.title}</h4>
+                        ${doc.description ? `<p style="margin: 0 0 6px 0; font-size: 13px; color: #555;">${doc.description}</p>` : ''}
+                        <span style="font-size: 11px; color: #888;">Ajouté le ${new Date(doc.created_at).toLocaleDateString('fr-FR')}</span>
+                    </div>
+                    <a href="${api.fileUrl(doc.file_url)}" target="_blank" rel="noopener noreferrer" class="save-btn" style="text-decoration: none; padding: 8px 18px; font-size: 13px; background: #d0a75a; color: #fff;">
+                        📄 Consulter
+                    </a>
+                </div>
+            `).join("");
+        } else {
+            userDocumentsList.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #666;">
+                    <p style="font-weight: 600; font-size: 16px; color: #2c3e10; margin: 0 0 5px 0;">Aucun document pour le moment</p>
+                    <p style="font-size: 13px; color: #777; margin: 0;">Il n'y a pas de document disponible pour l'instant !</p>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error("Erreur lors de la récupération des documents :", err);
+        userDocumentsList.innerHTML = `<p style="color: red; font-size: 13px;">Impossible de charger les documents.</p>`;
+    }
+};
+
+// -------------------------------------------------------------
 // GESTION DE L'INTERFACE UTILISATEUR POUR LE CHANGEMENT D'EMAIL
 // -------------------------------------------------------------
 const setEmailVerificationUI = () => {
     const pending = readPendingEmailChange();
     const stage = pending?.stage || "idle";
 
-    // Injection ou récupération de la bannière d'information de confirmation
     let noticeEl = document.getElementById("email-awaiting-notice");
     if (!noticeEl && emailForm) {
         noticeEl = document.createElement("div");
@@ -321,7 +360,6 @@ const validatePendingEmailCode = async (currentUser, password, pending) => {
         setFeedback("Validation du code en cours...", "info");
         await reauthenticateCurrentUser(password || pending.password);
 
-        // Firebase envoie l'email de confirmation
         await verifyBeforeUpdateEmail(currentUser, pending.newEmail);
 
         const updatedPending = {
@@ -413,7 +451,7 @@ emailCodeInputs.forEach((input, index) => {
 });
 
 // -------------------------------------------------------------
-// SOUMISSION DES FORMULAIRES
+// NAVIGATION DANS LES ONGLETS ET SOUMISSIONS DE FORMULAIRES
 // -------------------------------------------------------------
 const selectTab = (tabId) => {
     tabButtons.forEach((button) => {
@@ -426,6 +464,7 @@ const selectTab = (tabId) => {
 
 tabButtons.forEach((button) => button.addEventListener("click", () => selectTab(button.dataset.tab)));
 
+// Sauvegarde du profil principal
 profileForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const currentUser = auth.currentUser;
@@ -463,6 +502,27 @@ profileForm?.addEventListener("submit", async (event) => {
     }
 });
 
+// Enregistrement des préférences de l'onglet Emails (Newsletter)
+saveEmailsBtn?.addEventListener("click", async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    setFeedback("Enregistrement des préférences...", "info");
+
+    try {
+        await api.patch(`/api/users/${currentUser.uid}`, {
+            newsletterEnabled: newsletterCheckbox ? newsletterCheckbox.checked : true
+        });
+
+        setFeedback("Préférences e-mails enregistrées !", "success");
+        setTimeout(() => setFeedback("", ""), 4000);
+    } catch (error) {
+        console.error("Erreur enregistrement e-mails :", error);
+        setFeedback("Erreur lors de la mise à jour des préférences.", "error");
+    }
+});
+
+// Changement d'e-mail dans l'onglet Sécurité
 emailForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const currentUser = auth.currentUser;
@@ -570,19 +630,14 @@ passwordForm?.addEventListener("submit", async (event) => {
     try {
         setPasswordFeedback("Modification du mot de passe en cours...", "info");
 
-        // 1. Re-authentification Firebase
         await reauthenticateCurrentUser(currentPassword);
-
-        // 2. Mise à jour dans Firebase Auth
         await updatePassword(currentUser, newPassword);
 
-        // 3. Alerte de sécurité par email via Worker MMCP
         const passwordMessage = `Le mot de passe de ton compte Morgann Music CP (<strong>${currentUser.email}</strong>) a été modifié avec succès.<br><br>Si tu n'es pas à l'origine de ce changement, réinitialise ton mot de passe immédiatement.`;
         const htmlContent = generateEmailTemplate("Alerte de sécurité : Mot de passe modifié", passwordMessage);
 
         await sendSecurityEmailViaFunctions(currentUser.email, "Modification de votre mot de passe", htmlContent);
 
-        // Vider les champs
         currentPasswordInput.value = "";
         newPasswordInput.value = "";
         confirmPasswordInput.value = "";
@@ -613,11 +668,9 @@ onAuthStateChanged(auth, async (user) => {
 
     const currentPending = readPendingEmailChange();
 
-    // Vérification du retour de validation du mail Firebase
     if (currentPending && currentPending.stage === "awaiting-firebase-confirmation") {
         if (user.email && user.email.toLowerCase() === currentPending.newEmail.toLowerCase()) {
             try {
-                // Maj de la base D1 + envoi des emails de confirmation
                 await api.patch(`/api/users/${user.uid}`, { email: currentPending.newEmail });
                 await sendEmailChangeConfirmationEmails(currentPending.oldEmail, currentPending.newEmail);
                 clearPendingEmailChange();
@@ -638,7 +691,6 @@ onAuthStateChanged(auth, async (user) => {
         setEmailVerificationUI();
     }
 
-    // Chargement des données utilisateur depuis D1
     try {
         const data = await api.get(`/api/users/${user.uid}`);
         if (data && !data.error) {
@@ -650,13 +702,11 @@ onAuthStateChanged(auth, async (user) => {
             if (ibanInput) ibanInput.value = data.iban || "";
             if (userArtist) userArtist.textContent = data.artistName || "Non renseigné";
 
-            // Affichage du plan d'abonnement D1
             if (userPlanEl) {
                 const rawPlan = data.plan_name || data.planName || "Gratuit";
                 userPlanEl.textContent = rawPlan.charAt(0).toUpperCase() + rawPlan.slice(1);
             }
 
-            // Affichage du statut d'abonnement D1
             if (subscriptionStatusEl) {
                 const status = data.subscription_status || data.subscriptionStatus;
                 if (status === "active") {
@@ -666,6 +716,10 @@ onAuthStateChanged(auth, async (user) => {
                 } else {
                     subscriptionStatusEl.textContent = status;
                 }
+            }
+
+            if (newsletterCheckbox) {
+                newsletterCheckbox.checked = data.newsletterEnabled !== false && data.newsletter_enabled !== 0;
             }
 
             if (data.photoURL && avatarPreviewImg) {
@@ -679,6 +733,10 @@ onAuthStateChanged(auth, async (user) => {
                 roleBadge.className = `role-badge ${roleClassMap[safeRole]}`;
             }
         }
+
+        // Chargement automatique des documents
+        await loadUserDocuments(user.uid);
+
     } catch (err) {
         console.error("Erreur lors de la récupération des infos D1 :", err);
     }

@@ -131,6 +131,39 @@
     <div id="navbar"></div>
     <div class="content-wrapper">
 
+        <!-- MODAL ANNONCE FERMETURE TEMPORAIRE -->
+        <div id="closed-notice-overlay"
+            style="position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+            <div
+                style="background: linear-gradient(140deg, var(--container1), var(--container3)); border: 2px solid var(--rose); border-radius: 36px; padding: 2.5rem 2rem; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; align-items: center; gap: 1.2rem; animation: popupAnim 0.3s ease-out forwards;">
+                <span style="font-size: 3rem; line-height: 1;">🔒</span>
+                <h2 style="color: var(--rose); font-size: 1.7rem; font-weight: 800; margin: 0;">Morgann Music CP est
+                    fermé</h2>
+                <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6; margin: 0;">
+                    Notre service de distribution est actuellement en maintenance fermée. <br>
+                    Nous aurons le plaisir de vous retrouver dès le <strong>1er Janvier</strong> !
+                </p>
+                <button id="close-notice-btn" class="cta-button"
+                    style="width: 100%; max-width: 200px; margin-top: 0.5rem; cursor: pointer; border: none; font-size: 1rem;">
+                    OK
+                </button>
+            </div>
+        </div>
+
+        <style>
+            @keyframes popupAnim {
+                from {
+                    opacity: 0;
+                    transform: scale(0.85) translateY(20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+        </style>
+
         <!-- HERO SECTION -->
         <header class="hero-section">
             <div class="hero-content">
