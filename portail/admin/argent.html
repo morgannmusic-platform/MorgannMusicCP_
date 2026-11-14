@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Argent | MMCP Admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .argent-container {
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+        }
+
+        /* EN-TÊTE SOLDE + BOUTON AJOUTER */
+        .solde-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 110px;
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            padding: 24px;
+        }
+
+        .solde-center {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .solde-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #525252;
+            font-weight: 600;
+        }
+
+        .solde-value {
+            font-size: 46px;
+            font-weight: 800;
+            color: #000000;
+            line-height: 1.1;
+            transition: color 0.2s ease;
+        }
+
+        .solde-value.positive {
+            color: #10b981;
+        }
+
+        .solde-value.negative {
+            color: #f43f5e;
+        }
+
+        .btn-add-argent {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: #FC8FB0;
+            color: #ffffff;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(252, 143, 176, 0.35);
+            transition: background 0.2s, transform 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-add-argent:hover {
+            background: #ae6178;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 600px) {
+            .solde-header {
+                flex-direction: column;
+                gap: 16px;
+                padding-top: 28px;
+            }
+
+            .btn-add-argent {
+                position: static;
+            }
+        }
+
+        /* CARTE GLASSMORPHISM */
+        .card {
+            background-color: rgba(232, 232, 232, 0.349);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 34px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.173);
+            color: #000000;
+            padding: 24px;
+        }
+
+        /* BARRE DE FILTRES */
+        .filters-bar {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 14px;
+            align-items: end;
+        }
+
+        @media (max-width: 900px) {
+            .filters-bar {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .filters-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #525252;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding-left: 8px;
+        }
+
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.55);
+            border-radius: 34px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+            padding: 11px 16px;
+            font-size: 14px;
+            color: #000000;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            border-color: #FC8FB0;
+        }
+
+        /* LISTE DES 10 DERNIERS MONTANTS */
+        .transactions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .transactions-header h3 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .transactions-badge {
+            font-size: 12px;
+            background: #FC8FB0;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .transaction-row {
+            background-color: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 22px;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            transition: transform 0.15s ease, border-color 0.2s ease;
+        }
+
+        .transaction-row:hover {
+            transform: translateY(-2px);
+            border-color: #FC8FB0;
+        }
+
+        .transaction-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .transaction-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .transaction-icon.gain {
+            background: rgba(16, 185, 129, 0.16);
+            color: #10b981;
+        }
+
+        .transaction-icon.perte {
+            background: rgba(244, 63, 94, 0.16);
+            color: #f43f5e;
+        }
+
+        .transaction-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .transaction-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .transaction-desc {
+            font-size: 13px;
+            color: #525252;
+        }
+
+        .transaction-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .transaction-date {
+            font-size: 12px;
+            color: #64748b;
+            background: rgba(232, 232, 232, 0.6);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .transaction-amount {
+            font-size: 17px;
+            font-weight: 800;
+            min-width: 95px;
+            text-align: right;
+        }
+
+        .transaction-amount.gain {
+            color: #10b981;
+        }
+
+        .transaction-amount.perte {
+            color: #f43f5e;
+        }
+
+        .btn-delete-tx {
+            background: rgba(244, 63, 94, 0.12);
+            color: #f43f5e;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .btn-delete-tx:hover {
+            background: #f43f5e;
+            color: #ffffff;
+        }
+
+        /* POP-UP MODAL */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background-color: rgba(255, 245, 248, 0.92);
+            backdrop-filter: blur(62px);
+            -webkit-backdrop-filter: blur(62px);
+            border: 1px solid rgba(189, 189, 189, 0.55);
+            border-radius: 34px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 480px;
+            padding: 28px;
+            color: #000000;
+            animation: popIn 0.2s ease-out;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .btn-close-modal {
+            background: rgba(0, 0, 0, 0.08);
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .btn-close-modal:hover {
+            background: rgba(0, 0, 0, 0.16);
+        }
+
+        /* SÉLECTEUR GAIN / PERTE */
+        .type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .type-btn {
+            padding: 12px;
+            border-radius: 24px;
+            border: 2px solid rgba(189, 189, 189, 0.5);
+            background: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #475569;
+            transition: all 0.2s;
+        }
+
+        .type-btn.active-gain {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: #10b981;
+            color: #059669;
+        }
+
+        .type-btn.active-perte {
+            background: rgba(244, 63, 94, 0.18);
+            border-color: #f43f5e;
+            color: #e11d48;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .btn-submit-modal {
+            background: #FC8FB0;
+            color: #ffffff;
+            border: none;
+            padding: 13px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-submit-modal:hover {
+            background: #ae6178;
+        }
+
+        .alert-status {
+            font-size: 13px;
+            text-align: center;
+            margin-top: 6px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <aside id="sidebar-injector" class="sidebar-container"></aside>
+
+        <main class="main-container">
+            <header id="navbar-injector" class="navbar-container"></header>
+
+            <div class="argent-container">
+
+                <!-- SOLDE TOTAL AU MILIEU + BOUTON AJOUTER EN HAUT À DROITE -->
+                <div class="solde-header">
+                    <div class="solde-center">
+                        <span class="solde-label">Solde total (depuis 1 Novembre 2026)</span>
+                        <div class="solde-value" id="solde-total">0€</div>
+                    </div>
+
+                    <button type="button" class="btn-add-argent" id="btn-open-modal">
+                        <span>+</span> Ajouter
+                    </button>
+                </div>
+
+                <!-- BARRE DE RECHERCHE & SÉLECTEURS (ANNÉES, MOIS, MONTANTS) -->
+                <div class="card">
+                    <div class="filters-bar">
+                        <div class="form-group">
+                            <label for="search-input">Recherche</label>
+                            <input type="text" id="search-input" class="form-control"
+                                placeholder="Rechercher un titre, une description...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="filter-year">Année</label>
+                            <select id="filter-year" class="form-control">
+                                <option value="">Toutes les années</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="filter-month">Mois</label>
+                            <select id="filter-month" class="form-control">
+                                <option value="">Tous les mois</option>
+                                <option value="01">Janvier</option>
+                                <option value="02">Février</option>
+                                <option value="03">Mars</option>
+                                <option value="04">Avril</option>
+                                <option value="05">Mai</option>
+                                <option value="06">Juin</option>
+                                <option value="07">Juillet</option>
+                                <option value="08">Août</option>
+                                <option value="09">Septembre</option>
+                                <option value="10">Octobre</option>
+                                <option value="11">Novembre</option>
+                                <option value="12">Décembre</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="filter-amount">Montants</label>
+                            <select id="filter-amount" class="form-control">
+                                <option value="">Tous les montants</option>
+                                <option value="gain">Gains uniquement (+)</option>
+                                <option value="perte">Pertes uniquement (-)</option>
+                                <option value="0-50">0€ à 50€</option>
+                                <option value="50-200">50€ à 200€</option>
+                                <option value="200+">Plus de 200€</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LISTE DES 10 DERNIERS MONTANTS (TRIÉS PAR DATE RENSEIGNÉE) -->
+                <div class="card">
+                    <div class="transactions-header">
+                        <h3>Les 10 derniers montants</h3>
+                        <span class="transactions-badge" id="transactions-count">0 affiché</span>
+                    </div>
+
+                    <div id="transactions-list" class="transactions-list">
+                        <p style="color: #64748b; font-size: 14px;">Chargement des transactions...</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- POP-UP AJOUTER UN MOUVEMENT D'ARGENT -->
+    <div class="modal-overlay" id="argent-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Nouveau mouvement</h3>
+                <button type="button" class="btn-close-modal" id="btn-close-modal">&times;</button>
+            </div>
+
+            <div class="type-toggle">
+                <button type="button" class="type-btn active-gain" id="btn-type-gain">+ Gain d'argent</button>
+                <button type="button" class="type-btn" id="btn-type-perte">- Perte d'argent</button>
+            </div>
+
+            <form id="argent-form" class="modal-form">
+                <input type="hidden" id="tx-type" value="gain">
+
+                <div class="form-group">
+                    <label for="tx-montant">Montant (€)</label>
+                    <input type="number" id="tx-montant" class="form-control" step="0.01" min="0.01" required
+                        placeholder="Ex: 49.99">
+                </div>
+
+                <div class="form-group">
+                    <label for="tx-titre">Titre</label>
+                    <input type="text" id="tx-titre" class="form-control" required
+                        placeholder="Ex: Vente album / Abonnement serveur">
+                </div>
+
+                <div class="form-group">
+                    <label for="tx-description">Description</label>
+                    <input type="text" id="tx-description" class="form-control"
+                        placeholder="Détails complémentaires...">
+                </div>
+
+                <div class="form-group">
+                    <label for="tx-date">Date</label>
+                    <input type="date" id="tx-date" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn-submit-modal">Enregistrer</button>
+                <div id="modal-status" class="alert-status"></div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from "/assets/js/firebase.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import { api } from "/assets/js/api.js";
+        import { initSidebar } from "./sidebar.js";
+        import { chargerProfilNavbar } from "./navbar.js";
+
+        let toutesTransactions = [];
+
+        async function injecterComposants() {
+            try {
+                const resSidebar = await fetch('sidebar.html');
+                if (resSidebar.ok) {
+                    document.getElementById('sidebar-injector').innerHTML = await resSidebar.text();
+                    initSidebar(auth);
+                }
+                const resNavbar = await fetch('navbar.html');
+                if (resNavbar.ok) {
+                    document.getElementById('navbar-injector').innerHTML = await resNavbar.text();
+                    if (auth.currentUser) chargerProfilNavbar(null, auth.currentUser);
+                }
+            } catch (e) {
+                console.error("Erreur d'injection des composants:", e);
+            }
+        }
+
+        // Formatage montant en euros
+        function formaterEuro(val) {
+            const num = Number(val) || 0;
+            const estEntier = Number.isInteger(num);
+            return num.toLocaleString('fr-FR', {
+                minimumFractionDigits: estEntier ? 0 : 2,
+                maximumFractionDigits: 2
+            }) + '€';
+        }
+
+        // Formatage date lisible (DD/MM/YYYY)
+        function formaterDateFR(dateStr) {
+            if (!dateStr) return "Date inconnue";
+            const parts = dateStr.split('T')[0].split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        // Calcul du solde total depuis la table argent
+        function mettreAJourSoldeTotal() {
+            const soldeEl = document.getElementById('solde-total');
+            const total = toutesTransactions.reduce((acc, item) => {
+                const montant = Math.abs(Number(item.montant) || 0);
+                return item.type === 'perte' ? acc - montant : acc + montant;
+            }, 0);
+
+            soldeEl.textContent = formaterEuro(total);
+            soldeEl.classList.remove('positive', 'negative');
+            if (total > 0) soldeEl.classList.add('positive');
+            if (total < 0) soldeEl.classList.add('negative');
+        }
+
+        // Remplir dynamiquement le sélecteur d'années selon les dates renseignées
+        function remplirSelecteurAnnees() {
+            const selectYear = document.getElementById('filter-year');
+            const valeurActuelle = selectYear.value;
+            const anneesSet = new Set();
+
+            toutesTransactions.forEach(tx => {
+                if (tx.date) {
+                    const annee = tx.date.split('-')[0];
+                    if (annee && annee.length === 4) anneesSet.add(annee);
+                }
+            });
+
+            const anneesTriees = Array.from(anneesSet).sort((a, b) => b.localeCompare(a));
+
+            selectYear.innerHTML = `<option value="">Toutes les années</option>` +
+                anneesTriees.map(y => `<option value="${y}">${y}</option>`).join('');
+
+            if (anneesSet.has(valeurActuelle)) {
+                selectYear.value = valeurActuelle;
+            }
+        }
+
+        // Filtrer, trier par date renseignée (plus récente d'abord) et afficher les 10 derniers
+        function afficherTransactions() {
+            const listContainer = document.getElementById('transactions-list');
+            const countBadge = document.getElementById('transactions-count');
+
+            const recherche = document.getElementById('search-input').value.trim().toLowerCase();
+            const anneeFiltre = document.getElementById('filter-year').value;
+            const moisFiltre = document.getElementById('filter-month').value;
+            const montantFiltre = document.getElementById('filter-amount').value;
+
+            const filtrees = toutesTransactions.filter(tx => {
+                const titre = (tx.titre || '').toLowerCase();
+                const desc = (tx.description || '').toLowerCase();
+                const dateStr = (tx.date || '').split('T')[0]; // YYYY-MM-DD
+                const [annee, mois] = dateStr.split('-');
+                const montantAbs = Math.abs(Number(tx.montant) || 0);
+
+                // Filtre texte
+                if (recherche && !titre.includes(recherche) && !desc.includes(recherche)) {
+                    return false;
+                }
+
+                // Filtre année
+                if (anneeFiltre && annee !== anneeFiltre) {
+                    return false;
+                }
+
+                // Filtre mois
+                if (moisFiltre && mois !== moisFiltre) {
+                    return false;
+                }
+
+                // Filtre montants
+                if (montantFiltre === 'gain' && tx.type !== 'gain') return false;
+                if (montantFiltre === 'perte' && tx.type !== 'perte') return false;
+                if (montantFiltre === '0-50' && (montantAbs < 0 || montantAbs > 50)) return false;
+                if (montantFiltre === '50-200' && (montantAbs <= 50 || montantAbs > 200)) return false;
+                if (montantFiltre === '200+' && montantAbs <= 200) return false;
+
+                return true;
+            });
+
+            // Tri par date renseignée (du plus récent au plus ancien)
+            filtrees.sort((a, b) => {
+                const dateA = new Date(a.date || 0).getTime();
+                const dateB = new Date(b.date || 0).getTime();
+                return dateB - dateA;
+            });
+
+            // Limite aux 10 derniers
+            const dixDerniers = filtrees.slice(0, 10);
+            countBadge.textContent = `${dixDerniers.length} affiché${dixDerniers.length > 1 ? 's' : ''}`;
+
+            if (dixDerniers.length === 0) {
+                listContainer.innerHTML = `
+                    <div style="text-align: center; padding: 30px 20px; color: #666;">
+                        <p style="font-weight: 600; font-size: 15px; color: #1e293b; margin: 0 0 4px 0;">Aucune transaction trouvée</p>
+                        <p style="font-size: 12px; color: #64748b; margin: 0;">Cliquez sur « + Ajouter » en haut à droite pour enregistrer un montant.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = dixDerniers.map(tx => {
+                const estPerte = tx.type === 'perte';
+                const signe = estPerte ? '-' : '+';
+                const classeType = estPerte ? 'perte' : 'gain';
+                const icone = estPerte ? '↓' : '↑';
+                const montantFormate = formaterEuro(Math.abs(Number(tx.montant) || 0));
+
+                return `
+                    <div class="transaction-row">
+                        <div class="transaction-left">
+                            <div class="transaction-icon ${classeType}">${icone}</div>
+                            <div class="transaction-info">
+                                <span class="transaction-title">${tx.titre || 'Sans titre'}</span>
+                                <span class="transaction-desc">${tx.description || 'Aucune description'}</span>
+                            </div>
+                        </div>
+                        <div class="transaction-right">
+                            <span class="transaction-date">${formaterDateFR(tx.date)}</span>
+                            <span class="transaction-amount ${classeType}">${signe}${montantFormate}</span>
+                            ${tx.id ? `<button type="button" class="btn-delete-tx" title="Supprimer" onclick="supprimerTransaction('${tx.id}')">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Charger les données depuis la table D1 `argent`
+        async function chargerDonneesArgent() {
+            try {
+                const res = await api.get('/api/argent');
+                toutesTransactions = Array.isArray(res) ? res : (res.argent || res.data || res.results || []);
+
+                mettreAJourSoldeTotal();
+                remplirSelecteurAnnees();
+                afficherTransactions();
+            } catch (err) {
+                console.error("Erreur de chargement de la table argent :", err);
+                toutesTransactions = [];
+                mettreAJourSoldeTotal();
+                afficherTransactions();
+            }
+        }
+
+        // Supprimer une ligne de la table argent
+        window.supprimerTransaction = async function (id) {
+            if (!confirm("Supprimer ce montant de la table argent ?")) return;
+
+            try {
+                if (typeof api.delete === 'function') {
+                    await api.delete(`/api/argent/${id}`);
+                } else {
+                    const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+                    await fetch(`${api.BASE_URL}/api/argent/${id}`, {
+                        method: 'DELETE',
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                    });
+                }
+                await chargerDonneesArgent();
+            } catch (err) {
+                console.error("Erreur suppression :", err);
+                alert("Impossible de supprimer cette entrée.");
+            }
+        };
+
+        // Gestion du Pop-Up
+        const modal = document.getElementById('argent-modal');
+        const btnOpenModal = document.getElementById('btn-open-modal');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnGain = document.getElementById('btn-type-gain');
+        const btnPerte = document.getElementById('btn-type-perte');
+        const inputType = document.getElementById('tx-type');
+
+        btnOpenModal.addEventListener('click', () => {
+            document.getElementById('tx-date').valueAsDate = new Date();
+            modal.classList.add('active');
+        });
+
+        btnCloseModal.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.remove('active');
+        });
+
+        btnGain.addEventListener('click', () => {
+            inputType.value = 'gain';
+            btnGain.classList.add('active-gain');
+            btnPerte.classList.remove('active-perte');
+        });
+
+        btnPerte.addEventListener('click', () => {
+            inputType.value = 'perte';
+            btnPerte.classList.add('active-perte');
+            btnGain.classList.remove('active-gain');
+        });
+
+        // Enregistrement dans la table `argent`
+        document.getElementById('argent-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('modal-status');
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = '#64748b';
+            statusDiv.textContent = "Enregistrement en cours...";
+
+            const payload = {
+                type: document.getElementById('tx-type').value, // 'gain' ou 'perte'
+                montant: parseFloat(document.getElementById('tx-montant').value),
+                titre: document.getElementById('tx-titre').value.trim(),
+                description: document.getElementById('tx-description').value.trim(),
+                date: document.getElementById('tx-date').value
+            };
+
+            try {
+                await api.post('/api/argent', payload);
+
+                statusDiv.style.color = '#10b981';
+                statusDiv.textContent = "Enregistré avec succès !";
+
+                document.getElementById('argent-form').reset();
+                inputType.value = 'gain';
+                btnGain.classList.add('active-gain');
+                btnPerte.classList.remove('active-perte');
+
+                await chargerDonneesArgent();
+
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                    modal.classList.remove('active');
+                }, 600);
+            } catch (err) {
+                console.error("Erreur d'enregistrement dans argent :", err);
+                statusDiv.style.color = '#ef4444';
+                statusDiv.textContent = "Erreur lors de l'enregistrement.";
+            }
+        });
+
+        // Écouteurs des filtres en temps réel
+        document.getElementById('search-input').addEventListener('input', afficherTransactions);
+        document.getElementById('filter-year').addEventListener('change', afficherTransactions);
+        document.getElementById('filter-month').addEventListener('change', afficherTransactions);
+        document.getElementById('filter-amount').addEventListener('change', afficherTransactions);
+
+        // Initialisation
+        injecterComposants();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                chargerProfilNavbar(null, user);
+                chargerDonneesArgent();
+            } else {
+                window.location.href = "/login.html";
+            }
+        });
+    </script>
+</body>
+
+</html>

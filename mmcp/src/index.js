@@ -633,6 +633,10 @@ export default {
     }
 
     try {
+      if (env.DB) {
+        await ensureTables(env.DB);
+      }
+
       const userId = await extractUserId(request);
       const isAdminUser = userId ? await isAdmin(env, userId) : false;
 
@@ -849,6 +853,19 @@ export default {
 
       if (!userId) {
         return corsJson({ error: "Authentification requise" }, 401);
+      }
+
+      // ROUTES GESTION ARGENT (GAINS & PERTES)
+      if (path === "/api/argent" || path === "/api/admin/argent") {
+        if (method === "GET") return await getAllArgent(env, userId, isAdminUser);
+        if (method === "POST") return await createArgent(env, userId, request, isAdminUser);
+      }
+
+      const argentItemMatch = path.match(/^\/api\/(?:admin\/)?argent\/(\d+)$/);
+      if (argentItemMatch) {
+        const argentId = argentItemMatch[1];
+        if (method === "PATCH" || method === "PUT") return await patchArgent(env, userId, argentId, request, isAdminUser);
+        if (method === "DELETE") return await deleteArgent(env, userId, argentId, isAdminUser);
       }
 
       // ROUTES ADMIN STOCKAGE & FINDER (Corrigées et unifiées)
@@ -1604,6 +1621,108 @@ async function handleGetNewsletterRecipients(env) {
   }
 }
 
+// ==========================================
+// GESTION DE LA TABLE ARGENT (GAINS & PERTES)
+// ==========================================
+
+function formatArgentRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userUid: row.user_uid || null,
+    type: row.type || "gain", // 'gain' ou 'perte'
+    montant: Number(row.montant) || 0,
+    titre: row.titre || "",
+    description: row.description || "",
+    date: row.date || "",
+    createdAt: row.created_at
+  };
+}
+
+async function getAllArgent(env, userId, isAdminUser) {
+  try {
+    const { results } = await env.DB.prepare(
+      "SELECT * FROM argent ORDER BY date DESC, id DESC"
+    ).all();
+    return corsJson((results || []).map(formatArgentRow));
+  } catch (err) {
+    console.error("Erreur getAllArgent:", err);
+    return corsJson([], 200);
+  }
+}
+
+async function createArgent(env, userId, request, isAdminUser) {
+  try {
+    const data = await request.json();
+    const now = new Date().toISOString();
+
+    const type = data.type === "perte" ? "perte" : "gain";
+    const montant = Math.abs(Number(data.montant || 0));
+    const titre = String(data.titre || "").trim();
+    const description = String(data.description || "").trim();
+    const date = String(data.date || now.split("T")[0]).trim();
+
+    if (!titre || montant <= 0 || !date) {
+      return corsJson({ error: "Type, montant valide, titre et date requis" }, 400);
+    }
+
+    const res = await env.DB.prepare(`
+      INSERT INTO argent (user_uid, type, montant, titre, description, date, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(userId || "admin", type, montant, titre, description, date, now).run();
+
+    return corsJson({
+      id: res.meta.last_row_id,
+      type,
+      montant,
+      titre,
+      description,
+      date,
+      createdAt: now,
+      success: true
+    }, 201);
+  } catch (err) {
+    console.error("Erreur createArgent:", err);
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function patchArgent(env, userId, argentId, request, isAdminUser) {
+  try {
+    const data = await request.json();
+    const type = data.type !== undefined ? (data.type === "perte" ? "perte" : "gain") : null;
+    const montant = data.montant !== undefined ? Math.abs(Number(data.montant)) : null;
+    const titre = data.titre !== undefined ? String(data.titre).trim() : null;
+    const description = data.description !== undefined ? String(data.description).trim() : null;
+    const date = data.date !== undefined ? String(data.date).trim() : null;
+
+    await env.DB.prepare(`
+      UPDATE argent
+      SET type = COALESCE(?, type),
+          montant = COALESCE(?, montant),
+          titre = COALESCE(?, titre),
+          description = COALESCE(?, description),
+          date = COALESCE(?, date)
+      WHERE id = ?
+    `).bind(type, montant, titre, description, date, argentId).run();
+
+    return corsJson({ success: true });
+  } catch (err) {
+    console.error("Erreur patchArgent:", err);
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
+async function deleteArgent(env, userId, argentId, isAdminUser) {
+  try {
+    await env.DB.prepare("DELETE FROM argent WHERE id = ?").bind(argentId).run();
+    return corsJson({ success: true });
+  } catch (err) {
+    console.error("Erreur deleteArgent:", err);
+    return corsJson({ error: err.message }, 500);
+  }
+}
+
 function formatGreenlistRow(row) {
   if (!row) return null;
   let links = [];
@@ -2092,7 +2211,7 @@ async function broadcastNotification(env, request, isAdminUser, ctx) {
 
     await notifyAdmins(env, ctx, { title, message, type, link });
 
-    return corsJson({ success: true, count: results ? results.length : 0, adminCount: await getAdminUsers(env).then(admins => admins.length) });
+    return corsJson({ success: true, count: results ? results.length : 0 });
   } catch (err) {
     return corsJson({ error: err.message }, 500);
   }
@@ -2299,6 +2418,18 @@ async function uploadStorageFile(env, request) {
 
 async function ensureTables(db) {
   await db.batch([
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS argent (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_uid TEXT,
+        type TEXT NOT NULL DEFAULT 'gain',
+        montant REAL NOT NULL,
+        titre TEXT NOT NULL,
+        description TEXT,
+        date TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `),
     db.prepare(`
       CREATE TABLE IF NOT EXISTS releases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -3482,7 +3613,6 @@ async function upsertUser(env, uid, request) {
   return corsJson({ success: true });
 }
 
-// À mettre à jour dans patchUser dans index.js
 async function patchUser(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
@@ -3526,7 +3656,6 @@ async function patchUser(env, uid, request) {
   await env.DB.prepare(`UPDATE users SET ${sets.join(", ")} WHERE uid = ?`).bind(...values).run();
   return corsJson({ success: true });
 }
-
 
 function formatUserRow(row) {
   if (!row) return null;
@@ -3948,6 +4077,7 @@ async function createRelease(env, uid, request, ctx) {
 
   const coverUrl = data.coverUrl || "";
   const pochetteHd = data.pochetteHauteDefinition || data.pochette_haute_definition || "";
+  const schemaJson = typeof data.schemaJson === "object" ? JSON.stringify(data.schemaJson) : (data.schemaJson || data.schema_json || null);
 
   const res = await env.DB.prepare(`
     INSERT INTO releases (
@@ -4311,7 +4441,7 @@ function formatReleaseRow(row) {
   } catch (e) { }
 
   const artistName = row.artist_name || "";
-  let labelName = row.label_name || row.label_name || "";
+  let labelName = row.label_name || "";
   let copyrightLineC = row.copyright_line_c || "";
   let copyrightLineP = row.copyright_line_p || "";
 
