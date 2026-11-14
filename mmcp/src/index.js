@@ -195,6 +195,12 @@ function makeConversationTitle(input) {
   return title.length > 42 ? `${title.slice(0, 39).trim()}…` : title;
 }
 
+async function isLitualBlockedForUser(env, uid) {
+  if (!uid) return false;
+  const row = await env.DB.prepare("SELECT block_litual_ai FROM users WHERE uid = ?").bind(uid).first();
+  return Boolean(row && row.block_litual_ai === 1);
+}
+
 async function listUserLitualConversations(env, uid) {
   const { results } = await env.DB.prepare(`
     SELECT * FROM litual_conversations
@@ -438,17 +444,14 @@ async function handleYoutubeOAuthCallback(request, env, url) {
     // 3. Recherche de l'artiste dans D1
     if (state) {
       const stateValue = String(state).trim();
-      // Recherche par ID numérique d'artiste
       if (/^\d+$/.test(stateValue)) {
         connectedArtist = await env.DB.prepare("SELECT * FROM artists WHERE id = ?").bind(Number(stateValue)).first();
       }
-      // Recherche par UID utilisateur si non trouvé par ID
       if (!connectedArtist) {
         connectedArtist = await env.DB.prepare("SELECT * FROM artists WHERE user_uid = ? ORDER BY id ASC LIMIT 1").bind(stateValue).first();
       }
     }
 
-    // Si aucun artiste n'a été trouvé avec state, prendre le premier artiste de la base en secours
     if (!connectedArtist) {
       connectedArtist = await env.DB.prepare("SELECT * FROM artists ORDER BY id ASC LIMIT 1").first();
     }
@@ -868,7 +871,7 @@ export default {
         if (method === "DELETE") return await deleteArgent(env, userId, argentId, isAdminUser);
       }
 
-      // ROUTES ADMIN STOCKAGE & FINDER (Corrigées et unifiées)
+      // ROUTES ADMIN STOCKAGE & FINDER
       if (path === "/api/admin/storage/folders") {
         if (method === "GET") return await listStorageFolders(env);
         if (method === "POST") return await createStorageFolder(env, request);
@@ -892,7 +895,6 @@ export default {
         if (method === "DELETE") return await deleteStorageFile(env, fileId);
       }
 
-      // Raccourcis complémentaires pour compatibilité totale avec le frontend stockage.html
       if (path === "/api/admin/storage" && method === "GET") {
         return await listAdminStorage(env);
       }
@@ -1001,11 +1003,15 @@ export default {
         if (method === "DELETE" && docId) return await deleteUserDocument(env, uid, docId);
       }
 
+      // ROUTES LITUAL AI (Protégées si block_litual_ai = 1)
       const userLitualListMatch = path.match(/^\/api\/users\/([^/]+)\/litual-conversations$/);
       if (userLitualListMatch) {
         const uid = userLitualListMatch[1];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (!isAdminUser && await isLitualBlockedForUser(env, uid)) {
+          return corsJson({ error: "L'accès à Litual AI est bloqué sur ce compte." }, 403);
+        }
         if (method === "GET") return await listUserLitualConversations(env, uid);
         if (method === "POST") return await createUserLitualConversation(env, uid, await request.json().catch(() => ({})));
       }
@@ -1016,6 +1022,9 @@ export default {
         const conversationId = userLitualItemMatch[2];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (!isAdminUser && await isLitualBlockedForUser(env, uid)) {
+          return corsJson({ error: "L'accès à Litual AI est bloqué sur ce compte." }, 403);
+        }
         if (method === "GET") return await getUserLitualConversation(env, uid, conversationId);
         if (method === "PATCH" || method === "PUT") return await renameUserLitualConversation(env, uid, conversationId, await request.json().catch(() => ({})));
       }
@@ -1026,6 +1035,9 @@ export default {
         const conversationId = userLitualMessagesMatch[2];
         const isSelf = uid === userId;
         if (!isSelf && !isAdminUser) return corsJson({ error: "Accès non autorisé" }, 403);
+        if (!isAdminUser && await isLitualBlockedForUser(env, uid)) {
+          return corsJson({ error: "L'accès à Litual AI est bloqué sur ce compte." }, 403);
+        }
         if (method === "POST") return await addUserLitualMessage(env, uid, conversationId, await request.json().catch(() => ({})));
       }
 
@@ -2603,6 +2615,7 @@ async function ensureTables(db) {
         totp_enabled INTEGER DEFAULT 0,
         totp_secret TEXT,
         newsletter_enabled INTEGER DEFAULT 1,
+        block_litual_ai INTEGER DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
@@ -2850,6 +2863,7 @@ async function ensureTables(db) {
   try { await db.prepare("ALTER TABLE artists ADD COLUMN youtube_channel_name TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE artists ADD COLUMN youtube_connected_at TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE users ADD COLUMN newsletter_enabled INTEGER DEFAULT 1").run(); } catch (e) { }
+  try { await db.prepare("ALTER TABLE users ADD COLUMN block_litual_ai INTEGER DEFAULT 0").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE artists ADD COLUMN logo_url TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE artists ADD COLUMN tiktok_url TEXT").run(); } catch (e) { }
   try { await db.prepare("ALTER TABLE artists ADD COLUMN threads_url TEXT").run(); } catch (e) { }
@@ -3453,7 +3467,7 @@ async function createUserPayoutSafe(env, uid, request) {
 
 async function getUser(env, uid) {
   const row = await env.DB.prepare("SELECT * FROM users WHERE uid = ?").bind(uid).first();
-  if (!row) return corsJson({ uid, planName: "starter", role: "admin" });
+  if (!row) return corsJson({ uid, planName: "starter", role: "admin", blockLitualAI: false });
   return corsJson(formatUserRow(row));
 }
 
@@ -3461,7 +3475,7 @@ async function getMe(env, uid) {
   let row = await env.DB.prepare("SELECT * FROM users WHERE uid = ?").bind(uid).first();
   if (!row) {
     const now = new Date().toISOString();
-    await env.DB.prepare(`INSERT INTO users (uid, role, plan_name, created_at, updated_at) VALUES (?, 'admin', 'pro', ?, ?)`).bind(uid, now, now).run();
+    await env.DB.prepare(`INSERT INTO users (uid, role, plan_name, block_litual_ai, created_at, updated_at) VALUES (?, 'admin', 'pro', 0, ?, ?)`).bind(uid, now, now).run();
     row = await env.DB.prepare("SELECT * FROM users WHERE uid = ?").bind(uid).first();
   }
   return corsJson({ user: formatUserRow(row) });
@@ -3586,7 +3600,11 @@ async function upsertUser(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
 
-  await env.DB.prepare(`INSERT INTO users (uid, first_name, last_name, full_name, artist_name, email, address, city, postal_code, iban, photo_url, role, auth_method, plan_name, subscription_status, theme, totp_enabled, totp_secret, newsletter_enabled, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET first_name = excluded.first_name, last_name = excluded.last_name, full_name = excluded.full_name, artist_name = excluded.artist_name, email = excluded.email, address = excluded.address, city = excluded.city, postal_code = excluded.postal_code, iban = excluded.iban, photo_url = excluded.photo_url, role = excluded.role, auth_method = excluded.auth_method, plan_name = excluded.plan_name, subscription_status = excluded.subscription_status, theme = excluded.theme, totp_enabled = excluded.totp_enabled, totp_secret = excluded.totp_secret, newsletter_enabled = excluded.newsletter_enabled, updated_at = excluded.updated_at`).bind(
+  const rawBlockLitual = data.blockLitualAI !== undefined
+    ? data.blockLitualAI
+    : (data.block_litual_ai !== undefined ? data.block_litual_ai : data.litualAiBlocked);
+
+  await env.DB.prepare(`INSERT INTO users (uid, first_name, last_name, full_name, artist_name, email, address, city, postal_code, iban, photo_url, role, auth_method, plan_name, subscription_status, theme, totp_enabled, totp_secret, newsletter_enabled, block_litual_ai, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(uid) DO UPDATE SET first_name = excluded.first_name, last_name = excluded.last_name, full_name = excluded.full_name, artist_name = excluded.artist_name, email = excluded.email, address = excluded.address, city = excluded.city, postal_code = excluded.postal_code, iban = excluded.iban, photo_url = excluded.photo_url, role = excluded.role, auth_method = excluded.auth_method, plan_name = excluded.plan_name, subscription_status = excluded.subscription_status, theme = excluded.theme, totp_enabled = excluded.totp_enabled, totp_secret = excluded.totp_secret, newsletter_enabled = excluded.newsletter_enabled, block_litual_ai = excluded.block_litual_ai, updated_at = excluded.updated_at`).bind(
     uid,
     data.firstName || null,
     data.lastName || null,
@@ -3606,6 +3624,7 @@ async function upsertUser(env, uid, request) {
     data.totpEnabled ? 1 : 0,
     data.totpSecret || null,
     data.newsletterEnabled !== undefined ? (data.newsletterEnabled ? 1 : 0) : 1,
+    rawBlockLitual ? 1 : 0,
     data.createdAt || now,
     now
   ).run();
@@ -3616,6 +3635,12 @@ async function upsertUser(env, uid, request) {
 async function patchUser(env, uid, request) {
   const data = await request.json();
   const now = new Date().toISOString();
+
+  // Normalisation si le client envoie block_litual_ai ou litualAiBlocked au lieu de blockLitualAI
+  if (data.blockLitualAI === undefined) {
+    if (data.block_litual_ai !== undefined) data.blockLitualAI = data.block_litual_ai;
+    else if (data.litualAiBlocked !== undefined) data.blockLitualAI = data.litualAiBlocked;
+  }
 
   const fieldMap = {
     firstName: "first_name",
@@ -3635,8 +3660,11 @@ async function patchUser(env, uid, request) {
     theme: "theme",
     totpEnabled: "totp_enabled",
     totpSecret: "totp_secret",
-    newsletterEnabled: "newsletter_enabled"
+    newsletterEnabled: "newsletter_enabled",
+    blockLitualAI: "block_litual_ai"
   };
+
+  const booleanFields = new Set(["totpEnabled", "newsletterEnabled", "blockLitualAI"]);
 
   const sets = [];
   const values = [];
@@ -3644,7 +3672,7 @@ async function patchUser(env, uid, request) {
   for (const [key, column] of Object.entries(fieldMap)) {
     if (data[key] !== undefined) {
       sets.push(`${column} = ?`);
-      values.push((key === "totpEnabled" || key === "newsletterEnabled") ? (data[key] ? 1 : 0) : data[key]);
+      values.push(booleanFields.has(key) ? (data[key] ? 1 : 0) : data[key]);
     }
   }
 
@@ -3659,6 +3687,7 @@ async function patchUser(env, uid, request) {
 
 function formatUserRow(row) {
   if (!row) return null;
+  const isBlocked = Boolean(row.block_litual_ai === 1 || row.block_litual_ai === true);
   return {
     uid: row.uid,
     firstName: row.first_name,
@@ -3679,6 +3708,8 @@ function formatUserRow(row) {
     totpEnabled: !!row.totp_enabled,
     totpSecret: row.totp_secret,
     newsletterEnabled: row.newsletter_enabled !== 0,
+    blockLitualAI: isBlocked,
+    block_litual_ai: isBlocked ? 1 : 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

@@ -711,6 +711,41 @@
     </style>
 </head>
 
+<script type="module">
+    import { auth } from "/assets/js/firebase.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { api } from "/assets/js/api.js";
+
+    function redirigerPagePrecedente() {
+        if (window.history.length > 1 && document.referrer && new URL(document.referrer).origin === window.location.origin) {
+            window.history.back();
+        } else {
+            window.location.replace("/portail/index.html");
+        }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) return;
+        try {
+            const profile = await api.get(`/api/users/${user.uid}`);
+            const isBlocked = Boolean(
+                profile?.blockLitualAI === true ||
+                profile?.blockLitualAI === 1 ||
+                profile?.blockLitualAI === "true" ||
+                profile?.block_litual_ai === 1 ||
+                profile?.block_litual_ai === true ||
+                profile?.litualAiBlocked === true
+            );
+
+            if (isBlocked) {
+                redirigerPagePrecedente();
+            }
+        } catch (err) {
+            console.error("Erreur vérification accès Litual AI :", err);
+        }
+    });
+</script>
+
 <body>
     <div id="navbar-container"></div>
     <div id="sidebar-container"></div>

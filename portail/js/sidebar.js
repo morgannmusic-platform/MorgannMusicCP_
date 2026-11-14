@@ -17,14 +17,16 @@ document.addEventListener("DOMContentLoaded", () => {
             initNavbarMoreMenu();
             initCopyrightYear();
             initSiteVersion();
-            updateDriveMenuAccess();
+            updateUserFeaturesAccess();
         })
         .catch(error => console.error("Détails de l'erreur sidebar :", error));
 });
 
-async function updateDriveMenuAccess() {
+async function updateUserFeaturesAccess() {
     const driveLinks = [...document.querySelectorAll('a[href="/portail/drive.html"], a[href="drive.html"]')];
-    if (!driveLinks.length) return;
+    const litualLinks = [...document.querySelectorAll('#link-litual-ai, a[href="/portail/litual.html"], a[href="litual.html"]')];
+
+    if (!driveLinks.length && !litualLinks.length) return;
 
     try {
         const { auth } = await import("/assets/js/firebase.js");
@@ -34,22 +36,51 @@ async function updateDriveMenuAccess() {
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 driveLinks.forEach(link => link.style.display = "none");
+                litualLinks.forEach(link => link.style.display = "none");
                 return;
             }
 
             try {
                 const profile = await api.get(`/api/users/${user.uid}`);
+
+                // Gestion de l'accès au Drive
                 const rawPlan = String(profile?.planName || profile?.plan_name || "starter").trim().toLowerCase();
-                const hasAccess = ["pro", "future legende", "future légende", "future-legende"].includes(rawPlan);
+                const hasDriveAccess = ["pro", "future legende", "future légende", "future-legende"].includes(rawPlan);
                 driveLinks.forEach(link => {
-                    link.style.display = hasAccess ? "flex" : "none";
+                    link.style.display = hasDriveAccess ? "flex" : "none";
                 });
+
+                // Gestion du blocage Litual AI
+                const isLitualBlocked = Boolean(
+                    profile?.blockLitualAI === true ||
+                    profile?.blockLitualAI === 1 ||
+                    profile?.blockLitualAI === "true" ||
+                    profile?.block_litual_ai === 1 ||
+                    profile?.block_litual_ai === true ||
+                    profile?.litualAiBlocked === true
+                );
+
+                litualLinks.forEach(link => {
+                    if (isLitualBlocked) {
+                        link.remove(); // Supprime complètement le lien du DOM s'il est bloqué
+                    } else {
+                        link.style.display = "flex";
+                    }
+                });
+
+                // Redirection de sécurité si l'utilisateur tente d'accéder directement à litual.html par l'URL
+                if (isLitualBlocked && window.location.pathname.includes("litual.html")) {
+                    window.location.href = "/portail/index.html";
+                }
+
             } catch (error) {
                 driveLinks.forEach(link => link.style.display = "none");
+                litualLinks.forEach(link => link.style.display = "none");
             }
         });
     } catch (error) {
         driveLinks.forEach(link => link.style.display = "none");
+        litualLinks.forEach(link => link.style.display = "none");
     }
 }
 
@@ -96,7 +127,6 @@ async function checkAccompagnementAccess() {
 }
 
 function activerLienSidebar() {
-    // Nettoie et normalise un chemin d'URL
     const normalizePath = (p) => {
         if (!p) return "";
         let path = p.split("?")[0].split("#")[0];
@@ -124,14 +154,12 @@ function activerLienSidebar() {
         if (currentPath === absolutePath) {
             link.classList.add("active");
 
-            // Si le lien actif est dans le menu "Plus", on retient l'information
             if (link.closest(".more-menu")) {
                 isMoreChildActive = true;
             }
         }
     });
 
-    // Si une sous-page du menu "Plus" est active, on applique la classe .active sur le déclencheur
     const btnMore = document.getElementById("btn-more");
     if (btnMore) {
         if (isMoreChildActive) {

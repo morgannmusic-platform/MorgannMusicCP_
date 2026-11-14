@@ -92,6 +92,83 @@
             border-color: #FC8FB0;
         }
 
+        /* Interrupteur (Toggle Switch) Litual AI */
+        .toggle-row {
+            margin-top: 20px;
+            padding: 16px 20px;
+            background-color: rgba(232, 232, 232, 0.25);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .toggle-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .toggle-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #000000;
+        }
+
+        .toggle-desc {
+            font-size: 12px;
+            color: #525252;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(148, 163, 184, 0.5);
+            transition: 0.25s ease;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.25s ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked+.slider {
+            background-color: #ef4444;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
         .btn-save {
             background: #FC8FB0;
             color: #ffffff;
@@ -139,10 +216,8 @@
         .item-cover {
             width: 100%;
             aspect-ratio: 1 / 1;
-            /* Force un carré parfait */
             border-radius: 12px;
             object-fit: cover;
-            /* Remplit le carré proprement sans déformer l'image */
             background: #e2e8f0;
             margin-bottom: 8px;
         }
@@ -330,6 +405,18 @@
                             </div>
                         </div>
 
+                        <!-- INTERRUPTEUR BLOCAGE LITUAL AI -->
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <span class="toggle-title">Bloquer Litual AI sur ce compte</span>
+                                <span class="toggle-desc" id="litual-ai-status-text">Accès autorisé à Litual AI</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="blockLitualAI">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
                         <button type="submit" class="btn-save">Enregistrer les modifications</button>
                         <div id="save-status" class="alert-status"></div>
                     </form>
@@ -409,6 +496,17 @@
             'iban', 'theme'
         ];
 
+        function majLibelleLitualAI(isBlocked) {
+            const desc = document.getElementById('litual-ai-status-text');
+            if (isBlocked) {
+                desc.textContent = "Litual AI est bloqué pour cet utilisateur";
+                desc.style.color = "#ef4444";
+            } else {
+                desc.textContent = "Accès autorisé à Litual AI";
+                desc.style.color = "#525252";
+            }
+        }
+
         function formerUrlComplet(rawUrl) {
             if (!rawUrl) return null;
             if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://') || rawUrl.startsWith('data:')) {
@@ -447,7 +545,6 @@
             }
 
             try {
-                // Appel API REST D1/D3
                 const user = await api.get(`/api/users/${targetUserId}`);
 
                 if (!user || user.error) {
@@ -462,6 +559,11 @@
                         input.value = user[field] !== undefined && user[field] !== null ? user[field] : "";
                     }
                 });
+
+                // État de l'interrupteur Litual AI
+                const isBlocked = Boolean(user.blockLitualAI || user.litualAiBlocked);
+                document.getElementById('blockLitualAI').checked = isBlocked;
+                majLibelleLitualAI(isBlocked);
 
                 // Remplir l'en-tête
                 const name = user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.displayName || "Utilisateur";
@@ -489,6 +591,30 @@
             }
         }
 
+        // Sauvegarde instantanée au clic sur l'interrupteur Litual AI
+        document.getElementById('blockLitualAI').addEventListener('change', async (e) => {
+            const isBlocked = e.target.checked;
+            majLibelleLitualAI(isBlocked);
+
+            const statusDiv = document.getElementById('save-status');
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = '#64748b';
+            statusDiv.textContent = isBlocked ? "Blocage de Litual AI..." : "Déblocage de Litual AI...";
+
+            try {
+                await api.patch(`/api/users/${targetUserId}`, { blockLitualAI: isBlocked });
+                statusDiv.style.color = '#10b981';
+                statusDiv.textContent = isBlocked ? "Litual AI bloqué sur ce compte." : "Litual AI réactivé sur ce compte.";
+                setTimeout(() => statusDiv.style.display = 'none', 3000);
+            } catch (err) {
+                console.error("Erreur mise à jour Litual AI :", err);
+                e.target.checked = !isBlocked;
+                majLibelleLitualAI(!isBlocked);
+                statusDiv.style.color = '#ef4444';
+                statusDiv.textContent = "Erreur lors de la mise à jour du statut Litual AI.";
+            }
+        });
+
         // Enregistrement des modifications vers D1/D3
         document.getElementById('user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -503,6 +629,7 @@
                     const val = document.getElementById(field).value.trim();
                     updateData[field] = val;
                 });
+                updateData.blockLitualAI = document.getElementById('blockLitualAI').checked;
 
                 // Appel PATCH vers l'API Worker
                 await api.patch(`/api/users/${targetUserId}`, updateData);

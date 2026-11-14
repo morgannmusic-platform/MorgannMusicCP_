@@ -792,3 +792,84 @@ h1 {
     border-radius: 24px;
     line-height: 1.5;
 }
+
+/* --- CARTES DU BAS (MOYENS DE PAIEMENT & DEMANDE SUR-MESURE) --- */
+.accepted-payments,
+.pricing-custom-notice {
+    max-width: 1200px;
+    margin: 2rem auto 0 !important;
+    background: linear-gradient(140deg, var(--container1) 0%, var(--container3) 100%) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 48px !important;
+    padding: 2.2rem 1.8rem !important;
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    text-align: center;
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+        box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+        border-color 0.4s ease;
+}
+
+.accepted-payments:hover,
+.pricing-custom-notice:hover {
+    transform: translateY(-6px);
+    border-color: var(--beige) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.1);
+}
+
+.accepted-payments>p {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: var(--beige);
+    margin-bottom: 1.2rem !important;
+}
+
+.pricing-custom-notice h3 {
+    font-size: 1.35rem !important;
+    font-weight: 700;
+    color: var(--beige) !important;
+    margin-bottom: 0.6rem !important;
+}
+
+.pricing-custom-notice p {
+    color: var(--muted) !important;
+    font-size: 0.95rem !important;
+    max-width: 720px;
+    margin: 0 auto 1.4rem !important;
+    line-height: 1.5;
+}
+
+/* Bouton pilule identique à .plan-button */
+.hero-cta-secondary {
+    display: inline-block;
+    padding: 0.85rem 1.8rem !important;
+    border-radius: 9999px;
+    background: rgba(252, 143, 176, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid var(--beige);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.92rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-cta-secondary:hover {
+    background: var(--beige);
+    color: white;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(252, 143, 176, 0.35);
+}
+
+/* Adaptation mobile identique à .price-card */
+@media (max-width: 640px) {
+
+    .accepted-payments,
+    .pricing-custom-notice {
+        padding: 1.8rem 1.4rem !important;
+        border-radius: 36px !important;
+    }
+}
