@@ -92,9 +92,15 @@
             border-color: #FC8FB0;
         }
 
-        /* Interrupteur (Toggle Switch) Litual AI */
-        .toggle-row {
+        /* Conteneur des interrupteurs */
+        .toggles-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             margin-top: 20px;
+        }
+
+        .toggle-row {
             padding: 16px 20px;
             background-color: rgba(232, 232, 232, 0.25);
             border: 1px solid rgba(189, 189, 189, 0.438);
@@ -161,7 +167,13 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
+        /* Couleur standard rose MMCP pour les interrupteurs actifs */
         input:checked+.slider {
+            background-color: #FC8FB0;
+        }
+
+        /* Couleur rouge alerte uniquement pour le blocage Litual AI */
+        input#blockLitualAI:checked+.slider {
             background-color: #ef4444;
         }
 
@@ -380,10 +392,6 @@
                                 <input type="text" id="planName" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label>Statut abonnement (subscriptionStatus)</label>
-                                <input type="text" id="subscriptionStatus" class="form-control">
-                            </div>
-                            <div class="form-group">
                                 <label>Adresse (address)</label>
                                 <input type="text" id="address" class="form-control">
                             </div>
@@ -399,22 +407,46 @@
                                 <label>IBAN (iban)</label>
                                 <input type="text" id="iban" class="form-control">
                             </div>
-                            <div class="form-group">
-                                <label>Thème (theme)</label>
-                                <input type="text" id="theme" class="form-control">
-                            </div>
                         </div>
 
-                        <!-- INTERRUPTEUR BLOCAGE LITUAL AI -->
-                        <div class="toggle-row">
-                            <div class="toggle-info">
-                                <span class="toggle-title">Bloquer Litual AI sur ce compte</span>
-                                <span class="toggle-desc" id="litual-ai-status-text">Accès autorisé à Litual AI</span>
+                        <!-- OPTIONS À DEUX CHOIX (INTERRUPTEURS) -->
+                        <div class="toggles-stack">
+                            <!-- Statut abonnement -->
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <span class="toggle-title">Statut de l'abonnement</span>
+                                    <span class="toggle-desc" id="subscription-status-text">Inactif</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="subscriptionStatusToggle">
+                                    <span class="slider"></span>
+                                </label>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox" id="blockLitualAI">
-                                <span class="slider"></span>
-                            </label>
+
+                            <!-- Thème -->
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <span class="toggle-title">Thème de l'interface</span>
+                                    <span class="toggle-desc" id="theme-status-text">Mode clair (light)</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="themeToggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <!-- Blocage Litual AI -->
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <span class="toggle-title">Bloquer Litual AI sur ce compte</span>
+                                    <span class="toggle-desc" id="litual-ai-status-text">Accès autorisé à Litual
+                                        AI</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="blockLitualAI">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn-save">Enregistrer les modifications</button>
@@ -489,12 +521,33 @@
 
         const DEFAULT_COVER = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="100%" height="100%" fill="%23e2e8f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="16" fill="%2364748b">Pas d'image</text></svg>`;
 
-        const fields = [
+        const textFields = [
             'firstName', 'lastName', 'fullName', 'artistName',
             'email', 'photoURL', 'role', 'planName',
-            'subscriptionStatus', 'address', 'city', 'postalCode',
-            'iban', 'theme'
+            'address', 'city', 'postalCode', 'iban'
         ];
+
+        function majLibelleAbonnement(isActive) {
+            const desc = document.getElementById('subscription-status-text');
+            if (isActive) {
+                desc.textContent = "Actif (active)";
+                desc.style.color = "#10b981";
+            } else {
+                desc.textContent = "Inactif (inactive)";
+                desc.style.color = "#525252";
+            }
+        }
+
+        function majLibelleTheme(isDark) {
+            const desc = document.getElementById('theme-status-text');
+            if (isDark) {
+                desc.textContent = "Mode sombre (dark)";
+                desc.style.color = "#000000";
+            } else {
+                desc.textContent = "Mode clair (light)";
+                desc.style.color = "#525252";
+            }
+        }
 
         function majLibelleLitualAI(isBlocked) {
             const desc = document.getElementById('litual-ai-status-text');
@@ -552,13 +605,25 @@
                     return;
                 }
 
-                // Remplir le formulaire
-                fields.forEach(field => {
+                // Remplir les champs texte
+                textFields.forEach(field => {
                     const input = document.getElementById(field);
                     if (input) {
                         input.value = user[field] !== undefined && user[field] !== null ? user[field] : "";
                     }
                 });
+
+                // État de l'interrupteur Abonnement
+                const subVal = String(user.subscriptionStatus || '').toLowerCase();
+                const isSubActive = subVal === 'active' || subVal === 'actif' || subVal === 'true' || subVal === '1';
+                document.getElementById('subscriptionStatusToggle').checked = isSubActive;
+                majLibelleAbonnement(isSubActive);
+
+                // État de l'interrupteur Thème
+                const themeVal = String(user.theme || '').toLowerCase();
+                const isDarkTheme = themeVal === 'dark' || themeVal === 'sombre';
+                document.getElementById('themeToggle').checked = isDarkTheme;
+                majLibelleTheme(isDarkTheme);
 
                 // État de l'interrupteur Litual AI
                 const isBlocked = Boolean(user.blockLitualAI || user.litualAiBlocked);
@@ -591,28 +656,66 @@
             }
         }
 
-        // Sauvegarde instantanée au clic sur l'interrupteur Litual AI
-        document.getElementById('blockLitualAI').addEventListener('change', async (e) => {
-            const isBlocked = e.target.checked;
-            majLibelleLitualAI(isBlocked);
-
+        // Fonction générique de sauvegarde instantanée pour les interrupteurs
+        async function sauvegarderSwitch(payload, successMsg, revertFn) {
             const statusDiv = document.getElementById('save-status');
             statusDiv.style.display = 'block';
             statusDiv.style.color = '#64748b';
-            statusDiv.textContent = isBlocked ? "Blocage de Litual AI..." : "Déblocage de Litual AI...";
+            statusDiv.textContent = "Mise à jour en cours...";
 
             try {
-                await api.patch(`/api/users/${targetUserId}`, { blockLitualAI: isBlocked });
+                await api.patch(`/api/users/${targetUserId}`, payload);
                 statusDiv.style.color = '#10b981';
-                statusDiv.textContent = isBlocked ? "Litual AI bloqué sur ce compte." : "Litual AI réactivé sur ce compte.";
+                statusDiv.textContent = successMsg;
                 setTimeout(() => statusDiv.style.display = 'none', 3000);
             } catch (err) {
-                console.error("Erreur mise à jour Litual AI :", err);
-                e.target.checked = !isBlocked;
-                majLibelleLitualAI(!isBlocked);
+                console.error("Erreur mise à jour switch :", err);
+                revertFn();
                 statusDiv.style.color = '#ef4444';
-                statusDiv.textContent = "Erreur lors de la mise à jour du statut Litual AI.";
+                statusDiv.textContent = "Erreur lors de la mise à jour.";
             }
+        }
+
+        // Listener : Statut abonnement
+        document.getElementById('subscriptionStatusToggle').addEventListener('change', (e) => {
+            const isActive = e.target.checked;
+            majLibelleAbonnement(isActive);
+            sauvegarderSwitch(
+                { subscriptionStatus: isActive ? 'active' : 'inactive' },
+                isActive ? "Abonnement activé." : "Abonnement désactivé.",
+                () => {
+                    e.target.checked = !isActive;
+                    majLibelleAbonnement(!isActive);
+                }
+            );
+        });
+
+        // Listener : Thème
+        document.getElementById('themeToggle').addEventListener('change', (e) => {
+            const isDark = e.target.checked;
+            majLibelleTheme(isDark);
+            sauvegarderSwitch(
+                { theme: isDark ? 'dark' : 'light' },
+                isDark ? "Thème passé en mode sombre." : "Thème passé en mode clair.",
+                () => {
+                    e.target.checked = !isDark;
+                    majLibelleTheme(!isDark);
+                }
+            );
+        });
+
+        // Listener : Blocage Litual AI
+        document.getElementById('blockLitualAI').addEventListener('change', (e) => {
+            const isBlocked = e.target.checked;
+            majLibelleLitualAI(isBlocked);
+            sauvegarderSwitch(
+                { blockLitualAI: isBlocked },
+                isBlocked ? "Litual AI bloqué sur ce compte." : "Litual AI réactivé sur ce compte.",
+                () => {
+                    e.target.checked = !isBlocked;
+                    majLibelleLitualAI(!isBlocked);
+                }
+            );
         });
 
         // Enregistrement des modifications vers D1/D3
@@ -625,13 +728,15 @@
 
             try {
                 const updateData = {};
-                fields.forEach(field => {
+                textFields.forEach(field => {
                     const val = document.getElementById(field).value.trim();
                     updateData[field] = val;
                 });
+
+                updateData.subscriptionStatus = document.getElementById('subscriptionStatusToggle').checked ? 'active' : 'inactive';
+                updateData.theme = document.getElementById('themeToggle').checked ? 'dark' : 'light';
                 updateData.blockLitualAI = document.getElementById('blockLitualAI').checked;
 
-                // Appel PATCH vers l'API Worker
                 await api.patch(`/api/users/${targetUserId}`, updateData);
 
                 statusDiv.style.color = '#10b981';
@@ -719,7 +824,6 @@
                     throw new Error(errJson.error || "Erreur lors de la suppression");
                 }
 
-                // Recharger la liste
                 chargerDocuments();
             } catch (err) {
                 console.error("Erreur suppression document :", err);
@@ -769,12 +873,10 @@
                 statusDiv.style.color = '#10b981';
                 statusDiv.textContent = "Document importé avec succès !";
 
-                // Réinitialiser le formulaire
                 document.getElementById('docTitle').value = '';
                 document.getElementById('docDescription').value = '';
                 fileInput.value = '';
 
-                // Recharger la liste des documents
                 chargerDocuments();
 
                 setTimeout(() => statusDiv.style.display = 'none', 3000);

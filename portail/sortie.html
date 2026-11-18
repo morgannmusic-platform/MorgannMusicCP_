@@ -246,23 +246,89 @@
             color: var(--text-main);
         }
 
-        .meta-select {
-            padding: 4px 8px;
-            border-radius: 12px;
-            border: 1px solid var(--input-border);
-            background: var(--input-bg);
-            color: var(--input-text);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 2px;
-            width: max-content;
-            outline: none;
+        /* Interrupteurs (Toggle Switch) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            flex-shrink: 0;
         }
 
-        .meta-select option {
-            background: var(--bg-color);
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(148, 163, 184, 0.5);
+            transition: 0.25s ease;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.25s ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        .catalog-switch-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .toggle-row {
+            margin-top: 15px;
+            margin-bottom: 25px;
+            padding: 16px 20px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .toggle-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .toggle-title {
+            font-size: 14px;
+            font-weight: 700;
             color: var(--text-main);
+        }
+
+        .toggle-desc {
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
         .btn-popup-trigger {
@@ -567,10 +633,13 @@
                                 style="flex-direction: row; gap: 8px; flex-wrap: wrap;"></div>
                             <div class="meta-item">
                                 <span class="meta-label">Catalogue MMCP</span>
-                                <select id="select-mmcp-catalog" class="meta-select">
-                                    <option value="true">Oui</option>
-                                    <option value="false">Non</option>
-                                </select>
+                                <div class="catalog-switch-wrap">
+                                    <label class="switch">
+                                        <input type="checkbox" id="toggle-mmcp-catalog">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span class="meta-value" id="label-mmcp-catalog">Oui</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -612,13 +681,15 @@
                     </div>
                 </div>
 
-                <div class="form-group"
-                    style="flex-direction: row; align-items: center; gap: 12px; margin-top: 15px; margin-bottom: 25px; background: var(--input-bg); padding: 15px; border-radius: 16px; border: 1px solid var(--border-glass); width: max-content;">
-                    <input type="checkbox" id="premiere-is-active"
-                        style="width: 20px; height: 20px; cursor: pointer; accent-color: #007bff; margin: 0;">
-                    <label for="premiere-is-active"
-                        style="cursor: pointer; margin: 0; font-weight: 700; color: var(--text-main); font-size: 14px; text-transform: none;">Activer
-                        manuellement ce lien Première</label>
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <span class="toggle-title">Activer manuellement ce lien Première</span>
+                        <span class="toggle-desc" id="premiere-active-status-text">Lien Première désactivé</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="premiere-is-active">
+                        <span class="slider"></span>
+                    </label>
                 </div>
 
                 <button type="button" id="btn-save-premiere" class="btmodif"
@@ -677,6 +748,26 @@
             "retrait": { texte: "Retrait", classe: "status-retrait" },
             "retiré": { texte: "Retiré", classe: "status-retire" }
         };
+
+        function majLibelleCatalogue(isShown) {
+            const label = document.getElementById("label-mmcp-catalog");
+            label.innerText = isShown ? "Oui (Affiché)" : "Non (Masqué)";
+        }
+
+        function majLibellePremiere(isActive) {
+            const desc = document.getElementById("premiere-active-status-text");
+            if (isActive) {
+                desc.innerText = "Lien Première actif et accessible";
+                desc.style.color = "#10b981";
+            } else {
+                desc.innerText = "Lien Première désactivé";
+                desc.style.color = "var(--text-muted)";
+            }
+        }
+
+        document.getElementById("premiere-is-active").addEventListener("change", (e) => {
+            majLibellePremiere(e.target.checked);
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -767,24 +858,34 @@
                 }
                 extraBtnsContainer.innerHTML = extraBtnsHtml;
 
-                const isCatalog = data.showOnMmcpCatalog !== false;
-                const selectCatalog = document.getElementById("select-mmcp-catalog");
-                selectCatalog.value = isCatalog ? "true" : "false";
-                selectCatalog.addEventListener("change", async (e) => {
-                    const newValue = e.target.value === "true";
+                // Interrupteur Catalogue MMCP
+                const isCatalog = data.showOnMmcpCatalog !== false && data.showOnMmcpCatalog !== 0;
+                const toggleCatalog = document.getElementById("toggle-mmcp-catalog");
+                toggleCatalog.checked = isCatalog;
+                majLibelleCatalogue(isCatalog);
+
+                toggleCatalog.addEventListener("change", async (e) => {
+                    const newValue = e.target.checked;
+                    majLibelleCatalogue(newValue);
                     try {
                         await api.patch(`/api/users/${user.uid}/releases/${releaseId}`, { showOnMmcpCatalog: newValue });
                     } catch (err) {
                         console.error("Erreur lors de la mise à jour :", err);
+                        e.target.checked = !newValue;
+                        majLibelleCatalogue(!newValue);
                     }
                 });
+
+                // Interrupteur & infos Première
+                const isPremiereActive = data.premiereIsActive === true || data.premiereIsActive === 1;
+                document.getElementById("premiere-is-active").checked = isPremiereActive;
+                majLibellePremiere(isPremiereActive);
 
                 if (data.premiereSlug) {
                     document.getElementById("premiere-custom-text").value = data.premiereSlug;
                     document.getElementById("premiere-password").value = data.premierePassword || "";
                     document.getElementById("premiere-start-date").value = data.premiereStartDate || "";
                     document.getElementById("premiere-end-date").value = data.premiereEndDate || "";
-                    document.getElementById("premiere-is-active").checked = data.premiereIsActive === true || data.premiereIsActive === 1;
 
                     const artisteSlug = nomArtisteActuel.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
                     const fullLink = `${window.location.origin}/premiere/?artiste=${encodeURIComponent(artisteSlug)}&slug=${data.premiereSlug}`;

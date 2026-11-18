@@ -25,6 +25,8 @@
     <script type="module" src="/assets/js/navbar.js" defer></script>
     <script src="/assets/footers/accueil/footer.js" defer></script>
     <link rel="stylesheet" href="/assets/css/version.css">
+    <link rel="stylesheet" href="/assets/css/markdown.css">
+    <link rel="stylesheet" href="/assets/css/version-search.css">
 </head>
 
 <body>
@@ -50,9 +52,23 @@
 
             <section>
                 <h3 class="history-title">Historique des versions</h3>
+
+                <div class="version-search">
+                    <div class="version-search-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+                        <input type="search" id="version-search" autocomplete="off"
+                            placeholder="Rechercher une version, une date ou un mot-clé…"
+                            aria-label="Rechercher dans l'historique des versions">
+                        <button type="button" class="version-search-clear" id="version-search-clear" hidden
+                            aria-label="Effacer la recherche">&times;</button>
+                    </div>
+                    <div class="version-search-count" id="version-search-count" aria-live="polite"></div>
+                </div>
+
                 <div class="timeline" id="timeline-list">
                     <div class="empty-history">Chargement de l'historique...</div>
                 </div>
+                <div class="version-search-empty" id="version-search-empty" hidden>Aucune version ne correspond à votre recherche.</div>
             </section>
         </main>
 
@@ -65,6 +81,8 @@
 
     <script type="module" src="/assets/js/version.js">
     </script>
+    <script type="module" src="/assets/js/markdown-auto.js"></script>
+    <script type="module" src="/assets/js/version-search.js"></script>
 </body>
 
 </html>

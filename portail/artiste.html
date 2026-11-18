@@ -5,9 +5,85 @@
     <meta charset="UTF-8">
     <title>Modifier l'artiste | Morgann Music CP</title>
     <link rel="stylesheet" href="js/reponsive.css">
-    <meta name="theme-color" content="">
+    <meta name="theme-color" content="#FC8FB0">
     <link rel="stylesheet" href="css/artiste.css">
+    <style>
+        /* Interrupteurs (Toggle Switch) MMCP */
+        #delivery-checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+        }
 
+        .delivery-toggle-row {
+            padding: 14px 18px;
+            background-color: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(189, 189, 189, 0.438);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .delivery-toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #222222;
+            cursor: pointer;
+            margin: 0;
+            text-transform: none;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(148, 163, 184, 0.5);
+            transition: 0.25s ease;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.25s ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .switch input:checked+.slider {
+            background-color: #FC8FB0;
+        }
+
+        .switch input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+    </style>
 </head>
 
 <body>
@@ -160,6 +236,60 @@
         </div>
 
     </div>
+
+    <script>
+        // Convertit automatiquement les cases à cocher de #delivery-checkboxes en interrupteurs
+        (function () {
+            const container = document.getElementById('delivery-checkboxes');
+            if (!container) return;
+
+            function styliserCheckboxes() {
+                const inputs = container.querySelectorAll('input[type="checkbox"]:not([data-switched])');
+                inputs.forEach((checkbox) => {
+                    checkbox.setAttribute('data-switched', 'true');
+
+                    const parentItem = checkbox.closest('label, .checkbox-item, div') || checkbox.parentElement;
+                    let labelText = '';
+
+                    if (parentItem && parentItem !== container) {
+                        labelText = parentItem.textContent.trim();
+                    } else if (checkbox.id) {
+                        const associatedLabel = container.querySelector(`label[for="${checkbox.id}"]`);
+                        if (associatedLabel) labelText = associatedLabel.textContent.trim();
+                    }
+
+                    const row = document.createElement('div');
+                    row.className = 'delivery-toggle-row';
+
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'delivery-toggle-label';
+                    textSpan.textContent = labelText || checkbox.value || 'Option';
+                    textSpan.addEventListener('click', () => checkbox.click());
+
+                    const switchLabel = document.createElement('label');
+                    switchLabel.className = 'switch';
+
+                    const sliderSpan = document.createElement('span');
+                    sliderSpan.className = 'slider';
+
+                    if (parentItem && parentItem !== container) {
+                        parentItem.replaceWith(row);
+                    } else {
+                        checkbox.parentNode.insertBefore(row, checkbox);
+                    }
+
+                    switchLabel.appendChild(checkbox);
+                    switchLabel.appendChild(sliderSpan);
+                    row.appendChild(textSpan);
+                    row.appendChild(switchLabel);
+                });
+            }
+
+            const observer = new MutationObserver(styliserCheckboxes);
+            observer.observe(container, { childList: true, subtree: true });
+            styliserCheckboxes();
+        })();
+    </script>
 
     <script type="module" src="js/artiste.js"></script>
 </body>

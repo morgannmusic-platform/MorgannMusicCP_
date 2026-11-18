@@ -13,7 +13,7 @@
 
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #FFEFF4;
             color: #333;
             margin-top: 80px;
@@ -301,18 +301,20 @@
             background: #333;
         }
 
+        /* =========================================================
+           OVERLAY PAROLES — style Apple Music Sing / AMLL
+           ========================================================= */
         .lyrics-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(18, 18, 22, 0.85);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
+            background: #0b0b10;
             z-index: 9999;
             display: flex;
             flex-direction: column;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.35s ease, visibility 0.35s ease;
+            overflow: hidden;
         }
 
         .lyrics-overlay.active {
@@ -320,35 +322,70 @@
             visibility: visible;
         }
 
+        /* Fond fluide : pochette floutée, animée par l'audio (canvas basse résolution) */
+        .lyrics-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .lyrics-bg canvas {
+            position: absolute;
+            left: -8%;
+            top: -8%;
+            width: 116%;
+            height: 116%;
+            filter: blur(40px) saturate(1.2);
+        }
+
         .lyrics-header {
+            position: relative;
+            z-index: 2;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 24px 40px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 36px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .lyrics-header-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .lyrics-header-cover {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            will-change: transform;
         }
 
         .lyrics-header-info h4 {
             color: #fff;
             margin: 0;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
         }
 
         .lyrics-header-info p {
-            color: #aaa;
-            margin: 4px 0 0 0;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 3px 0 0 0;
             font-size: 13px;
         }
 
         .lyrics-close-btn {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.14);
             color: #fff;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -357,74 +394,225 @@
         }
 
         .lyrics-close-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.26);
         }
 
         .lyrics-body {
+            position: relative;
+            z-index: 2;
             flex: 1;
-            overflow-y: auto;
-            padding: 60px 20px;
-            max-width: 700px;
             width: 100%;
+            max-width: 860px;
             margin: 0 auto;
-            scroll-behavior: smooth;
-            text-align: center;
+            padding: 0 24px;
+            box-sizing: border-box;
+            overflow: hidden;
+            touch-action: none;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 9%, #000 86%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, #000 9%, #000 86%, transparent 100%);
         }
 
-        .lyrics-body::-webkit-scrollbar {
-            width: 0px;
+        .lyrics-body.plain {
+            overflow-y: auto;
+            touch-action: pan-y;
+            -webkit-mask-image: none;
+            mask-image: none;
         }
 
-        .lyric-line {
-            font-size: 26px;
+        .plain-text {
+            white-space: pre-wrap;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 22px;
             font-weight: 700;
-            color: rgba(255, 255, 255, 0.25);
-            margin: 28px 0;
-            line-height: 1.4;
-            transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            line-height: 1.5;
+            padding: 40px 0 120px;
+        }
+
+        .lyrics-track {
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            top: 0;
+            bottom: 0;
+        }
+
+        /* ----- Groupe de lignes (ligne principale + backs) ----- */
+        .lg {
+            --fs: clamp(27px, 4.6vw, 42px);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 92%;
+            box-sizing: border-box;
+            padding: 10px 14px;
+            border-radius: 16px;
             cursor: pointer;
-            filter: blur(4px);
-            opacity: 0.25;
-            transform: scale(0.96);
+            transform-origin: left center;
+            filter: blur(var(--b, 0px));
+            backface-visibility: hidden;
+            will-change: transform, filter;
+            transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--td, 0s),
+                filter 0.5s ease,
+                background-color 0.25s ease;
         }
 
-        .lyric-line:hover {
-            color: rgba(255, 255, 255, 0.6);
+        .lg.right {
+            left: auto;
+            right: 0;
+            text-align: right;
+            transform-origin: right center;
         }
 
-        .lyric-line.active {
-            color: #ffffff;
-            font-size: 34px;
-            filter: blur(0px);
+        .lg:hover {
+            background-color: rgba(255, 255, 255, 0.07);
+            filter: none !important;
+        }
+
+        .lyrics-track.no-anim .lg {
+            transition: none !important;
+        }
+
+        .lyrics-body.user-scrolling .lg {
+            filter: none !important;
+            transition: transform 0.14s linear, background-color 0.25s ease !important;
+        }
+
+        .ln {
+            --dim: rgba(255, 255, 255, 0.3);
+            font-weight: 800;
+            line-height: 1.22;
+            letter-spacing: -0.015em;
+        }
+
+        .ln.main {
+            font-size: var(--fs);
+        }
+
+        .ln.small {
+            font-size: calc(var(--fs) * 0.62);
+            font-weight: 700;
+        }
+
+        /* Backs : repliés tant qu'ils ne sont pas chantés, indépendants de la ligne principale */
+        .lg-bgwrap {
+            display: grid;
+            grid-template-rows: 0fr;
+            opacity: 0;
+            transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+        }
+
+        .lg.bg-open .lg-bgwrap {
+            grid-template-rows: 1fr;
             opacity: 1;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.45);
-            transform: scale(1.02);
         }
 
-        .lyric-line.dist-1 {
-            filter: blur(1.5px);
-            opacity: 0.65;
-            transform: scale(0.99);
+        .bginner {
+            min-height: 0;
+            overflow: hidden;
         }
 
-        .lyric-line.dist-2 {
-            filter: blur(3px);
-            opacity: 0.4;
-            transform: scale(0.97);
+        .ln.bg {
+            --dim: rgba(255, 255, 255, 0.26);
+            font-size: calc(var(--fs) * 0.62);
+            font-weight: 700;
+            padding: 10px 4px 4px;
         }
 
-        .lyric-line.dist-3 {
-            filter: blur(5px);
-            opacity: 0.18;
-            transform: scale(0.95);
+        /* ----- Mots / syllabes : remplissage progressif ----- */
+        .w {
+            display: inline-block;
+            white-space: nowrap;
         }
 
-        .lyric-line.dist-far {
-            filter: blur(7px);
-            opacity: 0.05;
-            transform: scale(0.93);
+        .syl,
+        .ch {
+            position: relative;
+            display: inline-block;
+            white-space: pre;
+            color: var(--dim);
+            transform: translate3d(0, calc(var(--ly, 0) * -1em), 0) scale(var(--sc, 1));
+            transform-origin: 50% 75%;
+            transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
+        .sylw {
+            display: inline-block;
+            white-space: pre;
+        }
+
+        .ln.hot .syl,
+        .ln.hot .ch {
+            transition: none;
+        }
+
+        .syl::after,
+        .ch::after {
+            content: attr(data-t);
+            position: absolute;
+            left: 0;
+            top: 0;
+            white-space: pre;
+            color: transparent;
+            pointer-events: none;
+            background-image: linear-gradient(90deg, #fff 0%, #fff 44%, rgba(255, 255, 255, 0) 56%, rgba(255, 255, 255, 0) 100%);
+            background-size: 250% 100%;
+            background-repeat: no-repeat;
+            background-position-x: calc((1 - var(--p, 0)) * 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .ln.hot .syl::after,
+        .ln.hot .ch::after {
+            opacity: 1;
+            transition: opacity 0.12s ease;
+        }
+
+        .ln.bg.hot .syl::after,
+        .ln.bg.hot .ch::after {
+            opacity: 0.88;
+        }
+
+        /* Paroles synchronisées par ligne (LRC) : cascade mot à mot */
+        .ln.lineonly.hot .syl::after {
+            transition: opacity 0.3s ease calc(min(var(--wi, 0), 10) * 40ms);
+        }
+
+        /* ----- Interlude (points) ----- */
+        .lg.dots {
+            width: auto;
+            padding: 0 14px;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .dots-in {
+            display: inline-flex;
+            gap: 9px;
+            align-items: center;
+            height: 56px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .lg.dots.open .dots-in {
+            opacity: 1;
+        }
+
+        .dots-in i {
+            display: block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            opacity: 0.3;
+        }
+
+        /* =========================================================
+           BARRE DE LECTURE FLOTTANTE
+           ========================================================= */
         .player-bar {
             position: fixed;
             bottom: 20px;
@@ -434,7 +622,7 @@
             max-width: 650px;
             background: rgba(255, 255, 255, 0.34);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(00px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.63);
             border-radius: 50px;
             padding: 14px 24px;
@@ -532,10 +720,15 @@
 
     <!-- Apple Music Style Synced Lyrics Drawer Overlay -->
     <div id="lyrics-overlay" class="lyrics-overlay">
+        <div class="lyrics-bg"><canvas id="lyrics-bg-canvas"></canvas></div>
+
         <div class="lyrics-header">
             <div class="lyrics-header-info">
-                <h4 id="lyrics-modal-title">Titre de la piste</h4>
-                <p id="lyrics-modal-artist">Artiste</p>
+                <img id="lyrics-modal-cover" class="lyrics-header-cover" src="" alt="Cover">
+                <div>
+                    <h4 id="lyrics-modal-title">Titre de la piste</h4>
+                    <p id="lyrics-modal-artist">Artiste</p>
+                </div>
             </div>
             <button class="lyrics-close-btn" onclick="fermerParoles()">✕</button>
         </div>
@@ -572,6 +765,9 @@
         let indexPisteActive = null;
         let pistesGlobales = [];
         let infoSortieGlobale = {};
+        let pochetteGlobaleUrl = "/assets/img/icons/android-chrome-512x512.png";
+
+
 
         function corrigerUrlFichier(url) {
             if (!url || typeof url !== "string") return null;
@@ -640,7 +836,6 @@
             const contentArea = document.getElementById("content-area");
             const title = data.title || "Sans titre";
 
-            // Gestion de la version de la sortie entre parenthèses
             const releaseVersion = data.versionLine || data.version_line || data.version || "";
             const displayTitle = releaseVersion ? `${title} (${releaseVersion})` : title;
 
@@ -653,6 +848,9 @@
             const animatedCoverRaw = data.animatedCoverUrl || data.animatedCover || data.appleMotion11;
             const animatedCoverUrl = corrigerUrlFichier(animatedCoverRaw);
             const cover = corrigerUrlFichier(data.coverUrl) || "/assets/img/icons/android-chrome-512x512.png";
+            pochetteGlobaleUrl = cover;
+
+            preparerFond(cover);
 
             const mediaHtml = `
                 <div class="media-shell" data-media-shell>
@@ -689,8 +887,6 @@
             if (Array.isArray(pistesGlobales) && pistesGlobales.length > 0) {
                 const itemsHtml = pistesGlobales.map((track, index) => {
                     let trackTitle = typeof track === 'object' ? (track.title || track.name || 'Piste ' + (index + 1)) : track;
-
-                    // Gestion de la version de la piste entre parenthèses
                     let trackVersion = typeof track === 'object' ? (track.version || track.versionLine || track.version_line || "") : "";
                     let fullTrackTitle = trackVersion ? `${trackTitle} (${trackVersion})` : trackTitle;
 
@@ -753,51 +949,56 @@
             }
         }
 
+        const ICON = n => `<img src="/assets/img/icon/${n}.svg" alt="${n}" style="width:14px; height:14px; filter:invert(1);">`;
+        function setPlayIcon(playing) {
+            document.getElementById("bar-play-btn").innerHTML = ICON(playing ? "pause" : "play");
+        }
+
+        function majBarre() {
+            const a = lecteurActif;
+            if (!a) return;
+            const cur = a.currentTime, dur = a.duration || 0;
+            document.getElementById("bar-current-time").textContent = formatTime(cur);
+            document.getElementById("bar-duration").textContent = formatTime(dur);
+            document.getElementById("bar-progress-fill").style.width = `${dur > 0 ? (cur / dur) * 100 : 0}%`;
+        }
+
+        // Charge l'audio en mode CORS (nécessaire pour l'analyse du beat) ; repli sans CORS si le serveur refuse
+        function lancerAudio(url, cors) {
+            if (lecteurActif) lecteurActif.pause();
+            const a = new Audio();
+            if (cors) a.crossOrigin = "anonymous";
+            a.preload = "auto";
+            a.src = url;
+            lecteurActif = a;
+            horloge.ct = -1; horloge.last = 0;
+            a.addEventListener("error", () => {
+                if (a === lecteurActif && cors && a.readyState === 0) { ana.ok = false; lancerAudio(url, false); }
+            });
+            a.addEventListener("loadedmetadata", () => {
+                if (seekEnAttente != null) { a.currentTime = seekEnAttente; seekEnAttente = null; }
+            });
+            a.addEventListener("timeupdate", majBarre);
+            a.addEventListener("play", () => a === lecteurActif && setPlayIcon(true));
+            a.addEventListener("pause", () => a === lecteurActif && setPlayIcon(false));
+            a.addEventListener("ended", () => setPlayIcon(false));
+            if (cors && L) brancherAnalyseur(a);
+            a.play().catch(e => console.log("Autoplay bloqué:", e));
+        }
+
         window.jouerPiste = function (index) {
             const track = pistesGlobales[index];
             if (!track) return;
-            const audioUrlRaw = track.audioUrl || track.audio_url || track.fileUrl || track.file_url || track.url;
-            const audioUrl = corrigerUrlFichier(audioUrlRaw);
+            const audioUrl = corrigerUrlFichier(track.audioUrl || track.audio_url || track.fileUrl || track.file_url || track.url);
             if (!audioUrl) return;
 
-            if (lecteurActif) {
-                lecteurActif.pause();
-                lecteurActif = null;
-            }
-
             indexPisteActive = index;
-            lecteurActif = new Audio(audioUrl);
-
             const trackTitle = track.title || track.name || `Piste ${index + 1}`;
             const trackVersion = track.version || track.versionLine || track.version_line || "";
-            const fullTrackTitle = trackVersion ? `${trackTitle} (${trackVersion})` : trackTitle;
-
-            document.getElementById("bar-title").textContent = fullTrackTitle;
+            document.getElementById("bar-title").textContent = trackVersion ? `${trackTitle} (${trackVersion})` : trackTitle;
             document.getElementById("player-bar").classList.add("visible");
-
-            const hasLyrics = Boolean(track.lyricsText && track.lyricsText.trim());
-            document.getElementById("bar-lyrics-btn").style.display = hasLyrics ? "inline-block" : "none";
-
-            lecteurActif.play().catch(e => console.log("Autoplay bloqué:", e));
-            document.getElementById("bar-play-btn").innerHTML = `<img src="/assets/img/icon/pause.svg" alt="pause" style="width:14px; height:14px; filter:invert(1);">`;
-
-            lecteurActif.addEventListener("timeupdate", () => {
-                if (!lecteurActif) return;
-                const current = lecteurActif.currentTime;
-                const duration = lecteurActif.duration || 0;
-
-                document.getElementById("bar-current-time").textContent = formatTime(current);
-                document.getElementById("bar-duration").textContent = formatTime(duration);
-
-                const pct = duration > 0 ? (current / duration) * 100 : 0;
-                document.getElementById("bar-progress-fill").style.width = `${pct}%`;
-
-                mettreAJourLignesParoles(current);
-            });
-
-            lecteurActif.addEventListener("ended", () => {
-                document.getElementById("bar-play-btn").innerHTML = `<img src="/assets/img/icon/play.svg" alt="play" style="width:14px; height:14px; filter:invert(1);">`;
-            });
+            document.getElementById("bar-lyrics-btn").style.display = (track.lyricsText && track.lyricsText.trim()) ? "inline-block" : "none";
+            lancerAudio(audioUrl, true);
         };
 
         window.togglePlayPauseBar = function () {
@@ -805,22 +1006,15 @@
                 if (pistesGlobales.length > 0) jouerPiste(0);
                 return;
             }
-            const playBtn = document.getElementById("bar-play-btn");
-            if (lecteurActif.paused) {
-                lecteurActif.play();
-                playBtn.innerHTML = `<img src="/assets/img/icon/pause.svg" alt="pause" style="width:14px; height:14px; filter:invert(1);">`;
-            } else {
-                lecteurActif.pause();
-                playBtn.innerHTML = `<img src="/assets/img/icon/pause.svg" alt="pause" style="width:14px; height:14px; filter:invert(1);">`;
-            }
+            if (ana.ctx && ana.ctx.state === "suspended") ana.ctx.resume();
+            if (lecteurActif.paused) lecteurActif.play(); else lecteurActif.pause();
         };
 
         window.seekAudioBar = function (e) {
             if (!lecteurActif || !lecteurActif.duration) return;
             const rect = e.currentTarget.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const width = rect.width;
-            lecteurActif.currentTime = (clickX / width) * lecteurActif.duration;
+            lecteurActif.currentTime = ((e.clientX - rect.left) / rect.width) * lecteurActif.duration;
+            horloge.ct = -1;
         };
 
         function formatTime(secs) {
@@ -829,7 +1023,564 @@
             return `${m}:${s < 10 ? '0' : ''}${s}`;
         }
 
-        let parsedLyricsArray = [];
+        /* =========================================================
+           MOTEUR PAROLES — style Apple Music Sing / AMLL
+           Chaque ligne (principale ou back) est minutée indépendamment ;
+           le défilement passe par des transforms (pas de scrollIntoView).
+           ========================================================= */
+        const LEAD = 0.32, GAP_INTERLUDE = 4.5, DOTS_H = 56, PAD = 20, SYNC = 0;
+        const BLUR = [0, 1.1, 1.9, 2.6, 3.2, 3.8];
+        const CJK = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/;
+        const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+        let L = null, ouvert = false, rafId = null, seekEnAttente = null;
+        const horloge = { ct: -1, perf: 0, last: 0 };
+        const ana = { ctx: null, node: null, src: null, freq: null, ok: false, bass: 0, beat: 0, hit: false, peak: 0.3, prev: 0, fluxAvg: 0.01, lastBeat: 0 };
+
+        /* ---------- Parsing TTML ---------- */
+        const gAttr = (el, n) => { for (const a of el.attributes) if (a.localName === n || a.name === n) return a.value; return null; };
+
+        function parseTime(v) {
+            if (v == null) return null;
+            const s = String(v).trim();
+            if (!s) return null;
+            const m = /^(\d+(?:\.\d+)?)(ms|s|m|h)$/.exec(s);
+            if (m) return parseFloat(m[1]) * { ms: 0.001, s: 1, m: 60, h: 3600 }[m[2]];
+            const p = s.split(":").map(parseFloat);
+            if (p.some(isNaN)) return null;
+            return p.length >= 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p.length === 2 ? p[0] * 60 + p[1] : p[0];
+        }
+
+        function collecter(node, ctx, out) {
+            node.childNodes.forEach(c => {
+                if (c.nodeType === 3) {
+                    out.push(c.nodeValue.trim() ? { text: c.nodeValue, b: ctx.b, e: ctx.e, bg: ctx.bg } : { ws: true });
+                } else if (c.nodeType === 1) {
+                    const n = c.localName.toLowerCase();
+                    if (n === "br") { out.push({ ws: true }); return; }
+                    if (n !== "span") return;
+                    const role = gAttr(c, "role") || "";
+                    if (role === "x-translation" || role === "x-roman") return;
+                    collecter(c, {
+                        b: parseTime(gAttr(c, "begin")) ?? ctx.b,
+                        e: parseTime(gAttr(c, "end")) ?? ctx.e,
+                        bg: ctx.bg || role === "x-bg"
+                    }, out);
+                }
+            });
+        }
+
+        function versSyllabes(raw) {
+            const out = [];
+            const sp = () => { if (out.length) out[out.length - 1].sp = true; };
+            for (const t of raw) {
+                if (t.ws) { sp(); continue; }
+                const txt = t.text.replace(/\s+/g, " ");
+                if (txt.startsWith(" ")) sp();
+                const parts = txt.trim().split(" ");
+                const total = parts.reduce((a, p) => a + p.length, 0) || 1;
+                const timed = t.b != null && t.e != null;
+                let acc = 0, cur = t.b;
+                parts.forEach((p, i) => {
+                    acc += p.length;
+                    const e = timed ? t.b + (t.e - t.b) * (acc / total) : null;
+                    out.push({ text: p, b: cur, e, bg: t.bg, sp: i < parts.length - 1 || txt.endsWith(" ") });
+                    cur = e;
+                });
+            }
+            return out;
+        }
+
+        function faireLigne(s, pB, pE, bg) {
+            if (bg && s.length) {
+                if (s[0].text.startsWith("(")) s[0].text = s[0].text.slice(1);
+                const l = s[s.length - 1];
+                if (l.text.endsWith(")")) l.text = l.text.slice(0, -1);
+                s = s.filter(x => x.text);
+            }
+            if (!s.length) return null;
+            const tb = s.filter(x => x.b != null).map(x => x.b), te = s.filter(x => x.e != null).map(x => x.e);
+            const b = tb.length ? Math.min(...tb) : pB, e = te.length ? Math.max(...te) : pE;
+            if (b == null || e == null) return null;
+            const lineOnly = !tb.length || (s.length > 1 && s.every(x => x.b === s[0].b && x.e === s[0].e));
+            s.forEach(x => {
+                if (x.b == null) x.b = b;
+                if (x.e == null) x.e = e;
+                x.e = Math.max(x.e, x.b + 0.03);
+                x.dur = x.e - x.b;
+                x.brk = x.sp || CJK.test(x.text);
+            });
+            s.forEach(x => { x.dur0 = x.dur; }); // durée d'origine (pour décider des mots "intenses")
+            const ord = s.slice().sort((p, q) => p.b - q.b);
+            for (let i = 0; i < ord.length - 1; i++) {
+                const a = ord[i], nx = ord[i + 1], gap = nx.b - a.e;
+                if (nx.b > a.b && gap > -0.15 && gap < 0.5) { a.e = nx.b; a.dur = Math.max(0.03, a.e - a.b); } // fin = début de la suivante
+            }
+            const words = []; let cur = [];
+            s.forEach(x => { cur.push(x); if (x.brk) { words.push(cur); cur = []; } });
+            if (cur.length) words.push(cur);
+            return { b, e, words, lineOnly, sylls: s };
+        }
+
+        function parserTtml(xml) {
+            const doc = new DOMParser().parseFromString(xml, "application/xml");
+            if (doc.getElementsByTagName("parsererror").length) return [];
+            const agents = [...doc.getElementsByTagNameNS("*", "agent")].map(a => gAttr(a, "id")).filter(Boolean);
+            let left = agents[0] || null;
+            const entries = [];
+            [...doc.getElementsByTagNameNS("*", "p")].forEach(p => {
+                const pB = parseTime(gAttr(p, "begin")), pE = parseTime(gAttr(p, "end"));
+                const ag = gAttr(p, "agent");
+                if (!left && ag) left = ag;
+                const standalone = gAttr(p, "role") === "x-bg";
+                const raw = [];
+                collecter(p, { b: pB, e: pE, bg: standalone }, raw);
+                const syl = versSyllabes(raw);
+                const main = faireLigne(syl.filter(x => !x.bg), pB, pE, false);
+                const bg = faireLigne(syl.filter(x => x.bg), pB, pE, true);
+                if (main || bg) entries.push({ main, bgs: bg ? [bg] : [], right: !!ag && ag !== left });
+            });
+            const groups = [];
+            entries.forEach((en, i) => {
+                if (!en.main) { // <p> entièrement en x-bg : on le rattache à la ligne voisine qui chevauche
+                    const bg = en.bgs[0], prev = groups[groups.length - 1], nx = entries[i + 1];
+                    if (prev && !prev.small && bg.b <= prev.e + 1.5 && bg.e >= prev.b - 0.3) { prev.bgs.push(bg); prev.e = Math.max(prev.e, bg.e); return; }
+                    if (nx && nx.main && bg.b >= nx.main.b - 2 && bg.b < nx.main.e) { nx.bgs.unshift(bg); return; }
+                    groups.push({ main: bg, bgs: [], small: true, right: en.right, b: bg.b, e: bg.e });
+                    return;
+                }
+                groups.push({
+                    main: en.main, bgs: en.bgs, right: en.right,
+                    b: Math.min(en.main.b, ...en.bgs.map(x => x.b)),
+                    e: Math.max(en.main.e, ...en.bgs.map(x => x.e))
+                });
+            });
+            return groups;
+        }
+
+        /* ---------- Parsing LRC (une ligne = un groupe, surlignage par ligne) ---------- */
+        function parserLrc(txt) {
+            const re = /\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]/g, ent = [];
+            txt.split(/\r?\n/).forEach(l => {
+                const st = []; let m;
+                re.lastIndex = 0;
+                while ((m = re.exec(l))) st.push(+m[1] * 60 + +m[2] + (m[3] ? parseInt(m[3].padEnd(3, "0"), 10) / 1000 : 0));
+                if (!st.length) return;
+                const text = l.replace(re, "").replace(/<\d+:\d+(?:[.:]\d+)?>/g, "").trim();
+                st.forEach(t => ent.push({ t, text }));
+            });
+            ent.sort((a, b) => a.t - b.t);
+            const groups = [];
+            ent.forEach((en, i) => {
+                if (!en.text) return;
+                const nx = ent[i + 1];
+                const e = nx ? Math.min(nx.t, en.t + Math.max(6, en.text.length * 0.15)) : en.t + 6;
+                const sy = en.text.split(/\s+/).map((w, k, arr) => ({ text: w, b: en.t, e, dur: e - en.t, sp: k < arr.length - 1, brk: true }));
+                groups.push({ main: { b: en.t, e, words: sy.map(s => [s]), lineOnly: true, sylls: sy }, bgs: [], right: false, b: en.t, e });
+            });
+            return groups;
+        }
+
+        function avecInterludes(gs) {
+            const out = []; let maxE = 0;
+            gs.forEach(g => {
+                if (g.b - maxE >= GAP_INTERLUDE) out.push({ type: "dots", b: maxE + 0.35, e: g.b - 0.3 });
+                out.push(g);
+                maxE = Math.max(maxE, g.e);
+            });
+            return out;
+        }
+
+        function detecterFormatParoles(rawText) {
+            const t = rawText.trim();
+            return t.startsWith("<") && (t.includes("<tt") || t.includes("<p ") || t.includes("<p>")) ? "ttml" : "lrc";
+        }
+
+        /* ---------- DOM ---------- */
+        function elLigne(line, cls) {
+            const el = document.createElement("div");
+            el.className = `ln ${cls}${line.lineOnly ? " lineonly" : ""}`;
+            line.el = el; line.hot = false;
+            let wi = 0;
+            line.words.forEach((w, k) => {
+                const wEl = document.createElement("span");
+                wEl.className = "w";
+                w.forEach(s => {
+                    const chars = Array.from(s.text);
+                    s.p = -1; s.ly = 0; s.on = false;
+                    if (!line.lineOnly && (s.dur0 || s.dur) >= 1 && chars.length >= 2 && chars.length <= 14) {
+                        const sw = document.createElement("span");
+                        sw.className = "sylw";
+                        s.chars = chars.map(ch => {
+                            const c = document.createElement("span");
+                            c.className = "ch"; c.textContent = ch; c.dataset.t = ch;
+                            sw.appendChild(c);
+                            return { el: c, p: -1, ly: 0, sc: 1, gs: "" };
+                        });
+                        s.amp = clamp(((s.dur0 || s.dur) - 0.6) / 1.4, 0.5, 1);
+                        wEl.appendChild(sw);
+                    } else {
+                        const sp = document.createElement("span");
+                        sp.className = "syl"; sp.textContent = s.text; sp.dataset.t = s.text;
+                        if (line.lineOnly) { sp.style.setProperty("--p", "1"); sp.style.setProperty("--wi", wi++); }
+                        s.el = sp;
+                        wEl.appendChild(sp);
+                    }
+                });
+                line.el.appendChild(wEl);
+                if (w[w.length - 1].sp && k < line.words.length - 1) el.appendChild(document.createTextNode(" "));
+            });
+            return el;
+        }
+
+        function elGroupe(g) {
+            const el = document.createElement("div");
+            el.className = "lg" + (g.right ? " right" : "");
+            if (g.type === "dots") {
+                el.classList.add("dots");
+                const d = document.createElement("div");
+                d.className = "dots-in"; d.innerHTML = "<i></i><i></i><i></i>";
+                el.appendChild(d);
+                g.dotsEl = d; g.dots = [...d.children];
+                return el;
+            }
+            el.appendChild(elLigne(g.main, g.small ? "main small" : "main"));
+            if (g.bgs.length) {
+                const wrap = document.createElement("div"), inner = document.createElement("div");
+                wrap.className = "lg-bgwrap"; inner.className = "bginner";
+                g.bgs.forEach(b => inner.appendChild(elLigne(b, "bg")));
+                wrap.appendChild(inner); el.appendChild(wrap);
+                g.bgInner = inner;
+            }
+            el.addEventListener("click", () => chercherTemps(g.b));
+            return el;
+        }
+
+        /* ---------- Mise en page (positions calculées, appliquées par transform) ---------- */
+        function mesurer() {
+            L.anchor = Math.max(70, Math.round(L.box.clientHeight * 0.3));
+            for (const g of L.groups) if (g.type !== "dots") {
+                g.hM = g.main.el.offsetHeight;
+                g.hB = g.bgInner ? g.bgInner.scrollHeight : 0;
+            }
+        }
+
+        function relayout() {
+            let y = 0;
+            for (const g of L.groups) {
+                g.y = y;
+                y += g.type === "dots" ? (g.open ? DOTS_H : 0) : PAD + g.hM + (g.bgOpen ? g.hB : 0);
+            }
+        }
+
+        function appliquer() {
+            const gs = L.groups, base = gs[L.base] ? gs[L.base].y : 0;
+            gs.forEach((g, i) => {
+                const calm = g.hot || g.type === "dots";
+                g.el.style.transform = `translate3d(0,${(g.y - base + L.anchor + L.off).toFixed(1)}px,0) scale(${calm ? 1 : 0.965})`;
+                const b = calm ? 0 : BLUR[Math.min(Math.abs(i - L.target), BLUR.length - 1)];
+                if (b !== g.bl) { g.bl = b; g.el.style.setProperty("--b", b + "px"); }
+                // effet de vague : les lignes sous la cible démarrent légèrement en décalé
+                g.el.style.setProperty("--td", L.stagger && i >= L.target ? Math.min(i - L.target, 7) * 0.045 + "s" : "0s");
+            });
+            L.stagger = false;
+        }
+
+        /* ---------- Animation des mots ---------- */
+        function impulsion(v) { ana.beat = Math.max(ana.beat, v); ana.hit = true; }
+
+        function setN(o, k, el, css, v, eps) {
+            if (v !== o[k] && (Math.abs(v - o[k]) > eps || v === 0 || v === 1)) { o[k] = v; el.style.setProperty(css, v.toFixed(3)); }
+        }
+
+        function majMots(line, t) {
+            for (const s of line.sylls) {
+                const r = (t - s.b) / s.dur;
+                if (!s.on && r > 0 && r < 1.5) {
+                    s.on = true;
+                    if (!ana.ok && lecteurActif && !lecteurActif.paused) impulsion(s.dur > 0.5 ? 0.9 : 0.55);
+                } else if (r <= 0) s.on = false;
+                if (line.lineOnly) continue;
+                if (s.chars) {
+                    const n = s.chars.length, sig = clamp(n * 0.22, 0.9, 1.5), front = clamp(r, -1, 3) * n;
+                    s.chars.forEach((c, i) => {
+                        const lp = clamp(front - i, 0, 1);                       // surlignage continu, lettre après lettre
+                        const d = (i + 0.5 - front) / sig, w = Math.exp(-d * d) * s.amp; // bosse qui suit le surlignage
+                        setN(c, "p", c.el, "--p", lp, 0.003);
+                        setN(c, "ly", c.el, "--ly", 0.03 * lp * lp * (3 - 2 * lp) + 0.13 * w, 0.0015);
+                        setN(c, "sc", c.el, "--sc", 1 + 0.1 * w, 0.0015);
+                        const ga = 0.8 * w > 0.03 ? (0.8 * w).toFixed(2) : "";
+                        if (ga !== c.gs) { c.gs = ga; c.el.style.filter = ga ? `drop-shadow(0 0 .22em rgba(255,255,255,${ga})) drop-shadow(0 0 .6em rgba(255,255,255,${(ga * 0.55).toFixed(2)}))` : ""; }
+                    });
+                } else {
+                    setN(s, "p", s.el, "--p", clamp(r, 0, 1), 0.003);
+                    const u = clamp(r, 0, 1); // même progression que le surlignage
+                    setN(s, "ly", s.el, "--ly", 0.05 * u * u * (3 - 2 * u), 0.0015);
+                }
+            }
+        }
+
+        function reposer(line) {
+            for (const s of line.sylls) {
+                if (s.chars) s.chars.forEach(c => {
+                    c.el.style.setProperty("--ly", 0); c.el.style.setProperty("--sc", 1); c.el.style.filter = "";
+                    c.ly = 0; c.sc = 1; c.gs = "";
+                });
+                else if (s.el) { s.el.style.setProperty("--ly", 0); s.ly = 0; }
+            }
+        }
+
+        function majDots(g, t) {
+            const p = clamp((t - g.b) / (g.e - g.b), 0, 1);
+            g.dots.forEach((d, k) => { d.style.opacity = (0.3 + 0.7 * clamp(p * 3 - k, 0, 1)).toFixed(2); });
+            const ease = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
+            const sc = (1 + 0.07 * Math.sin(t * 2.4) + 0.08 * ana.beat) * (0.15 + 0.85 * ease((t - g.b) / 0.4)) * (0.15 + 0.85 * ease((g.e - t) / 0.45));
+            g.dotsEl.style.transform = `scale(${sc.toFixed(3)})`;
+        }
+
+        function majParoles(t) {
+            const gs = L.groups;
+            let relay = false, dirty = L.dirty;
+            L.dirty = false;
+            let target = 0;
+            for (let i = 0; i < gs.length && t >= gs[i].b - LEAD; i++) target = i;
+            if (target !== L.target) { L.target = target; if (!L.user) L.base = target; L.stagger = true; dirty = true; }
+            for (const g of gs) {
+                if (g.type === "dots") {
+                    const o = t >= g.b && t <= g.e;
+                    if (o !== g.open) { g.open = o; g.el.classList.toggle("open", o); relay = true; }
+                    if (o) majDots(g, t);
+                    continue;
+                }
+                let hot = false, bgOpen = false;
+                [g.main, ...g.bgs].forEach((ln, k) => {
+                    const h = t >= ln.b - 0.05 && t <= ln.e + 0.08;
+                    if (h !== ln.hot) { ln.hot = h; ln.el.classList.toggle("hot", h); if (!h) reposer(ln); }
+                    if (h) { majMots(ln, t); hot = true; }
+                    if (k > 0 && t >= ln.b - 0.3 && t <= ln.e + 0.45) bgOpen = true;
+                });
+                if (hot !== g.hot) { g.hot = hot; dirty = true; }
+                if (bgOpen !== g.bgOpen) { g.bgOpen = bgOpen; g.el.classList.toggle("bg-open", bgOpen); relay = true; }
+            }
+            if (relay || dirty) { relayout(); appliquer(); }
+        }
+
+        /* ---------- Horloge audio lissée ---------- */
+        function tempsAudio() {
+            const a = lecteurActif;
+            if (!L || !a || indexPisteActive !== L.trackIndex) return -1;
+            const ct = a.currentTime, now = performance.now();
+            if (ct !== horloge.ct) { horloge.ct = ct; horloge.perf = now; }
+            let t = ct;
+            if (!a.paused && !a.ended && a.readyState >= 3) t += Math.min(0.15, (now - horloge.perf) / 1000) * a.playbackRate;
+            if (t < horloge.last && horloge.last - t < 0.12) t = horloge.last;
+            return (horloge.last = t);
+        }
+
+        function chercherTemps(time) {
+            if (!L) return;
+            L.user = false; clearTimeout(L.ut); L.off = 0; L.base = L.target;
+            L.box.classList.remove("user-scrolling");
+            time = Math.max(0, time - 0.05);
+            if (!lecteurActif || indexPisteActive !== L.trackIndex) { seekEnAttente = time; jouerPiste(L.trackIndex); return; }
+            lecteurActif.currentTime = time;
+            horloge.ct = -1; horloge.last = 0;
+            if (lecteurActif.paused) lecteurActif.play().catch(() => { });
+        }
+
+        /* ---------- Défilement manuel (molette / tactile), retour auto après 3 s ---------- */
+        function defiler(dy) {
+            if (!L) return;
+            L.user = true; clearTimeout(L.ut);
+            const gs = L.groups, base = gs[L.base].y;
+            L.off = clamp(L.off + dy, -(gs[gs.length - 1].y - base), base - gs[0].y);
+            L.box.classList.add("user-scrolling");
+            appliquer();
+            L.ut = setTimeout(() => {
+                if (!L) return;
+                L.user = false; L.off = 0; L.base = L.target; L.stagger = true; L.dirty = true;
+                L.box.classList.remove("user-scrolling");
+            }, 3000);
+        }
+
+        const overlayEl = document.getElementById("lyrics-overlay");
+        overlayEl.addEventListener("wheel", e => { if (L) { e.preventDefault(); defiler(-e.deltaY * (e.deltaMode === 1 ? 16 : 1)); } }, { passive: false });
+        let touchY = null;
+        overlayEl.addEventListener("touchstart", e => { touchY = e.touches[0].clientY; }, { passive: true });
+        overlayEl.addEventListener("touchmove", e => {
+            if (!L || touchY == null) return;
+            e.preventDefault();
+            const y = e.touches[0].clientY;
+            defiler(y - touchY);
+            touchY = y;
+        }, { passive: false });
+        document.addEventListener("keydown", e => { if (e.key === "Escape" && ouvert) fermerParoles(); });
+
+        /* ---------- Analyse audio (basses + détection de beat) ---------- */
+        function brancherAnalyseur(audio) {
+            if (audio.__ana || audio.crossOrigin !== "anonymous") return;
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                if (!ana.ctx) {
+                    ana.ctx = new AC();
+                    ana.node = ana.ctx.createAnalyser();
+                    ana.node.fftSize = 1024;
+                    ana.node.smoothingTimeConstant = 0.4;
+                    ana.node.minDecibels = -90;
+                    ana.node.maxDecibels = -10;
+                    ana.node.connect(ana.ctx.destination);
+                    ana.freq = new Uint8Array(ana.node.frequencyBinCount);
+                }
+                if (ana.src) { try { ana.src.disconnect(); } catch (e) { } }
+                ana.src = ana.ctx.createMediaElementSource(audio);
+                ana.src.connect(ana.node);
+                audio.__ana = true;
+                ana.ok = true;
+                if (ana.ctx.state === "suspended") ana.ctx.resume();
+            } catch (e) { console.warn("Analyse audio indisponible :", e); ana.ok = false; }
+        }
+
+        function majAnalyse(dt, now) {
+            const a = lecteurActif, playing = a && !a.paused && !a.ended;
+            let target = 0;
+            if (playing && ana.ok) {
+                const f = ana.freq;
+                ana.node.getByteFrequencyData(f);
+                let b = 0;
+                for (let i = 1; i <= 4; i++) b += f[i];
+                b /= 4 * 255;
+                ana.peak = Math.max(b, ana.peak * Math.pow(0.9, dt), 0.2);
+                const flux = Math.max(0, b - ana.prev);
+                ana.prev = b;
+                ana.fluxAvg += (flux - ana.fluxAvg) * Math.min(1, dt * 5);
+                if (flux > ana.fluxAvg * 2 + 0.03 && now - ana.lastBeat > 170) { ana.lastBeat = now; impulsion(Math.min(1, 0.55 + flux * 6)); }
+                const bn = Math.min(1, b / ana.peak);
+                target = bn * bn;
+            } else if (playing) target = 0.12 + ana.beat * 0.8;
+            ana.bass += (target - ana.bass) * (1 - Math.exp(-dt * (target > ana.bass ? 22 : 4)));
+            ana.beat *= Math.exp(-dt * 5.5);
+        }
+
+        /* ---------- Fond fluide : pochette floutée qui bouge et change de couleur avec le beat ---------- */
+        const fond = {
+            ctx: null, img: null, t: 0, w: 160, h: 90, ci: 0, mix: 1,
+            pal: [[252, 143, 176], [108, 66, 246], [217, 91, 138]],
+            layers: [
+                { sz: 2.3, a: 1, spd: 0.10, ax: 0.10, ay: 0.10, fx: 0.11, fy: 0.13, ph: 0, rot: 0 },
+                { sz: 1.5, a: 0.75, spd: -0.16, ax: 0.28, ay: 0.25, fx: 0.17, fy: 0.21, ph: 2, rot: 1 },
+                { sz: 1.25, a: 0.65, spd: 0.22, ax: 0.32, ay: 0.30, fx: 0.23, fy: 0.19, ph: 4, rot: 2 },
+                { sz: 1.0, a: 0.55, spd: -0.27, ax: 0.36, ay: 0.32, fx: 0.29, fy: 0.27, ph: 1, rot: 3 }
+            ]
+        };
+
+        function extrairePalette(img) {
+            try {
+                const c = document.createElement("canvas");
+                c.width = c.height = 24;
+                const x = c.getContext("2d", { willReadFrequently: true });
+                x.drawImage(img, 0, 0, 24, 24);
+                const d = x.getImageData(0, 0, 24, 24).data, bins = Array.from({ length: 12 }, () => [0, 0, 0, 0]);
+                for (let i = 0; i < d.length; i += 4) {
+                    const r = d[i], g = d[i + 1], b = d[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+                    if (mx < 40) continue;
+                    const dl = (mx - mn) || 1, s = (mx - mn) / mx;
+                    const h = mx === r ? ((g - b) / dl + 6) % 6 : mx === g ? (b - r) / dl + 2 : (r - g) / dl + 4;
+                    const w = 0.05 + s * s, k = bins[Math.floor(h * 2) % 12];
+                    k[0] += w; k[1] += r * w; k[2] += g * w; k[3] += b * w;
+                }
+                const top = bins.filter(k => k[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 3).map(k => {
+                    const c3 = [k[1] / k[0], k[2] / k[0], k[3] / k[0]], f = Math.min(255 / Math.max(...c3, 1), 1.6);
+                    return c3.map(v => Math.round(v * f));
+                });
+                if (top.length) { while (top.length < 3) top.push(top[top.length - 1]); fond.pal = top; }
+            } catch (e) { /* canvas "tainted" : on garde la palette par défaut */ }
+        }
+
+        function preparerFond(url) {
+            const essai = cors => {
+                const img = new Image();
+                if (cors) img.crossOrigin = "anonymous";
+                img.onload = () => { fond.img = img; if (cors) extrairePalette(img); };
+                img.onerror = () => { if (cors) essai(false); };
+                img.src = url;
+            };
+            essai(true);
+        }
+
+        function ajusterFond() {
+            const c = document.getElementById("lyrics-bg-canvas");
+            fond.ctx = c.getContext("2d");
+            fond.w = c.width = 160;
+            fond.h = c.height = Math.max(60, Math.round(160 * innerHeight / Math.max(1, innerWidth)));
+        }
+        window.addEventListener("resize", () => { if (ouvert) ajusterFond(); });
+
+        function dessinerFond(dt) {
+            const c = fond.ctx;
+            if (!c) return;
+            const W = fond.w, H = fond.h, pal = fond.pal;
+            fond.t += dt;
+            const t = fond.t;
+            // le beat n'agit qu'en douceur (valeur lissée lentement)
+            fond.pulse = (fond.pulse || 0) + ((ana.bass * 0.6 + ana.beat * 0.4) - (fond.pulse || 0)) * (1 - Math.exp(-dt * 2.5));
+            c.globalCompositeOperation = "source-over";
+            c.fillStyle = "#0b0b10";
+            c.fillRect(0, 0, W, H);
+            c.globalCompositeOperation = "screen";
+            [[0.30, 0.35], [0.72, 0.65], [0.55, 0.25]].forEach(([bx, by], k) => {
+                const x = W * (bx + 0.10 * Math.sin(t * 0.18 + k * 2.1)), y = H * (by + 0.10 * Math.cos(t * 0.15 + k * 1.7));
+                const r = Math.max(W, H) * (0.62 + 0.08 * fond.pulse);
+                const rgb = pal[k % pal.length].join(",");
+                const g = c.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, `rgba(${rgb},${(0.55 + 0.08 * fond.pulse).toFixed(3)})`);
+                g.addColorStop(1, `rgba(${rgb},0)`);
+                c.fillStyle = g;
+                c.fillRect(0, 0, W, H);
+            });
+            c.globalCompositeOperation = "source-over";
+            c.fillStyle = "rgba(6,6,10,0.16)"; // garde le texte lisible
+            c.fillRect(0, 0, W, H);
+        }
+
+        /* ---------- Boucle principale ---------- */
+        const coverEl = document.getElementById("lyrics-modal-cover");
+        let dernierFrame = 0;
+        function boucle(now) {
+            if (!ouvert) { rafId = null; return; }
+            const dt = clamp((now - dernierFrame) / 1000, 0.001, 0.05);
+            dernierFrame = now;
+            majAnalyse(dt, now);
+            if (L) majParoles(tempsAudio() + SYNC);
+            dessinerFond(dt);
+            coverEl.style.transform = `scale(${(1 + ana.beat * 0.04 + ana.bass * 0.02).toFixed(3)})`;
+            rafId = requestAnimationFrame(boucle);
+        }
+
+        /* ---------- Ouverture / fermeture ---------- */
+        function arreterParoles() {
+            if (L) { clearTimeout(L.ut); clearTimeout(L.rt); L.ro && L.ro.disconnect(); }
+            L = null;
+        }
+
+        function construire(groups, box, trackIndex) {
+            const track = document.createElement("div");
+            track.className = "lyrics-track no-anim";
+            box.appendChild(track);
+            groups.forEach(g => { g.el = elGroupe(g); g.hot = false; g.open = false; g.bgOpen = false; g.bl = -1; track.appendChild(g.el); });
+            L = { trackIndex, groups, box, track, target: 0, base: 0, off: 0, user: false, stagger: false, dirty: true, anchor: 100 };
+            mesurer(); relayout(); appliquer();
+            requestAnimationFrame(() => requestAnimationFrame(() => track.classList.remove("no-anim")));
+            const refit = () => {
+                if (!L || L.track !== track) return;
+                track.classList.add("no-anim");
+                mesurer(); relayout(); appliquer();
+                clearTimeout(L.rt);
+                L.rt = setTimeout(() => track.classList.remove("no-anim"), 150);
+            };
+            L.ro = new ResizeObserver(refit);
+            L.ro.observe(box);
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+        }
 
         window.ouvrirParolesActives = function () {
             if (indexPisteActive === null) return;
@@ -839,97 +1590,42 @@
         window.ouvrirParolesPiste = function (index) {
             const track = pistesGlobales[index];
             if (!track || !track.lyricsText) return;
-
             const trackTitle = track.title || track.name || `Piste ${index + 1}`;
             const trackVersion = track.version || track.versionLine || track.version_line || "";
-            const fullTrackTitle = trackVersion ? `${trackTitle} (${trackVersion})` : trackTitle;
-
-            document.getElementById("lyrics-modal-title").textContent = fullTrackTitle;
+            document.getElementById("lyrics-modal-title").textContent = trackVersion ? `${trackTitle} (${trackVersion})` : trackTitle;
             document.getElementById("lyrics-modal-artist").textContent = infoSortieGlobale.artistName || "Artiste";
+            coverEl.src = pochetteGlobaleUrl;
 
-            parsedLyricsArray = parserLrc(track.lyricsText);
-            const container = document.getElementById("lyrics-container-box");
-            container.innerHTML = "";
-
-            if (parsedLyricsArray.length === 0) {
-                container.innerHTML = `<div style="color:#aaa; font-size:20px; padding:40px;">${track.lyricsText.replace(/\n/g, '<br>')}</div>`;
-            } else {
-                parsedLyricsArray.forEach((item, idx) => {
-                    const div = document.createElement("div");
-                    div.className = "lyric-line";
-                    div.textContent = item.text;
-                    div.dataset.time = item.time;
-                    div.onclick = () => {
-                        if (lecteurActif) lecteurActif.currentTime = item.time;
-                    };
-                    container.appendChild(div);
-                });
+            arreterParoles();
+            const box = document.getElementById("lyrics-container-box");
+            box.innerHTML = "";
+            box.className = "lyrics-body";
+            const raw = track.lyricsText;
+            const groups = (detecterFormatParoles(raw) === "ttml" ? parserTtml(raw) : parserLrc(raw)).sort((a, b) => a.b - b.b);
+            if (!groups.length) {
+                box.classList.add("plain");
+                const d = document.createElement("div");
+                d.className = "plain-text";
+                d.textContent = raw.replace(/<[^>]+>/g, "");
+                box.appendChild(d);
             }
 
-            document.getElementById("lyrics-overlay").classList.add("active");
+            overlayEl.classList.add("active");
+            document.body.style.overflow = "hidden";
+            ajusterFond();
+            if (groups.length) construire(avecInterludes(groups), box, index);
+            if (L && lecteurActif && indexPisteActive === index) brancherAnalyseur(lecteurActif);
+            if (ana.ctx && ana.ctx.state === "suspended") ana.ctx.resume();
+            ouvert = true;
+            if (!rafId) { dernierFrame = performance.now(); rafId = requestAnimationFrame(boucle); }
         };
 
         window.fermerParoles = function () {
-            document.getElementById("lyrics-overlay").classList.remove("active");
+            ouvert = false;
+            arreterParoles();
+            overlayEl.classList.remove("active");
+            document.body.style.overflow = "";
         };
-
-        function parserLrc(rawText) {
-            const lines = rawText.split("\n");
-            const result = [];
-            const timeRegex = /\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?\]/;
-
-            for (const line of lines) {
-                const match = timeRegex.exec(line);
-                if (match) {
-                    const minutes = parseInt(match[1], 10);
-                    const seconds = parseInt(match[2], 10);
-                    const millis = match[3] ? parseInt(match[3].padEnd(3, '0'), 10) / 1000 : 0;
-                    const totalSeconds = minutes * 60 + seconds + millis;
-                    const text = line.replace(timeRegex, "").trim();
-                    if (text) {
-                        result.push({ time: totalSeconds, text });
-                    }
-                }
-            }
-            return result.sort((a, b) => a.time - b.time);
-        }
-
-        function mettreAJourLignesParoles(currentTime) {
-            if (parsedLyricsArray.length === 0) return;
-            const lines = document.querySelectorAll(".lyric-line");
-            if (lines.length === 0) return;
-
-            const adjustedTime = currentTime + 0.4;
-
-            let activeIndex = -1;
-            for (let i = 0; i < parsedLyricsArray.length; i++) {
-                if (adjustedTime >= parsedLyricsArray[i].time) {
-                    activeIndex = i;
-                } else {
-                    break;
-                }
-            }
-
-            lines.forEach((el, idx) => {
-                el.className = "lyric-line";
-
-                if (idx === activeIndex) {
-                    el.classList.add("active");
-                    el.scrollIntoView({ behavior: "smooth", block: "center" });
-                } else {
-                    const distance = Math.abs(idx - activeIndex);
-                    if (distance === 1) {
-                        el.classList.add("dist-1");
-                    } else if (distance === 2) {
-                        el.classList.add("dist-2");
-                    } else if (distance === 3) {
-                        el.classList.add("dist-3");
-                    } else {
-                        el.classList.add("dist-far");
-                    }
-                }
-            });
-        }
 
         loadReleaseDetails();
     </script>

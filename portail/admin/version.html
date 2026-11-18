@@ -65,7 +65,9 @@
 
         .form-group textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 140px;
+            white-space: pre-wrap;
+            line-height: 1.5;
         }
 
         .admin-btn {
@@ -208,6 +210,96 @@
             transform: scale(1);
         }
 
+        /* Rendu Markdown */
+        .md-content {
+            word-break: break-word;
+        }
+
+        .md-content>*:first-child {
+            margin-top: 0;
+        }
+
+        .md-content>*:last-child {
+            margin-bottom: 0;
+        }
+
+        .md-content p {
+            margin: 0 0 8px 0;
+        }
+
+        .md-content h1,
+        .md-content h2,
+        .md-content h3,
+        .md-content h4 {
+            margin: 10px 0 6px;
+            line-height: 1.25;
+            color: #111;
+        }
+
+        .md-content h1 {
+            font-size: 18px;
+        }
+
+        .md-content h2 {
+            font-size: 16px;
+        }
+
+        .md-content h3,
+        .md-content h4 {
+            font-size: 14px;
+        }
+
+        .md-content ul,
+        .md-content ol {
+            margin: 0 0 8px 0;
+            padding-left: 20px;
+        }
+
+        .md-content blockquote {
+            margin: 0 0 8px 0;
+            padding: 4px 12px;
+            border-left: 3px solid #FC8FB0;
+            color: #545454;
+        }
+
+        .md-content code {
+            background: rgba(0, 0, 0, 0.08);
+            padding: 1px 6px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+        }
+
+        .md-content pre {
+            background: rgba(0, 0, 0, 0.08);
+            padding: 10px 12px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 0 0 8px 0;
+        }
+
+        .md-content pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .md-content a {
+            color: #d01159;
+            text-decoration: underline;
+        }
+
+        .md-content hr {
+            border: none;
+            border-top: 1px solid rgba(189, 189, 189, 0.6);
+            margin: 10px 0;
+        }
+
+        .md-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+        }
+
         .modal-actions {
             display: flex;
             justify-content: flex-end;
@@ -250,6 +342,9 @@
                         <textarea id="desc-input"
                             placeholder="Décrivez les nouveautés, correctifs et améliorations apportées..."
                             required></textarea>
+                        <div class="md-hint">Markdown supporté : <code>**gras**</code>, <code>*italique*</code>,
+                            <code>`code`</code>, <code>- liste</code>, <code># titre</code>,
+                            <code>[lien](https://…)</code>. Les sauts de ligne sont conservés.</div>
                     </div>
                     <button type="submit" class="admin-btn">Publier / Mettre à jour</button>
                 </form>
@@ -294,6 +389,7 @@
                 <div class="form-group">
                     <label for="edit-desc-input">Description / Notes</label>
                     <textarea id="edit-desc-input" required></textarea>
+                    <div class="md-hint">Markdown supporté. Les sauts de ligne sont conservés.</div>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="admin-btn-secondary" id="close-modal-btn">Annuler</button>
@@ -310,6 +406,102 @@
         import { api } from "/assets/js/api.js";
         import { initSidebar } from "./sidebar.js";
         import { chargerProfilNavbar } from "./navbar.js";
+
+        // ---------- Markdown (rendu sécurisé, sans dépendance) ----------
+        function escapeHtml(str) {
+            return String(str ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function normaliserTexte(str) {
+            return String(str ?? "").replace(/\r\n?/g, "\n");
+        }
+
+        function markdownInline(text) {
+            const codes = [];
+            // On met le code inline de côté pour ne pas formater son contenu
+            let out = escapeHtml(text).replace(/`([^`\n]+)`/g, (_, c) => {
+                codes.push(c);
+                return `\u0000${codes.length - 1}\u0000`;
+            });
+
+            out = out
+                .replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:)[^\s)]+)\)/g,
+                    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+                .replace(/\*\*([^*\n]+)\*\*|__([^_\n]+)__/g, (_, a, b) => `<strong>${a || b}</strong>`)
+                .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>")
+                .replace(/(^|[^\w_])_([^_\n]+)_(?![\w_])/g, "$1<em>$2</em>")
+                .replace(/~~([^~\n]+)~~/g, "<del>$1</del>");
+
+            return out.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[Number(i)]}</code>`);
+        }
+
+        function renderMarkdown(src) {
+            const lines = normaliserTexte(src).split("\n");
+            const html = [];
+            let i = 0;
+
+            const isBlockStart = (l) =>
+                /^\s*```/.test(l) || /^#{1,4}\s/.test(l) || /^\s*([-*+]|\d+\.)\s+/.test(l) ||
+                /^>\s?/.test(l) || /^\s*(-{3,}|\*{3,})\s*$/.test(l);
+
+            while (i < lines.length) {
+                const line = lines[i];
+
+                if (line.trim() === "") { i++; continue; }
+
+                // Bloc de code
+                if (/^\s*```/.test(line)) {
+                    const buf = [];
+                    i++;
+                    while (i < lines.length && !/^\s*```/.test(lines[i])) buf.push(lines[i++]);
+                    i++;
+                    html.push(`<pre><code>${escapeHtml(buf.join("\n"))}</code></pre>`);
+                    continue;
+                }
+
+                // Titres
+                const h = line.match(/^(#{1,4})\s+(.*)$/);
+                if (h) {
+                    html.push(`<h${h[1].length}>${markdownInline(h[2])}</h${h[1].length}>`);
+                    i++; continue;
+                }
+
+                // Séparateur
+                if (/^\s*(-{3,}|\*{3,})\s*$/.test(line)) { html.push("<hr>"); i++; continue; }
+
+                // Citation
+                if (/^>\s?/.test(line)) {
+                    const buf = [];
+                    while (i < lines.length && /^>\s?/.test(lines[i])) buf.push(lines[i++].replace(/^>\s?/, ""));
+                    html.push(`<blockquote>${buf.map(markdownInline).join("<br>")}</blockquote>`);
+                    continue;
+                }
+
+                // Listes
+                if (/^\s*([-*+]|\d+\.)\s+/.test(line)) {
+                    const ordered = /^\s*\d+\./.test(line);
+                    const items = [];
+                    while (i < lines.length && /^\s*([-*+]|\d+\.)\s+/.test(lines[i])) {
+                        items.push(`<li>${markdownInline(lines[i].replace(/^\s*([-*+]|\d+\.)\s+/, ""))}</li>`);
+                        i++;
+                    }
+                    html.push(`<${ordered ? "ol" : "ul"}>${items.join("")}</${ordered ? "ol" : "ul"}>`);
+                    continue;
+                }
+
+                // Paragraphe : chaque saut de ligne simple devient un <br>
+                const buf = [];
+                while (i < lines.length && lines[i].trim() !== "" && !isBlockStart(lines[i])) buf.push(lines[i++]);
+                html.push(`<p>${buf.map(markdownInline).join("<br>")}</p>`);
+            }
+
+            return html.join("");
+        }
 
         // Injection des composants sidebar et navbar
         async function injecterComposants() {
@@ -358,11 +550,13 @@
 
                 tbody.innerHTML = versionsList.map(item => {
                     let dateFormatted = item.date || item.createdAt || item.created_at || "Date non spécifiée";
+                    const versionName = item.version || item.version_name || 'v1.0.0';
+                    const rawDescription = normaliserTexte(item.description || item.release_notes || '');
                     return `
-                        <tr data-id="${item.id}" data-version="${item.version || item.version_name || ''}" data-description="${encodeURIComponent(item.description || item.release_notes || '')}">
-                            <td><span class="version-tag">${item.version || item.version_name || 'v1.0.0'}</span></td>
-                            <td style="max-width: 350px; line-height: 1.4;">${item.description || item.release_notes || ''}</td>
-                            <td style="color: #545454; font-size: 13px;">${dateFormatted}</td>
+                        <tr data-id="${escapeHtml(item.id)}" data-version="${escapeHtml(versionName)}" data-description="${encodeURIComponent(rawDescription)}">
+                            <td><span class="version-tag">${escapeHtml(versionName)}</span></td>
+                            <td style="max-width: 350px; line-height: 1.4;"><div class="md-content">${renderMarkdown(rawDescription)}</div></td>
+                            <td style="color: #545454; font-size: 13px;">${escapeHtml(dateFormatted)}</td>
                         </tr>
                     `;
                 }).join("");
@@ -378,7 +572,7 @@
 
             } catch (error) {
                 console.error("Erreur D1 :", error);
-                tbody.innerHTML = `<tr><td colspan="3" class="table-loading" style="color: #ef4444;">Erreur de chargement D1 : ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="table-loading" style="color: #ef4444;">Erreur de chargement D1 : ${escapeHtml(error.message)}</td></tr>`;
             }
         }
 
@@ -409,7 +603,7 @@
             e.preventDefault();
             const id = document.getElementById("edit-doc-id").value;
             const newVersion = document.getElementById("edit-version-input").value.trim();
-            const newDesc = document.getElementById("edit-desc-input").value.trim();
+            const newDesc = normaliserTexte(document.getElementById("edit-desc-input").value).trim();
             const modalStatus = document.getElementById("modal-status-msg");
 
             const formattedVersion = newVersion.startsWith('v') ? newVersion : 'v' + newVersion;
@@ -443,7 +637,7 @@
         document.getElementById('version-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             let rawVersion = document.getElementById('version-input').value.trim();
-            const description = document.getElementById('desc-input').value.trim();
+            const description = normaliserTexte(document.getElementById('desc-input').value).trim();
             const statusMsg = document.getElementById('status-msg');
 
             const version = rawVersion.startsWith('v') ? rawVersion : 'v' + rawVersion;

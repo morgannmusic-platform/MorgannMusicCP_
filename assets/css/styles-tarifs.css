@@ -873,3 +873,29 @@ h1 {
         border-radius: 36px !important;
     }
 }
+
+.plan-tag {
+    white-space: nowrap;
+}
+
+.age-requirement-box {
+    background: rgba(252, 143, 176, 0.14);
+    border: 1px solid var(--beige);
+    border-radius: 20px;
+    padding: 0.85rem 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.age-requirement-box strong {
+    color: var(--text);
+    font-size: 0.86rem;
+}
+
+.age-requirement-box span {
+    color: var(--muted);
+}
